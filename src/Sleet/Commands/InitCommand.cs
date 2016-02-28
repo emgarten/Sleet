@@ -55,6 +55,7 @@ namespace Sleet
         {
             var exitCode = 0;
 
+            var token = CancellationToken.None;
             var now = DateTimeOffset.UtcNow.ToString("O");
 
             // Validate source
@@ -63,7 +64,7 @@ namespace Sleet
 
             // Create sleet.settings.json
             var sleetSettings = source.Get("sleet.settings.json");
-            var sleetSettingsFile = await sleetSettings.GetLocal(log, CancellationToken.None);
+            var sleetSettingsFile = await sleetSettings.GetLocal(log, token);
 
             if (!sleetSettingsFile.Exists)
             {
@@ -81,8 +82,22 @@ namespace Sleet
 
             // Create index.json
             var index = source.Get("index.json");
+            var indexFile = await index.GetLocal(log, token);
+
+            if (!indexFile.Exists)
+            {
+                using (var writer = new StreamWriter(indexFile.OpenWrite()))
+                {
+                    var json = new JObject();
+
+                    writer.WriteLine(json.ToString());
+                }
+            }
 
             // Create empty files
+
+            // Save all
+            await source.Commit(log, token);
 
             return exitCode;
         }
