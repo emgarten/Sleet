@@ -1,0 +1,142 @@
+﻿{
+  "@id": "https://api.nuget.org/v3/catalog0/data/2015.12.01.23.51.30/nuget.versioning.3.3.0.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "NuGet",
+  "catalog:commitId": "f403d83a-f58c-44db-973e-7216422914f8",
+  "catalog:commitTimeStamp": "2015-12-01T23:51:30.6037076Z",
+  "copyright": "Copyright .NET Foundation. All rights reserved.",
+  "created": "2015-12-01T23:51:12.103Z",
+  "description": "NuGet's implementation of Semantic Versioning. Extra\\ escaping \" text!",
+  "frameworkAssemblyGroup": {
+    "@id": "https://api.nuget.org/v3/catalog0/data/2015.12.01.23.51.30/nuget.versioning.3.3.0.json#frameworkassemblygroup/.netframework4.5",
+    "assembly": [
+      "mscorlib",
+      "System",
+      "System.Core",
+      "Microsoft.CSharp"
+    ],
+    "targetFramework": ".NETFramework4.5"
+  },
+  "id": "NuGet.Versioning",
+  "isPrerelease": false,
+  "lastEdited": "0001-01-01T00:00:00Z",
+  "licenseNames": "",
+  "licenseReportUrl": "",
+  "licenseUrl": "https://raw.githubusercontent.com/NuGet/NuGet.Versioning/master/LICENSE",
+  "listed": true,
+  "packageHash": "90wrt/mbOApvWYz/skYYS9w2Y1YdGrHp7irAflAWEW4C1NKzFX80XB3h8BaGKJPcZ6gWNZhh+zZ21MdZ8rJETg==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 52919,
+  "projectUrl": "https://github.com/NuGet/NuGet.Versioning/",
+  "published": "2015-12-01T23:51:12.103Z",
+  "requireLicenseAcceptance": false,
+  "verbatimVersion": "3.3.0",
+  "version": "3.3.0",
+  "dependencyGroups": [
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2015.12.01.23.51.30/nuget.versioning.3.3.0.json#dependencygroup/.netframework4.5",
+      "@type": "PackageDependencyGroup",
+      "targetFramework": ".NETFramework4.5"
+    },
+    {
+      "@id": "https://api.nuget.org/v3/catalog0/data/2015.12.01.23.51.30/nuget.versioning.3.3.0.json#dependencygroup/dnxcore5.0",
+      "@type": "PackageDependencyGroup",
+      "dependencies": [
+        {
+          "@id": "https://api.nuget.org/v3/catalog0/data/2015.12.01.23.51.30/nuget.versioning.3.3.0.json#dependencygroup/dnxcore5.0/system.diagnostics.tools",
+          "@type": "PackageDependency",
+          "id": "System.Diagnostics.Tools",
+          "range": "[4.0.0-beta-23109, )"
+        },
+        {
+          "@id": "https://api.nuget.org/v3/catalog0/data/2015.12.01.23.51.30/nuget.versioning.3.3.0.json#dependencygroup/dnxcore5.0/system.diagnostics.debug",
+          "@type": "PackageDependency",
+          "id": "System.Diagnostics.Debug",
+          "range": "[4.0.10-beta-23109, )"
+        },
+        {
+          "@id": "https://api.nuget.org/v3/catalog0/data/2015.12.01.23.51.30/nuget.versioning.3.3.0.json#dependencygroup/dnxcore5.0/system.linq",
+          "@type": "PackageDependency",
+          "id": "System.Linq",
+          "range": "[4.0.0-beta-23109, )"
+        },
+        {
+          "@id": "https://api.nuget.org/v3/catalog0/data/2015.12.01.23.51.30/nuget.versioning.3.3.0.json#dependencygroup/dnxcore5.0/system.resources.resourcemanager",
+          "@type": "PackageDependency",
+          "id": "System.Resources.ResourceManager",
+          "range": "[4.0.0-beta-23109, )"
+        },
+        {
+          "@id": "https://api.nuget.org/v3/catalog0/data/2015.12.01.23.51.30/nuget.versioning.3.3.0.json#dependencygroup/dnxcore5.0/system.reflection",
+          "@type": "PackageDependency",
+          "id": "System.Reflection",
+          "range": "[4.0.10-beta-23109, )"
+        },
+        {
+          "@id": "https://api.nuget.org/v3/catalog0/data/2015.12.01.23.51.30/nuget.versioning.3.3.0.json#dependencygroup/dnxcore5.0/system.runtime.extensions",
+          "@type": "PackageDependency",
+          "id": "System.Runtime.Extensions",
+          "range": "[4.0.10-beta-23109, )"
+        }
+      ],
+      "targetFramework": "DNXCore5.0"
+    }
+  ],
+  "tags": [
+    "semver",
+    "semantic",
+    "versioning"
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    },
+    "isPrerelease": {
+      "@type": "xsd:boolean"
+    },
+    "listed": {
+      "@type": "xsd:boolean"
+    },
+    "requireLicenseAcceptance": {
+      "@type": "xsd:boolean"
+    },
+    "packageSize": {
+      "@type": "xsd:integer"
+    }
+  }
+}
