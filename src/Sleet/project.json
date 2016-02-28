@@ -13,7 +13,10 @@
 
   "dependencies": {
     "json-ld.net": "1.0.4",
-    "Newtonsoft.Json": "8.0.2"
+    "Newtonsoft.Json": "8.0.2",
+    "NuGet.Logging": "3.3.0",
+    "NuGet.Packaging": "3.3.0",
+    "Microsoft.Extensions.CommandLineUtils.Sources": "1.0.0-rc2-16357"
   },
 
   "commands": {

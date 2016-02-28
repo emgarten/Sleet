@@ -116,11 +116,6 @@ namespace Sleet
                     value = value.Replace("\\", "\\\\");
                     value = value.Replace("\"", "\\\"");
 
-                    if (value.IndexOf('\\') > -1)
-                    {
-
-                    }
-
                     return string.Format(
                         CultureInfo.InvariantCulture,
                         "\"{0}\"",
