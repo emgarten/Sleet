@@ -16,7 +16,8 @@
     "Newtonsoft.Json": "8.0.2",
     "NuGet.Logging": "3.3.0",
     "NuGet.Packaging": "3.3.0",
-    "Microsoft.Extensions.CommandLineUtils.Sources": "1.0.0-rc2-16357"
+    "Microsoft.Extensions.CommandLineUtils.Sources": "1.0.0-rc2-16357",
+    "WindowsAzure.Storage": "6.2.2-preview"
   },
 
   "commands": {
