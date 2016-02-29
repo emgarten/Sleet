@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Dnx.Runtime.Common.CommandLine;
-using Newtonsoft.Json.Linq;
 using NuGet.Logging;
 
 namespace Sleet
@@ -24,14 +22,14 @@ namespace Sleet
             var optionConfigFile = cmd.Option("-c|--config", "sleet.json file to read sources and settings from.",
                 CommandOptionType.SingleValue);
 
-            var sourceConfigFile = cmd.Option("-s|--source", "Source from sleet.json.",
+            var sourceName = cmd.Option("-s|--source", "Source from sleet.json.",
                 CommandOptionType.SingleValue);
 
             cmd.HelpOption("-?|-h|--help");
 
             var required = new List<CommandOption>()
             {
-                sourceConfigFile
+                sourceName
             };
 
             cmd.OnExecute(() =>
@@ -47,7 +45,19 @@ namespace Sleet
                     }
                 }
 
-                return RunCore(null, null, log);
+                var settings = LocalSettings.Load(optionConfigFile.Value());
+
+                using (var cache = new LocalCache())
+                {
+                    var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, sourceName.Value());
+
+                    if (fileSystem == null)
+                    {
+                        throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
+                    }
+
+                    return RunCore(settings, fileSystem, log);
+                }
             });
         }
 

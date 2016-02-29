@@ -1,6 +1,6 @@
 {
   "version": "1.0.0-*",
-  "description": "Sleet Console Application",
+  "description": "Sleet",
   "authors": [ "emgarten" ],
   "tags": [ "" ],
   "projectUrl": "",
@@ -35,5 +35,6 @@
         "System.Threading": "4.0.11-beta-23516"
       }
     }
-  }
+  },
+  "userSecretsId": "aspnet5-Sleet-20160228114219"
 }

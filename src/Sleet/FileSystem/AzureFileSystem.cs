@@ -19,18 +19,15 @@ namespace Sleet
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
 
-        public AzureFileSystem(LocalCache cache, Uri root, CloudStorageAccount azureAccount)
+        public AzureFileSystem(LocalCache cache, Uri root, CloudStorageAccount azureAccount, string container)
         {
             _root = new Uri(root.AbsoluteUri.TrimEnd('/') + '/');
             _cache = cache;
             _files = new ConcurrentDictionary<Uri, ISleetFile>();
 
-            // Use the directory of the root url as the container name
-            var containerName = _root.AbsoluteUri.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries).Last();
-
             _azureAccount = azureAccount;
             _client = _azureAccount.CreateCloudBlobClient();
-            _container = _client.GetContainerReference(containerName);
+            _container = _client.GetContainerReference(container);
         }
 
         public ConcurrentDictionary<Uri, ISleetFile> Files
