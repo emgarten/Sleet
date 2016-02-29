@@ -1,0 +1,44 @@
+﻿{
+  "version": "3.0.0",
+  "resources": [
+    {
+      "@id": "$BASEURI$/search/query",
+      "@type": "SearchQueryService/3.0.0-beta",
+      "comment": "Static package list in search result form."
+    },
+    {
+      "@id": "$BASEURI$/autocomplete/query",
+      "@type": "SearchAutocompleteService/3.0.0-beta",
+      "comment": "Powershell autocomplete."
+    },
+    {
+      "@id": "$BASEURI$/registration/",
+      "@type": "RegistrationsBaseUrl/3.0.0-beta",
+      "comment": "Package registrations used for search and packages.config."
+    },
+    {
+      "@id": "$BASEURI$/reportabuse/{id}/{version}/",
+      "@type": "ReportAbuseUriTemplate/3.0.0",
+      "comment": "Report abuse template."
+    },
+    {
+      "@id": "$BASEURI$/flatcontainer/",
+      "@type": "PackageBaseAddress/3.0.0",
+      "comment": "Packages used by project.json"
+    },
+    {
+      "@id": "$BASEURI$/sleet.settings.json",
+      "@type": "http://schema.emgarten.com/sleet#SettingsFile/1.0.0",
+      "comment": "Sleet feed settings."
+    },
+    {
+      "@id": "$BASEURI$/catalog/",
+      "@type": "http://schema.emgarten.com/sleet#Catalog/1.0.0",
+      "comment": "Sleet package catalog."
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/services#",
+    "comment": "http://www.w3.org/2000/01/rdf-schema#comment"
+  }
+}

@@ -65,6 +65,9 @@ namespace Sleet
             if (File.Exists(_localCacheFile.FullName))
             {
                 log.LogInformation($"Pushing {_sourceFile.FullName}");
+
+                _sourceFile.Directory.Create();
+
                 _localCacheFile.CopyTo(_sourceFile.FullName);
             }
             else if (File.Exists(_sourceFile.FullName))

@@ -46,10 +46,6 @@ namespace Sleet
             return formatted;
         }
 
-        private const string StringUri = "http://www.w3.org/2001/XMLSchema#string";
-        private const string BooleanUri = "http://www.w3.org/2001/XMLSchema#boolean";
-        private const string IntegerUri = "http://www.w3.org/2001/XMLSchema#integer";
-
         /// <summary>
         /// Convert ints and bools from strings based on the RDF data type.
         /// </summary>
@@ -70,7 +66,7 @@ namespace Sleet
                         {
                             var type = SafeGetValue(arrayItem, "@type");
 
-                            if (type == null || StringUri.Equals(type, StringComparison.Ordinal))
+                            if (type == null || Constants.StringUri.Equals(type, StringComparison.Ordinal))
                             {
                                 var val = SafeGetValue(arrayItem, "@value");
 
@@ -80,11 +76,11 @@ namespace Sleet
                                     arrayItem["@value"] = val.Replace("\\\\", "\\").Replace("\\\"", "\"");
                                 }
                             }
-                            else if (BooleanUri.Equals(type, StringComparison.Ordinal))
+                            else if (Constants.BooleanUri.Equals(type, StringComparison.Ordinal))
                             {
                                 arrayItem["@value"] = arrayItem["@value"].ToObject<Boolean>();
                             }
-                            else if (IntegerUri.Equals(type, StringComparison.Ordinal))
+                            else if (Constants.IntegerUri.Equals(type, StringComparison.Ordinal))
                             {
                                 arrayItem["@value"] = arrayItem["@value"].ToObject<int>();
                             }

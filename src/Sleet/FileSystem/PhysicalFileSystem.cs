@@ -62,8 +62,8 @@ namespace Sleet
 
         public Uri GetPath(string relativePath)
         {
-            var path = relativePath.TrimStart(new char[] { '/', '\\' });
-            return new Uri(Root, path);
+            var combined = new Uri(Path.GetFullPath(Path.Combine(Root.LocalPath, relativePath)));
+            return combined;
         }
 
         public async Task<bool> Commit(ILogger log, CancellationToken token)
