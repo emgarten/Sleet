@@ -32,7 +32,7 @@ namespace Sleet
                 sourceName
             };
 
-            cmd.OnExecute(() =>
+            cmd.OnExecute(async () =>
             {
                 cmd.ShowRootCommandFullNameAndVersion();
 
@@ -56,7 +56,7 @@ namespace Sleet
                         throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
                     }
 
-                    return RunCore(settings, fileSystem, log);
+                    return await RunCore(settings, fileSystem, log);
                 }
             });
         }
@@ -184,7 +184,8 @@ namespace Sleet
 
             if (!File.Exists(sleetSettingsFile.FullName))
             {
-                using (var writer = new StreamWriter(sleetSettingsFile.OpenWrite()))
+                using (var stream = File.OpenWrite(sleetSettingsFile.FullName))
+                using (var writer = new StreamWriter(stream))
                 {
                     var graph = new BasicGraph();
 

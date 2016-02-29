@@ -41,8 +41,7 @@ namespace Sleet
 
         public async Task<bool> Exists(ILogger log, CancellationToken token)
         {
-            var file = await GetLocal(log, token);
-            return file.Exists;
+            return await _blob.ExistsAsync();
         }
 
         public async Task Get(ILogger log, CancellationToken token)
@@ -82,10 +81,20 @@ namespace Sleet
 
                 using (var cache = _localCacheFile.OpenRead())
                 {
+                    if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal))
+                    {
+                        _blob.Properties.ContentType = "application/json";
+                    }
+                    else if (_blob.Uri.AbsoluteUri.EndsWith(".nupkg", StringComparison.Ordinal))
+                    {
+                        _blob.Properties.ContentType = "application/zip";
+                    }
+
                     await _blob.UploadFromStreamAsync(cache);
-                    _blob.Properties.CacheControl = "no-store";
-                    await _blob.SetPropertiesAsync();
                 }
+
+                _blob.Properties.CacheControl = "no-store";
+                await _blob.SetPropertiesAsync();
             }
             else if (await _blob.ExistsAsync())
             {

@@ -2,7 +2,7 @@
   "profiles": {
     "Sleet": {
       "commandName": "Sleet",
-      "commandLineArgs": "init -c D:\\tmp\\sleet.json -s local"
+      "commandLineArgs": "init -c D:\\tmp\\sleet.json -s cloud"
     }
   }
 }

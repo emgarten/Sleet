@@ -37,10 +37,9 @@ namespace Sleet
             }
         }
 
-        public async Task<bool> Exists(ILogger log, CancellationToken token)
+        public Task<bool> Exists(ILogger log, CancellationToken token)
         {
-            var file = await GetLocal(log, token);
-            return file.Exists;
+            return Task.FromResult(File.Exists(_sourceFile.FullName));
         }
 
         public Task Get(ILogger log, CancellationToken token)

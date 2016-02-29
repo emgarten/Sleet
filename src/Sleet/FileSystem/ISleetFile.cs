@@ -30,6 +30,9 @@ namespace Sleet
         /// </summary>
         Task Push(ILogger log, CancellationToken token);
 
+        /// <summary>
+        /// True if the file exists remotely
+        /// </summary>
         Task<bool> Exists(ILogger log, CancellationToken token);
 
         ISleetFileSystem FileSystem { get; }
