@@ -15,7 +15,7 @@ namespace Sleet
             {
                 return reader.ReadToEnd()
                     .Replace("$BASEURI$", baseUri.AbsoluteUri.TrimEnd(new char[] { '/', '\\' }))
-                    .Replace("$NOW$", now.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"));
+                    .Replace("$NOW$", now.GetDateString());
             }
         }
 

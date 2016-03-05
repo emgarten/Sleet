@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Dnx.Runtime.Common.CommandLine;
+using Newtonsoft.Json.Linq;
 using NuGet.Logging;
 
 namespace Sleet
@@ -85,6 +86,9 @@ namespace Sleet
 
             // Create search
             noChanges &= !await CreateSearch(source, log, token, now);
+
+            // Create pins
+            noChanges &= !await CreatePins(source, log, token, now);
 
             if (noChanges)
             {
@@ -187,19 +191,34 @@ namespace Sleet
                 using (var stream = File.OpenWrite(sleetSettingsFile.FullName))
                 using (var writer = new StreamWriter(stream))
                 {
-                    var graph = new BasicGraph();
+                    var json = JsonUtility.Create(sleetSettings.Path, "Settings");
 
-                    // Root node
-                    graph.Assert(new Triple(sleetSettings.Path, Constants.TypeUri, Constants.GetSleetType("settings")));
+                    json.Add("created", new JValue(now.GetDateString()));
+                    json.Add("lastEdited", new JValue(now.GetDateString()));
 
-                    // Properties
-                    graph.Assert(new Triple(sleetSettings.Path, Constants.GetSleetType("created"), now));
-                    graph.Assert(new Triple(sleetSettings.Path, Constants.GetSleetType("lastEdited"), now));
+                    writer.WriteLine(json.ToString());
+                }
 
-                    var json = GraphUtility.CreateJson(
-                        graph,
-                        GraphUtility.GetContext("Sleet"),
-                        Constants.GetSleetType("settings"));
+                return true;
+            }
+
+            return false;
+        }
+
+        private static async Task<bool> CreatePins(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        {
+            var sleetPins = source.Get("sleet.pins.json");
+            var sleetPinsFile = await sleetPins.GetLocal(log, token);
+
+            if (!File.Exists(sleetPinsFile.FullName))
+            {
+                using (var stream = File.OpenWrite(sleetPinsFile.FullName))
+                using (var writer = new StreamWriter(stream))
+                {
+                    var json = JsonUtility.Create(sleetPins.Path, "Pins");
+
+                    json.Add("created", new JValue(now.GetDateString()));
+                    json.Add("lastEdited", new JValue(now.GetDateString()));
 
                     writer.WriteLine(json.ToString());
                 }
