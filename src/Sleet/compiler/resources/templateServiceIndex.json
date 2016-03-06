@@ -1,5 +1,6 @@
 ﻿{
   "version": "3.0.0",
+  "sleetVersion": "$SLEETVERSION$",
   "resources": [
     {
       "@id": "$BASEURI$/search/query",
@@ -32,6 +33,11 @@
       "comment": "Sleet feed settings."
     },
     {
+      "@id": "$BASEURI$/sleet.pins.json",
+      "@type": "http://schema.emgarten.com/sleet#PinsFile/1.0.0",
+      "comment": "Sleet pinned packages."
+    },
+    {
       "@id": "$BASEURI$/catalog/",
       "@type": "http://schema.emgarten.com/sleet#Catalog/1.0.0",
       "comment": "Sleet package catalog."
@@ -39,6 +45,7 @@
   ],
   "@context": {
     "@vocab": "http://schema.nuget.org/services#",
+    "sleet": "http://schema.emgarten.com/sleet#",
     "comment": "http://www.w3.org/2000/01/rdf-schema#comment"
   }
 }

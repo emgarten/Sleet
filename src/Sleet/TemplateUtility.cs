@@ -14,6 +14,7 @@ namespace Sleet
             using (var reader = new StreamReader(GetResource($"template{name}.json")))
             {
                 return reader.ReadToEnd()
+                    .Replace("$SLEETVERSION$", Constants.SleetVersion)
                     .Replace("$BASEURI$", baseUri.AbsoluteUri.TrimEnd(new char[] { '/', '\\' }))
                     .Replace("$NOW$", now.GetDateString());
             }

@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Dnx.Runtime.Common.CommandLine;
+using NuGet.Logging;
 
 namespace Sleet
 {
     internal static class DeleteCommand
     {
-        public static void Register(CommandLineApplication cmdApp)
+        public static void Register(CommandLineApplication cmdApp, ILogger log)
         {
-            cmdApp.Command("delete", Run, throwOnUnexpectedArg: true);
+            cmdApp.Command("delete", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
         }
 
-        private static void Run(CommandLineApplication cmd)
+        private static void Run(CommandLineApplication cmd, ILogger log)
         {
             cmd.Description = "Delete a package or packages from a feed.";
 

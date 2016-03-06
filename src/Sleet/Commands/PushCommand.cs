@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Dnx.Runtime.Common.CommandLine;
+using NuGet.Logging;
 
 namespace Sleet
 {
     internal static class PushCommand
     {
-        public static void Register(CommandLineApplication cmdApp)
+        public static void Register(CommandLineApplication cmdApp, ILogger log)
         {
-            cmdApp.Command("push", Run, throwOnUnexpectedArg: true);
+            cmdApp.Command("push", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
         }
 
-        private static void Run(CommandLineApplication cmd)
+        private static void Run(CommandLineApplication cmd, ILogger log)
         {
             cmd.Description = "Push a package to a feed.";
 
@@ -35,7 +37,7 @@ namespace Sleet
                 sourceName
             };
 
-            cmd.OnExecute(() =>
+            cmd.OnExecute(async () =>
             {
                 cmd.ShowRootCommandFullNameAndVersion();
 
@@ -48,28 +50,54 @@ namespace Sleet
                     }
                 }
 
-                // Validate package
+                var settings = LocalSettings.Load(optionConfigFile.Value());
 
-                // Validate source
+                using (var cache = new LocalCache())
+                {
+                    var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, sourceName.Value());
 
-                // Check if already initialized
+                    if (fileSystem == null)
+                    {
+                        throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
+                    }
 
-                // Get sleet.settings.json
-
-                // Prune
-
-                // Add to catalog
-
-                // Registration
-
-                // Flat container
-
-                // Search
-
-                // Save all files
-
-                return 0;
+                    return await RunCore(settings, fileSystem, log);
+                }
             });
+        }
+
+        public static async Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, ILogger log)
+        {
+            var exitCode = 0;
+
+            var token = CancellationToken.None;
+            var now = DateTimeOffset.UtcNow;
+
+            // Validate package
+
+            // Validate source
+            await UpgradeUtility.UpgradeIfNeeded(source, log, token);
+
+            // Check if already initialized
+
+            // Get sleet.settings.json
+
+            // Prune
+
+            // Add to catalog
+
+            // Registration
+
+            // Flat container
+
+            // Search
+
+            // Save all files
+
+            // Save all
+            await source.Commit(log, token);
+
+            return exitCode;
         }
     }
 }

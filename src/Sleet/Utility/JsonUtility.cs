@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -53,6 +54,22 @@ namespace Sleet
             json.Add("@type", typeValue);
 
             return json;
+        }
+
+        public static void SaveJson(FileInfo file, JObject json)
+        {
+            using (var writer = new StreamWriter(path: file.FullName, append: false, encoding: Encoding.UTF8))
+            {
+                writer.Write(json.ToString(Formatting.None));
+            }
+        }
+
+        public static JObject LoadJson(FileInfo file)
+        {
+            using (var stream = file.OpenRead())
+            {
+                return LoadJson(stream);
+            }
         }
 
         public static JObject LoadJson(Stream stream)

@@ -41,8 +41,8 @@ namespace Sleet
             app.VersionOption("--version", typeof(Program).GetTypeInfo().Assembly.GetName().Version.ToString());
 
             InitCommand.Register(app, log);
-            PushCommand.Register(app);
-            DeleteCommand.Register(app);
+            PushCommand.Register(app, log);
+            DeleteCommand.Register(app, log);
 
             app.OnExecute(() =>
             {
