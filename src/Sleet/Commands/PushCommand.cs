@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Dnx.Runtime.Common.CommandLine;
 using NuGet.Logging;
+using NuGet.Packaging;
+using NuGet.Packaging.Core;
+using NuGet.Versioning;
 
 namespace Sleet
 {
@@ -61,28 +66,34 @@ namespace Sleet
                         throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
                     }
 
-                    return await RunCore(settings, fileSystem, log);
+                    return await RunCore(settings, fileSystem, argRoot.Values.ToList(), log);
                 }
             });
         }
 
-        public static async Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, ILogger log)
+        public static async Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, List<string> inputs, ILogger log)
         {
             var exitCode = 0;
 
             var token = CancellationToken.None;
             var now = DateTimeOffset.UtcNow;
 
-            // Validate package
+            // Get packages
+            var packages = GetPackageInputs(inputs, log);
+
+            // Check if already initialized
+            await SourceUtility.VerifyInit(source, log, token);
 
             // Validate source
             await UpgradeUtility.UpgradeIfNeeded(source, log, token);
 
-            // Check if already initialized
-
             // Get sleet.settings.json
+            var sourceSettings = new SourceSettings();
+
+            // Start pipeline process, this should include prune
 
             // Prune
+            await PruneForNewInputs(packages, sourceSettings, log, token);
 
             // Add to catalog
 
@@ -98,6 +109,118 @@ namespace Sleet
             await source.Commit(log, token);
 
             return exitCode;
+        }
+
+        private static Task PruneForNewInputs(List<PackageInput> packageInputs, SourceSettings settings, ILogger log, CancellationToken token)
+        {
+            // Check if prune is enabled
+
+            // Get count for each id
+            // Skip packages that already exist
+            // Skip pinned packages
+
+            return Task.FromResult(true);
+        }
+
+        private static List<PackageInput> GetPackageInputs(List<string> inputs, ILogger log)
+        {
+            var packages = new List<PackageInput>();
+
+            // Check inputs
+            if (inputs.Count < 1)
+            {
+                throw new ArgumentException("No packages found.");
+            }
+
+            var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var input in inputs)
+            {
+                var inputFile = Path.GetFullPath(input);
+
+                if (File.Exists(inputFile))
+                {
+                    files.Add(inputFile);
+                }
+                else if (Directory.Exists(inputFile))
+                {
+                    var directoryFiles = Directory.GetFiles(inputFile, "*.nupkg", SearchOption.AllDirectories)
+                        .Where(file => file.IndexOf(".symbols.nupkg") < 0)
+                        .ToList();
+
+                    if (directoryFiles.Count < 1)
+                    {
+                        throw new FileNotFoundException($"Unable to find nupkgs in '{inputFile}'.");
+                    }
+
+                    files.UnionWith(directoryFiles);
+                }
+                else
+                {
+                    throw new FileNotFoundException($"Unable to find '{inputFile}'.");
+                }
+            }
+
+            if (files.Any(file => file.IndexOf(".symbols.nupkg") > -1))
+            {
+                throw new ArgumentException("Symbol packages are not supported.");
+            }
+
+            foreach (var file in files)
+            {
+                // Validate package
+                PackageInput packageInput = null;
+
+                log.LogInformation($"Reading {file}");
+
+                try
+                {
+                    var zip = new ZipArchive(File.OpenRead(file), ZipArchiveMode.Read, leaveOpen: false);
+
+                    var package = new PackageArchiveReader(zip);
+
+                    packageInput = new PackageInput()
+                    {
+                        PackagePath = file,
+                        Identity = package.GetIdentity(),
+                        Package = package,
+                        Zip = zip
+                    };
+                }
+                catch
+                {
+                    log.LogError($"Invalid package '{file}'.");
+                    throw;
+                }
+
+                // Only strict semantic versions are allowed.
+                SemanticVersion strictVersion;
+                if (!SemanticVersion.TryParse(packageInput.Identity.Version.ToString(), out strictVersion))
+                {
+                    throw new InvalidOperationException($"Package '{packageInput.PackagePath}' does not contain a valid semantic version: '{packageInput.Identity.Version.ToString()}'. See https://semver.org/ for details.");
+                }
+
+                // Check for duplicates
+                if (packages.Any(package => package.Identity.Equals(packageInput.Identity)))
+                {
+                    throw new InvalidOperationException($"Duplicate packages detected for '{packageInput.Identity}'.");
+                }
+
+                packages.Add(packageInput);
+            }
+
+            return packages;
+        }
+
+        private class PackageInput
+        {
+            public string PackagePath { get; set; }
+
+            public ZipArchive Zip { get; set; }
+
+            public PackageIdentity Identity { get; set; }
+
+            public PackageArchiveReader Package { get; set; }
         }
     }
 }
