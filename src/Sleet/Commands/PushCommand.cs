@@ -90,20 +90,52 @@ namespace Sleet
             // Get sleet.settings.json
             var sourceSettings = new SourceSettings();
 
-            // Start pipeline process, this should include prune
+            // Settings context used for all operations
+            var context = new SleetContext()
+            {
+                LocalSettings = settings,
+                SourceSettings = sourceSettings,
+                Log = log,
+                Source = source,
+                Token = token
+            };
 
-            // Prune
-            await PruneForNewInputs(packages, sourceSettings, log, token);
+            var catalog = new Catalog(context);
+            var registrations = new Registrations(context);
+            var flatContainer = new FlatContainer(context);
+            var search = new Search(context);
+            var autoComplete = new AutoComplete(context);
+            var pinService = new PinService(context);
 
-            // Add to catalog
+            var pinned = await pinService.GetEntries();
 
-            // Registration
+            foreach (var package in packages)
+            {
+                // Prune
+                // TODO: add pruning and pinning
+                // TODO: make space for
+                // TODO: delete and prune
 
-            // Flat container
+                // Flat container
+                // Add the nupkg first
+                await flatContainer.AddPackage(package);
 
-            // Search
+                // Catalog
+                // Add the package to the catalog
+                await catalog.AddPackage(package);
 
-            // Save all files
+                // Registration
+                // Create a registration for the catalog entry
+                await registrations.AddPackage(package);
+
+                // Search
+                // Add the package to search
+                await search.AddPackage(package);
+
+                // Auto complete
+                // Add the package to auto complete
+                await autoComplete.AddPackage(package);
+            }
 
             // Save all
             await source.Commit(log, token);
@@ -111,18 +143,10 @@ namespace Sleet
             return exitCode;
         }
 
-        private static Task PruneForNewInputs(List<PackageInput> packageInputs, SourceSettings settings, ILogger log, CancellationToken token)
-        {
-            // Check if prune is enabled
-
-            // Get count for each id
-            // Skip packages that already exist
-            // Skip pinned packages
-
-            return Task.FromResult(true);
-        }
-
-        private static List<PackageInput> GetPackageInputs(List<string> inputs, ILogger log)
+        /// <summary>
+        /// Parse input arguments for nupkg paths.
+        /// </summary>
+        public static List<PackageInput> GetPackageInputs(List<string> inputs, ILogger log)
         {
             var packages = new List<PackageInput>();
 
@@ -210,17 +234,6 @@ namespace Sleet
             }
 
             return packages;
-        }
-
-        private class PackageInput
-        {
-            public string PackagePath { get; set; }
-
-            public ZipArchive Zip { get; set; }
-
-            public PackageIdentity Identity { get; set; }
-
-            public PackageArchiveReader Package { get; set; }
         }
     }
 }
