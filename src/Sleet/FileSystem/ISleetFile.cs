@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using NuGet.Logging;
 
 namespace Sleet
@@ -16,14 +17,14 @@ namespace Sleet
         Uri Path { get; }
 
         /// <summary>
-        /// Retrieve the local copy which can be used for reading and writing.
+        /// Retrieve the local copy which can be used for reading.
         /// </summary>
-        Task<FileInfo> GetLocal(ILogger log, CancellationToken token);
+        Task<FileStream> GetStream(ILogger log, CancellationToken token);
 
         /// <summary>
-        /// Download file
+        /// Overwrite the file with the given stream.
         /// </summary>
-        Task Get(ILogger log, CancellationToken token);
+        Task Write(Stream stream, ILogger log, CancellationToken token);
 
         /// <summary>
         /// Save file
@@ -36,5 +37,11 @@ namespace Sleet
         Task<bool> Exists(ILogger log, CancellationToken token);
 
         ISleetFileSystem FileSystem { get; }
+
+        Task<JObject> GetJson(ILogger log, CancellationToken token);
+
+        Task Write(JObject json, ILogger log, CancellationToken token);
+
+        void Delete(ILogger log, CancellationToken token);
     }
 }

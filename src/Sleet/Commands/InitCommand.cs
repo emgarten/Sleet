@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Dnx.Runtime.Common.CommandLine;
@@ -101,103 +100,59 @@ namespace Sleet
             return exitCode;
         }
 
-        private static async Task<bool> CreateCatalog(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateFromTemplate(
+            ISleetFileSystem source,
+            ILogger log,
+            DateTimeOffset now,
+            string templatePath,
+            string sourcePath,
+            CancellationToken token)
         {
-            var remoteFile = source.Get("catalog/index.json");
-            var localFile = await remoteFile.GetLocal(log, token);
+            var remoteFile = source.Get(sourcePath);
 
-            if (!File.Exists(localFile.FullName))
+            if (!await remoteFile.Exists(log, token))
             {
-                using (var writer = new StreamWriter(localFile.OpenWrite()))
-                {
-                    var json = TemplateUtility.LoadTemplate("CatalogIndex", now, source.Root);
-
-                    writer.WriteLine(json);
-                }
+                var json = TemplateUtility.LoadTemplate(templatePath, now, source.Root);
+                await remoteFile.Write(JObject.Parse(json), log, token);
 
                 return true;
             }
 
             return false;
+        }
+
+        private static async Task<bool> CreateCatalog(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        {
+            return await CreateFromTemplate(source, log, now, "CatalogIndex", "catalog/index.json", token);
         }
 
         private static async Task<bool> CreateAutoComplete(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
-            var remoteFile = source.Get("autocomplete/query");
-            var localFile = await remoteFile.GetLocal(log, token);
-
-            if (!File.Exists(localFile.FullName))
-            {
-                using (var writer = new StreamWriter(localFile.OpenWrite()))
-                {
-                    var json = TemplateUtility.LoadTemplate("AutoComplete", now, source.Root);
-
-                    writer.WriteLine(json);
-                }
-
-                return true;
-            }
-
-            return false;
+            return await CreateFromTemplate(source, log, now, "AutoComplete", "autocomplete/query", token);
         }
 
         private static async Task<bool> CreateSearch(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
-            var remoteFile = source.Get("search/query");
-            var localFile = await remoteFile.GetLocal(log, token);
-
-            if (!File.Exists(localFile.FullName))
-            {
-                using (var writer = new StreamWriter(localFile.OpenWrite()))
-                {
-                    var json = TemplateUtility.LoadTemplate("Search", now, source.Root);
-
-                    writer.WriteLine(json);
-                }
-
-                return true;
-            }
-
-            return false;
+            return await CreateFromTemplate(source, log, now, "Search", "search/query", token);
         }
 
         private static async Task<bool> CreateServiceIndex(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
-            var index = source.Get("index.json");
-            var indexFile = await index.GetLocal(log, token);
-
-            if (!File.Exists(indexFile.FullName))
-            {
-                using (var writer = new StreamWriter(indexFile.OpenWrite()))
-                {
-                    var json = TemplateUtility.LoadTemplate("ServiceIndex", now, source.Root);
-
-                    writer.WriteLine(json);
-                }
-
-                return true;
-            }
-
-            return false;
+            return await CreateFromTemplate(source, log, now, "ServiceIndex", "index.json", token);
         }
 
         private static async Task<bool> CreateSettings(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
             var sleetSettings = source.Get("sleet.settings.json");
-            var sleetSettingsFile = await sleetSettings.GetLocal(log, token);
 
-            if (!File.Exists(sleetSettingsFile.FullName))
+            if (!await sleetSettings.Exists(log, token))
             {
-                using (var stream = File.OpenWrite(sleetSettingsFile.FullName))
-                using (var writer = new StreamWriter(stream))
-                {
-                    var json = JsonUtility.Create(sleetSettings.Path, "Settings");
+                var json = JsonUtility.Create(sleetSettings.Path, "Settings");
 
-                    json.Add("created", new JValue(now.GetDateString()));
-                    json.Add("lastEdited", new JValue(now.GetDateString()));
+                json.Add("created", new JValue(now.GetDateString()));
+                json.Add("lastEdited", new JValue(now.GetDateString()));
 
-                    writer.WriteLine(json.ToString());
-                }
+                await sleetSettings.Write(json, log, token);
 
                 return true;
             }
@@ -208,20 +163,15 @@ namespace Sleet
         private static async Task<bool> CreatePins(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
             var sleetPins = source.Get("sleet.pins.json");
-            var sleetPinsFile = await sleetPins.GetLocal(log, token);
 
-            if (!File.Exists(sleetPinsFile.FullName))
+            if (!await sleetPins.Exists(log, token))
             {
-                using (var stream = File.OpenWrite(sleetPinsFile.FullName))
-                using (var writer = new StreamWriter(stream))
-                {
-                    var json = JsonUtility.Create(sleetPins.Path, "Pins");
+                var json = JsonUtility.Create(sleetPins.Path, "Pins");
 
-                    json.Add("created", new JValue(now.GetDateString()));
-                    json.Add("lastEdited", new JValue(now.GetDateString()));
+                json.Add("created", new JValue(now.GetDateString()));
+                json.Add("lastEdited", new JValue(now.GetDateString()));
 
-                    writer.WriteLine(json.ToString());
-                }
+                await sleetPins.Write(json, log, token);
 
                 return true;
             }

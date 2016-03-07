@@ -42,6 +42,11 @@ namespace Sleet
             throw new NotImplementedException();
         }
 
+        public Task<bool> Exists(PackageIdentity packageIdentity)
+        {
+            throw new NotImplementedException();
+        }
+
         public JObject CreatePackageDetails(Uri iri, PackageInput packageInput)
         {
             throw new NotImplementedException();

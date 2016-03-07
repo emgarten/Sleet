@@ -116,6 +116,11 @@ namespace Sleet
                 // TODO: make space for
                 // TODO: delete and prune
 
+                if (await catalog.Exists(package.Identity))
+                {
+                    await DeleteCommand.Delete(package.Identity, context);
+                }
+
                 // Flat container
                 // Add the nupkg first
                 await flatContainer.AddPackage(package);
@@ -221,7 +226,20 @@ namespace Sleet
                 SemanticVersion strictVersion;
                 if (!SemanticVersion.TryParse(packageInput.Identity.Version.ToString(), out strictVersion))
                 {
-                    throw new InvalidOperationException($"Package '{packageInput.PackagePath}' does not contain a valid semantic version: '{packageInput.Identity.Version.ToString()}'. See https://semver.org/ for details.");
+                    throw new InvalidDataException($"Package '{packageInput.PackagePath}' does not contain a valid semantic version: '{packageInput.Identity.Version.ToString()}'. See https://semver.org/ for details.");
+                }
+
+                // Check for correct nuspec name
+                var nuspecName = packageInput.Identity.Id + ".nuspec";
+                if (packageInput.Zip.GetEntry(nuspecName) == null)
+                {
+                    throw new InvalidDataException($"'{packageInput.PackagePath}' does not contain '{nuspecName}'.");
+                }
+
+                // Check for multiple nuspec files
+                if (packageInput.Zip.Entries.Where(entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)).Count() > 1)
+                {
+                    throw new InvalidDataException($"'{packageInput.PackagePath}' contains multiple nuspecs and cannot be consumed.");
                 }
 
                 // Check for duplicates

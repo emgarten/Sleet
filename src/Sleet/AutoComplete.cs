@@ -20,7 +20,7 @@ namespace Sleet
             throw new NotImplementedException();
         }
 
-        public Task RemovePackage(PackageIdentity packageIdentity)
+        public Task<bool> RemovePackage(PackageIdentity packageIdentity)
         {
             throw new NotImplementedException();
         }

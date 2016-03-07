@@ -58,7 +58,12 @@ namespace Sleet
 
         public static void SaveJson(FileInfo file, JObject json)
         {
-            using (var writer = new StreamWriter(path: file.FullName, append: false, encoding: Encoding.UTF8))
+            if (File.Exists(file.FullName))
+            {
+                File.Delete(file.FullName);
+            }
+
+            using (var writer = new StreamWriter(File.OpenWrite(file.FullName), Encoding.UTF8))
             {
                 writer.Write(json.ToString(Formatting.None));
             }

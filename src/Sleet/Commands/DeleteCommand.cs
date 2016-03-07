@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Dnx.Runtime.Common.CommandLine;
 using NuGet.Logging;
+using NuGet.Packaging.Core;
 
 namespace Sleet
 {
@@ -38,7 +39,7 @@ namespace Sleet
                 packageId
             };
 
-            cmd.OnExecute(() =>
+            cmd.OnExecute(async () =>
             {
                 cmd.ShowRootCommandFullNameAndVersion();
 
@@ -51,24 +52,30 @@ namespace Sleet
                     }
                 }
 
-                // Validate source
+                var settings = LocalSettings.Load(optionConfigFile.Value());
 
-                // Check if already initialized
+                using (var cache = new LocalCache())
+                {
+                    var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, sourceName.Value());
 
-                // Get sleet.settings.json
+                    if (fileSystem == null)
+                    {
+                        throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
+                    }
 
-                // Add remove entry to catalog
-
-                // Remove registration
-
-                // Remove flat container
-
-                // Update search
-
-                // Save all files
-
-                return 0;
+                    return await RunCore(settings, fileSystem, packageId.Value(), version.Value(), log);
+                }
             });
+        }
+
+        public static Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, string packageId, string version, ILogger log)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static Task<bool> Delete(PackageIdentity packageIdentity, SleetContext context)
+        {
+            throw new NotImplementedException();
         }
     }
 }

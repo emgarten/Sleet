@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using NuGet.Logging;
 
 namespace Sleet.Test
@@ -18,6 +19,16 @@ namespace Sleet.Test
         }
 
         public void LogInformation(string data)
+        {
+            Messages.Enqueue(data);
+        }
+
+        public void LogMinimal(string data)
+        {
+            Messages.Enqueue(data);
+        }
+
+        public void LogSummary(string data)
         {
             Messages.Enqueue(data);
         }

@@ -6,68 +6,36 @@ using NuGet.Logging;
 
 namespace Sleet
 {
-    public class PhysicalFile : ISleetFile
+    public class PhysicalFile : FileBase
     {
-        private readonly PhysicalFileSystem _fileSystem;
-        private readonly Uri _path;
-        private readonly FileInfo _localCacheFile;
         private readonly FileInfo _sourceFile;
 
         internal PhysicalFile(PhysicalFileSystem fileSystem, Uri path, FileInfo localCacheFile, FileInfo sourceFile)
+            : base(fileSystem, path, localCacheFile)
         {
-            _fileSystem = fileSystem;
-            _path = path;
-            _localCacheFile = localCacheFile;
             _sourceFile = sourceFile;
         }
 
-        public ISleetFileSystem FileSystem
+        protected override Task CopyFromSource(ILogger log, CancellationToken token)
         {
-            get
-            {
-                return _fileSystem;
-            }
-        }
-
-        public Uri Path
-        {
-            get
-            {
-                return _path;
-            }
-        }
-
-        public Task<bool> Exists(ILogger log, CancellationToken token)
-        {
-            return Task.FromResult(File.Exists(_sourceFile.FullName));
-        }
-
-        public Task Get(ILogger log, CancellationToken token)
-        {
-            if (!File.Exists(_localCacheFile.FullName) && File.Exists(_sourceFile.FullName))
+            if (File.Exists(_sourceFile.FullName))
             {
                 log.LogInformation($"GET {_sourceFile.FullName}");
-                _sourceFile.CopyTo(_localCacheFile.FullName);
+                _sourceFile.CopyTo(LocalCacheFile.FullName);
             }
 
             return Task.FromResult(true);
         }
 
-        public async Task<FileInfo> GetLocal(ILogger log, CancellationToken token)
+        protected override Task CopyToSource(ILogger log, CancellationToken token)
         {
-            await Get(log, token);
-            return _localCacheFile;
-        }
-
-        public Task Push(ILogger log, CancellationToken token)
-        {
-            if (File.Exists(_localCacheFile.FullName))
+            if (File.Exists(LocalCacheFile.FullName))
             {
                 log.LogInformation($"Pushing {_sourceFile.FullName}");
 
                 _sourceFile.Directory.Create();
 
-                _localCacheFile.CopyTo(_sourceFile.FullName);
+                LocalCacheFile.CopyTo(_sourceFile.FullName);
             }
             else if (File.Exists(_sourceFile.FullName))
             {

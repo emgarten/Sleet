@@ -7,79 +7,41 @@ using NuGet.Logging;
 
 namespace Sleet
 {
-    public class AzureFile : ISleetFile
+    public class AzureFile : FileBase
     {
-        private readonly AzureFileSystem _fileSystem;
-        private readonly Uri _path;
-        private readonly FileInfo _localCacheFile;
         private readonly CloudBlockBlob _blob;
-        private bool _isLoaded;
 
         internal AzureFile(AzureFileSystem fileSystem, Uri path, FileInfo localCacheFile, CloudBlockBlob blob)
+            : base(fileSystem, path, localCacheFile)
         {
-            _fileSystem = fileSystem;
-            _path = path;
-            _localCacheFile = localCacheFile;
             _blob = blob;
         }
 
-        public ISleetFileSystem FileSystem
+        protected override async Task CopyFromSource(ILogger log, CancellationToken token)
         {
-            get
+            if (await _blob.ExistsAsync())
             {
-                return _fileSystem;
-            }
-        }
+                log.LogInformation($"GET {_blob.Uri.AbsoluteUri}");
 
-        public Uri Path
-        {
-            get
-            {
-                return _path;
-            }
-        }
-
-        public async Task<bool> Exists(ILogger log, CancellationToken token)
-        {
-            return await _blob.ExistsAsync();
-        }
-
-        public async Task Get(ILogger log, CancellationToken token)
-        {
-            if (!_isLoaded)
-            {
-                if (await _blob.ExistsAsync())
+                if (File.Exists(LocalCacheFile.FullName))
                 {
-                    log.LogInformation($"GET {_blob.Uri.AbsoluteUri}");
-
-                    if (File.Exists(_localCacheFile.FullName))
-                    {
-                        _localCacheFile.Delete();
-                    }
-
-                    using (var cache = _localCacheFile.OpenWrite())
-                    {
-                        await _blob.DownloadToStreamAsync(cache);
-                    }
+                    LocalCacheFile.Delete();
                 }
 
-                _isLoaded = true;
+                using (var cache = File.OpenWrite(LocalCacheFile.FullName))
+                {
+                    await _blob.DownloadToStreamAsync(cache);
+                }
             }
         }
 
-        public async Task<FileInfo> GetLocal(ILogger log, CancellationToken token)
+        protected override async Task CopyToSource(ILogger log, CancellationToken token)
         {
-            await Get(log, token);
-            return _localCacheFile;
-        }
-
-        public async Task Push(ILogger log, CancellationToken token)
-        {
-            if (File.Exists(_localCacheFile.FullName))
+            if (File.Exists(LocalCacheFile.FullName))
             {
                 log.LogInformation($"Pushing {_blob.Uri.AbsoluteUri}");
 
-                using (var cache = _localCacheFile.OpenRead())
+                using (var cache = LocalCacheFile.OpenRead())
                 {
                     if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal))
                     {

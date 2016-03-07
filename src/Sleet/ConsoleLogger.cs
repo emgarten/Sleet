@@ -22,6 +22,16 @@ namespace Sleet
             Log(data);
         }
 
+        public void LogMinimal(string data)
+        {
+            Log(data);
+        }
+
+        public void LogSummary(string data)
+        {
+            throw new NotImplementedException();
+        }
+
         public void LogVerbose(string data)
         {
             Log(data);

@@ -13,9 +13,7 @@ namespace Sleet
         public static async Task<SemanticVersion> GetSleetVersion(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
         {
             var indexPath = fileSystem.Get("index.json");
-            var localFile = await indexPath.GetLocal(log, token);
-
-            var json = JsonUtility.LoadJson(localFile);
+            var json = await indexPath.GetJson(log, token);
             var sleetVersion = json.GetValue("sleet:version")?.ToString();
 
             SemanticVersion version;
@@ -37,12 +35,10 @@ namespace Sleet
                 log.LogInformation($"Upgrading source from {sourceVersion} to {Constants.SleetVersion}.");
 
                 var indexPath = fileSystem.Get("index.json");
-                var localFile = await indexPath.GetLocal(log, token);
-
-                var json = JsonUtility.LoadJson(localFile);
+                var json = await indexPath.GetJson(log, token);
                 json["sleet:version"] = Constants.SleetVersion.ToNormalizedString();
 
-                JsonUtility.SaveJson(localFile, json);
+                await indexPath.Write(json, log, token);
             }
             else if (sourceVersion > Constants.SleetVersion)
             {
