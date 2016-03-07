@@ -79,7 +79,7 @@ namespace Sleet
             var now = DateTimeOffset.UtcNow;
 
             // Get packages
-            var packages = GetPackageInputs(inputs, log);
+            var packages = GetPackageInputs(inputs, now, log);
 
             // Check if already initialized
             await SourceUtility.VerifyInit(source, log, token);
@@ -151,7 +151,7 @@ namespace Sleet
         /// <summary>
         /// Parse input arguments for nupkg paths.
         /// </summary>
-        public static List<PackageInput> GetPackageInputs(List<string> inputs, ILogger log)
+        public static List<PackageInput> GetPackageInputs(List<string> inputs, DateTimeOffset now, ILogger log)
         {
             var packages = new List<PackageInput>();
 
@@ -213,7 +213,8 @@ namespace Sleet
                         PackagePath = file,
                         Identity = package.GetIdentity(),
                         Package = package,
-                        Zip = zip
+                        Zip = zip,
+                        Now = now
                     };
                 }
                 catch
