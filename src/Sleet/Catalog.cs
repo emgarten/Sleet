@@ -26,6 +26,9 @@ namespace Sleet
         public Task AddPackage(PackageInput packageInput)
         {
             // Create package details page
+            var packageDetails = CreatePackageDetails(packageInput);
+            var packageDetailsFile = _context.Source.Get(new Uri(packageDetails["@id"].ToString()));
+            packageDetailsFile.Write(packageDetails, _context.Log, _context.Token);
 
             // Add catalog page entry
 
@@ -61,7 +64,7 @@ namespace Sleet
 
         public JObject CreatePackageDetails(PackageInput packageInput)
         {
-            var now = packageInput.Now;
+            var now = _context.Now;
             var date = now.ToString("yyyy.MM.dd.HH.mm.ss");
             var package = packageInput.Package;
             var nuspec = XDocument.Load(package.GetNuspec());
@@ -70,6 +73,8 @@ namespace Sleet
             var rootUri = new Uri($"{_context.Source.Root}catalog/data/{date}/{packageInput.Identity.Id.ToLowerInvariant()}.{packageInput.Identity.Version.ToNormalizedString().ToLowerInvariant()}.json");
 
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
+            json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
+            json.Add("commitTimeStamp", _context.Now.GetDateString());
 
             var context = JsonUtility.GetContext("Catalog");
             json.Add("@context", context);
@@ -209,7 +214,7 @@ namespace Sleet
                 }
             }
 
-            json.Add("sleet:downloadUrl", packageInput.NupkgUri.AbsoluteUri);
+            json.Add("sleet:packageContent", packageInput.NupkgUri.AbsoluteUri);
 
             // TODO: add files
             // TODO: add sleet properties here such as username

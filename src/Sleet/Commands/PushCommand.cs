@@ -118,7 +118,7 @@ namespace Sleet
 
                 if (await catalog.Exists(package.Identity))
                 {
-                    await DeleteCommand.Delete(package.Identity, context);
+                    throw new InvalidOperationException($"Package already exists: '{package.Identity}'.");
                 }
 
                 // Flat container
@@ -214,7 +214,6 @@ namespace Sleet
                         Identity = package.GetIdentity(),
                         Package = package,
                         Zip = zip,
-                        Now = now
                     };
                 }
                 catch

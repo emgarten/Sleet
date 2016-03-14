@@ -10,8 +10,6 @@ namespace Sleet
 {
     public class PackageInput
     {
-        public DateTimeOffset Now { get; set; }
-
         public string PackagePath { get; set; }
 
         public ZipArchive Zip { get; set; }

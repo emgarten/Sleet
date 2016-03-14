@@ -18,5 +18,9 @@ namespace Sleet
         public ILogger Log { get; set; }
 
         public CancellationToken Token { get; set; }
+
+        public Guid CommitId { get; set; } = new Guid();
+
+        public DateTimeOffset Now { get; set; } = DateTimeOffset.UtcNow;
     }
 }
