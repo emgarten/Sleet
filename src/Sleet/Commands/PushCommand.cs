@@ -44,30 +44,39 @@ namespace Sleet
 
             cmd.OnExecute(async () =>
             {
-                cmd.ShowRootCommandFullNameAndVersion();
-
-                // Validate parameters
-                foreach (var requiredOption in required)
+                try
                 {
-                    if (!requiredOption.HasValue())
+                    cmd.ShowRootCommandFullNameAndVersion();
+
+                    // Validate parameters
+                    foreach (var requiredOption in required)
                     {
-                        throw new ArgumentException($"Missing required parameter --{requiredOption.LongName}.");
-                    }
-                }
-
-                var settings = LocalSettings.Load(optionConfigFile.Value());
-
-                using (var cache = new LocalCache())
-                {
-                    var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, sourceName.Value());
-
-                    if (fileSystem == null)
-                    {
-                        throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
+                        if (!requiredOption.HasValue())
+                        {
+                            throw new ArgumentException($"Missing required parameter --{requiredOption.LongName}.");
+                        }
                     }
 
-                    return await RunCore(settings, fileSystem, argRoot.Values.ToList(), log);
+                    var settings = LocalSettings.Load(optionConfigFile.Value());
+
+                    using (var cache = new LocalCache())
+                    {
+                        var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, sourceName.Value());
+
+                        if (fileSystem == null)
+                        {
+                            throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
+                        }
+
+                        return await RunCore(settings, fileSystem, argRoot.Values.ToList(), log);
+                    }
                 }
+                catch (Exception ex)
+                {
+                    log.LogError(ex.Message);
+                }
+
+                return 1;
             });
         }
 
@@ -107,7 +116,7 @@ namespace Sleet
             var autoComplete = new AutoComplete(context);
             var pinService = new PinService(context);
 
-            var pinned = await pinService.GetEntries();
+            // var pinned = await pinService.GetEntries();
 
             foreach (var package in packages)
             {
@@ -135,11 +144,11 @@ namespace Sleet
 
                 // Search
                 // Add the package to search
-                await search.AddPackage(package);
+                // await search.AddPackage(package);
 
                 // Auto complete
                 // Add the package to auto complete
-                await autoComplete.AddPackage(package);
+                // /await autoComplete.AddPackage(package);
             }
 
             // Save all

@@ -19,7 +19,7 @@ namespace Sleet
 
         public CancellationToken Token { get; set; }
 
-        public Guid CommitId { get; set; } = new Guid();
+        public Guid CommitId { get; set; } = Guid.NewGuid();
 
         public DateTimeOffset Now { get; set; } = DateTimeOffset.UtcNow;
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -35,6 +36,13 @@ namespace Sleet
 
             // Add entry
             var newEntry = await CreateItem(package);
+            var removed = packages.RemoveAll(p => GetPackageVersion(p) == package.Identity.Version);
+
+            if (removed > 0)
+            {
+                _context.Log.LogWarning($"Removed duplicate registration entry for: {package.Identity}");
+            }
+
             packages.Add(newEntry);
 
             // Create index
@@ -132,8 +140,13 @@ namespace Sleet
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
             json.Add("commitTimeStamp", _context.Now.GetDateString());
 
+            var itemsArray = new JArray();
+            json.Add("items", itemsArray);
+            json.Add("count", 1);
+
             // Add everything to a single page
             var pageJson = CreatePage(indexUri, packageDetails);
+            itemsArray.Add(pageJson);
 
             var context = JsonUtility.GetContext("Registration");
             json.Add("@context", context);
@@ -214,6 +227,12 @@ namespace Sleet
             var json = JsonUtility.Create(rootUri, new string[] { "Package", "http://schema.nuget.org/catalog#Permalink" });
 
             var packageDetailsFile = _context.Source.Get(packageInput.PackageDetailsUri);
+
+            if (!await packageDetailsFile.Exists(_context.Log, _context.Token))
+            {
+                throw new FileNotFoundException($"Unable to find {packageDetailsFile.Path.AbsoluteUri}");
+            }
+
             var detailsJson = await packageDetailsFile.GetJson(_context.Log, _context.Token);
 
             json.Add("catalogEntry", packageInput.PackageDetailsUri.AbsoluteUri);
@@ -228,7 +247,7 @@ namespace Sleet
 
             foreach (var fieldName in copyProperties)
             {
-                var catalogProperty = detailsJson[fieldName];
+                var catalogProperty = detailsJson.Property(fieldName);
 
                 if (catalogProperty != null)
                 {
@@ -280,11 +299,10 @@ namespace Sleet
             };
 
             var catalogEntry = new JObject();
-            json.Add("catalogEntry", catalogEntry);
 
             foreach (var fieldName in copyProperties)
             {
-                var catalogProperty = detailsJson[fieldName];
+                var catalogProperty = detailsJson.Property(fieldName);
 
                 if (catalogProperty != null)
                 {
@@ -293,6 +311,7 @@ namespace Sleet
             }
 
             catalogEntry = JsonLDTokenComparer.Format(catalogEntry);
+            json.Add("catalogEntry", catalogEntry);
 
             return JsonLDTokenComparer.Format(json);
         }

@@ -65,7 +65,8 @@ namespace Sleet
 
             using (var writer = new StreamWriter(File.OpenWrite(file.FullName), Encoding.UTF8))
             {
-                writer.Write(json.ToString(Formatting.None));
+                // TODO: make this minified after testing
+                writer.Write(json.ToString(Formatting.Indented));
             }
         }
 

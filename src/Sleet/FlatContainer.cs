@@ -33,12 +33,28 @@ namespace Sleet
             {
                 var path = file.FullName.ToLowerInvariant();
 
-                if (path == "index.json" || path.EndsWith(".nupkg"))
+                if (path.StartsWith("package/")
+                    || path.StartsWith("_rels/")
+                    || path.StartsWith("[content_types].xml"))
+                {
+                    continue;
+                }
+
+                if (path == "index.json"
+                    || path.EndsWith(".nupkg"))
                 {
                     throw new InvalidDataException($"nupkgs may not contain index.json or .nupkg files. Path: '{packageInput.PackagePath}'.");
                 }
 
                 var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, file.FullName));
+
+                using (var stream = file.Open())
+                using (var ms = new MemoryStream())
+                {
+                    stream.CopyTo(ms);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    await entryFile.Write(ms, _context.Log, _context.Token);
+                }
             }
 
             // Update index
@@ -98,25 +114,25 @@ namespace Sleet
             return true;
         }
 
-        public static string GetNupkgPath(PackageIdentity package)
+        public Uri GetNupkgPath(PackageIdentity package)
         {
             var id = package.Id;
             var version = package.Version.ToNormalizedString();
 
-            return $"/flatcontainer/{id}/{version}/{id}.{version}.nupkg".ToLowerInvariant();
+            return _context.Source.GetPath($"/flatcontainer/{id}/{version}/{id}.{version}.nupkg".ToLowerInvariant());
         }
 
-        public static string GetIndexUri(string id)
+        public Uri GetIndexUri(string id)
         {
-            return $"/flatcontainer/{id}/index.json".ToLowerInvariant();
+            return _context.Source.GetPath($"/flatcontainer/{id}/index.json".ToLowerInvariant());
         }
 
-        public static string GetZipFileUri(PackageIdentity package, string filePath)
+        public Uri GetZipFileUri(PackageIdentity package, string filePath)
         {
             var id = package.Id;
             var version = package.Version.ToNormalizedString();
 
-            return $"/flatcontainer/{id}/{version}/{filePath}".ToLowerInvariant();
+            return _context.Source.GetPath($"/flatcontainer/{id}/{version}/{filePath}".ToLowerInvariant());
         }
 
         public async Task<SortedSet<NuGetVersion>> GetVersions(string id)
@@ -124,13 +140,17 @@ namespace Sleet
             var results = new SortedSet<NuGetVersion>();
 
             var file = _context.Source.Get(GetIndexUri(id));
-            var json = await file.GetJson(_context.Log, _context.Token);
 
-            var versionArray = json?.Property("versions")?.Value as JArray;
-
-            if (versionArray != null)
+            if (await file.Exists(_context.Log, _context.Token))
             {
-                results.UnionWith(versionArray.Select(s => NuGetVersion.Parse(s.ToString())));
+                var json = await file.GetJson(_context.Log, _context.Token);
+
+                var versionArray = json?.Property("versions")?.Value as JArray;
+
+                if (versionArray != null)
+                {
+                    results.UnionWith(versionArray.Select(s => NuGetVersion.Parse(s.ToString())));
+                }
             }
 
             return results;

@@ -35,7 +35,23 @@ namespace Sleet
 
                 _sourceFile.Directory.Create();
 
-                LocalCacheFile.CopyTo(_sourceFile.FullName);
+                var tmp = _sourceFile.FullName + ".tmp";
+
+                if (File.Exists(tmp))
+                {
+                    // Clean up tmp file
+                    File.Delete(tmp);
+                }
+
+                LocalCacheFile.CopyTo(tmp);
+
+                if (File.Exists(_sourceFile.FullName))
+                {
+                    // Clean up old file
+                    File.Delete(_sourceFile.FullName);
+                }
+
+                File.Move(tmp, _sourceFile.FullName);
             }
             else if (File.Exists(_sourceFile.FullName))
             {

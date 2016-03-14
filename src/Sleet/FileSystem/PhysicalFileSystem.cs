@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,6 +52,12 @@ namespace Sleet
 
         public ISleetFile Get(Uri path)
         {
+            if (path == null)
+            {
+                Debug.Fail("bad path");
+                throw new ArgumentNullException(nameof(path));
+            }
+
             var file = Files.GetOrAdd(path, (uri) => new PhysicalFile(
                 this,
                 uri,
@@ -62,6 +69,14 @@ namespace Sleet
 
         public Uri GetPath(string relativePath)
         {
+            if (relativePath == null)
+            {
+                Debug.Fail("bad path");
+                throw new ArgumentNullException(nameof(relativePath));
+            }
+
+            relativePath = relativePath.TrimStart(new char[] { '\\', '/' });
+
             var combined = new Uri(Path.GetFullPath(Path.Combine(Root.LocalPath, relativePath)));
             return combined;
         }

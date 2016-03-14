@@ -44,13 +44,14 @@ namespace Sleet
 
                     break;
                 }
-                catch
+                catch (Exception ex)
                 {
                     if (i == 4)
                     {
                         throw;
                     }
 
+                    log.LogVerbose(ex.ToString());
                     log.LogWarning($"Failed to upload '{Path}'. Retrying.");
 
                     Thread.Sleep(5000);

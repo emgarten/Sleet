@@ -34,7 +34,7 @@ namespace Sleet
 
             // Update packageInput catalog url
 
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
 
         public Task<bool> RemovePackage(PackageIdentity package)
@@ -59,7 +59,8 @@ namespace Sleet
 
         public Task<bool> Exists(PackageIdentity packageIdentity)
         {
-            throw new NotImplementedException();
+            // TODO: fix this!
+            return Task.FromResult(false);
         }
 
         public JObject CreatePackageDetails(PackageInput packageInput)
@@ -71,6 +72,7 @@ namespace Sleet
             var nuspecReader = new NuspecReader(nuspec);
 
             var rootUri = new Uri($"{_context.Source.Root}catalog/data/{date}/{packageInput.Identity.Id.ToLowerInvariant()}.{packageInput.Identity.Version.ToNormalizedString().ToLowerInvariant()}.json");
+            packageInput.PackageDetailsUri = rootUri;
 
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
@@ -214,7 +216,7 @@ namespace Sleet
                 }
             }
 
-            json.Add("sleet:packageContent", packageInput.NupkgUri.AbsoluteUri);
+            json.Add("packageContent", packageInput.NupkgUri.AbsoluteUri);
 
             // TODO: add files
             // TODO: add sleet properties here such as username
