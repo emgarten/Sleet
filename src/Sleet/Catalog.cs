@@ -88,7 +88,11 @@ namespace Sleet
                 "description",
                 "iconUrl",
                 "projectUrl",
-                "licenseUrl"
+                "licenseUrl",
+                "language",
+                "summary",
+                "owners",
+                "releaseNotes"
             };
 
             foreach (var propertyName in copyProperties)
