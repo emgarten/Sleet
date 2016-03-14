@@ -23,18 +23,82 @@ namespace Sleet
             _context = context;
         }
 
-        public Task AddPackage(PackageInput packageInput)
+        public async Task AddPackage(PackageInput packageInput)
         {
             // Create package details page
             var packageDetails = CreatePackageDetails(packageInput);
             var packageDetailsFile = _context.Source.Get(new Uri(packageDetails["@id"].ToString()));
-            packageDetailsFile.Write(packageDetails, _context.Log, _context.Token);
+            await packageDetailsFile.Write(packageDetails, _context.Log, _context.Token);
 
             // Add catalog page entry
+            var catalogIndexUri = _context.Source.GetPath("/catalog/index.json");
+            var catalogIndexFile = _context.Source.Get(catalogIndexUri);
+            var catalogIndexJson = await catalogIndexFile.GetJson(_context.Log, _context.Token);
 
-            // Update packageInput catalog url
+            catalogIndexJson["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
+            catalogIndexJson["commitTimeStamp"] = _context.Now.GetDateString();
 
-            return Task.FromResult(true);
+            var pages = GetItems(catalogIndexJson);
+
+            var currentPageUri = GetCurrentPage(catalogIndexJson);
+            var currentPageFile = _context.Source.Get(currentPageUri);
+
+            var pageCommits = new List<JObject>();
+
+            if (await currentPageFile.Exists(_context.Log, _context.Token))
+            {
+                var currentPageJson = await currentPageFile.GetJson(_context.Log, _context.Token);
+
+                pageCommits = GetItems(currentPageJson);
+            }
+            else
+            {
+                var newPage = JsonUtility.Create(currentPageFile.Path, "CatalogPage");
+                newPage["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
+                newPage["commitTimeStamp"] = _context.Now.GetDateString();
+                newPage["count"] = 0;
+                newPage["sleet:pageIndex"] = pages.Count;
+
+                newPage = JsonLDTokenComparer.Format(newPage);
+
+                var pageArray = (JArray)catalogIndexJson["items"];
+                pageArray.Add(newPage);
+
+                // Update pages
+                pages = GetItems(catalogIndexJson);
+            }
+
+            // Create commit
+            var pageCommit = JsonUtility.Create(packageDetailsFile.Path, "nuget:PackageDetails");
+            pageCommit["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
+            pageCommit["commitTimeStamp"] = _context.Now.GetDateString();
+            pageCommit["nuget:id"] = packageInput.Identity.Id;
+            pageCommit["nuget:version"] = packageInput.Identity.Version.ToNormalizedString();
+            pageCommit["sleet:operation"] = "add";
+
+            pageCommits.Add(pageCommit);
+
+            // Write catalog page
+            var pageJson = CreateCatalogPage(catalogIndexUri, currentPageUri, pageCommits);
+
+            await currentPageFile.Write(pageJson, _context.Log, _context.Token);
+
+            // Update index
+            var pageEntry = pages.Where(e => e["@id"].ToString() == currentPageFile.Path.AbsoluteUri).Single();
+            pageEntry["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
+            pageEntry["commitTimeStamp"] = _context.Now.GetDateString();
+            pageEntry["count"] = pageCommits.Count;
+
+            catalogIndexJson["count"] = pages.Count;
+
+            // TODO: set these correctly
+            catalogIndexJson["nuget:lastCreated"] = _context.Now.GetDateString();
+            catalogIndexJson["nuget:lastDeleted"] = _context.Now.GetDateString();
+            catalogIndexJson["nuget:lastEdited"] = _context.Now.GetDateString();
+
+            catalogIndexJson = JsonLDTokenComparer.Format(catalogIndexJson);
+
+            await catalogIndexFile.Write(catalogIndexJson, _context.Log, _context.Token);
         }
 
         public Task<bool> RemovePackage(PackageIdentity package)
@@ -42,25 +106,110 @@ namespace Sleet
             throw new NotImplementedException();
         }
 
-        public Task<List<CatalogEntry>> GetEntries()
+        public JObject CreateCatalogPage(Uri indexUri, Uri rootUri, List<JObject> packageDetails)
         {
-            throw new NotImplementedException();
+            var json = JsonUtility.Create(rootUri, "CatalogPage");
+            json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
+            json.Add("commitTimeStamp", _context.Now.GetDateString());
+            json.Add("count", packageDetails.Count);
+            json.Add("parent", indexUri.AbsoluteUri);
+
+            var itemArray = new JArray();
+            json.Add("items", itemArray);
+
+            foreach (var entry in packageDetails
+                .OrderBy(e => e["commitTimeStamp"].ToObject<DateTimeOffset>())
+                .ThenBy(e => e["@id"].ToString()))
+            {
+                itemArray.Add(entry);
+            }
+
+            var context = JsonUtility.GetContext("CatalogPage");
+            json.Add("@context", context);
+
+            return JsonLDTokenComparer.Format(json);
         }
 
-        public Task<List<CatalogEntry>> GetEntries(string packageId)
+        public Uri GetCurrentPage(JObject indexJson)
         {
-            throw new NotImplementedException();
+            var entries = GetItems(indexJson);
+            var latestId = 0;
+
+            var latest = entries.OrderByDescending(e => e["sleet:pageIndex"].ToObject<int>()).FirstOrDefault();
+
+            if (latest != null)
+            {
+                latestId = latest["sleet:pageIndex"].ToObject<int>();
+
+                if (latest["count"].ToObject<int>() < _context.SourceSettings.CatalogPageSize)
+                {
+                    return new Uri(latest["@id"].ToString());
+                }
+
+                latestId++;
+
+                return _context.Source.GetPath($"/catalog/page.{latestId}.json");
+            }
+             
+            // First page
+            return _context.Source.GetPath($"/catalog/page.{latestId}.json");
         }
 
-        public Task<CatalogEntry> GetEntry(PackageIdentity packageIdentity)
+        /// <summary>
+        /// Get items from a page or index page.
+        /// </summary>
+        public static List<JObject> GetItems(JObject json)
         {
-            throw new NotImplementedException();
+            var result = new List<JObject>();
+            var items = json["items"] as JArray;
+
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    result.Add((JObject)item);
+                }
+            }
+
+            return result;
         }
 
-        public Task<bool> Exists(PackageIdentity packageIdentity)
+        public async Task<bool> Exists(PackageIdentity packageIdentity)
         {
-            // TODO: fix this!
-            return Task.FromResult(false);
+            var mostRecent = await GetLatestEntry(packageIdentity);
+
+            return mostRecent != null && GetOperation(mostRecent) != "remove";
+        }
+
+        public async Task<JObject> GetLatestEntry(PackageIdentity package)
+        {
+            var pages = await GetPages();
+
+            return pages.SelectMany(GetItems).Where(e => GetIdentity(e) == package).OrderByDescending(GetCommitTime).FirstOrDefault();
+        }
+
+        private static DateTimeOffset GetCommitTime(JObject json)
+        {
+            return json["commitTimeStamp"].ToObject<DateTimeOffset>();
+        }
+
+        private static string GetOperation(JObject json)
+        {
+            return json["sleet:operation"].ToObject<string>();
+        }
+
+        private static PackageIdentity GetIdentity(JObject json)
+        {
+            return new PackageIdentity(json["nuget:id"].ToString(), NuGetVersion.Parse(json["nuget:version"].ToString()));
+        }
+
+        public async Task<List<JObject>> GetPages()
+        {
+            var pageTasks = new List<Task<JObject>>();
+
+            await Task.WhenAll(pageTasks);
+
+            return pageTasks.Select(e => e.Result).ToList();
         }
 
         public JObject CreatePackageDetails(PackageInput packageInput)
@@ -77,6 +226,7 @@ namespace Sleet
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
             json.Add("commitTimeStamp", _context.Now.GetDateString());
+            json.Add("sleet:operation", "add");
 
             var context = JsonUtility.GetContext("Catalog");
             json.Add("@context", context);
