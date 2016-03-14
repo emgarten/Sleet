@@ -26,13 +26,13 @@ namespace Sleet.Test
         public string RequireLicenseAcceptance { get; set; }
         public string Tags { get; set; }
         public string DevelopmentDependency { get; set; }
-        public List<PackageDependencyGroup> Dependencies { get; set; }
-        public List<KeyValuePair<string, List<NuGetFramework>>> FrameworkAssemblies { get; set; }
-        public List<ContentFilesEntry> ContentFiles { get; set; }
+        public List<PackageDependencyGroup> Dependencies { get; set; } = new List<PackageDependencyGroup>();
+        public List<KeyValuePair<string, List<NuGetFramework>>> FrameworkAssemblies { get; set; } = new List<KeyValuePair<string, List<NuGetFramework>>>();
+        public List<ContentFilesEntry> ContentFiles { get; set; } = new List<ContentFilesEntry>();
 
         public XDocument Create()
         {
-            var doc = new XDocument();
+            var doc = new XDocument(new XDeclaration("1.0", "utf-8", "no"));
             var package = new XElement(XName.Get("package"));
             var metadata = new XElement(XName.Get("metadata"));
             package.Add(metadata);
@@ -83,7 +83,8 @@ namespace Sleet.Test
                     foreach (var group in Dependencies)
                     {
                         var groupNode = new XElement(XName.Get("group"));
-                        
+                        dependencies.Add(groupNode);
+
                         if (!group.TargetFramework.IsAny)
                         {
                             groupNode.Add(new XAttribute(XName.Get("targetFramework"), group.TargetFramework.GetShortFolderName()));
@@ -105,12 +106,14 @@ namespace Sleet.Test
             if (FrameworkAssemblies.Any())
             {
                 var frameworkAssemblies = new XElement(XName.Get("frameworkAssemblies"));
+                metadata.Add(frameworkAssemblies);
 
                 foreach (var fwa in FrameworkAssemblies)
                 {
                     var fwaNode = new XElement(XName.Get("frameworkAssembly"));
+                    frameworkAssemblies.Add(fwaNode);
                     fwaNode.Add(new XAttribute("assemblyName", fwa.Key));
-                    fwaNode.Add(new XAttribute("targetFramework", string.Join(";", fwa.Value.Select(f => f.GetShortFolderName()))));
+                    fwaNode.Add(new XAttribute("targetFramework", string.Join(",", fwa.Value.Select(f => f.GetShortFolderName()))));
                 }
             }
 
