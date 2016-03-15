@@ -57,7 +57,6 @@ namespace Sleet
                 newPage["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
                 newPage["commitTimeStamp"] = _context.Now.GetDateString();
                 newPage["count"] = 0;
-                newPage["sleet:pageIndex"] = pages.Count;
 
                 newPage = JsonLDTokenComparer.Format(newPage);
 
@@ -133,26 +132,22 @@ namespace Sleet
         public Uri GetCurrentPage(JObject indexJson)
         {
             var entries = GetItems(indexJson);
-            var latestId = 0;
+            var nextId = entries.Count;
 
-            var latest = entries.OrderByDescending(e => e["sleet:pageIndex"].ToObject<int>()).FirstOrDefault();
+            var latest = entries.OrderByDescending(GetCommitTime).FirstOrDefault();
 
             if (latest != null)
             {
-                latestId = latest["sleet:pageIndex"].ToObject<int>();
-
                 if (latest["count"].ToObject<int>() < _context.SourceSettings.CatalogPageSize)
                 {
                     return new Uri(latest["@id"].ToString());
                 }
 
-                latestId++;
-
-                return _context.Source.GetPath($"/catalog/page.{latestId}.json");
+                return _context.Source.GetPath($"/catalog/page.{nextId}.json");
             }
              
             // First page
-            return _context.Source.GetPath($"/catalog/page.{latestId}.json");
+            return _context.Source.GetPath($"/catalog/page.{nextId}.json");
         }
 
         /// <summary>
@@ -368,7 +363,19 @@ namespace Sleet
 
             json.Add("packageContent", packageInput.NupkgUri.AbsoluteUri);
 
-            // TODO: add files
+            // add flatcontainer files
+            var flatContainerFiles = new JArray();
+            json.Add("sleet:flatContainerFiles", flatContainerFiles);
+            var flatFileIndex = 0;
+            foreach (var file in packageInput.FlatContainerFiles.OrderBy(uri => uri.AbsoluteUri))
+            {
+                var fileEntry = JsonUtility.Create(rootUri, $"flatContainerFile/{flatFileIndex}", "sleet:FlatContainerFile");
+                fileEntry.Add("path", file.AbsoluteUri);
+
+                flatContainerFiles.Add(fileEntry);
+                flatFileIndex++;
+            }
+
             // TODO: add sleet properties here such as username
 
             return JsonLDTokenComparer.Format(json);

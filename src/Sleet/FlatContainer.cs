@@ -25,14 +25,19 @@ namespace Sleet
         {
             // Add nupkg
             var nupkgFile = _context.Source.Get(GetNupkgPath(packageInput.Identity));
+            packageInput.FlatContainerFiles.Add(nupkgFile.Path);
 
             await nupkgFile.Write(File.OpenRead(packageInput.PackagePath), _context.Log, _context.Token);
 
             // Add zip files
+            var nuspecFound = false;
+            var nuspecPath = $"{packageInput.Identity.Id}.nuspec".ToLowerInvariant();
+
             foreach (var file in packageInput.Zip.Entries)
             {
                 var path = file.FullName.ToLowerInvariant();
 
+                // Skip OPC files
                 if (path.StartsWith("package/")
                     || path.StartsWith("_rels/")
                     || path.StartsWith("[content_types].xml"))
@@ -40,13 +45,20 @@ namespace Sleet
                     continue;
                 }
 
+                // Disallow packages containing files that will cause collisions
                 if (path == "index.json"
                     || path.EndsWith(".nupkg"))
                 {
                     throw new InvalidDataException($"nupkgs may not contain index.json or .nupkg files. Path: '{packageInput.PackagePath}'.");
                 }
 
+                if (path == nuspecPath)
+                {
+                    nuspecFound = true;
+                }
+
                 var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, file.FullName));
+                packageInput.FlatContainerFiles.Add(entryFile.Path);
 
                 using (var stream = file.Open())
                 using (var ms = new MemoryStream())
@@ -55,6 +67,11 @@ namespace Sleet
                     ms.Seek(0, SeekOrigin.Begin);
                     await entryFile.Write(ms, _context.Log, _context.Token);
                 }
+            }
+
+            if (!nuspecFound)
+            {
+                throw new InvalidDataException($"Unable to find '{nuspecPath}'. Path: '{packageInput.PackagePath}'.");
             }
 
             // Update index

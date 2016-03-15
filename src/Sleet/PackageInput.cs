@@ -24,5 +24,7 @@ namespace Sleet
         public Uri PackageDetailsUri { get; set; }
 
         public Uri RegistrationUri { get; set; }
+
+        public List<Uri> FlatContainerFiles { get; set; } = new List<Uri>();
     }
 }

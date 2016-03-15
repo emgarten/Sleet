@@ -35,6 +35,10 @@
     },
     "catalog:commitTimeStamp": {
       "@type": "xsd:dateTime"
+    },
+    "sleet:flatContainerFiles": {
+      "@id": "sleet:flatContainerFile",
+      "@container": "@set"
     }
   }
 }

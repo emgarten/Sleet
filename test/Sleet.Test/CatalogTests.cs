@@ -125,7 +125,7 @@ namespace Sleet.Test
                     Assert.Equal("tagA", ((JArray)actual["tags"])[0].ToString());
                     Assert.Equal("tagB", ((JArray)actual["tags"])[1].ToString());
                     Assert.Equal("tagC", ((JArray)actual["tags"])[2].ToString());
-                    Assert.True(actual["sleet:packageContent"].ToString().EndsWith(".nupkg"));
+                    Assert.True(actual["packageContent"].ToString().EndsWith(".nupkg"));
 
                     Assert.Null(dependencyGroups[0]["targetFramework"]);
                     Assert.Equal("packageB", ((JArray)dependencyGroups[0]["dependencies"]).Single()["id"]);
@@ -214,7 +214,7 @@ namespace Sleet.Test
                     Assert.Null(actual["title"]);
                     Assert.Equal(testPackage.Nuspec.Id, actual["id"].ToString());
                     Assert.Equal(testPackage.Nuspec.Version, actual["version"].ToString());
-                    Assert.True(actual["sleet:packageContent"].ToString().EndsWith(".nupkg"));
+                    Assert.True(actual["packageContent"].ToString().EndsWith(".nupkg"));
 
                     Assert.Equal(0, dependencyGroups.Count);
                     Assert.Equal(0, frameworkAssemblyGroups.Count);
