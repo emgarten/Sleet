@@ -25,53 +25,29 @@ namespace Sleet
         {
             // Add nupkg
             var nupkgFile = _context.Source.Get(GetNupkgPath(packageInput.Identity));
-            packageInput.FlatContainerFiles.Add(nupkgFile.Path);
 
             await nupkgFile.Write(File.OpenRead(packageInput.PackagePath), _context.Log, _context.Token);
 
-            // Add zip files
-            var nuspecFound = false;
+            // Add nuspec
             var nuspecPath = $"{packageInput.Identity.Id}.nuspec".ToLowerInvariant();
 
-            foreach (var file in packageInput.Zip.Entries)
-            {
-                var path = file.FullName.ToLowerInvariant();
+            var nuspecEntry = packageInput.Zip.Entries
+                .Where(entry => nuspecPath.Equals(nuspecPath, StringComparison.OrdinalIgnoreCase))
+                .FirstOrDefault();
 
-                // Skip OPC files
-                if (path.StartsWith("package/")
-                    || path.StartsWith("_rels/")
-                    || path.StartsWith("[content_types].xml"))
-                {
-                    continue;
-                }
-
-                // Disallow packages containing files that will cause collisions
-                if (path == "index.json"
-                    || path.EndsWith(".nupkg"))
-                {
-                    throw new InvalidDataException($"nupkgs may not contain index.json or .nupkg files. Path: '{packageInput.PackagePath}'.");
-                }
-
-                if (path == nuspecPath)
-                {
-                    nuspecFound = true;
-                }
-
-                var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, file.FullName));
-                packageInput.FlatContainerFiles.Add(entryFile.Path);
-
-                using (var stream = file.Open())
-                using (var ms = new MemoryStream())
-                {
-                    stream.CopyTo(ms);
-                    ms.Seek(0, SeekOrigin.Begin);
-                    await entryFile.Write(ms, _context.Log, _context.Token);
-                }
-            }
-
-            if (!nuspecFound)
+            if (nuspecEntry == null)
             {
                 throw new InvalidDataException($"Unable to find '{nuspecPath}'. Path: '{packageInput.PackagePath}'.");
+            }
+
+            var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, nuspecPath));
+
+            using (var stream = nuspecEntry.Open())
+            using (var ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                await entryFile.Write(ms, _context.Log, _context.Token);
             }
 
             // Update index
