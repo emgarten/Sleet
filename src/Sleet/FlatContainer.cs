@@ -134,7 +134,7 @@ namespace Sleet
         public Uri GetNupkgPath(PackageIdentity package)
         {
             var id = package.Id;
-            var version = package.Version.ToNormalizedString();
+            var version = package.Version.ToIdentityString();
 
             return _context.Source.GetPath($"/flatcontainer/{id}/{version}/{id}.{version}.nupkg".ToLowerInvariant());
         }
@@ -147,7 +147,7 @@ namespace Sleet
         public Uri GetZipFileUri(PackageIdentity package, string filePath)
         {
             var id = package.Id;
-            var version = package.Version.ToNormalizedString();
+            var version = package.Version.ToIdentityString();
 
             return _context.Source.GetPath($"/flatcontainer/{id}/{version}/{filePath}".ToLowerInvariant());
         }
@@ -181,7 +181,7 @@ namespace Sleet
 
             foreach (var version in versions)
             {
-                versionArray.Add(new JValue(version.ToNormalizedString()));
+                versionArray.Add(new JValue(version.ToIdentityString()));
             }
 
             json.Add("versions", versionArray);

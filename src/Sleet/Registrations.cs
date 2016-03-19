@@ -157,8 +157,8 @@ namespace Sleet
         public JObject CreatePage(Uri indexUri, List<JObject> packageDetails)
         {
             var versionSet = new HashSet<NuGetVersion>(packageDetails.Select(GetPackageVersion));
-            var lower = versionSet.Min().ToNormalizedString().ToLowerInvariant();
-            var upper = versionSet.Max().ToNormalizedString().ToLowerInvariant();
+            var lower = versionSet.Min().ToIdentityString().ToLowerInvariant();
+            var upper = versionSet.Max().ToIdentityString().ToLowerInvariant();
 
             var json = JsonUtility.Create(indexUri, $"page/{lower}/{upper}", "catalog:CatalogPage");
 
@@ -217,7 +217,7 @@ namespace Sleet
 
         public Uri GetPackageUri(PackageIdentity package)
         {
-            return new Uri($"{_context.Source.Root}registation/{package.Id.ToLowerInvariant()}/{package.Version.ToNormalizedString().ToLowerInvariant()}.json");
+            return new Uri($"{_context.Source.Root}registation/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
         }
 
         public async Task<JObject> CreatePackageBlob(PackageInput packageInput)

@@ -72,7 +72,7 @@ namespace Sleet
             pageCommit["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
             pageCommit["commitTimeStamp"] = _context.Now.GetDateString();
             pageCommit["nuget:id"] = packageInput.Identity.Id;
-            pageCommit["nuget:version"] = packageInput.Identity.Version.ToNormalizedString();
+            pageCommit["nuget:version"] = packageInput.Identity.Version.ToIdentityString();
             pageCommit["sleet:operation"] = "add";
 
             pageCommits.Add(pageCommit);
@@ -215,7 +215,7 @@ namespace Sleet
             var nuspec = XDocument.Load(package.GetNuspec());
             var nuspecReader = new NuspecReader(nuspec);
 
-            var rootUri = new Uri($"{_context.Source.Root}catalog/data/{date}/{packageInput.Identity.Id.ToLowerInvariant()}.{packageInput.Identity.Version.ToNormalizedString().ToLowerInvariant()}.json");
+            var rootUri = new Uri($"{_context.Source.Root}catalog/data/{date}/{packageInput.Identity.Id.ToLowerInvariant()}.{packageInput.Identity.Version.ToIdentityString().ToLowerInvariant()}.json");
             packageInput.PackageDetailsUri = rootUri;
 
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
@@ -227,7 +227,7 @@ namespace Sleet
             json.Add("@context", context);
 
             json.Add("id", packageInput.Identity.Id);
-            json.Add("version", packageInput.Identity.Version.ToNormalizedString());
+            json.Add("version", packageInput.Identity.Version.ToIdentityString());
             json.Add("verbatimVersion", packageInput.Identity.Version.ToString());
 
             json.Add("created", now.GetDateString());
@@ -287,7 +287,7 @@ namespace Sleet
 
             if (minVersion != null)
             {
-                json.Add("minClientVersion", minVersion.ToNormalizedString());
+                json.Add("minClientVersion", minVersion.ToIdentityString());
             }
 
             // Tags
