@@ -149,7 +149,7 @@ namespace Sleet
 
                 // Auto complete
                 // Add the package to auto complete
-                // await autoComplete.AddPackage(package);
+                await autoComplete.AddPackage(package);
 
                 // Package index
                 await packageIndex.AddPackage(package);

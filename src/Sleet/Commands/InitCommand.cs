@@ -131,7 +131,7 @@ namespace Sleet
 
         private static async Task<bool> CreateAutoComplete(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
-            return await CreateFromTemplate(source, log, now, "AutoComplete", "autocomplete/query", token);
+            return await CreateFromTemplate(source, log, now, "AutoComplete", AutoComplete.FilePath, token);
         }
 
         private static async Task<bool> CreateSearch(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
