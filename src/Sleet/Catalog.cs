@@ -72,7 +72,7 @@ namespace Sleet
             pageCommit["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
             pageCommit["commitTimeStamp"] = _context.Now.GetDateString();
             pageCommit["nuget:id"] = packageInput.Identity.Id;
-            pageCommit["nuget:version"] = packageInput.Identity.Version.ToDisplayString();
+            pageCommit["nuget:version"] = packageInput.Identity.Version.ToFullVersionString();
             pageCommit["sleet:operation"] = "add";
 
             pageCommits.Add(pageCommit);
@@ -89,11 +89,7 @@ namespace Sleet
             pageEntry["count"] = pageCommits.Count;
 
             catalogIndexJson["count"] = pages.Count;
-
-            // TODO: set these correctly
             catalogIndexJson["nuget:lastCreated"] = _context.Now.GetDateString();
-            catalogIndexJson["nuget:lastDeleted"] = _context.Now.GetDateString();
-            catalogIndexJson["nuget:lastEdited"] = _context.Now.GetDateString();
 
             catalogIndexJson = JsonLDTokenComparer.Format(catalogIndexJson);
 
@@ -102,6 +98,8 @@ namespace Sleet
 
         public Task<bool> RemovePackage(PackageIdentity package)
         {
+            // catalogIndexJson["nuget:lastDeleted"] = _context.Now.GetDateString();
+
             throw new NotImplementedException();
         }
 
@@ -227,7 +225,7 @@ namespace Sleet
             json.Add("@context", context);
 
             json.Add("id", packageInput.Identity.Id);
-            json.Add("version", packageInput.Identity.Version.ToDisplayString());
+            json.Add("version", packageInput.Identity.Version.ToFullVersionString());
 
             json.Add("created", now.GetDateString());
             json.Add("lastEdited", "0001-01-01T00:00:00Z");
@@ -378,7 +376,7 @@ namespace Sleet
                 packageEntryIndex++;
             }
 
-            json.Add("sleet:toolVersion", Constants.SleetVersion.ToDisplayString());
+            json.Add("sleet:toolVersion", Constants.SleetVersion.ToFullVersionString());
 
             return JsonLDTokenComparer.Format(json);
         }

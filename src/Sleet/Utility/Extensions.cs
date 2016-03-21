@@ -37,7 +37,7 @@ namespace Sleet
         /// Returns the display version, this contains metadata and is not unique
         /// to the package identity.
         /// </summary>
-        public static string ToDisplayString(this SemanticVersion version)
+        public static string ToFullVersionString(this SemanticVersion version)
         {
             var formatter = new VersionFormatter();
             var format = "V";

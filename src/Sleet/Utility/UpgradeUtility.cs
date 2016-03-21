@@ -34,7 +34,7 @@ namespace Sleet
 
                 var indexPath = fileSystem.Get("index.json");
                 var json = await indexPath.GetJson(log, token);
-                json["sleet:version"] = Constants.SleetVersion.ToDisplayString();
+                json["sleet:version"] = Constants.SleetVersion.ToFullVersionString();
 
                 await indexPath.Write(json, log, token);
             }
