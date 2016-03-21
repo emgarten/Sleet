@@ -26,6 +26,7 @@ namespace Sleet.Test
                 var autoCompleteOutput = new FileInfo(Path.Combine(target.Root, "autocomplete", "query"));
                 var catalogOutput = new FileInfo(Path.Combine(target.Root, "catalog", "index.json"));
                 var searchOutput = new FileInfo(Path.Combine(target.Root, "search", "query"));
+                var packageIndexOutput = new FileInfo(Path.Combine(target.Root, "sleet.packageindex.json"));
 
                 // Act
                 var exitCode = await InitCommandTestHook.RunCore(settings, fileSystem, log);
@@ -38,6 +39,7 @@ namespace Sleet.Test
                 Assert.True(catalogOutput.Exists);
                 Assert.True(searchOutput.Exists);
                 Assert.True(pinsOutput.Exists);
+                Assert.True(packageIndexOutput.Exists);
             }
         }
     }

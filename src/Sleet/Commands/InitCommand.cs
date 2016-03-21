@@ -89,6 +89,9 @@ namespace Sleet
             // Create pins
             noChanges &= !await CreatePins(source, log, token, now);
 
+            // Create package index
+            noChanges &= !await CreatePackageIndex(source, log, token, now);
+
             if (noChanges)
             {
                 throw new InvalidOperationException("Source is already initialized. No actions taken.");
@@ -172,6 +175,27 @@ namespace Sleet
                 json.Add("lastEdited", new JValue(now.GetDateString()));
 
                 await sleetPins.Write(json, log, token);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static async Task<bool> CreatePackageIndex(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        {
+            var packageIndex = source.Get("/sleet.packageindex.json");
+
+            if (!await packageIndex.Exists(log, token))
+            {
+                var json = new JObject();
+
+                json.Add("created", new JValue(now.GetDateString()));
+                json.Add("lastEdited", new JValue(now.GetDateString()));
+
+                json.Add("packages", new JObject());
+
+                await packageIndex.Write(json, log, token);
 
                 return true;
             }

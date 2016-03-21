@@ -38,9 +38,14 @@
       "comment": "Sleet pinned packages."
     },
     {
-      "@id": "$BASEURI$/catalog/",
+      "@id": "$BASEURI$/catalog/index.json",
       "@type": "http://schema.emgarten.com/sleet#Catalog/1.0.0",
       "comment": "Sleet package catalog."
+    },
+    {
+      "@id": "$BASEURI$/sleet.packageindex.json",
+      "@type": "http://schema.emgarten.com/sleet#PackageIndex/1.0.0",
+      "comment": "Sleet package index."
     }
   ],
   "@context": {

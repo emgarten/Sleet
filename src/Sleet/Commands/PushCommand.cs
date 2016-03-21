@@ -115,6 +115,7 @@ namespace Sleet
             var search = new Search(context);
             var autoComplete = new AutoComplete(context);
             var pinService = new PinService(context);
+            var packageIndex = new PackageIndex(context);
 
             // var pinned = await pinService.GetEntries();
 
@@ -148,7 +149,10 @@ namespace Sleet
 
                 // Auto complete
                 // Add the package to auto complete
-                // /await autoComplete.AddPackage(package);
+                // await autoComplete.AddPackage(package);
+
+                // Package index
+                await packageIndex.AddPackage(package);
             }
 
             // Save all
