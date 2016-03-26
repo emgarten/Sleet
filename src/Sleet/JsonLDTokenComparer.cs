@@ -28,7 +28,16 @@ namespace Sleet
             var formatted = new JObject();
             foreach (var child in children)
             {
-                formatted.Add(child);
+                var childObj = child as JObject;
+
+                if (childObj != null)
+                {
+                    formatted.Add(Format(childObj));
+                }
+                else
+                {
+                    formatted.Add(child);
+                }
             }
 
             return formatted;

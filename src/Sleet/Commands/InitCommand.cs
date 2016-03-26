@@ -136,7 +136,7 @@ namespace Sleet
 
         private static async Task<bool> CreateSearch(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
-            return await CreateFromTemplate(source, log, now, "Search", "search/query", token);
+            return await CreateFromTemplate(source, log, now, "Search", Search.FilePath, token);
         }
 
         private static async Task<bool> CreateServiceIndex(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)

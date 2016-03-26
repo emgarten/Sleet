@@ -1,6 +1,7 @@
 ﻿{
   "@context": {
     "@vocab": "http://schema.nuget.org/schema#",
+    "sleet": "http://schema.emgarten.com/sleet#",
     "totalHits": {
       "@type": "http://www.w3.org/2001/XMLSchema#integer"
     }

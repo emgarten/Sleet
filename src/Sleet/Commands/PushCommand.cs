@@ -145,7 +145,7 @@ namespace Sleet
 
                 // Search
                 // Add the package to search
-                // await search.AddPackage(package);
+                await search.AddPackage(package);
 
                 // Auto complete
                 // Add the package to auto complete

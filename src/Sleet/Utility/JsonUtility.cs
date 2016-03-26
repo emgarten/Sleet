@@ -104,5 +104,43 @@ namespace Sleet
             var path = $"Sleet.compiler.resources.{name}";
             return typeof(Program).GetTypeInfo().Assembly.GetManifestResourceStream(path);
         }
+
+        /// <summary>
+        /// Copy properties from one JObject to another.
+        /// </summary>
+        public static void CopyProperties(JObject source, JObject destination, IEnumerable<string> properties, bool skipEmpty)
+        {
+            foreach (var fieldName in properties)
+            {
+                var sourceProperty = source.Property(fieldName);
+
+                if (sourceProperty != null)
+                {
+                    destination.Add(sourceProperty);
+                }
+                else if (!skipEmpty)
+                {
+                    destination.Add(fieldName, string.Empty);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Add an array with an empty item to all properties if they do not exist
+        /// </summary>
+        public static void RequireArrayWithEmptyString(JObject json, IEnumerable<string> properties)
+        {
+            foreach (var name in properties)
+            {
+                var property = json.Property(name);
+
+                var array = property?.Value as JArray;
+
+                if (array == null || array.Count < 1)
+                {
+                    json[name] = new JArray(new[] { string.Empty });
+                }
+            }
+        }
     }
 }

@@ -215,9 +215,19 @@ namespace Sleet
             return new Uri($"{_context.Source.Root}registation/{package.Id.ToLowerInvariant()}/index.json");
         }
 
+        public static Uri GetIndexUri(Uri sourceRoot, string packageId)
+        {
+            return new Uri($"{sourceRoot.AbsoluteUri}registation/{packageId.ToLowerInvariant()}/index.json");
+        }
+
         public Uri GetPackageUri(PackageIdentity package)
         {
             return new Uri($"{_context.Source.Root}registation/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
+        }
+
+        public static Uri GetPackageUri(Uri sourceRoot, PackageIdentity package)
+        {
+            return new Uri($"{sourceRoot.AbsoluteUri}registation/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
         }
 
         public async Task<JObject> CreatePackageBlob(PackageInput packageInput)
@@ -300,15 +310,7 @@ namespace Sleet
 
             var catalogEntry = new JObject();
 
-            foreach (var fieldName in copyProperties)
-            {
-                var catalogProperty = detailsJson.Property(fieldName);
-
-                if (catalogProperty != null)
-                {
-                    catalogEntry.Add(catalogProperty);
-                }
-            }
+            JsonUtility.CopyProperties(catalogEntry, json, copyProperties, skipEmpty: true);
 
             catalogEntry = JsonLDTokenComparer.Format(catalogEntry);
             json.Add("catalogEntry", catalogEntry);
