@@ -255,15 +255,7 @@ namespace Sleet
                 "published",
             };
 
-            foreach (var fieldName in copyProperties)
-            {
-                var catalogProperty = detailsJson.Property(fieldName);
-
-                if (catalogProperty != null)
-                {
-                    json.Add(catalogProperty);
-                }
-            }
+            JsonUtility.CopyProperties(detailsJson, json, copyProperties, skipEmpty: true);
 
             var context = JsonUtility.GetContext("Package");
             json.Add("@context", context);
@@ -310,9 +302,8 @@ namespace Sleet
 
             var catalogEntry = new JObject();
 
-            JsonUtility.CopyProperties(catalogEntry, json, copyProperties, skipEmpty: true);
+            JsonUtility.CopyProperties(detailsJson, catalogEntry, copyProperties, skipEmpty: true);
 
-            catalogEntry = JsonLDTokenComparer.Format(catalogEntry);
             json.Add("catalogEntry", catalogEntry);
 
             return JsonLDTokenComparer.Format(json);

@@ -30,6 +30,9 @@ namespace Sleet
             var sourceName = cmd.Option("-s|--source", "Source name from sleet.json.",
                             CommandOptionType.SingleValue);
 
+            var forceName = cmd.Option("-f|--force", "Overwrite existing packages.",
+                            CommandOptionType.NoValue);
+
             var argRoot = cmd.Argument(
                 "[root]",
                 "Paths to individual packages or directories containing packages.",
@@ -68,19 +71,20 @@ namespace Sleet
                             throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
                         }
 
-                        return await RunCore(settings, fileSystem, argRoot.Values.ToList(), log);
+                        return await RunCore(settings, fileSystem, argRoot.Values.ToList(), forceName.HasValue(), log);
                     }
                 }
                 catch (Exception ex)
                 {
                     log.LogError(ex.Message);
+                    log.LogDebug(ex.ToString());
                 }
 
                 return 1;
             });
         }
 
-        public static async Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, List<string> inputs, ILogger log)
+        public static async Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, ILogger log)
         {
             var exitCode = 0;
 
@@ -126,9 +130,16 @@ namespace Sleet
                 // TODO: make space for
                 // TODO: delete and prune
 
-                if (await catalog.Exists(package.Identity))
+                if (await packageIndex.Exists(package.Identity))
                 {
-                    throw new InvalidOperationException($"Package already exists: '{package.Identity}'.");
+                    if (force)
+                    {
+                        // TODO: delete
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Package already exists: '{package.Identity}'.");
+                    }
                 }
 
                 // Flat container

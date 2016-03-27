@@ -29,6 +29,7 @@ namespace Sleet
             foreach (var child in children)
             {
                 var childObj = child as JObject;
+                var childArray = child as JArray;
 
                 if (childObj != null)
                 {

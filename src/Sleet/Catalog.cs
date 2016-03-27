@@ -143,7 +143,7 @@ namespace Sleet
 
                 return _context.Source.GetPath($"/catalog/page.{nextId}.json");
             }
-             
+
             // First page
             return _context.Source.GetPath($"/catalog/page.{nextId}.json");
         }
@@ -178,7 +178,33 @@ namespace Sleet
         {
             var pages = await GetPages();
 
-            return pages.SelectMany(GetItems).Where(e => GetIdentity(e) == package).OrderByDescending(GetCommitTime).FirstOrDefault();
+            foreach (var item in pages.SelectMany(GetItems).OrderByDescending(GetCommitTime))
+            {
+                var itemId = GetIdentity(item);
+
+                if (itemId.Equals(package))
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
+        public async Task<JObject> GetLatestPackageDetails(PackageIdentity package)
+        {
+            JObject json = null;
+            var latestEntry = await GetLatestEntry(package);
+
+            if (latestEntry!= null && latestEntry["sleet:operation"].ToObject<string>() == "add")
+            {
+                var detailsUri = latestEntry["@id"].ToObject<Uri>();
+
+                var file = _context.Source.Get(detailsUri);
+                json = await file.GetJson(_context.Log, _context.Token);
+            }
+
+            return json;
         }
 
         private static DateTimeOffset GetCommitTime(JObject json)
@@ -200,6 +226,21 @@ namespace Sleet
         {
             var pageTasks = new List<Task<JObject>>();
 
+            var catalogIndexUri = _context.Source.GetPath("/catalog/index.json");
+            var catalogIndexFile = _context.Source.Get(catalogIndexUri);
+            var catalogIndexJson = await catalogIndexFile.GetJson(_context.Log, _context.Token);
+
+            var items = (JArray)catalogIndexJson["items"];
+
+            foreach (var item in items)
+            {
+                var itemUrl = item["@id"].ToObject<Uri>();
+
+                var itemFile = _context.Source.Get(itemUrl);
+
+                pageTasks.Add(itemFile.GetJson(_context.Log, _context.Token));
+            }
+
             await Task.WhenAll(pageTasks);
 
             return pageTasks.Select(e => e.Result).ToList();
@@ -208,12 +249,13 @@ namespace Sleet
         public JObject CreatePackageDetails(PackageInput packageInput)
         {
             var now = _context.Now;
-            var date = now.ToString("yyyy.MM.dd.HH.mm.ss");
             var package = packageInput.Package;
             var nuspec = XDocument.Load(package.GetNuspec());
             var nuspecReader = new NuspecReader(nuspec);
 
-            var rootUri = new Uri($"{_context.Source.Root}catalog/data/{date}/{packageInput.Identity.Id.ToLowerInvariant()}.{packageInput.Identity.Version.ToIdentityString().ToLowerInvariant()}.json");
+            var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
+
+            var rootUri = new Uri($"{_context.Source.Root}catalog/data/{pageId}.json");
             packageInput.PackageDetailsUri = rootUri;
 
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });

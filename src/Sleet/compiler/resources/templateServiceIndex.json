@@ -1,6 +1,6 @@
 ﻿{
   "version": "3.0.0",
-  "sleet:Version": "$SLEETVERSION$",
+  "sleet:version": "$SLEETVERSION$",
   "resources": [
     {
       "@id": "$BASEURI$/search/query",

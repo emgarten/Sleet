@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,7 +117,9 @@ namespace Sleet
             var registrationUri = Registrations.GetIndexUri(_context.Source.Root, package.Id);
 
             var catalog = new Catalog(_context);
-            var catalogEntry = await catalog.GetLatestEntry(latestIdentity);
+            var catalogEntry = await catalog.GetLatestPackageDetails(latestIdentity);
+
+            Debug.Assert(catalogEntry != null);
 
             packageEntry.Add("registration", registrationUri.AbsoluteUri);
 
@@ -141,6 +144,8 @@ namespace Sleet
             packageEntry.Add("totalDownloads", 0);
 
             var versionsArray = new JArray();
+            packageEntry.Add("versions", versionsArray);
+
             foreach (var version in versions.OrderBy(v => v))
             {
                 var versionIdentity = new PackageIdentity(package.Id, version);
@@ -152,7 +157,7 @@ namespace Sleet
                 versionsArray.Add(versionEntry);
             }
 
-            return packageEntry;
+            return JsonLDTokenComparer.Format(packageEntry);
         }
 
         private List<JObject> GetData(JObject page)
