@@ -9,9 +9,11 @@ using NuGet.Versioning;
 
 namespace Sleet
 {
-    public class Registrations : ISleetService
+    public class Registrations : ISleetService, IPackageIdLookup
     {
         private readonly SleetContext _context;
+
+        public string Name { get; } = nameof(Registrations);
 
         public Registrations(SleetContext context)
         {
@@ -61,7 +63,7 @@ namespace Sleet
             await packageFile.Write(packageJson, _context.Log, _context.Token);
         }
 
-        public async Task<bool> RemovePackage(PackageIdentity package)
+        public async Task RemovePackage(PackageIdentity package)
         {
             var found = false;
 
@@ -115,8 +117,6 @@ namespace Sleet
                     rootFile.Delete(_context.Log, _context.Token);
                 }
             }
-
-            return found;
         }
 
         /// <summary>
@@ -307,6 +307,11 @@ namespace Sleet
             json.Add("catalogEntry", catalogEntry);
 
             return JsonLDTokenComparer.Format(json);
+        }
+
+        public Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

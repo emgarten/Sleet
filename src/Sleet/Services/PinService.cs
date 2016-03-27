@@ -6,8 +6,10 @@ using NuGet.Packaging.Core;
 
 namespace Sleet
 {
-    public class PinService : ISleetService
+    public class PinService : ISleetService, IPackagesLookup
     {
+        public string Name { get; } = nameof(PinService);
+
         public PinService(SleetContext context)
         {
 
@@ -18,17 +20,17 @@ namespace Sleet
             throw new NotImplementedException();
         }
 
-        public Task<bool> RemovePackage(PackageIdentity package)
+        public Task RemovePackage(PackageIdentity package)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<PackageIdentity>> GetEntries()
+        public Task<ISet<PackageIdentity>> GetPackages()
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<PackageIdentity>> GetEntries(string packageId)
+        public Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
         {
             throw new NotImplementedException();
         }

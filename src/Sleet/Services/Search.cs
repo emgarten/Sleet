@@ -11,10 +11,12 @@ using NuGet.Versioning;
 
 namespace Sleet
 {
-    public class Search : ISleetService
+    public class Search : ISleetService, IRootIndex, IPackagesLookup
     {
         private readonly SleetContext _context;
-        public static readonly string FilePath = "search/query";
+        public string RootIndex { get; } = "search/query";
+
+        public string Name { get; } = nameof(Search);
 
         public Search(SleetContext context)
         {
@@ -23,7 +25,7 @@ namespace Sleet
 
         public async Task AddPackage(PackageInput packageInput)
         {
-            var file = SearchFile;
+            var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
 
             var data = GetData(json);
@@ -38,17 +40,17 @@ namespace Sleet
             await file.Write(json, _context.Log, _context.Token);
         }
 
-        public async Task<bool> RemovePackage(PackageIdentity packageIdentity)
+        public async Task RemovePackage(PackageIdentity packageIdentity)
         {
             var packageIndex = new PackageIndex(_context);
             var versions = await packageIndex.GetPackagesWithId(packageIdentity.Id);
 
             if (!versions.Contains(packageIdentity.Version))
             {
-                return false;
+                return;
             }
 
-            var file = SearchFile;
+            var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
 
             var data = GetData(json);
@@ -65,15 +67,13 @@ namespace Sleet
             json = CreatePage(data);
 
             await file.Write(json, _context.Log, _context.Token);
-
-            return true;
         }
 
-        private ISleetFile SearchFile
+        public ISleetFile RootIndexFile
         {
             get
             {
-                var file = _context.Source.Get(FilePath);
+                var file = _context.Source.Get(RootIndex);
                 return file;
             }
         }
@@ -180,6 +180,16 @@ namespace Sleet
         private PackageIdentity GetIdentity(JObject dataEntry)
         {
             return new PackageIdentity(dataEntry["id"].ToObject<string>(), NuGetVersion.Parse(dataEntry["version"].ToObject<string>()));
+        }
+
+        public Task<ISet<PackageIdentity>> GetPackages()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

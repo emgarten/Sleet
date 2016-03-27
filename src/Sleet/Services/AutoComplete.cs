@@ -9,10 +9,21 @@ using NuGet.Packaging.Core;
 
 namespace Sleet
 {
-    public class AutoComplete : ISleetService
+    public class AutoComplete : ISleetService, IRootIndex
     {
         private readonly SleetContext _context;
-        public static readonly string FilePath = "autocomplete/query";
+
+        public string Name { get; } = nameof(AutoComplete);
+
+        public string RootIndex { get; } = "autocomplete/query";
+
+        public ISleetFile RootIndexFile
+        {
+            get
+            {
+                return _context.Source.Get(RootIndex);
+            }
+        }
 
         public AutoComplete(SleetContext context)
         {
@@ -21,7 +32,7 @@ namespace Sleet
 
         public async Task AddPackage(PackageInput packageInput)
         {
-            var file = _context.Source.Get(FilePath);
+            var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
 
             var data = json["data"] as JArray;
@@ -45,9 +56,9 @@ namespace Sleet
             await file.Write(json, _context.Log, _context.Token);
         }
 
-        public async Task<bool> RemovePackage(PackageIdentity packageIdentity)
+        public async Task RemovePackage(PackageIdentity packageIdentity)
         {
-            var file = _context.Source.Get(FilePath);
+            var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
 
             var data = json["data"] as JArray;
@@ -69,11 +80,20 @@ namespace Sleet
                 json = JsonLDTokenComparer.Format(json);
 
                 await file.Write(json, _context.Log, _context.Token);
-
-                return true;
             }
+        }
 
-            return false;
+        public async Task<ISet<string>> GetPackageIds()
+        {
+            var file = RootIndexFile;
+            var json = await file.GetJson(_context.Log, _context.Token);
+
+            var data = json["data"] as JArray;
+            var ids = new HashSet<string>(
+                data.Select(e => e.ToObject<string>()),
+                StringComparer.OrdinalIgnoreCase);
+
+            return ids;
         }
     }
 }

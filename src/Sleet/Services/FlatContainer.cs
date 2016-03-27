@@ -12,9 +12,11 @@ using NuGet.Versioning;
 
 namespace Sleet
 {
-    public class FlatContainer : ISleetService
+    public class FlatContainer : ISleetService, IPackageIdLookup
     {
         private readonly SleetContext _context;
+
+        public string Name { get; } = nameof(FlatContainer);
 
         public FlatContainer(SleetContext context)
         {
@@ -163,6 +165,16 @@ namespace Sleet
             json.Add("versions", versionArray);
 
             return json;
+        }
+
+        Task ISleetService.RemovePackage(PackageIdentity package)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -14,9 +14,21 @@ using NuGet.Versioning;
 
 namespace Sleet
 {
-    public class Catalog : ISleetService
+    public class Catalog : ISleetService, IPackagesLookup, IRootIndex
     {
         private readonly SleetContext _context;
+
+        public string Name { get; } = "Catalog";
+
+        public string RootIndex { get; } = "catalog/index.json";
+
+        public ISleetFile RootIndexFile
+        {
+            get
+            {
+                return _context.Source.Get(RootIndex);
+            }
+        }
 
         public Catalog(SleetContext context)
         {
@@ -96,7 +108,7 @@ namespace Sleet
             await catalogIndexFile.Write(catalogIndexJson, _context.Log, _context.Token);
         }
 
-        public Task<bool> RemovePackage(PackageIdentity package)
+        public Task RemovePackage(PackageIdentity package)
         {
             // catalogIndexJson["nuget:lastDeleted"] = _context.Now.GetDateString();
 
@@ -436,6 +448,16 @@ namespace Sleet
                 .Where(pair => StringComparer.OrdinalIgnoreCase.Equals(pair.Key, property))
                 .FirstOrDefault()
                 .Value ?? string.Empty;
+        }
+
+        public Task<ISet<PackageIdentity>> GetPackages()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        {
+            throw new NotImplementedException();
         }
     }
 }
