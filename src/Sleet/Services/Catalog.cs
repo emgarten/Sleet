@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
-using NuGet.Logging;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
@@ -22,6 +20,11 @@ namespace Sleet
 
         public string RootIndex { get; } = "catalog/index.json";
 
+        public Catalog(SleetContext context)
+        {
+            _context = context;
+        }
+
         public ISleetFile RootIndexFile
         {
             get
@@ -30,11 +33,9 @@ namespace Sleet
             }
         }
 
-        public Catalog(SleetContext context)
-        {
-            _context = context;
-        }
-
+        /// <summary>
+        /// Add a package to the catalog.
+        /// </summary>
         public async Task AddPackage(PackageInput packageInput)
         {
             // Create package details page
@@ -115,6 +116,9 @@ namespace Sleet
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Catalog index page.
+        /// </summary>
         public JObject CreateCatalogPage(Uri indexUri, Uri rootUri, List<JObject> packageDetails)
         {
             var json = JsonUtility.Create(rootUri, "CatalogPage");
@@ -139,6 +143,9 @@ namespace Sleet
             return JsonLDTokenComparer.Format(json);
         }
 
+        /// <summary>
+        /// Uri of the latest index page.
+        /// </summary>
         public Uri GetCurrentPage(JObject indexJson)
         {
             var entries = GetItems(indexJson);
@@ -179,61 +186,19 @@ namespace Sleet
             return result;
         }
 
+        /// <summary>
+        /// True if the package exists in the catalog and has not been removed.
+        /// </summary>
         public async Task<bool> Exists(PackageIdentity packageIdentity)
         {
             var mostRecent = await GetLatestEntry(packageIdentity);
 
-            return mostRecent != null && GetOperation(mostRecent) != "remove";
+            return mostRecent?.Operation == SleetOperation.Add;
         }
 
-        public async Task<JObject> GetLatestEntry(PackageIdentity package)
-        {
-            var pages = await GetPages();
-
-            foreach (var item in pages.SelectMany(GetItems).OrderByDescending(GetCommitTime))
-            {
-                var itemId = GetIdentity(item);
-
-                if (itemId.Equals(package))
-                {
-                    return item;
-                }
-            }
-
-            return null;
-        }
-
-        public async Task<JObject> GetLatestPackageDetails(PackageIdentity package)
-        {
-            JObject json = null;
-            var latestEntry = await GetLatestEntry(package);
-
-            if (latestEntry!= null && latestEntry["sleet:operation"].ToObject<string>() == "add")
-            {
-                var detailsUri = latestEntry["@id"].ToObject<Uri>();
-
-                var file = _context.Source.Get(detailsUri);
-                json = await file.GetJson(_context.Log, _context.Token);
-            }
-
-            return json;
-        }
-
-        private static DateTimeOffset GetCommitTime(JObject json)
-        {
-            return json["commitTimeStamp"].ToObject<DateTimeOffset>();
-        }
-
-        private static string GetOperation(JObject json)
-        {
-            return json["sleet:operation"].ToObject<string>();
-        }
-
-        private static PackageIdentity GetIdentity(JObject json)
-        {
-            return new PackageIdentity(json["nuget:id"].ToString(), NuGetVersion.Parse(json["nuget:version"].ToString()));
-        }
-
+        /// <summary>
+        /// Returns all pages from the catalog index.
+        /// </summary>
         public async Task<List<JObject>> GetPages()
         {
             var pageTasks = new List<Task<JObject>>();
@@ -258,6 +223,9 @@ namespace Sleet
             return pageTasks.Select(e => e.Result).ToList();
         }
 
+        /// <summary>
+        /// Create a PackageDetails page that contains all the package information.
+        /// </summary>
         public JObject CreatePackageDetails(PackageInput packageInput)
         {
             var now = _context.Now;
@@ -450,14 +418,135 @@ namespace Sleet
                 .Value ?? string.Empty;
         }
 
-        public Task<ISet<PackageIdentity>> GetPackages()
+        /// <summary>
+        /// All packages that exist and have not been removed.
+        /// </summary>
+        public async Task<ISet<PackageIdentity>> GetPackages()
         {
-            throw new NotImplementedException();
+            var existingPackages = await GetExistingPackagesIndex();
+
+            return new HashSet<PackageIdentity>(existingPackages.Select(e => e.PackageIdentity));
         }
 
-        public Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        /// <summary>
+        /// All packages for the given id that exist and have not been removed.
+        /// </summary>
+        public async Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
         {
-            throw new NotImplementedException();
+            var allPackages = await GetPackages();
+
+            return new HashSet<PackageIdentity>(allPackages.Where(e => e.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        /// <summary>
+        /// Latest index entry for the package. This could be an add or remove.
+        /// </summary>
+        public async Task<CatalogIndexEntry> GetLatestEntry(PackageIdentity package)
+        {
+            var entries = await GetRolledUpIndex();
+
+            return entries.Where(e => e.PackageIdentity.Equals(package)).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Returns the json of the latest package details page. If the package does
+        /// not exist or has been removed this will be null.
+        /// </summary>
+        public async Task<JObject> GetLatestPackageDetails(PackageIdentity package)
+        {
+            JObject json = null;
+            var latestEntry = await GetLatestEntry(package);
+
+            if (latestEntry != null && latestEntry.Operation == SleetOperation.Add)
+            {
+                var file = _context.Source.Get(latestEntry.PackageDetailsUrl);
+                json = await file.GetJson(_context.Log, _context.Token);
+            }
+
+            return json;
+        }
+
+        /// <summary>
+        /// Returns all index entries from newest to oldest.
+        /// </summary>
+        public async Task<IReadOnlyList<CatalogIndexEntry>> GetIndexEntries()
+        {
+            var pages = await GetPages();
+
+            return pages.SelectMany(GetItems).Select(GetIndexEntry).OrderByDescending(e => e.CommitTime).ToList();
+        }
+
+        /// <summary>
+        /// Returns the latest operation for each package.
+        /// </summary>
+        public async Task<ISet<CatalogIndexEntry>> GetRolledUpIndex()
+        {
+            var entries = await GetIndexEntries();
+
+            var latest = new HashSet<CatalogIndexEntry>();
+
+            // Add entries in order from newest to oldest, older entries will be ignored
+            foreach (var entry in entries)
+            {
+                latest.Add(entry);
+            }
+
+            return latest;
+        }
+
+        /// <summary>
+        /// Returns the latest operation for each package that has not been removed.
+        /// </summary>
+        public async Task<ISet<CatalogIndexEntry>> GetExistingPackagesIndex()
+        {
+            var entries = await GetRolledUpIndex();
+
+            var latest = new HashSet<CatalogIndexEntry>();
+
+            // Filtered the rolled up index on 'add' operations, 'remove' operations should be skipped
+            foreach (var entry in entries.Where(e => e.Operation == SleetOperation.Add))
+            {
+                latest.Add(entry);
+            }
+
+            return latest;
+        }
+
+        private static DateTimeOffset GetCommitTime(JObject json)
+        {
+            return json["commitTimeStamp"].ToObject<DateTimeOffset>();
+        }
+
+        private static CatalogIndexEntry GetIndexEntry(JObject json)
+        {
+            var identity = GetIdentity(json);
+
+            return new CatalogIndexEntry(
+                id: identity.Id,
+                version: identity.Version,
+                commitTime: GetCommitTime(json),
+                operation: GetOperation(json),
+                packageDetailsUrl: json["@id"].ToObject<Uri>());
+        }
+
+        private static SleetOperation GetOperation(JObject json)
+        {
+            var value = json["sleet:operation"].ToObject<string>();
+
+            switch (value.ToLowerInvariant())
+            {
+                case "add":
+                    return SleetOperation.Add;
+                case "remove":
+                    return SleetOperation.Remove;
+            }
+
+            throw new InvalidDataException($"sleet:operation: {value}");
+        }
+
+        private static PackageIdentity GetIdentity(JObject json)
+        {
+            return new PackageIdentity(json["nuget:id"].ToString(), NuGetVersion.Parse(json["nuget:version"].ToString()));
         }
     }
 }

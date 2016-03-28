@@ -9,7 +9,6 @@ using NuGet.Versioning;
 
 namespace Sleet
 {
-    // TODO: Optimize json reading/writing
     /// <summary>
     /// sleet.packageindex.json is a simple json index of all ids and versions contained in the feed.
     /// </summary>
@@ -27,7 +26,7 @@ namespace Sleet
         public async Task AddPackage(PackageInput packageInput)
         {
             // Load existing index
-            var index = await GetPackages();
+            var index = await GetPackageIndex();
 
             // Add package
             ISet<NuGetVersion> versions;
@@ -46,10 +45,10 @@ namespace Sleet
             await file.Write(json, _context.Log, _context.Token);
         }
 
-        public async Task<bool> RemovePackage(PackageIdentity package)
+        public async Task RemovePackage(PackageIdentity package)
         {
             // Load existing index
-            var index = await GetPackages();
+            var index = await GetPackageIndex();
 
             // Remove package
             ISet<NuGetVersion> versions;
@@ -60,21 +59,17 @@ namespace Sleet
                 var file = Index;
 
                 await file.Write(json, _context.Log, _context.Token);
-
-                return true;
             }
-
-            return false;
         }
 
         /// <summary>
         /// Creates a set of all indexed packages
         /// </summary>
-        public async Task<ISet<PackageIdentity>> GetPackageIdentities()
+        public async Task<ISet<PackageIdentity>> GetPackages()
         {
             var result = new HashSet<PackageIdentity>();
 
-            var packages = await GetPackages();
+            var packages = await GetPackageIndex();
 
             foreach (var pair in packages)
             {
@@ -91,7 +86,7 @@ namespace Sleet
         /// Returns all packages in the feed.
         /// Id -> Version
         /// </summary>
-        public async Task<IDictionary<string, ISet<NuGetVersion>>> GetPackages()
+        public async Task<IDictionary<string, ISet<NuGetVersion>>> GetPackageIndex()
         {
             var index = new Dictionary<string, ISet<NuGetVersion>>(StringComparer.OrdinalIgnoreCase);
 
@@ -130,9 +125,25 @@ namespace Sleet
         /// <summary>
         /// Find all versions of a package.
         /// </summary>
-        public async Task<ISet<NuGetVersion>> GetPackagesWithId(string packageId)
+        public async Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
         {
-            var index = await GetPackages();
+            var results = new HashSet<PackageIdentity>();
+            var versions = await GetPackageVersions(packageId);
+
+            foreach (var version in versions)
+            {
+                results.Add(new PackageIdentity(packageId, version));
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Find all versions of a package.
+        /// </summary>
+        public async Task<ISet<NuGetVersion>> GetPackageVersions(string packageId)
+        {
+            var index = await GetPackageIndex();
 
             ISet<NuGetVersion> versions;
             if (!index.TryGetValue(packageId, out versions))
@@ -143,6 +154,9 @@ namespace Sleet
             return versions;
         }
 
+        /// <summary>
+        /// True if the package exists in the index.
+        /// </summary>
         public async Task<bool> Exists(string packageId, NuGetVersion version)
         {
             if (packageId == null)
@@ -155,9 +169,9 @@ namespace Sleet
                 throw new ArgumentNullException(nameof(version));
             }
 
-            var byId = await GetPackagesWithId(packageId);
+            var byId = await GetPackagesById(packageId);
 
-            return byId.Contains(version);
+            return byId.Contains(new PackageIdentity(packageId, version));
         }
 
         public Task<bool> Exists(PackageIdentity package)
@@ -200,21 +214,6 @@ namespace Sleet
             }
 
             return json;
-        }
-
-        Task ISleetService.RemovePackage(PackageIdentity package)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<ISet<PackageIdentity>> IPackagesLookup.GetPackages()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
-        {
-            throw new NotImplementedException();
         }
     }
 }

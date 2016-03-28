@@ -110,7 +110,8 @@ namespace Sleet.Test
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;
 
                     // Assert
-                    Assert.True(actual["@id"].ToString().EndsWith("/packagea.1.0.0-alpha.1.json"));
+                    Assert.True(actual["@id"].ToString().EndsWith(".json"));
+                    Assert.Contains("/catalog/data/", actual["@id"].ToString());
                     Assert.Equal(testPackage.Nuspec.Authors, actual["authors"].ToString());
                     Assert.Equal(testPackage.Nuspec.Copyright, actual["copyright"].ToString());
                     Assert.Equal(testPackage.Nuspec.Description, actual["description"].ToString());
@@ -202,7 +203,7 @@ namespace Sleet.Test
                     var tags = actual["tags"] as JArray;
 
                     // Assert
-                    Assert.True(actual["@id"].ToString().EndsWith("/packagea.1.0.0.json"));
+                    Assert.True(actual["@id"].ToString().EndsWith(".json"));
                     Assert.Equal(string.Empty, actual["authors"].ToString());
                     Assert.Equal(string.Empty, actual["copyright"].ToString());
                     Assert.Equal(string.Empty, actual["description"].ToString());

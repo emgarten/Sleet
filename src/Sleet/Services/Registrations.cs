@@ -9,6 +9,9 @@ using NuGet.Versioning;
 
 namespace Sleet
 {
+    /// <summary>
+    /// Package registrations are an index to the catalog.
+    /// </summary>
     public class Registrations : ISleetService, IPackageIdLookup
     {
         private readonly SleetContext _context;
@@ -263,6 +266,9 @@ namespace Sleet
             return JsonLDTokenComparer.Format(json);
         }
 
+        /// <summary>
+        /// Create a package item entry.
+        /// </summary>
         public async Task<JObject> CreateItem(PackageInput packageInput)
         {
             var rootUri = GetPackageUri(packageInput.Identity);
@@ -309,9 +315,35 @@ namespace Sleet
             return JsonLDTokenComparer.Format(json);
         }
 
-        public Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        /// <summary>
+        /// Find all versions of a package.
+        /// </summary>
+        public async Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
         {
-            throw new NotImplementedException();
+            var results = new HashSet<PackageIdentity>();
+
+            // Retrieve index
+            var rootUri = GetIndexUri(_context.Source.Root, packageId);
+            var rootFile = _context.Source.Get(rootUri);
+
+            var packages = new List<JObject>();
+
+            if (await rootFile.Exists(_context.Log, _context.Token))
+            {
+                var json = await rootFile.GetJson(_context.Log, _context.Token);
+
+                // Get all entries
+                packages = await GetPackageDetails(json);
+
+                var versions = packages.Select(GetPackageVersion);
+
+                foreach (var version in versions)
+                {
+                    results.Add(new PackageIdentity(packageId, version));
+                }
+            }
+
+            return results;
         }
     }
 }

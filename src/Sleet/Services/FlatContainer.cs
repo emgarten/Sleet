@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using NuGet.Logging;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
@@ -67,7 +65,7 @@ namespace Sleet
             packageInput.NupkgUri = nupkgFile.Path;
         }
 
-        public async Task<bool> RemovePackage(PackageIdentity package)
+        public async Task RemovePackage(PackageIdentity package)
         {
             var nupkgFile = _context.Source.Get(GetNupkgPath(package));
 
@@ -105,8 +103,6 @@ namespace Sleet
                     indexFile.Delete(_context.Log, _context.Token);
                 }
             }
-
-            return true;
         }
 
         public Uri GetNupkgPath(PackageIdentity package)
@@ -167,14 +163,17 @@ namespace Sleet
             return json;
         }
 
-        Task ISleetService.RemovePackage(PackageIdentity package)
+        public async Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
         {
-            throw new NotImplementedException();
-        }
+            var results = new HashSet<PackageIdentity>();
+            var versions = await GetVersions(packageId);
 
-        public Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
-        {
-            throw new NotImplementedException();
+            foreach (var version in versions)
+            {
+                results.Add(new PackageIdentity(packageId, version));
+            }
+
+            return results;
         }
     }
 }

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Dnx.Runtime.Common.CommandLine;
 using NuGet.Logging;
@@ -38,11 +35,13 @@ namespace Sleet
             app.Name = "sleet";
             app.FullName = "Sleet";
             app.HelpOption("-h|--help");
-            app.VersionOption("--version", typeof(Program).GetTypeInfo().Assembly.GetName().Version.ToString());
+            app.VersionOption("--version", Constants.SleetVersion.ToFullVersionString());
 
             InitCommand.Register(app, log);
             PushCommand.Register(app, log);
             DeleteCommand.Register(app, log);
+            ValidateCommand.Register(app, log);
+            StatsCommand.Register(app, log);
 
             app.OnExecute(() =>
             {

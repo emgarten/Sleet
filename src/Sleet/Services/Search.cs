@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using NuGet.Logging;
 using NuGet.Packaging.Core;
-using NuGet.Versioning;
 
 namespace Sleet
 {
+    /// <summary>
+    /// Search writes all packages into a single static search result file.
+    /// </summary>
     public class Search : ISleetService, IRootIndex, IPackagesLookup
     {
         private readonly SleetContext _context;
@@ -28,23 +28,28 @@ namespace Sleet
             var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
 
+            // Read existing entries
             var data = GetData(json);
 
-            data.RemoveAll(e => packageInput.Identity.Id.Equals(GetIdentity(e).Id, StringComparison.OrdinalIgnoreCase));
+            // Remove the package id we are adding
+            data.RemoveAll(e => packageInput.Identity.Id.Equals(e.GetId(), StringComparison.OrdinalIgnoreCase));
 
+            // Rebuild the new entry
             var newEntry = await CreatePackageEntry(packageInput.Identity, add: true);
             data.Add(newEntry);
 
             json = CreatePage(data);
 
+            // Write the result
             await file.Write(json, _context.Log, _context.Token);
         }
 
         public async Task RemovePackage(PackageIdentity packageIdentity)
         {
             var packageIndex = new PackageIndex(_context);
-            var versions = await packageIndex.GetPackagesWithId(packageIdentity.Id);
+            var versions = await packageIndex.GetPackageVersions(packageIdentity.Id);
 
+            // Noop if the id does not exist
             if (!versions.Contains(packageIdentity.Version))
             {
                 return;
@@ -55,7 +60,7 @@ namespace Sleet
 
             var data = GetData(json);
 
-            data.RemoveAll(e => packageIdentity.Id.Equals(GetIdentity(e).Id, StringComparison.OrdinalIgnoreCase));
+            data.RemoveAll(e => packageIdentity.Id.Equals(e.GetId(), StringComparison.OrdinalIgnoreCase));
 
             if (versions.Count > 1)
             {
@@ -86,7 +91,7 @@ namespace Sleet
             var dataArray = new JArray();
             page["data"] = dataArray;
 
-            foreach (var entry in data.OrderBy(e => GetIdentity(e).Id, StringComparer.OrdinalIgnoreCase))
+            foreach (var entry in data.OrderBy(e => e.GetId(), StringComparer.OrdinalIgnoreCase))
             {
                 dataArray.Add(entry);
             }
@@ -94,10 +99,14 @@ namespace Sleet
             return JsonLDTokenComparer.Format(page);
         }
 
+        /// <summary>
+        /// Create a result containing all versions of the package. The passed in identity
+        /// may or may not be the latest one that is shown.
+        /// </summary>
         private async Task<JObject> CreatePackageEntry(PackageIdentity package, bool add)
         {
             var packageIndex = new PackageIndex(_context);
-            var versions = await packageIndex.GetPackagesWithId(package.Id);
+            var versions = await packageIndex.GetPackageVersions(package.Id);
 
             if (add)
             {
@@ -153,6 +162,7 @@ namespace Sleet
 
                 var versionEntry = JsonUtility.Create(versionUri, "Package");
                 versionEntry.Add("downloads", 0);
+                versionEntry.Add("version", version.ToFullVersionString());
 
                 versionsArray.Add(versionEntry);
             }
@@ -162,34 +172,42 @@ namespace Sleet
 
         private List<JObject> GetData(JObject page)
         {
-            var results = new List<JObject>();
+            return page.GetJObjectArray("data").ToList();
+        }
 
-            var data = page["data"] as JArray;
+        /// <summary>
+        /// Find all packages listed in search, and all versions of those package ids.
+        /// </summary>
+        public async Task<ISet<PackageIdentity>> GetPackages()
+        {
+            var packages = new HashSet<PackageIdentity>();
 
-            if (data != null)
+            var file = RootIndexFile;
+            var json = await file.GetJson(_context.Log, _context.Token);
+
+            foreach (var data in GetData(json))
             {
-                foreach (var dataEntry in data)
+                var id = data.GetId();
+
+                foreach (var versionEntry in data.GetJObjectArray("versions"))
                 {
-                    results.Add((JObject)dataEntry);
+                    var identity = new PackageIdentity(id, versionEntry.GetVersion());
+
+                    packages.Add(identity);
                 }
             }
 
-            return results;
+            return packages;
         }
 
-        private PackageIdentity GetIdentity(JObject dataEntry)
+        /// <summary>
+        /// Find all packages of the given id.
+        /// </summary>
+        public async Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
         {
-            return new PackageIdentity(dataEntry["id"].ToObject<string>(), NuGetVersion.Parse(dataEntry["version"].ToObject<string>()));
-        }
+            var allPackages = await GetPackages();
 
-        public Task<ISet<PackageIdentity>> GetPackages()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
-        {
-            throw new NotImplementedException();
+            return new HashSet<PackageIdentity>(allPackages.Where(e => e.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase)));
         }
     }
 }

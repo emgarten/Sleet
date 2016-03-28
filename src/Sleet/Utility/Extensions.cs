@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json.Linq;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
 namespace Sleet
@@ -53,6 +56,70 @@ namespace Sleet
             }
 
             return version.ToString(format, formatter);
+        }
+
+        /// <summary>
+        /// Read the version property as a NuGetVersion
+        /// </summary>
+        public static NuGetVersion GetVersion(this JToken json)
+        {
+            return NuGetVersion.Parse(json.GetString("version"));
+        }
+
+        /// <summary>
+        /// Read the id property
+        /// </summary>
+        public static string GetId(this JToken json)
+        {
+            return json.GetString("id");
+        }
+
+        /// <summary>
+        /// Read as a package identity with an id and version property.
+        /// </summary>
+        public static PackageIdentity GetIdentity(this JToken json)
+        {
+            return new PackageIdentity(json.GetId(), json.GetVersion());
+        }
+
+        /// <summary>
+        /// Read the json-ld @id as a Uri
+        /// </summary>
+        public static Uri GetEntityId(this JToken json)
+        {
+            return json["@id"].ToObject<Uri>();
+        }
+
+        /// <summary>
+        /// Read the property as string.
+        /// </summary>
+        public static string GetString(this JToken json, string propertyName)
+        {
+            return json[propertyName]?.ToObject<string>();
+        }
+
+        /// <summary>
+        /// Retrieve an array of JObjects
+        /// </summary>
+        public static JObject[] GetJObjectArray(this JToken json, string propertyName)
+        {
+            var results = new List<JObject>();
+            var root = json as JObject;
+
+            if (root != null)
+            {
+                var array = root[propertyName] as JArray;
+
+                if (array != null)
+                {
+                    foreach (var entry in array)
+                    {
+                        results.Add((JObject)entry);
+                    }
+                }
+            }
+
+            return results.ToArray();
         }
     }
 }

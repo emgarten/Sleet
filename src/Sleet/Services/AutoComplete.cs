@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using NuGet.Logging;
 using NuGet.Packaging.Core;
 
 namespace Sleet
 {
+    /// <summary>
+    /// Provides a list of package ids for powershell auto complete.
+    /// </summary>
     public class AutoComplete : ISleetService, IRootIndex
     {
         private readonly SleetContext _context;
@@ -16,6 +17,12 @@ namespace Sleet
         public string Name { get; } = nameof(AutoComplete);
 
         public string RootIndex { get; } = "autocomplete/query";
+
+
+        public AutoComplete(SleetContext context)
+        {
+            _context = context;
+        }
 
         public ISleetFile RootIndexFile
         {
@@ -25,20 +32,14 @@ namespace Sleet
             }
         }
 
-        public AutoComplete(SleetContext context)
-        {
-            _context = context;
-        }
-
         public async Task AddPackage(PackageInput packageInput)
         {
             var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
 
             var data = json["data"] as JArray;
-            var ids = new HashSet<string>(
-                data.Select(e => e.ToObject<string>()),
-                StringComparer.OrdinalIgnoreCase);
+
+            var ids = await GetPackageIds();
 
             ids.Add(packageInput.Identity.Id);
 
@@ -62,9 +63,8 @@ namespace Sleet
             var json = await file.GetJson(_context.Log, _context.Token);
 
             var data = json["data"] as JArray;
-            var ids = new HashSet<string>(
-                data.Select(e => e.ToObject<string>()),
-                StringComparer.OrdinalIgnoreCase);
+
+            var ids = await GetPackageIds();
 
             if (ids.Remove(packageIdentity.Id))
             {
@@ -83,6 +83,9 @@ namespace Sleet
             }
         }
 
+        /// <summary>
+        /// Returns all known ids.
+        /// </summary>
         public async Task<ISet<string>> GetPackageIds()
         {
             var file = RootIndexFile;

@@ -1,4 +1,6 @@
-﻿namespace Sleet
+﻿using System;
+
+namespace Sleet
 {
     internal sealed class HashCodeCombiner
     {
@@ -35,6 +37,16 @@
                 // Count nulls
                 AddInt(1201);
             }
+        }
+
+        internal void AddStringCaseInsensitive(string s)
+        {
+            AddInt(StringComparer.OrdinalIgnoreCase.GetHashCode(s));
+        }
+
+        internal void AddString(string s)
+        {
+            AddInt(StringComparer.Ordinal.GetHashCode(s));
         }
 
         internal static int GetHashCode(params object[] objects)
