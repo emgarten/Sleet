@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -76,6 +77,14 @@ namespace Sleet
 
         public Uri GetPath(string relativePath)
         {
+            if (relativePath == null)
+            {
+                Debug.Fail("bad path");
+                throw new ArgumentNullException(nameof(relativePath));
+            }
+
+            relativePath = relativePath.TrimStart(new char[] { '\\', '/' });
+
             var combined = new Uri(Root, relativePath);
             return combined;
         }

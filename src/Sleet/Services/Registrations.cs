@@ -215,22 +215,22 @@ namespace Sleet
 
         public Uri GetIndexUri(PackageIdentity package)
         {
-            return new Uri($"{_context.Source.Root}registation/{package.Id.ToLowerInvariant()}/index.json");
+            return new Uri($"{_context.Source.Root}registration/{package.Id.ToLowerInvariant()}/index.json");
         }
 
         public static Uri GetIndexUri(Uri sourceRoot, string packageId)
         {
-            return new Uri($"{sourceRoot.AbsoluteUri}registation/{packageId.ToLowerInvariant()}/index.json");
+            return new Uri($"{sourceRoot.AbsoluteUri}registration/{packageId.ToLowerInvariant()}/index.json");
         }
 
         public Uri GetPackageUri(PackageIdentity package)
         {
-            return new Uri($"{_context.Source.Root}registation/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
+            return new Uri($"{_context.Source.Root}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
         }
 
         public static Uri GetPackageUri(Uri sourceRoot, PackageIdentity package)
         {
-            return new Uri($"{sourceRoot.AbsoluteUri}registation/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
+            return new Uri($"{sourceRoot.AbsoluteUri}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
         }
 
         public async Task<JObject> CreatePackageBlob(PackageInput packageInput)

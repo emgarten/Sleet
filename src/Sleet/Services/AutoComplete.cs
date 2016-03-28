@@ -18,7 +18,6 @@ namespace Sleet
 
         public string RootIndex { get; } = "autocomplete/query";
 
-
         public AutoComplete(SleetContext context)
         {
             _context = context;
