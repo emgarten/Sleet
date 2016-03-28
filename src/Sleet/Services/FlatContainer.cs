@@ -67,22 +67,22 @@ namespace Sleet
 
         public async Task RemovePackage(PackageIdentity package)
         {
+            // Nupkg
             var nupkgFile = _context.Source.Get(GetNupkgPath(package));
 
             if (await nupkgFile.Exists(_context.Log, _context.Token))
             {
-                using (var zip = new ZipArchive(await nupkgFile.GetStream(_context.Log, _context.Token)))
-                {
-                    // Delete all nupkg files
-                    foreach (var entry in zip.Entries)
-                    {
-                        var file = _context.Source.Get(entry.FullName);
-                        file.Delete(_context.Log, _context.Token);
-                    }
-                }
-
                 // Delete nupkg
                 nupkgFile.Delete(_context.Log, _context.Token);
+            }
+
+            // Nuspec
+            var nuspecPath = $"{package.Id}.nuspec".ToLowerInvariant();
+            var nuspecFile = _context.Source.Get(GetZipFileUri(package, nuspecPath));
+
+            if (await nuspecFile.Exists(_context.Log, _context.Token))
+            {
+                nuspecFile.Delete(_context.Log, _context.Token);
             }
 
             // Update index

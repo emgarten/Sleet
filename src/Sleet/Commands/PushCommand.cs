@@ -113,12 +113,6 @@ namespace Sleet
                 Token = token
             };
 
-            var catalog = new Catalog(context);
-            var registrations = new Registrations(context);
-            var flatContainer = new FlatContainer(context);
-            var search = new Search(context);
-            var autoComplete = new AutoComplete(context);
-            var pinService = new PinService(context);
             var packageIndex = new PackageIndex(context);
 
             // var pinned = await pinService.GetEntries();
@@ -134,7 +128,8 @@ namespace Sleet
                 {
                     if (force)
                     {
-                        // TODO: delete
+                        log.LogInformation($"Package already exists, removing {package.ToString()}");
+                        await SleetUtility.RemovePackage(context, package.Identity);
                     }
                     else
                     {
@@ -142,28 +137,8 @@ namespace Sleet
                     }
                 }
 
-                // Flat container
-                // Add the nupkg first
-                await flatContainer.AddPackage(package);
-
-                // Catalog
-                // Add the package to the catalog
-                await catalog.AddPackage(package);
-
-                // Registration
-                // Create a registration for the catalog entry
-                await registrations.AddPackage(package);
-
-                // Search
-                // Add the package to search
-                await search.AddPackage(package);
-
-                // Auto complete
-                // Add the package to auto complete
-                await autoComplete.AddPackage(package);
-
-                // Package index
-                await packageIndex.AddPackage(package);
+                log.LogInformation($"Adding {package.ToString()}");
+                await SleetUtility.AddPackage(context, package);
             }
 
             // Save all

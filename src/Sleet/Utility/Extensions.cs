@@ -50,10 +50,11 @@ namespace Sleet
                 format += "-R";
             }
 
-            if (version.HasMetadata)
-            {
-                format += "+M";
-            }
+            // TODO: re-add this once NuGet properly supports SemVer 2.0.0 metadata.
+            //if (version.HasMetadata)
+            //{
+            //    format += "+M";
+            //}
 
             return version.ToString(format, formatter);
         }

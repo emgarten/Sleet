@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -15,11 +13,6 @@ namespace Sleet
         /// Full URI
         /// </summary>
         Uri Path { get; }
-
-        /// <summary>
-        /// Retrieve the local copy which can be used for reading.
-        /// </summary>
-        Task<FileStream> GetStream(ILogger log, CancellationToken token);
 
         /// <summary>
         /// Overwrite the file with the given stream.
@@ -43,5 +36,10 @@ namespace Sleet
         Task Write(JObject json, ILogger log, CancellationToken token);
 
         void Delete(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// True if the file has changed.
+        /// </summary>
+        bool HasChanges { get; }
     }
 }

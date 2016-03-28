@@ -12,6 +12,7 @@ namespace Sleet
     public abstract class FileBase : ISleetFile
     {
         private bool _downloaded = false;
+        private bool _hasChanges = false;
 
         public FileBase(ISleetFileSystem fileSystem, Uri path, FileInfo localCacheFile)
         {
@@ -26,6 +27,14 @@ namespace Sleet
 
         protected FileInfo LocalCacheFile { get; }
 
+        public bool HasChanges
+        {
+            get
+            {
+                return _hasChanges;
+            }
+        }
+
         public async Task<bool> Exists(ILogger log, CancellationToken token)
         {
             await EnsureFile(log, token);
@@ -35,26 +44,29 @@ namespace Sleet
 
         public async Task Push(ILogger log, CancellationToken token)
         {
-            for (int i = 0; i < 5; i++)
+            if (HasChanges)
             {
-                try
+                for (int i = 0; i < 5; i++)
                 {
-                    // Upload to remote source.
-                    await CopyToSource(log, token);
-
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    if (i == 4)
+                    try
                     {
-                        throw;
+                        // Upload to remote source.
+                        await CopyToSource(log, token);
+
+                        break;
                     }
+                    catch (Exception ex)
+                    {
+                        if (i == 4)
+                        {
+                            throw;
+                        }
 
-                    log.LogVerbose(ex.ToString());
-                    log.LogWarning($"Failed to upload '{Path}'. Retrying.");
+                        log.LogVerbose(ex.ToString());
+                        log.LogWarning($"Failed to upload '{Path}'. Retrying.");
 
-                    Thread.Sleep(5000);
+                        await Task.Delay(10000);
+                    }
                 }
             }
         }
@@ -62,6 +74,7 @@ namespace Sleet
         public Task Write(Stream stream, ILogger log, CancellationToken token)
         {
             _downloaded = true;
+            _hasChanges = true;
 
             using (stream)
             {
@@ -90,6 +103,7 @@ namespace Sleet
         public Task Write(JObject json, ILogger log, CancellationToken token)
         {
             _downloaded = true;
+            _hasChanges = true;
 
             if (File.Exists(LocalCacheFile.FullName))
             {
@@ -101,15 +115,10 @@ namespace Sleet
             return Task.FromResult(true);
         }
 
-        public async Task<FileStream> GetStream(ILogger log, CancellationToken token)
-        {
-            await EnsureFile(log, token);
-
-            return File.OpenRead(LocalCacheFile.FullName);
-        }
-
         public void Delete(ILogger log, CancellationToken token)
         {
+            _hasChanges = true;
+
             if (File.Exists(LocalCacheFile.FullName))
             {
                 File.Delete(LocalCacheFile.FullName);

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Dnx.Runtime.Common.CommandLine;
 using NuGet.Logging;
 using NuGet.Packaging.Core;
+using NuGet.Versioning;
 
 namespace Sleet
 {
@@ -30,6 +32,10 @@ namespace Sleet
 
             var version = cmd.Option("-v|--version", "Package version. If this is not specified all versions will be deleted.",
                 CommandOptionType.SingleValue);
+
+            var reason = cmd.Option("-r|--reason", "Reason for deleting the package.", CommandOptionType.SingleValue);
+
+            var force = cmd.Option("-f|--force", "Ignore missing packages.", CommandOptionType.NoValue);
 
             cmd.HelpOption("-?|-h|--help");
 
@@ -63,19 +69,86 @@ namespace Sleet
                         throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
                     }
 
-                    return await RunCore(settings, fileSystem, packageId.Value(), version.Value(), log);
+                    return await RunCore(settings, fileSystem, packageId.Value(), version.Value(), reason.Value(), force.HasValue(), log);
                 }
             });
         }
 
-        public static Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, string packageId, string version, ILogger log)
+        public static async Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, string packageId, string version, string reason, bool force, ILogger log)
         {
-            throw new NotImplementedException();
-        }
+            var exitCode = 0;
 
-        public static Task<bool> Delete(PackageIdentity packageIdentity, SleetContext context)
-        {
-            throw new NotImplementedException();
+            var token = CancellationToken.None;
+            var now = DateTimeOffset.UtcNow;
+
+            // Check if already initialized
+            await SourceUtility.VerifyInit(source, log, token);
+
+            // Validate source
+            await UpgradeUtility.UpgradeIfNeeded(source, log, token);
+
+            // Get sleet.settings.json
+            var sourceSettings = new SourceSettings();
+
+            // Settings context used for all operations
+            var context = new SleetContext()
+            {
+                LocalSettings = settings,
+                SourceSettings = sourceSettings,
+                Log = log,
+                Source = source,
+                Token = token
+            };
+
+            var packageIndex = new PackageIndex(context);
+
+            // var pinned = await pinService.GetEntries();
+
+            var packages = new List<PackageIdentity>();
+
+            if (!string.IsNullOrEmpty(version))
+            {
+                // Delete a single version of the package
+                var packageVersion = NuGetVersion.Parse(version);
+
+                packages.Add(new PackageIdentity(packageId, packageVersion));
+            }
+            else
+            {
+                // Delete all versions of the package
+                packages.AddRange(await packageIndex.GetPackagesById(packageId));
+            }
+
+            if (string.IsNullOrEmpty(reason))
+            {
+                reason = string.Empty;
+            }
+
+            foreach (var package in packages)
+            {
+                if (!await packageIndex.Exists(package))
+                {
+                    log.LogInformation($"{package.ToString()} does not exist.");
+
+                    if (force)
+                    {
+                        // ignore failures
+                        continue;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Package does not exists: {package.ToString()}");
+                    }
+                }
+
+                log.LogInformation($"Removing {package.ToString()}");
+                await SleetUtility.RemovePackage(context, package);
+            }
+
+            // Save all
+            await source.Commit(log, token);
+
+            return exitCode;
         }
     }
 }
