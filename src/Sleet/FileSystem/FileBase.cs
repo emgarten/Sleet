@@ -143,7 +143,7 @@ namespace Sleet
 
                         _downloaded = true;
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         if (i == 4)
                         {
@@ -151,6 +151,7 @@ namespace Sleet
                         }
 
                         log.LogWarning($"Failed to sync '{Path}'. Retrying.");
+                        log.LogDebug(ex.ToString());
 
                         Thread.Sleep(5000);
                     }
