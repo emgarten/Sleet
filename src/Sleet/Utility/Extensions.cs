@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
@@ -14,15 +13,13 @@ namespace Sleet
         /// </summary>
         public static string GetDateString(this DateTimeOffset date)
         {
-            return date.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
+            return date.UtcDateTime.ToString("o");
         }
 
         /// <summary>
         /// Returns the normalized version identity. This does not contain metadata since
         /// it is not part of the actual package identity.
         /// </summary>
-        /// <param name="version"></param>
-        /// <returns></returns>
         public static string ToIdentityString(this SemanticVersion version)
         {
             var formatter = new VersionFormatter();

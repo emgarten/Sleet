@@ -141,7 +141,7 @@ namespace Sleet
                 });
 
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
-            json.Add("commitTimeStamp", _context.Now.GetDateString());
+            json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
 
             var itemsArray = new JArray();
             json.Add("items", itemsArray);
@@ -166,7 +166,7 @@ namespace Sleet
             var json = JsonUtility.Create(indexUri, $"page/{lower}/{upper}", "catalog:CatalogPage");
 
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
-            json.Add("commitTimeStamp", _context.Now.GetDateString());
+            json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
 
             json.Add("count", packageDetails.Count);
 
@@ -275,7 +275,7 @@ namespace Sleet
 
             var json = JsonUtility.Create(rootUri, "Package");
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
-            json.Add("commitTimeStamp", _context.Now.GetDateString());
+            json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
 
             var packageDetailsFile = _context.Source.Get(packageInput.PackageDetailsUri);
             var detailsJson = await packageDetailsFile.GetJson(_context.Log, _context.Token);

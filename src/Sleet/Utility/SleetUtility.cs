@@ -36,13 +36,15 @@ namespace Sleet
 
         public static IReadOnlyList<ISleetService> GetServices(SleetContext context)
         {
+            // Order is important here
+            // Packages must be added to flat container, then the catalog, then registrations.
             return new List<ISleetService>()
             {
+                new FlatContainer(context),
                 new Catalog(context),
                 new Registrations(context),
-                new FlatContainer(context),
-                new Search(context),
                 new AutoComplete(context),
+                new Search(context),
                 new PackageIndex(context),
             };
         }

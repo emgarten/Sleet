@@ -49,7 +49,7 @@ namespace Sleet
             var catalogIndexJson = await catalogIndexFile.GetJson(_context.Log, _context.Token);
 
             catalogIndexJson["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
-            catalogIndexJson["commitTimeStamp"] = _context.Now.GetDateString();
+            catalogIndexJson["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
 
             var pages = GetItems(catalogIndexJson);
 
@@ -68,7 +68,7 @@ namespace Sleet
             {
                 var newPage = JsonUtility.Create(currentPageFile.Path, "CatalogPage");
                 newPage["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
-                newPage["commitTimeStamp"] = _context.Now.GetDateString();
+                newPage["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
                 newPage["count"] = 0;
 
                 newPage = JsonLDTokenComparer.Format(newPage);
@@ -83,7 +83,7 @@ namespace Sleet
             // Create commit
             var pageCommit = JsonUtility.Create(packageDetailsFile.Path, "nuget:PackageDetails");
             pageCommit["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
-            pageCommit["commitTimeStamp"] = _context.Now.GetDateString();
+            pageCommit["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
             pageCommit["nuget:id"] = packageInput.Identity.Id;
             pageCommit["nuget:version"] = packageInput.Identity.Version.ToFullVersionString();
             pageCommit["sleet:operation"] = "add";
@@ -98,11 +98,11 @@ namespace Sleet
             // Update index
             var pageEntry = pages.Where(e => e["@id"].ToString() == currentPageFile.Path.AbsoluteUri).Single();
             pageEntry["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
-            pageEntry["commitTimeStamp"] = _context.Now.GetDateString();
+            pageEntry["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
             pageEntry["count"] = pageCommits.Count;
 
             catalogIndexJson["count"] = pages.Count;
-            catalogIndexJson["nuget:lastCreated"] = _context.Now.GetDateString();
+            catalogIndexJson["nuget:lastCreated"] = DateTimeOffset.UtcNow.GetDateString();
 
             catalogIndexJson = JsonLDTokenComparer.Format(catalogIndexJson);
 
@@ -122,7 +122,7 @@ namespace Sleet
             var catalogIndexJson = await catalogIndexFile.GetJson(_context.Log, _context.Token);
 
             catalogIndexJson["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
-            catalogIndexJson["commitTimeStamp"] = _context.Now.GetDateString();
+            catalogIndexJson["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
 
             var pages = GetItems(catalogIndexJson);
 
@@ -141,7 +141,7 @@ namespace Sleet
             {
                 var newPage = JsonUtility.Create(currentPageFile.Path, "CatalogPage");
                 newPage["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
-                newPage["commitTimeStamp"] = _context.Now.GetDateString();
+                newPage["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
                 newPage["count"] = 0;
 
                 newPage = JsonLDTokenComparer.Format(newPage);
@@ -156,7 +156,7 @@ namespace Sleet
             // Create commit
             var pageCommit = JsonUtility.Create(packageDetailsFile.Path, "nuget:PackageDetails");
             pageCommit["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
-            pageCommit["commitTimeStamp"] = _context.Now.GetDateString();
+            pageCommit["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
             pageCommit["nuget:id"] = package.Id;
             pageCommit["nuget:version"] = package.Version.ToFullVersionString();
             pageCommit["sleet:operation"] = "remove";
@@ -171,11 +171,11 @@ namespace Sleet
             // Update index
             var pageEntry = pages.Where(e => e["@id"].ToString() == currentPageFile.Path.AbsoluteUri).Single();
             pageEntry["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
-            pageEntry["commitTimeStamp"] = _context.Now.GetDateString();
+            pageEntry["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
             pageEntry["count"] = pageCommits.Count;
 
             catalogIndexJson["count"] = pages.Count;
-            catalogIndexJson["nuget:lastDeleted"] = _context.Now.GetDateString();
+            catalogIndexJson["nuget:lastDeleted"] = DateTimeOffset.UtcNow.GetDateString();
 
             catalogIndexJson = JsonLDTokenComparer.Format(catalogIndexJson);
 
@@ -189,7 +189,7 @@ namespace Sleet
         {
             var json = JsonUtility.Create(rootUri, "CatalogPage");
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
-            json.Add("commitTimeStamp", _context.Now.GetDateString());
+            json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
             json.Add("count", packageDetails.Count);
             json.Add("parent", indexUri.AbsoluteUri);
 
@@ -294,13 +294,14 @@ namespace Sleet
         /// </summary>
         public JObject CreateDeleteDetails(PackageIdentity package, string reason)
         {
+            var now = DateTimeOffset.UtcNow;
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
 
             var rootUri = new Uri($"{_context.Source.Root}catalog/data/{pageId}.json");
 
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
-            json.Add("commitTimeStamp", _context.Now.GetDateString());
+            json.Add("commitTimeStamp", now.GetDateString());
             json.Add("sleet:operation", "remove");
 
             var context = JsonUtility.GetContext("Catalog");
@@ -309,7 +310,7 @@ namespace Sleet
             json.Add("id", package.Id);
             json.Add("version", package.Version.ToFullVersionString());
 
-            json.Add("created", _context.Now.GetDateString());
+            json.Add("created", DateTimeOffset.UtcNow.GetDateString());
             json.Add("sleet:removeReason", reason);
 
             json.Add("sleet:toolVersion", Constants.SleetVersion.ToFullVersionString());
@@ -322,7 +323,7 @@ namespace Sleet
         /// </summary>
         public JObject CreatePackageDetails(PackageInput packageInput)
         {
-            var now = _context.Now;
+            var now = DateTimeOffset.UtcNow;
             var package = packageInput.Package;
             var nuspec = XDocument.Load(package.GetNuspec());
             var nuspecReader = new NuspecReader(nuspec);
@@ -334,7 +335,7 @@ namespace Sleet
 
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
-            json.Add("commitTimeStamp", _context.Now.GetDateString());
+            json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
             json.Add("sleet:operation", "add");
 
             var context = JsonUtility.GetContext("Catalog");
@@ -567,6 +568,8 @@ namespace Sleet
         {
             var pages = await GetPages();
 
+            // These cannot be ordered by commit time since add and remove may happen in the same commit.
+            // Instead the page order needs to be used.
             return pages.SelectMany(GetItems).Select(GetIndexEntry).OrderByDescending(e => e.CommitTime).ToList();
         }
 

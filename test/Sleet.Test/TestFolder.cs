@@ -24,7 +24,14 @@ namespace Sleet.Test
 
         public void Dispose()
         {
-            Directory.Delete(true);
+            try
+            {
+                Directory.Delete(true);
+            }
+            catch
+            {
+
+            }
         }
     }
 }

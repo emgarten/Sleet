@@ -237,4 +237,12 @@ namespace Sleet
             }
         }
     }
+
+    public static class ValidateCommandTestHook
+    {
+        public static Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, ILogger log)
+        {
+            return ValidateCommand.RunCore(settings, source, log);
+        }
+    }
 }

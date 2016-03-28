@@ -151,4 +151,12 @@ namespace Sleet
             return exitCode;
         }
     }
+
+    public static class DeleteCommandTestHook
+    {
+        public static Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, string packageId, string version, string reason, bool force, ILogger log)
+        {
+            return DeleteCommand.RunCore(settings, source, packageId, version, reason, force, log);
+        }
+    }
 }

@@ -85,7 +85,7 @@ namespace Sleet
 
         private JObject CreatePage(List<JObject> data)
         {
-            var page = JObject.Parse(TemplateUtility.LoadTemplate("Search", _context.Now, _context.Source.Root));
+            var page = JObject.Parse(TemplateUtility.LoadTemplate("Search", _context.OperationStart, _context.Source.Root));
 
             page["totalHits"] = data.Count;
             var dataArray = new JArray();

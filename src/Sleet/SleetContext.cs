@@ -21,6 +21,6 @@ namespace Sleet
 
         public Guid CommitId { get; set; } = Guid.NewGuid();
 
-        public DateTimeOffset Now { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset OperationStart { get; set; } = DateTimeOffset.UtcNow;
     }
 }

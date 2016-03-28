@@ -210,7 +210,11 @@ namespace Sleet
             foreach (var id in index.Keys.OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
             {
                 var versionArray = new JArray(index[id].Select(v => v.ToNormalizedString()));
-                packages.Add(id, versionArray);
+
+                if (versionArray.Count > 0)
+                {
+                    packages.Add(id, versionArray);
+                }
             }
 
             return json;

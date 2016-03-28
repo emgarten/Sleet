@@ -137,7 +137,7 @@ namespace Sleet
                     }
                 }
 
-                log.LogInformation($"Adding {package.ToString()}");
+                log.LogInformation($"Adding {package.Identity.ToString()}");
                 await SleetUtility.AddPackage(context, package);
             }
 
@@ -251,6 +251,14 @@ namespace Sleet
             }
 
             return packages;
+        }
+    }
+
+    public static class PushCommandTestHook
+    {
+        public static Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, ILogger log)
+        {
+            return PushCommand.RunCore(settings, source, inputs, force, log);
         }
     }
 }
