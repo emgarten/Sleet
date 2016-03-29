@@ -2,9 +2,8 @@
   "version": "0.1.0-alpha-01",
   "description": "Sleet",
   "authors": [ "emgarten" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
+  "tags": [ "nuget feed" ],
+  "projectUrl": "https://github.com/emgarten/sleet",
 
   "compilationOptions": {
     "emitEntryPoint": true,
@@ -12,8 +11,7 @@
   },
 
   "dependencies": {
-    "json-ld.net": "1.0.4",
-    "Newtonsoft.Json": "8.0.2",
+    "Newtonsoft.Json": "8.0.3",
     "NuGet.Packaging": "3.4.0-rtm-0764",
     "Microsoft.Extensions.CommandLineUtils.Sources": "1.0.0-rc2-16357",
     "WindowsAzure.Storage": "6.2.2-preview"
@@ -26,6 +24,7 @@
   "frameworks": {
     "dnx451": { },
     "dnxcore50": {
+      "imports": "portable-net45+win8",
       "dependencies": {
         "Microsoft.CSharp": "4.0.1-beta-23516",
         "System.Collections": "4.0.11-beta-23516",
