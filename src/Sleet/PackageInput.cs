@@ -24,5 +24,10 @@ namespace Sleet
         public Uri PackageDetailsUri { get; set; }
 
         public Uri RegistrationUri { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Identity.Id} {Identity.Version.ToFullVersionString()}";
+        }
     }
 }
