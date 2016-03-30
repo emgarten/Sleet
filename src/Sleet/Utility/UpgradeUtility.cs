@@ -40,7 +40,7 @@ namespace Sleet
             }
             else if (sourceVersion > Constants.SleetVersion)
             {
-                throw new InvalidOperationException($"{fileSystem.Root} was created using a newer version of this tool: {sourceVersion}. Use the same or higher version to make changes.");
+                throw new InvalidOperationException($"{fileSystem.BaseURI} was created using a newer version of this tool: {sourceVersion}. Use the same or higher version to make changes.");
             }
 
             return false;

@@ -14,6 +14,7 @@ namespace Sleet
     public class AzureFileSystem : ISleetFileSystem
     {
         private readonly Uri _root;
+        private readonly Uri _baseUri;
         private readonly LocalCache _cache;
         private readonly ConcurrentDictionary<Uri, ISleetFile> _files;
         private readonly CloudStorageAccount _azureAccount;
@@ -21,8 +22,14 @@ namespace Sleet
         private readonly CloudBlobContainer _container;
 
         public AzureFileSystem(LocalCache cache, Uri root, CloudStorageAccount azureAccount, string container)
+            : this(cache, root, root, azureAccount, container)
         {
-            _root = new Uri(root.AbsoluteUri.TrimEnd('/') + '/');
+        }
+
+        public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, CloudStorageAccount azureAccount, string container)
+        {
+            _baseUri = UriUtility.AddTrailingSlash(baseUri);
+            _root = UriUtility.AddTrailingSlash(root);
             _cache = cache;
             _files = new ConcurrentDictionary<Uri, ISleetFile>();
 
@@ -47,7 +54,7 @@ namespace Sleet
             }
         }
 
-        public Uri Root
+        public Uri BaseURI
         {
             get
             {
@@ -66,27 +73,24 @@ namespace Sleet
 
             var blob = _container.GetBlockBlobReference(relativePath);
 
-            var file = Files.GetOrAdd(path, (uri) => new AzureFile(
-                this,
-                uri,
-                LocalCache.GetNewTempPath(),
-                blob));
+            var file = Files.GetOrAdd(path, (uri) =>
+                {
+                    var rootUri = UriUtility.ChangeRoot(_baseUri, _root, uri);
+
+                    return new AzureFile(
+                        this,
+                        rootUri,
+                        uri,
+                        LocalCache.GetNewTempPath(),
+                        blob);
+                });
 
             return file;
         }
 
         public Uri GetPath(string relativePath)
         {
-            if (relativePath == null)
-            {
-                Debug.Fail("bad path");
-                throw new ArgumentNullException(nameof(relativePath));
-            }
-
-            relativePath = relativePath.TrimStart(new char[] { '\\', '/' });
-
-            var combined = new Uri(Root, relativePath);
-            return combined;
+            return UriUtility.GetPath(BaseURI, relativePath);
         }
 
         public async Task<bool> Commit(ILogger log, CancellationToken token)

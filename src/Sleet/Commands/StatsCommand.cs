@@ -77,7 +77,7 @@ namespace Sleet
         {
             var exitCode = 0;
 
-            log.LogMinimal($"Stats for {source.Root}");
+            log.LogMinimal($"Stats for {source.BaseURI}");
 
             var token = CancellationToken.None;
 

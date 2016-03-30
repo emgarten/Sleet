@@ -85,7 +85,7 @@ namespace Sleet
 
         private JObject CreatePage(List<JObject> data)
         {
-            var page = JObject.Parse(TemplateUtility.LoadTemplate("Search", _context.OperationStart, _context.Source.Root));
+            var page = JObject.Parse(TemplateUtility.LoadTemplate("Search", _context.OperationStart, _context.Source.BaseURI));
 
             page["totalHits"] = data.Count;
             var dataArray = new JArray();
@@ -120,10 +120,10 @@ namespace Sleet
             var latest = versions.Max();
             var latestIdentity = new PackageIdentity(package.Id, latest);
 
-            var packageUri = Registrations.GetPackageUri(_context.Source.Root, latestIdentity);
+            var packageUri = Registrations.GetPackageUri(_context.Source.BaseURI, latestIdentity);
             var packageEntry = JsonUtility.Create(packageUri, "Package");
 
-            var registrationUri = Registrations.GetIndexUri(_context.Source.Root, package.Id);
+            var registrationUri = Registrations.GetIndexUri(_context.Source.BaseURI, package.Id);
 
             var catalog = new Catalog(_context);
             var catalogEntry = await catalog.GetLatestPackageDetails(latestIdentity);
@@ -158,7 +158,7 @@ namespace Sleet
             foreach (var version in versions.OrderBy(v => v))
             {
                 var versionIdentity = new PackageIdentity(package.Id, version);
-                var versionUri = Registrations.GetPackageUri(_context.Source.Root, versionIdentity);
+                var versionUri = Registrations.GetPackageUri(_context.Source.BaseURI, versionIdentity);
 
                 var versionEntry = JsonUtility.Create(versionUri, "Package");
                 versionEntry.Add("downloads", 0);

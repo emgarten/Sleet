@@ -27,17 +27,19 @@ namespace Sleet
                 {
                     if (source.Equals(sourceEntry["name"]?.ToObject<string>(), StringComparison.OrdinalIgnoreCase))
                     {
-                        if (string.IsNullOrEmpty(sourceEntry["baseURI"]?.ToString()))
+                        if (string.IsNullOrEmpty(sourceEntry["path"]?.ToString()))
                         {
-                            throw new ArgumentException("Missing baseURI for azure account.");
+                            throw new ArgumentException("Missing path for account.");
                         }
 
-                        var baseURI = new Uri(sourceEntry["baseURI"]?.ToObject<string>());
+                        var path = sourceEntry["path"]?.ToObject<string>();
+                        var baseURI = sourceEntry["baseURI"]?.ToObject<string>() ?? path;
+
                         var type = sourceEntry["type"]?.ToObject<string>().ToLowerInvariant();
 
                         if (type == "local")
                         {
-                            result = new PhysicalFileSystem(cache, baseURI);
+                            result = new PhysicalFileSystem(cache, new Uri(path), new Uri(baseURI));
                         }
                         else if (type == "azure")
                         {
@@ -56,7 +58,7 @@ namespace Sleet
 
                             var azureAccount = CloudStorageAccount.Parse(connectionString);
 
-                            result = new AzureFileSystem(cache, baseURI, azureAccount, container);
+                            result = new AzureFileSystem(cache, new Uri(path), new Uri(baseURI), azureAccount, container);
                         }
                     }
                 }

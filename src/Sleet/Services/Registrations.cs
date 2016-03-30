@@ -215,7 +215,7 @@ namespace Sleet
 
         public Uri GetIndexUri(PackageIdentity package)
         {
-            return new Uri($"{_context.Source.Root}registration/{package.Id.ToLowerInvariant()}/index.json");
+            return new Uri($"{_context.Source.BaseURI}registration/{package.Id.ToLowerInvariant()}/index.json");
         }
 
         public static Uri GetIndexUri(Uri sourceRoot, string packageId)
@@ -225,7 +225,7 @@ namespace Sleet
 
         public Uri GetPackageUri(PackageIdentity package)
         {
-            return new Uri($"{_context.Source.Root}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
+            return new Uri($"{_context.Source.BaseURI}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
         }
 
         public static Uri GetPackageUri(Uri sourceRoot, PackageIdentity package)
@@ -243,7 +243,7 @@ namespace Sleet
 
             if (!await packageDetailsFile.Exists(_context.Log, _context.Token))
             {
-                throw new FileNotFoundException($"Unable to find {packageDetailsFile.Path.AbsoluteUri}");
+                throw new FileNotFoundException($"Unable to find {packageDetailsFile.EntityUri.AbsoluteUri}");
             }
 
             var detailsJson = await packageDetailsFile.GetJson(_context.Log, _context.Token);
@@ -323,7 +323,7 @@ namespace Sleet
             var results = new HashSet<PackageIdentity>();
 
             // Retrieve index
-            var rootUri = GetIndexUri(_context.Source.Root, packageId);
+            var rootUri = GetIndexUri(_context.Source.BaseURI, packageId);
             var rootFile = _context.Source.Get(rootUri);
 
             var packages = new List<JObject>();

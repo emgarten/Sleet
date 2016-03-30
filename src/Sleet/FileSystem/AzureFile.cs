@@ -14,8 +14,8 @@ namespace Sleet
     {
         private readonly CloudBlockBlob _blob;
 
-        internal AzureFile(AzureFileSystem fileSystem, Uri path, FileInfo localCacheFile, CloudBlockBlob blob)
-            : base(fileSystem, path, localCacheFile)
+        internal AzureFile(AzureFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile, CloudBlockBlob blob)
+            : base(fileSystem, rootPath, displayPath, localCacheFile)
         {
             _blob = blob;
         }

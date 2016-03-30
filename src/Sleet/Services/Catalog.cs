@@ -66,7 +66,7 @@ namespace Sleet
             }
             else
             {
-                var newPage = JsonUtility.Create(currentPageFile.Path, "CatalogPage");
+                var newPage = JsonUtility.Create(currentPageFile.RootPath, "CatalogPage");
                 newPage["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
                 newPage["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
                 newPage["count"] = 0;
@@ -81,7 +81,7 @@ namespace Sleet
             }
 
             // Create commit
-            var pageCommit = JsonUtility.Create(packageDetailsFile.Path, "nuget:PackageDetails");
+            var pageCommit = JsonUtility.Create(packageDetailsFile.EntityUri, "nuget:PackageDetails");
             pageCommit["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
             pageCommit["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
             pageCommit["nuget:id"] = packageInput.Identity.Id;
@@ -96,7 +96,7 @@ namespace Sleet
             await currentPageFile.Write(pageJson, _context.Log, _context.Token);
 
             // Update index
-            var pageEntry = pages.Where(e => e["@id"].ToString() == currentPageFile.Path.AbsoluteUri).Single();
+            var pageEntry = pages.Where(e => e["@id"].ToString() == currentPageFile.EntityUri.AbsoluteUri).Single();
             pageEntry["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
             pageEntry["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
             pageEntry["count"] = pageCommits.Count;
@@ -139,7 +139,7 @@ namespace Sleet
             }
             else
             {
-                var newPage = JsonUtility.Create(currentPageFile.Path, "CatalogPage");
+                var newPage = JsonUtility.Create(currentPageFile.EntityUri, "CatalogPage");
                 newPage["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
                 newPage["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
                 newPage["count"] = 0;
@@ -154,7 +154,7 @@ namespace Sleet
             }
 
             // Create commit
-            var pageCommit = JsonUtility.Create(packageDetailsFile.Path, "nuget:PackageDetails");
+            var pageCommit = JsonUtility.Create(packageDetailsFile.EntityUri, "nuget:PackageDetails");
             pageCommit["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
             pageCommit["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
             pageCommit["nuget:id"] = package.Id;
@@ -169,7 +169,7 @@ namespace Sleet
             await currentPageFile.Write(pageJson, _context.Log, _context.Token);
 
             // Update index
-            var pageEntry = pages.Where(e => e["@id"].ToString() == currentPageFile.Path.AbsoluteUri).Single();
+            var pageEntry = pages.Where(e => e["@id"].ToString() == currentPageFile.EntityUri.AbsoluteUri).Single();
             pageEntry["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
             pageEntry["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
             pageEntry["count"] = pageCommits.Count;
@@ -297,7 +297,7 @@ namespace Sleet
             var now = DateTimeOffset.UtcNow;
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
 
-            var rootUri = new Uri($"{_context.Source.Root}catalog/data/{pageId}.json");
+            var rootUri = new Uri($"{_context.Source.BaseURI}catalog/data/{pageId}.json");
 
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
@@ -330,7 +330,7 @@ namespace Sleet
 
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
 
-            var rootUri = new Uri($"{_context.Source.Root}catalog/data/{pageId}.json");
+            var rootUri = new Uri($"{_context.Source.BaseURI}catalog/data/{pageId}.json");
             packageInput.PackageDetailsUri = rootUri;
 
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });

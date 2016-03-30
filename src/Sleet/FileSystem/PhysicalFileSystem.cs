@@ -10,12 +10,19 @@ namespace Sleet
 {
     public class PhysicalFileSystem : ISleetFileSystem
     {
+        private readonly Uri _baseUri;
         private readonly Uri _root;
         private readonly LocalCache _cache;
         private readonly ConcurrentDictionary<Uri, ISleetFile> _files;
 
         public PhysicalFileSystem(LocalCache cache, Uri root)
+            : this(cache, root, root)
         {
+        }
+
+        public PhysicalFileSystem(LocalCache cache, Uri root, Uri baseUri)
+        {
+            _baseUri = new Uri(baseUri.AbsoluteUri.TrimEnd(new char[] { '/', '\\' }) + Path.DirectorySeparatorChar);
             _root = new Uri(root.AbsoluteUri.TrimEnd(new char[] { '/', '\\' }) + Path.DirectorySeparatorChar);
             _cache = cache;
             _files = new ConcurrentDictionary<Uri, ISleetFile>();
@@ -37,6 +44,20 @@ namespace Sleet
             }
         }
 
+        /// <summary>
+        /// Base uri written for @id
+        /// </summary>
+        public Uri BaseURI
+        {
+            get
+            {
+                return _baseUri;
+            }
+        }
+
+        /// <summary>
+        /// Actual root path
+        /// </summary>
         public Uri Root
         {
             get
@@ -58,11 +79,17 @@ namespace Sleet
                 throw new ArgumentNullException(nameof(path));
             }
 
-            var file = Files.GetOrAdd(path, (uri) => new PhysicalFile(
-                this,
-                uri,
-                LocalCache.GetNewTempPath(),
-                new FileInfo(path.LocalPath)));
+            var file = Files.GetOrAdd(path, (uri) =>
+            {
+                var rootUri = UriUtility.ChangeRoot(_baseUri, _root, uri);
+
+                return new PhysicalFile(
+                    this,
+                    rootUri,
+                    uri,
+                    LocalCache.GetNewTempPath(),
+                    new FileInfo(path.LocalPath));
+            });
 
             return file;
         }
@@ -77,7 +104,7 @@ namespace Sleet
 
             relativePath = relativePath.TrimStart(new char[] { '\\', '/' });
 
-            var combined = new Uri(Path.GetFullPath(Path.Combine(Root.LocalPath, relativePath)));
+            var combined = new Uri(Path.GetFullPath(Path.Combine(BaseURI.LocalPath, relativePath)));
             return combined;
         }
 

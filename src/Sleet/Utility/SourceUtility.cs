@@ -15,7 +15,7 @@ namespace Sleet
 
             if (!await indexPath.Exists(log, token))
             {
-                throw new InvalidOperationException($"{fileSystem.Root} is missing sleet files. Use 'sleet.exe init' to create a new feed.");
+                throw new InvalidOperationException($"{fileSystem.BaseURI} is missing sleet files. Use 'sleet.exe init' to create a new feed.");
             }
         }
     }

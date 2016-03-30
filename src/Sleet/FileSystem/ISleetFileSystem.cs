@@ -10,7 +10,7 @@ namespace Sleet
 {
     public interface ISleetFileSystem
     {
-        Uri Root { get; }
+        Uri BaseURI { get; }
 
         ISleetFile Get(Uri path);
 

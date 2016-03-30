@@ -62,7 +62,7 @@ namespace Sleet
             await indexFile.Write(indexJson, _context.Log, _context.Token);
 
             // Set nupkg url
-            packageInput.NupkgUri = nupkgFile.Path;
+            packageInput.NupkgUri = nupkgFile.EntityUri;
         }
 
         public async Task RemovePackage(PackageIdentity package)

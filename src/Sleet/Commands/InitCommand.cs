@@ -115,7 +115,7 @@ namespace Sleet
 
             if (!await remoteFile.Exists(log, token))
             {
-                var json = TemplateUtility.LoadTemplate(templatePath, now, source.Root);
+                var json = TemplateUtility.LoadTemplate(templatePath, now, source.BaseURI);
                 await remoteFile.Write(JObject.Parse(json), log, token);
 
                 return true;
@@ -150,7 +150,7 @@ namespace Sleet
 
             if (!await sleetSettings.Exists(log, token))
             {
-                var json = JsonUtility.Create(sleetSettings.Path, "Settings");
+                var json = JsonUtility.Create(sleetSettings.EntityUri, "Settings");
 
                 json.Add("created", new JValue(now.GetDateString()));
                 json.Add("lastEdited", new JValue(now.GetDateString()));
@@ -169,7 +169,7 @@ namespace Sleet
 
             if (!await sleetPins.Exists(log, token))
             {
-                var json = JsonUtility.Create(sleetPins.Path, "Pins");
+                var json = JsonUtility.Create(sleetPins.EntityUri, "Pins");
 
                 json.Add("created", new JValue(now.GetDateString()));
                 json.Add("lastEdited", new JValue(now.GetDateString()));

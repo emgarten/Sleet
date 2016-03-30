@@ -10,9 +10,14 @@ namespace Sleet
     public interface ISleetFile
     {
         /// <summary>
-        /// Full URI
+        /// Actual path
         /// </summary>
-        Uri Path { get; }
+        Uri RootPath { get; }
+
+        /// <summary>
+        /// Full URI used for @ids
+        /// </summary>
+        Uri EntityUri { get; }
 
         /// <summary>
         /// Overwrite the file with the given stream.

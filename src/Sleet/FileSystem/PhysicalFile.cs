@@ -11,8 +11,8 @@ namespace Sleet
     {
         private readonly FileInfo _sourceFile;
 
-        internal PhysicalFile(PhysicalFileSystem fileSystem, Uri path, FileInfo localCacheFile, FileInfo sourceFile)
-            : base(fileSystem, path, localCacheFile)
+        internal PhysicalFile(PhysicalFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile, FileInfo sourceFile)
+            : base(fileSystem, rootPath, displayPath, localCacheFile)
         {
             _sourceFile = sourceFile;
         }

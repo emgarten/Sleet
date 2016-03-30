@@ -14,16 +14,17 @@ namespace Sleet
         private bool _downloaded = false;
         private bool _hasChanges = false;
 
-        public FileBase(ISleetFileSystem fileSystem, Uri path, FileInfo localCacheFile)
+        public FileBase(ISleetFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile)
         {
             FileSystem = fileSystem;
-            Path = path;
+            RootPath = rootPath;
+            EntityUri = displayPath;
             LocalCacheFile = localCacheFile;
         }
 
         public ISleetFileSystem FileSystem { get; }
 
-        public Uri Path { get; }
+        public Uri RootPath { get; }
 
         protected FileInfo LocalCacheFile { get; }
 
@@ -34,6 +35,8 @@ namespace Sleet
                 return _hasChanges;
             }
         }
+
+        public Uri EntityUri { get; }
 
         public async Task<bool> Exists(ILogger log, CancellationToken token)
         {
@@ -63,7 +66,7 @@ namespace Sleet
                         }
 
                         log.LogVerbose(ex.ToString());
-                        log.LogWarning($"Failed to upload '{Path}'. Retrying.");
+                        log.LogWarning($"Failed to upload '{RootPath}'. Retrying.");
 
                         await Task.Delay(10000);
                     }
@@ -150,7 +153,7 @@ namespace Sleet
                             throw;
                         }
 
-                        log.LogWarning($"Failed to sync '{Path}'. Retrying.");
+                        log.LogWarning($"Failed to sync '{RootPath}'. Retrying.");
                         log.LogDebug(ex.ToString());
 
                         Thread.Sleep(5000);

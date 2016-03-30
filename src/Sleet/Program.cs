@@ -42,6 +42,7 @@ namespace Sleet
             DeleteCommand.Register(app, log);
             ValidateCommand.Register(app, log);
             StatsCommand.Register(app, log);
+            CreateConfigCommand.Register(app, log);
 
             app.OnExecute(() =>
             {
