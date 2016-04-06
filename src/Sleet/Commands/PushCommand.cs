@@ -221,11 +221,10 @@ namespace Sleet
                     throw;
                 }
 
-                // Only strict semantic versions are allowed.
-                SemanticVersion strictVersion;
-                if (!SemanticVersion.TryParse(packageInput.Identity.Version.ToString(), out strictVersion))
+                // Only normalized versions are allowed.
+                if (packageInput.Identity.Version.ToString() != packageInput.Identity.Version.ToNormalizedString())
                 {
-                    throw new InvalidDataException($"Package '{packageInput.PackagePath}' does not contain a valid semantic version: '{packageInput.Identity.Version.ToString()}'. See https://semver.org/ for details.");
+                    throw new InvalidDataException($"Package '{packageInput.PackagePath}' does not contain a valid version: '{packageInput.Identity.Version.ToString()}'. See https://semver.org/ for details.");
                 }
 
                 // Check for correct nuspec name
