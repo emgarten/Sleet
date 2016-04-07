@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Text;
 using NuGet.Logging;
 
 namespace Sleet.Test
@@ -41,6 +42,18 @@ namespace Sleet.Test
         public void LogWarning(string data)
         {
             Messages.Enqueue(data);
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            foreach (var message in Messages)
+            {
+                sb.AppendLine(message);
+            }
+
+            return sb.ToString();
         }
     }
 }

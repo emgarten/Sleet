@@ -81,14 +81,25 @@ namespace Sleet
 
             var file = Files.GetOrAdd(path, (uri) =>
             {
-                var rootUri = UriUtility.ChangeRoot(_baseUri, _root, uri);
+                var rootUri = uri;
+                var displayUri = uri;
+
+                if (!UriUtility.HasRoot(Root, rootUri))
+                {
+                    rootUri = UriUtility.ChangeRoot(BaseURI, Root, uri);
+                }
+
+                if (!UriUtility.HasRoot(BaseURI, displayUri))
+                {
+                    displayUri = UriUtility.ChangeRoot(Root, BaseURI, uri);
+                }
 
                 return new PhysicalFile(
                     this,
                     rootUri,
-                    uri,
+                    displayUri,
                     LocalCache.GetNewTempPath(),
-                    new FileInfo(path.LocalPath));
+                    new FileInfo(rootUri.LocalPath));
             });
 
             return file;
@@ -102,10 +113,7 @@ namespace Sleet
                 throw new ArgumentNullException(nameof(relativePath));
             }
 
-            relativePath = relativePath.TrimStart(new char[] { '\\', '/' });
-
-            var combined = new Uri(Path.GetFullPath(Path.Combine(BaseURI.LocalPath, relativePath)));
-            return combined;
+            return UriUtility.GetPath(BaseURI, relativePath);
         }
 
         public async Task<bool> Commit(ILogger log, CancellationToken token)

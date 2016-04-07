@@ -66,7 +66,7 @@ namespace Sleet
             }
             else
             {
-                var newPage = JsonUtility.Create(currentPageFile.RootPath, "CatalogPage");
+                var newPage = JsonUtility.Create(currentPageFile.EntityUri, "CatalogPage");
                 newPage["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
                 newPage["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
                 newPage["count"] = 0;

@@ -6,6 +6,14 @@ namespace Sleet
     public static class UriUtility
     {
         /// <summary>
+        /// Check if the URI has the expected root
+        /// </summary>
+        public static bool HasRoot(Uri expectedRoot, Uri fullPath)
+        {
+            return fullPath.AbsoluteUri.StartsWith(expectedRoot.AbsoluteUri);
+        }
+
+        /// <summary>
         /// Convert a URI from one root to another.
         /// </summary>
         public static Uri ChangeRoot(Uri origRoot, Uri destRoot, Uri origPath)
@@ -28,13 +36,13 @@ namespace Sleet
 
             relativePath = relativePath.TrimStart(new char[] { '\\', '/' });
 
-            var combined = new Uri(root, relativePath);
+            var combined = new Uri(AddTrailingSlash(root), relativePath);
             return combined;
         }
 
         public static string GetRelativePath(Uri basePath, Uri path)
         {
-            if (path.AbsoluteUri.StartsWith(path.AbsoluteUri))
+            if (path.AbsoluteUri.StartsWith(basePath.AbsoluteUri))
             {
                 return path.AbsoluteUri.Substring(basePath.AbsoluteUri.Length);
             }
