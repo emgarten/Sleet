@@ -126,6 +126,29 @@ namespace Sleet
         }
 
         /// <summary>
+        /// Copy properties from one JObject to another.
+        /// Delimited items are turned into arrays.
+        /// </summary>
+        public static void CopyDelimitedProperties(JObject source, JObject destination, IEnumerable<string> properties, char delimiter)
+        {
+            foreach (var fieldName in properties)
+            {
+                var sourceProperty = source.Property(fieldName);
+
+                if (sourceProperty != null)
+                {
+                    var array = new JArray(sourceProperty.Value.ToObject<string>().Split(delimiter).Select(s => s.Trim()));
+
+                    destination.Add(fieldName, array);
+                }
+                else
+                {
+                    RequireArrayWithEmptyString(destination, new[] { fieldName });
+                }
+            }
+        }
+
+        /// <summary>
         /// Add an array with an empty item to all properties if they do not exist
         /// </summary>
         public static void RequireArrayWithEmptyString(JObject json, IEnumerable<string> properties)

@@ -299,7 +299,7 @@ namespace Sleet
                 "packageContent",
                 "projectUrl",
                 "published",
-                "requiredLicenseAcceptance",
+                "requireLicenseAcceptance",
                 "summary",
                 "tags",
                 "title",

@@ -142,11 +142,18 @@ namespace Sleet
                 "iconUrl",
                 "licenseUrl",
                 "projectUrl",
-                "tags",
-                "authors"
+                "tags"
             };
 
             JsonUtility.CopyProperties(catalogEntry, packageEntry, copyProperties, skipEmpty: false);
+
+            var copyPropertiesDelimited = new[]
+            {
+                "authors",
+                "owners"
+            };
+
+            JsonUtility.CopyDelimitedProperties(catalogEntry, packageEntry, copyPropertiesDelimited, ',');
 
             JsonUtility.RequireArrayWithEmptyString(packageEntry, new[] { "tags", "authors" });
 

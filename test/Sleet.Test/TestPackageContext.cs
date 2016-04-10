@@ -1,14 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Xml.Linq;
 
 namespace Sleet.Test
 {
     public class TestPackageContext
     {
+        public TestPackageContext()
+        {
+
+        }
+
+        public TestPackageContext(string id, string version)
+        {
+            Nuspec = new TestNuspecContext()
+            {
+                Id = id,
+                Version = version
+            };
+        }
+
         public TestNuspecContext Nuspec { get; set; }
 
         public List<string> Files { get; set; } = new List<string>();

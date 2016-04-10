@@ -14,11 +14,11 @@
     },
     {
       "@id": "$BASEURI$/registration/",
-      "@type": "RegistrationsBaseUrl/3.0.0-beta",
+      "@type": "RegistrationsBaseUrl/3.4.0",
       "comment": "Package registrations used for search and packages.config."
     },
     {
-      "@id": "$BASEURI$/reportabuse/{id}/{version}/",
+      "@id": "$BASEURI$/",
       "@type": "ReportAbuseUriTemplate/3.0.0",
       "comment": "Report abuse template."
     },
