@@ -79,6 +79,11 @@ namespace Sleet
                 throw new ArgumentNullException(nameof(path));
             }
 
+            if (!path.AbsoluteUri.StartsWith(BaseURI.AbsoluteUri))
+            {
+                throw new ArgumentException(string.Format("Base uri does not match the file system. Url: {0}, Expecting: {1}", path.AbsoluteUri, BaseURI.AbsoluteUri));
+            }
+
             var file = Files.GetOrAdd(path, (uri) =>
             {
                 var rootUri = uri;

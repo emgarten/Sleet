@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{98ECD2D1-744F-4DFA-A16A-E13EE596F10C}"
 EndProject
@@ -15,6 +15,8 @@ EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Sleet.Test", "test\Sleet.Test\Sleet.Test.xproj", "{8A6EC5A8-73C7-4719-AFFF-5CC19B08A998}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{FD8B1865-858C-4D7E-BA9A-135900B6E28B}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Sleet.Integration.Test", "test\Sleet.Integration.Test\Sleet.Integration.Test.xproj", "{25C2E902-62D9-4686-B51D-87B701B04B08}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +32,10 @@ Global
 		{8A6EC5A8-73C7-4719-AFFF-5CC19B08A998}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A6EC5A8-73C7-4719-AFFF-5CC19B08A998}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A6EC5A8-73C7-4719-AFFF-5CC19B08A998}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25C2E902-62D9-4686-B51D-87B701B04B08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25C2E902-62D9-4686-B51D-87B701B04B08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25C2E902-62D9-4686-B51D-87B701B04B08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25C2E902-62D9-4686-B51D-87B701B04B08}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -37,5 +43,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{5D6890F9-C4BC-42D3-8C21-56C5AF8618BC} = {98ECD2D1-744F-4DFA-A16A-E13EE596F10C}
 		{8A6EC5A8-73C7-4719-AFFF-5CC19B08A998} = {FD8B1865-858C-4D7E-BA9A-135900B6E28B}
+		{25C2E902-62D9-4686-B51D-87B701B04B08} = {FD8B1865-858C-4D7E-BA9A-135900B6E28B}
 	EndGlobalSection
 EndGlobal

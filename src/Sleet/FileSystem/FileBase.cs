@@ -165,5 +165,19 @@ namespace Sleet
         protected abstract Task CopyFromSource(ILogger log, CancellationToken token);
 
         protected abstract Task CopyToSource(ILogger log, CancellationToken token);
+
+        public async Task<Stream> GetStream(ILogger log, CancellationToken token)
+        {
+            await EnsureFile(log, token);
+
+            if (LocalCacheFile.Exists)
+            {
+                return LocalCacheFile.OpenRead();
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }

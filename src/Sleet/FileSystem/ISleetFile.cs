@@ -46,5 +46,7 @@ namespace Sleet
         /// True if the file has changed.
         /// </summary>
         bool HasChanges { get; }
+
+        Task<Stream> GetStream(ILogger log, CancellationToken token);
     }
 }
