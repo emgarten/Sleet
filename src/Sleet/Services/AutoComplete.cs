@@ -58,27 +58,35 @@ namespace Sleet
 
         public async Task RemovePackage(PackageIdentity packageIdentity)
         {
-            var file = RootIndexFile;
-            var json = await file.GetJson(_context.Log, _context.Token);
+            var packageIndex = new PackageIndex(_context);
+            var allPackagesForId = await packageIndex.GetPackagesById(packageIdentity.Id);
+            allPackagesForId.Remove(packageIdentity);
 
-            var data = json["data"] as JArray;
-
-            var ids = await GetPackageIds();
-
-            if (ids.Remove(packageIdentity.Id))
+            // Only remove the package if all versions have been removed
+            if (allPackagesForId.Count == 0)
             {
-                data.Clear();
+                var file = RootIndexFile;
+                var json = await file.GetJson(_context.Log, _context.Token);
 
-                foreach (var id in ids.OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
+                var data = json["data"] as JArray;
+
+                var ids = await GetPackageIds();
+
+                if (ids.Remove(packageIdentity.Id))
                 {
-                    data.Add(id);
+                    data.Clear();
+
+                    foreach (var id in ids.OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
+                    {
+                        data.Add(id);
+                    }
+
+                    json["totalHits"] = ids.Count;
+
+                    json = JsonLDTokenComparer.Format(json);
+
+                    await file.Write(json, _context.Log, _context.Token);
                 }
-
-                json["totalHits"] = ids.Count;
-
-                json = JsonLDTokenComparer.Format(json);
-
-                await file.Write(json, _context.Log, _context.Token);
             }
         }
 

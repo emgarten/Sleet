@@ -18,12 +18,266 @@ namespace Sleet.Integration.Test
 {
     public class NuGetReaderTests
     {
-        // TODO:
-        // Verify all packages are found for dependency info resource, when multiple pages exist
+        [Fact]
+        public async Task NuGetReader_MultiplePackagesOnRegistration()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var outputRoot = Path.Combine(target.Root, "output");
+                var baseUri = new Uri("https://localhost:8080/testFeed/");
+
+                var log = new TestLogger();
+
+                var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
+
+                var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
+                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+
+                var exitCode = await Program.MainCore(new[] { "init", "-c", sleetConfigPath, "-s", "local" }, log);
+
+                // push 100 packages
+                for (int i = 0; i < 100; i++)
+                {
+                    var testPackage = new TestPackageContext("packageA", $"1.0.0-alpha.{i}");
+                    var zipFile = testPackage.Create(packagesFolder.Root);
+                }
+
+                exitCode += await Program.MainCore(new[] { "push", packagesFolder.Root, "-c", sleetConfigPath, "-s", "local" }, log);
+                exitCode += await Program.MainCore(new[] { "validate", "-c", sleetConfigPath, "-s", "local" }, log);
+
+                // Act
+                // Create a repository abstraction for nuget
+                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var localSource = GetSource(outputRoot, baseUri, fileSystem);
+
+                var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
+                var packages = (await resource.GetMetadataAsync("packageA", true, true, log, CancellationToken.None)).ToList();
+
+                // Assert
+                Assert.True(0 == exitCode, log.ToString());
+                Assert.Equal(100, packages.Count);
+            }
+        }
+
+        [Fact]
+        public async Task NuGetReader_MultiplePackagesOnRegistrationWithRemove()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var outputRoot = Path.Combine(target.Root, "output");
+                var baseUri = new Uri("https://localhost:8080/testFeed/");
+
+                var log = new TestLogger();
+
+                var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
+
+                var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
+                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+
+                var exitCode = await Program.MainCore(new[] { "init", "-c", sleetConfigPath, "-s", "local" }, log);
+
+                // push 100 packages
+                for (int i = 0; i < 100; i++)
+                {
+                    var testPackage = new TestPackageContext("packageA", $"1.0.0-alpha.{i}");
+                    var zipFile = testPackage.Create(packagesFolder.Root);
+                }
+
+                exitCode += await Program.MainCore(new[] { "push", packagesFolder.Root, "-c", sleetConfigPath, "-s", "local" }, log);
+                exitCode += await Program.MainCore(new[] { "delete", "--id", "packageA", "--version", "1.0.0-alpha.5", "-c", sleetConfigPath, "-s", "local" }, log);
+                exitCode += await Program.MainCore(new[] { "validate", "-c", sleetConfigPath, "-s", "local" }, log);
+
+                // Act
+                // Create a repository abstraction for nuget
+                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var localSource = GetSource(outputRoot, baseUri, fileSystem);
+
+                var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
+                var packages = (await resource.GetMetadataAsync("packageA", true, true, log, CancellationToken.None)).ToList();
+
+                // Assert
+                Assert.True(0 == exitCode, log.ToString());
+                Assert.Equal(99, packages.Count);
+            }
+        }
+
         // Verify latest is found with metadata resource
+        [Fact]
+        public async Task NuGetReader_FindLatest()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var outputRoot = Path.Combine(target.Root, "output");
+                var baseUri = new Uri("https://localhost:8080/testFeed/");
+
+                var log = new TestLogger();
+                var testPackage = new TestPackageContext("packageA", "1.0.0");
+
+                var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
+
+                var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
+                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+
+                var zipFile = testPackage.Create(packagesFolder.Root);
+
+                // Act
+                // Run sleet
+                var exitCode = await Program.MainCore(new[] { "init", "-c", sleetConfigPath, "-s", "local" }, log);
+                exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
+
+                // Create a repository abstraction for nuget
+                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var localSource = GetSource(outputRoot, baseUri, fileSystem);
+
+                var resource = await localSource.GetResourceAsync<MetadataResource>();
+                var latest = await resource.GetLatestVersion("packageA", true, true, log, CancellationToken.None);
+
+                // Assert
+                Assert.True(0 == exitCode, log.ToString());
+                Assert.Equal("1.0.0", latest.ToFullVersionString());
+            }
+        }
+
         // Verify flat container returns all versions
+        [Fact]
+        public async Task NuGetReader_FindPackageByIdResource()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var outputRoot = Path.Combine(target.Root, "output");
+                var baseUri = new Uri("https://localhost:8080/testFeed/");
+
+                var log = new TestLogger();
+                var testPackage = new TestPackageContext("packageA", "1.0.0");
+
+                var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
+
+                var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
+                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+
+                var zipFile = testPackage.Create(packagesFolder.Root);
+
+                // Act
+                // Run sleet
+                var exitCode = await Program.MainCore(new[] { "init", "-c", sleetConfigPath, "-s", "local" }, log);
+                exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
+
+                // Create a repository abstraction for nuget
+                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var localSource = GetSource(outputRoot, baseUri, fileSystem);
+
+                var resource = await localSource.GetResourceAsync<FindPackageByIdResource>();
+                resource.Logger = log;
+                resource.CacheContext = new SourceCacheContext()
+                {
+                    NoCache = true
+                };
+
+                var versions = await resource.GetAllVersionsAsync("packageA", CancellationToken.None);
+
+                // Assert
+                Assert.True(0 == exitCode, log.ToString());
+                Assert.Equal("1.0.0", versions.Single().ToFullVersionString());
+            }
+        }
+
         // Verify download resource
+        [Fact]
+        public async Task NuGetReader_DownloadPackage()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var outputRoot = Path.Combine(target.Root, "output");
+                var baseUri = new Uri("https://localhost:8080/testFeed/");
+
+                var log = new TestLogger();
+                var testPackage = new TestPackageContext("packageA", "1.0.0");
+
+                var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
+
+                var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
+                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+
+                var zipFile = testPackage.Create(packagesFolder.Root);
+
+                // Act
+                // Run sleet
+                var exitCode = await Program.MainCore(new[] { "init", "-c", sleetConfigPath, "-s", "local" }, log);
+                exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
+
+                // Create a repository abstraction for nuget
+                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var localSource = GetSource(outputRoot, baseUri, fileSystem);
+
+                var resource = await localSource.GetResourceAsync<DownloadResource>();
+                var result = await resource.GetDownloadResourceResultAsync(new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), NullSettings.Instance, log, CancellationToken.None);
+
+                // Assert
+                Assert.True(0 == exitCode, log.ToString());
+
+                Assert.Equal(DownloadResourceResultStatus.Available, result.Status);
+                Assert.True(result.PackageStream.Length > 0);
+                Assert.Equal(new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), result.PackageReader.GetIdentity());
+            }
+        }
+
         // Verify auto complete resource
+        [Fact]
+        public async Task NuGetReader_AutoComplete()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var outputRoot = Path.Combine(target.Root, "output");
+                var baseUri = new Uri("https://localhost:8080/testFeed/");
+
+                var log = new TestLogger();
+                var testPackage = new TestPackageContext("packageA", "1.0.0");
+
+                var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
+
+                var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
+                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+
+                var zipFile = testPackage.Create(packagesFolder.Root);
+
+                // Act
+                // Run sleet
+                var exitCode = await Program.MainCore(new[] { "init", "-c", sleetConfigPath, "-s", "local" }, log);
+                exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
+
+                // Create a repository abstraction for nuget
+                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var localSource = GetSource(outputRoot, baseUri, fileSystem);
+
+                var resource = await localSource.GetResourceAsync<AutoCompleteResource>();
+                var ids = await resource.IdStartsWith("p", true, log, CancellationToken.None);
+                var versions = await resource.VersionStartsWith("packageA", "1", true, log, CancellationToken.None);
+
+                // Assert
+                Assert.True(0 == exitCode, log.ToString());
+
+                Assert.Equal("packageA", ids.Single());
+                Assert.Equal("1.0.0", versions.Single().ToFullVersionString());
+            }
+        }
 
         [Fact]
         public async Task NuGetReader_PackageMetadataResource()
