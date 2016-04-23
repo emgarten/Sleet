@@ -12,9 +12,9 @@
 
   "dependencies": {
     "Newtonsoft.Json": "8.0.3",
-    "NuGet.Packaging": "3.4.0-rtm-0764",
+    "NuGet.Packaging": "3.4.3",
     "Microsoft.Extensions.CommandLineUtils.Sources": "1.0.0-rc2-16357",
-    "WindowsAzure.Storage": "6.2.2-preview"
+    "WindowsAzure.Storage": "7.0.1-preview"
   },
 
   "commands": {

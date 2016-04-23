@@ -21,5 +21,10 @@ namespace Sleet
         Uri GetPath(string relativePath);
 
         Task<bool> Commit(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// Verify that a source is usable.
+        /// </summary>
+        Task<bool> Validate(ILogger log, CancellationToken token);
     }
 }

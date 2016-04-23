@@ -11,6 +11,14 @@ namespace Sleet
     {
         public static async Task VerifyInit(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
         {
+            // Validate source
+            var exists = await fileSystem.Validate(log, token);
+
+            if (!exists)
+            {
+                throw new InvalidOperationException($"Unable to use feed.");
+            }
+
             var indexPath = fileSystem.Get("index.json");
 
             if (!await indexPath.Exists(log, token))

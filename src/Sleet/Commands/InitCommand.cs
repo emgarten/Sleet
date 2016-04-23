@@ -70,6 +70,12 @@ namespace Sleet
             var now = DateTimeOffset.UtcNow;
 
             // Validate source
+            var exists = await source.Validate(log, token);
+
+            if (!exists)
+            {
+                return 1;
+            }
 
             // Create sleet.settings.json
             noChanges &= !await CreateSettings(source, log, token, now);

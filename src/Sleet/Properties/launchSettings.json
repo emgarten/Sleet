@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Sleet": {
-      "commandName": "Sleet",
-      "commandLineArgs": "push D:\\tmp\\sleetTests\\input -c D:\\tmp\\sleet.json -s local -f"
-    }
-  }
-}

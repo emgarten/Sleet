@@ -3,6 +3,7 @@
 
 artifacts/
 .nuget/nuget.exe
+launchSettings.json
 
 # User-specific files
 *.suo

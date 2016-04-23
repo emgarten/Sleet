@@ -107,5 +107,22 @@ namespace Sleet
         {
             return uri.AbsoluteUri.Replace(_root.AbsoluteUri, string.Empty);
         }
+
+        public async Task<bool> Validate(ILogger log, CancellationToken token)
+        {
+            log.LogInformation($"Verifying {_container.Uri.AbsoluteUri} exists.");
+
+            if (await _container.ExistsAsync())
+            {
+                log.LogInformation($"Found {_container.Uri.AbsoluteUri}");
+            }
+            else
+            {
+                log.LogError($"Unable to find {_container.Uri.AbsoluteUri}. Verify that the storage account and container exists. The container must be created manually before using this feed.");
+                return false;
+            }
+
+            return true;
+        }
     }
 }

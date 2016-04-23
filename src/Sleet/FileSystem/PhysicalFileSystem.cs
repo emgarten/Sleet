@@ -130,5 +130,19 @@ namespace Sleet
 
             return true;
         }
+
+        public Task<bool> Validate(ILogger log, CancellationToken token)
+        {
+            var dir = new DirectoryInfo(Root.LocalPath);
+
+            if (!dir.Exists)
+            {
+                log.LogError($"Local source folder does not exist. Create this folder and try again: {dir.FullName}");
+
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
+        }
     }
 }
