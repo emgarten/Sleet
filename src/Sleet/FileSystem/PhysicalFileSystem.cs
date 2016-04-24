@@ -135,9 +135,9 @@ namespace Sleet
         {
             var dir = new DirectoryInfo(Root.LocalPath);
 
-            if (!dir.Exists)
+            if (!dir.Parent.Exists)
             {
-                log.LogError($"Local source folder does not exist. Create this folder and try again: {dir.FullName}");
+                log.LogError($"Local source folder does not exist. Create the folder and try again: {dir.FullName}");
 
                 return Task.FromResult(false);
             }

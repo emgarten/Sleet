@@ -12,9 +12,8 @@
 
   "dependencies": {
     "Newtonsoft.Json": "8.0.3",
-    "NuGet.Packaging": "3.4.3",
-    "Microsoft.Extensions.CommandLineUtils.Sources": "1.0.0-rc2-16357",
-    "WindowsAzure.Storage": "7.0.1-preview"
+    "NuGet.Packaging": "3.4.0-rtm-0764",
+    "Microsoft.Extensions.CommandLineUtils.Sources": "1.0.0-rc2-16357"
   },
 
   "commands": {
@@ -22,7 +21,11 @@
   },
 
   "frameworks": {
-    "dnx451": { },
+    "dnx451": {
+      "dependencies": {
+        "WindowsAzure.Storage": "7.0.0"
+      }
+    },
     "dnxcore50": {
       "imports": "portable-net45+win8",
       "dependencies": {
@@ -30,7 +33,8 @@
         "System.Collections": "4.0.11-beta-23516",
         "System.Console": "4.0.0-beta-23516",
         "System.Linq": "4.0.1-beta-23516",
-        "System.Threading": "4.0.11-beta-23516"
+        "System.Threading": "4.0.11-beta-23516",
+        "WindowsAzure.Storage": "7.0.1-preview"
       }
     }
   }
