@@ -64,7 +64,16 @@ namespace Sleet
                 {
                     Stream writeStream = cache;
 
-                    if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal))
+                    if (_blob.Uri.AbsoluteUri.EndsWith(".nupkg", StringComparison.Ordinal))
+                    {
+                        _blob.Properties.ContentType = "application/zip";
+                    }
+                    else if (_blob.Uri.AbsoluteUri.EndsWith(".xml", StringComparison.Ordinal))
+                    {
+                        _blob.Properties.ContentType = "application/xml";
+                    }
+                    else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal)
+                            || JsonUtility.IsJson(LocalCacheFile.FullName))
                     {
                         _blob.Properties.ContentType = "application/json";
                         _blob.Properties.ContentEncoding = "gzip";
@@ -73,13 +82,9 @@ namespace Sleet
                         log.LogInformation($"Compressing {_blob.Uri.AbsoluteUri}");
                         writeStream = GZipAndMinify(cache);
                     }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith(".nupkg", StringComparison.Ordinal))
+                    else
                     {
-                        _blob.Properties.ContentType = "application/zip";
-                    }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith(".xml", StringComparison.Ordinal))
-                    {
-                        _blob.Properties.ContentType = "application/xml";
+                        log.LogWarning($"Unknown file type: {_blob.Uri.AbsoluteUri}");
                     }
 
                     await _blob.UploadFromStreamAsync(writeStream);

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Sleet
 {
@@ -22,8 +19,17 @@ namespace Sleet
 
         public static Stream GetResource(string name)
         {
-            var path = $"Sleet.compiler.resources.{name}";
-            return typeof(Program).GetTypeInfo().Assembly.GetManifestResourceStream(path);
+            var path = $"sleet.compiler.resources.{name}";
+
+            foreach (var foundPath in typeof(Program).GetTypeInfo().Assembly.GetManifestResourceNames())
+            {
+                if (StringComparer.OrdinalIgnoreCase.Equals(path, foundPath))
+                {
+                    return typeof(Program).GetTypeInfo().Assembly.GetManifestResourceStream(foundPath);
+                }
+            }
+
+            throw new ArgumentException($"Unable to find embedded resource: {path}");
         }
     }
 }

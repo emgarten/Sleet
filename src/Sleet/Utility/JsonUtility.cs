@@ -70,9 +70,30 @@ namespace Sleet
             }
         }
 
+        /// <summary>
+        /// True if the file can be loaded as a JObject.
+        /// </summary>
+        public static bool IsJson(string path)
+        {
+            try
+            {
+                var json = LoadJson(path);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static JObject LoadJson(FileInfo file)
         {
-            using (var stream = file.OpenRead())
+            return LoadJson(file.FullName);
+        }
+
+        public static JObject LoadJson(string path)
+        {
+            using (var stream = File.OpenRead(path))
             {
                 return LoadJson(stream);
             }
