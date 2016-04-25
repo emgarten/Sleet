@@ -68,7 +68,8 @@ namespace Sleet
                     {
                         _blob.Properties.ContentType = "application/zip";
                     }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith(".xml", StringComparison.Ordinal))
+                    else if (_blob.Uri.AbsoluteUri.EndsWith(".xml", StringComparison.Ordinal)
+                        || _blob.Uri.AbsoluteUri.EndsWith(".nuspec", StringComparison.Ordinal))
                     {
                         _blob.Properties.ContentType = "application/xml";
                     }

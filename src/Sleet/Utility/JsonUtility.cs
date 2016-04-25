@@ -116,14 +116,8 @@ namespace Sleet
 
         public static JObject GetContext(string name)
         {
-            var json = LoadJson(GetResource($"context{name}.json"));
+            var json = LoadJson(TemplateUtility.GetResource($"context{name}.json"));
             return (JObject)json["@context"];
-        }
-
-        public static Stream GetResource(string name)
-        {
-            var path = $"Sleet.compiler.resources.{name}";
-            return typeof(Program).GetTypeInfo().Assembly.GetManifestResourceStream(path);
         }
 
         /// <summary>

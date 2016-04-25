@@ -25,7 +25,9 @@ namespace Sleet
             {
                 if (StringComparer.OrdinalIgnoreCase.Equals(path, foundPath))
                 {
-                    return typeof(Program).GetTypeInfo().Assembly.GetManifestResourceStream(foundPath);
+                    var stream = typeof(Program).GetTypeInfo().Assembly.GetManifestResourceStream(foundPath);
+
+                    return stream;
                 }
             }
 
