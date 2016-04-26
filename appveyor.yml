@@ -4,7 +4,7 @@ branches:
   only:
     - master
 build_script:
-  - build.ps1
+  - build.cmd
 clone_depth: 1
 test: off
 deploy: off
