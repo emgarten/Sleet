@@ -1,0 +1,16 @@
+language: csharp
+sudo: required
+dist: trusty
+env:
+  - MONO_THREADS_PER_CPU=2000
+mono:
+  - 4.0.5
+os:
+  - linux
+  - osx
+osx_image: xcode7.1
+branches:
+  only:
+    - master
+script:
+  - ./build.sh
