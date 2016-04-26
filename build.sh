@@ -4,7 +4,7 @@ RESULTCODE=0
 
 # install dnx rc1
 if ! type dnvm > /dev/null 2>&1; then
-    source ~/.dnx/dnvm/dnvm.sh
+	curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh | DNX_BRANCH=dev sh && source ~/.dnx/dnvm/dnvm.sh
 fi
 
 if ! type dnx > /dev/null 2>&1; then
