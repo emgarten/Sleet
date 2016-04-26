@@ -25,7 +25,7 @@ namespace Sleet.Test
             {
                 // Arrange
                 var log = new TestLogger();
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(target.Root));
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
                 var context = new SleetContext()
@@ -97,7 +97,7 @@ namespace Sleet.Test
                     var input = new PackageInput()
                     {
                         Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0-alpha.1")),
-                        NupkgUri = new Uri("http://tempuri.org/flatcontainer/packageA/1.0.0-alpha.1/packageA.1.0.0-alpha.1.nupkg"),
+                        NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0-alpha.1/packageA.1.0.0-alpha.1.nupkg"),
                         Zip = zip,
                         Package = new PackageArchiveReader(zip),
                         PackagePath = zipFile.FullName
@@ -160,7 +160,7 @@ namespace Sleet.Test
             {
                 // Arrange
                 var log = new TestLogger();
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(target.Root));
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
                 var context = new SleetContext()
@@ -189,7 +189,7 @@ namespace Sleet.Test
                     var input = new PackageInput()
                     {
                         Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")),
-                        NupkgUri = new Uri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg"),
+                        NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg"),
                         Zip = zip,
                         Package = new PackageArchiveReader(zip),
                         PackagePath = zipFile.FullName

@@ -40,7 +40,7 @@ namespace Sleet
         {
             // Create package details page
             var packageDetails = CreatePackageDetails(packageInput);
-            var packageDetailsFile = _context.Source.Get(new Uri(packageDetails["@id"].ToString()));
+            var packageDetailsFile = _context.Source.Get(UriUtility.CreateUri(packageDetails["@id"].ToString()));
             await packageDetailsFile.Write(packageDetails, _context.Log, _context.Token);
 
             // Add catalog page entry
@@ -223,7 +223,7 @@ namespace Sleet
             {
                 if (latest["count"].ToObject<int>() < _context.SourceSettings.CatalogPageSize)
                 {
-                    return new Uri(latest["@id"].ToString());
+                    return UriUtility.CreateUri(latest["@id"].ToString());
                 }
 
                 return _context.Source.GetPath($"/catalog/page.{nextId}.json");
@@ -297,7 +297,7 @@ namespace Sleet
             var now = DateTimeOffset.UtcNow;
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
 
-            var rootUri = new Uri($"{_context.Source.BaseURI}catalog/data/{pageId}.json");
+            var rootUri = UriUtility.CreateUri($"{_context.Source.BaseURI}catalog/data/{pageId}.json");
 
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
@@ -330,7 +330,7 @@ namespace Sleet
 
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
 
-            var rootUri = new Uri($"{_context.Source.BaseURI}catalog/data/{pageId}.json");
+            var rootUri = UriUtility.CreateUri($"{_context.Source.BaseURI}catalog/data/{pageId}.json");
             packageInput.PackageDetailsUri = rootUri;
 
             var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });

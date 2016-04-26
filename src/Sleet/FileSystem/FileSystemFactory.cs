@@ -39,7 +39,7 @@ namespace Sleet
 
                         if (type == "local")
                         {
-                            result = new PhysicalFileSystem(cache, new Uri(path), new Uri(baseURI));
+                            result = new PhysicalFileSystem(cache, UriUtility.CreateUri(path), UriUtility.CreateUri(baseURI));
                         }
                         else if (type == "azure")
                         {
@@ -58,7 +58,7 @@ namespace Sleet
 
                             var azureAccount = CloudStorageAccount.Parse(connectionString);
 
-                            result = new AzureFileSystem(cache, new Uri(path), new Uri(baseURI), azureAccount, container);
+                            result = new AzureFileSystem(cache, UriUtility.CreateUri(path), UriUtility.CreateUri(baseURI), azureAccount, container);
                         }
                     }
                 }

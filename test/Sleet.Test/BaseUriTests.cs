@@ -18,7 +18,7 @@ namespace Sleet.Test
             using (var cache = new LocalCache())
             {
                 var outputRoot = Path.Combine(target.Root, "output");
-                var baseUri = new Uri("https://localhost:8080/testFeed/");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var log = new TestLogger();
                 var settings = new LocalSettings();

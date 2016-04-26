@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace Sleet
 {
@@ -52,12 +53,25 @@ namespace Sleet
 
         public static Uri AddTrailingSlash(string path)
         {
-            return new Uri(path.TrimEnd(new char[] { '/', '\\' }) + '/');
+            return UriUtility.CreateUri(path.TrimEnd(new char[] { '/', '\\' }) + '/');
         }
 
         public static Uri AddTrailingSlash(Uri uri)
         {
             return AddTrailingSlash(uri.AbsoluteUri);
+        }
+
+        /// <summary>
+        /// Create a URI in a safe manner that works for UNIX file paths.
+        /// </summary>
+        public static Uri CreateUri(string path)
+        {
+            if (Path.DirectorySeparatorChar == '/' && !string.IsNullOrEmpty(path) && path[0] == '/')
+            {
+                return new Uri("file://" + path);
+            }
+
+            return new Uri(path);
         }
     }
 }

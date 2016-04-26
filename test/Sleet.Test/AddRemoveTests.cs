@@ -24,7 +24,7 @@ namespace Sleet.Test
             using (var cache = new LocalCache())
             {
                 var log = new TestLogger();
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(target.Root));
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
                 var context = new SleetContext()
@@ -104,7 +104,7 @@ namespace Sleet.Test
             using (var cache = new LocalCache())
             {
                 var log = new TestLogger();
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(target.Root));
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
                 var context = new SleetContext()
@@ -183,7 +183,7 @@ namespace Sleet.Test
             using (var cache = new LocalCache())
             {
                 var log = new TestLogger();
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(target.Root));
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
                 var context = new SleetContext()
@@ -277,7 +277,7 @@ namespace Sleet.Test
             using (var cache = new LocalCache())
             {
                 var log = new TestLogger();
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(target.Root));
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
                 var context = new SleetContext()

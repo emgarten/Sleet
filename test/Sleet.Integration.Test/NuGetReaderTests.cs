@@ -27,7 +27,7 @@ namespace Sleet.Integration.Test
             using (var cache = new LocalCache())
             {
                 var outputRoot = Path.Combine(target.Root, "output");
-                var baseUri = new Uri("https://localhost:8080/testFeed/");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var log = new TestLogger();
 
@@ -50,7 +50,7 @@ namespace Sleet.Integration.Test
 
                 // Act
                 // Create a repository abstraction for nuget
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, fileSystem);
 
                 var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
@@ -71,7 +71,7 @@ namespace Sleet.Integration.Test
             using (var cache = new LocalCache())
             {
                 var outputRoot = Path.Combine(target.Root, "output");
-                var baseUri = new Uri("https://localhost:8080/testFeed/");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var log = new TestLogger();
 
@@ -95,7 +95,7 @@ namespace Sleet.Integration.Test
 
                 // Act
                 // Create a repository abstraction for nuget
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, fileSystem);
 
                 var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
@@ -117,7 +117,7 @@ namespace Sleet.Integration.Test
             using (var cache = new LocalCache())
             {
                 var outputRoot = Path.Combine(target.Root, "output");
-                var baseUri = new Uri("https://localhost:8080/testFeed/");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var log = new TestLogger();
                 var testPackage = new TestPackageContext("packageA", "1.0.0");
@@ -135,7 +135,7 @@ namespace Sleet.Integration.Test
                 exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
 
                 // Create a repository abstraction for nuget
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, fileSystem);
 
                 var resource = await localSource.GetResourceAsync<MetadataResource>();
@@ -157,7 +157,7 @@ namespace Sleet.Integration.Test
             using (var cache = new LocalCache())
             {
                 var outputRoot = Path.Combine(target.Root, "output");
-                var baseUri = new Uri("https://localhost:8080/testFeed/");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var log = new TestLogger();
                 var testPackage = new TestPackageContext("packageA", "1.0.0");
@@ -175,7 +175,7 @@ namespace Sleet.Integration.Test
                 exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
 
                 // Create a repository abstraction for nuget
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, fileSystem);
 
                 var resource = await localSource.GetResourceAsync<FindPackageByIdResource>();
@@ -203,7 +203,7 @@ namespace Sleet.Integration.Test
             using (var cache = new LocalCache())
             {
                 var outputRoot = Path.Combine(target.Root, "output");
-                var baseUri = new Uri("https://localhost:8080/testFeed/");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var log = new TestLogger();
                 var testPackage = new TestPackageContext("packageA", "1.0.0");
@@ -221,7 +221,7 @@ namespace Sleet.Integration.Test
                 exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
 
                 // Create a repository abstraction for nuget
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, fileSystem);
 
                 var resource = await localSource.GetResourceAsync<DownloadResource>();
@@ -246,7 +246,7 @@ namespace Sleet.Integration.Test
             using (var cache = new LocalCache())
             {
                 var outputRoot = Path.Combine(target.Root, "output");
-                var baseUri = new Uri("https://localhost:8080/testFeed/");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var log = new TestLogger();
                 var testPackage = new TestPackageContext("packageA", "1.0.0");
@@ -264,7 +264,7 @@ namespace Sleet.Integration.Test
                 exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
 
                 // Create a repository abstraction for nuget
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, fileSystem);
 
                 var resource = await localSource.GetResourceAsync<AutoCompleteResource>();
@@ -288,7 +288,7 @@ namespace Sleet.Integration.Test
             using (var cache = new LocalCache())
             {
                 var outputRoot = Path.Combine(target.Root, "output");
-                var baseUri = new Uri("https://localhost:8080/testFeed/");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var log = new TestLogger();
 
@@ -353,7 +353,7 @@ namespace Sleet.Integration.Test
                 exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
 
                 // Create a repository abstraction for nuget
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, fileSystem);
 
                 var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
@@ -407,7 +407,7 @@ namespace Sleet.Integration.Test
             using (var cache = new LocalCache())
             {
                 var outputRoot = Path.Combine(target.Root, "output");
-                var baseUri = new Uri("https://localhost:8080/testFeed/");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var log = new TestLogger();
 
@@ -472,7 +472,7 @@ namespace Sleet.Integration.Test
                 exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
 
                 // Create a repository abstraction for nuget
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, fileSystem);
 
                 var resource = await localSource.GetResourceAsync<PackageSearchResource>();
@@ -512,7 +512,7 @@ namespace Sleet.Integration.Test
             using (var cache = new LocalCache())
             {
                 var outputRoot = Path.Combine(target.Root, "output");
-                var baseUri = new Uri("https://localhost:8080/testFeed/");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var log = new TestLogger();
 
@@ -544,7 +544,7 @@ namespace Sleet.Integration.Test
                 exitCode += await Program.MainCore(new[] { "push", zipFile.FullName, "-c", sleetConfigPath, "-s", "local" }, log);
 
                 // Create a repository abstraction for nuget
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(outputRoot), baseUri);
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, fileSystem);
 
                 var dependencyInfoResource = await localSource.GetResourceAsync<DependencyInfoResource>();

@@ -31,7 +31,7 @@ namespace Sleet
 
         public static Uri GetId(Uri rootId, string subId)
         {
-            return new Uri($"{rootId.AbsoluteUri}#{subId}");
+            return UriUtility.CreateUri($"{rootId.AbsoluteUri}#{subId}");
         }
 
         public static JObject Create(Uri id, IEnumerable<string> types)

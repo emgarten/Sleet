@@ -17,7 +17,7 @@ namespace Sleet.Test
             {
                 // Arrange
                 var log = new TestLogger();
-                var fileSystem = new PhysicalFileSystem(cache, new Uri(target.Root));
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
                 var indexJsonOutput = new FileInfo(Path.Combine(target.Root, "index.json"));

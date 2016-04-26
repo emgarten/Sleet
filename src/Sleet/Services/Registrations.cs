@@ -215,22 +215,22 @@ namespace Sleet
 
         public Uri GetIndexUri(PackageIdentity package)
         {
-            return new Uri($"{_context.Source.BaseURI}registration/{package.Id.ToLowerInvariant()}/index.json");
+            return UriUtility.CreateUri($"{_context.Source.BaseURI}registration/{package.Id.ToLowerInvariant()}/index.json");
         }
 
         public static Uri GetIndexUri(Uri sourceRoot, string packageId)
         {
-            return new Uri($"{sourceRoot.AbsoluteUri}registration/{packageId.ToLowerInvariant()}/index.json");
+            return UriUtility.CreateUri($"{sourceRoot.AbsoluteUri}registration/{packageId.ToLowerInvariant()}/index.json");
         }
 
         public Uri GetPackageUri(PackageIdentity package)
         {
-            return new Uri($"{_context.Source.BaseURI}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
+            return UriUtility.CreateUri($"{_context.Source.BaseURI}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
         }
 
         public static Uri GetPackageUri(Uri sourceRoot, PackageIdentity package)
         {
-            return new Uri($"{sourceRoot.AbsoluteUri}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
+            return UriUtility.CreateUri($"{sourceRoot.AbsoluteUri}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
         }
 
         public async Task<JObject> CreatePackageBlob(PackageInput packageInput)

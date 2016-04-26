@@ -150,7 +150,7 @@ namespace Sleet.Integration.Test
 
             protected override async Task<HttpSourceResult> TryReadCacheFile(string uri, string cacheKey, HttpSourceCacheContext context, ILogger log, CancellationToken token)
             {
-                var file = (PhysicalFile)_fileSystem.Get(new Uri(uri));
+                var file = (PhysicalFile)_fileSystem.Get(UriUtility.CreateUri(uri));
 
                 if (await file.Exists(NullLogger.Instance, token))
                 {
