@@ -23,3 +23,6 @@ addons:
     - libssl-dev
     - libunwind8
     - zlib1g
+cache:
+  directories:
+    - $HOME/.nuget/packages
