@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Text;
-using NuGet.Logging;
+using NuGet.Common;
 
 namespace Sleet.Test
 {
@@ -19,7 +19,17 @@ namespace Sleet.Test
             Messages.Enqueue(data);
         }
 
+        public void LogErrorSummary(string data)
+        {
+            Messages.Enqueue(data);
+        }
+
         public void LogInformation(string data)
+        {
+            Messages.Enqueue(data);
+        }
+
+        public void LogInformationSummary(string data)
         {
             Messages.Enqueue(data);
         }

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Dnx.Runtime.Common.CommandLine;
-using NuGet.Logging;
+using Microsoft.Extensions.CommandLineUtils;
+using NuGet.Common;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
 

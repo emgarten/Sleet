@@ -1,19 +1,20 @@
 {
-  "version": "0.1.0-alpha-01",
+  "version": "0.2.0-alpha-01",
   "description": "Sleet",
   "authors": [ "emgarten" ],
-  "tags": [ "nuget feed" ],
-  "projectUrl": "https://github.com/emgarten/sleet",
-
-  "compilationOptions": {
+  "packOptions": {
+    "projectUrl": "https://github.com/emgarten/sleet",
+    "tags": [ "nuget feed" ]
+  },
+  "buildOptions": {
     "emitEntryPoint": true,
     "warningsAsErrors": true
   },
 
   "dependencies": {
     "Newtonsoft.Json": "8.0.3",
-    "NuGet.Packaging": "3.4.0-rtm-0764",
-    "Microsoft.Extensions.CommandLineUtils.Sources": "1.0.0-rc2-16357"
+    "NuGet.Packaging": "3.5.0-beta-final",
+    "Microsoft.Extensions.CommandLineUtils": "1.0.0-rc2-final"
   },
 
   "commands": {
@@ -21,20 +22,34 @@
   },
 
   "frameworks": {
-    "dnx451": {
+    "net451": {
+      "frameworkAssemblies": {
+        "System.IO.Compression": "4.0.0.0"
+      },
       "dependencies": {
         "WindowsAzure.Storage": "7.0.0"
+      },
+      "buildOptions": {
+        "define": [
+          "IS_DESKTOP"
+        ]
       }
     },
-    "dnxcore50": {
-      "imports": "portable-net45+win8",
+    "netcoreapp1.0": {
+      "imports": [ "dotnet5.6", "dnxcore50", "portable-net45+win8" ],
       "dependencies": {
-        "Microsoft.CSharp": "4.0.1-beta-23516",
-        "System.Collections": "4.0.11-beta-23516",
-        "System.Console": "4.0.0-beta-23516",
-        "System.Linq": "4.0.1-beta-23516",
-        "System.Threading": "4.0.11-beta-23516",
-        "WindowsAzure.Storage": "7.0.1-preview"
+        "WindowsAzure.Storage": "7.0.2-preview",
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.0.0-rc2-3002702"
+        },
+        "System.Runtime.Serialization.Primitives": "4.1.1-rc2-24027",
+        "System.Xml.XmlSerializer": "4.0.11-rc2-24027"
+      },
+      "buildOptions": {
+        "define": [
+          "IS_CORECLR"
+        ]
       }
     }
   }

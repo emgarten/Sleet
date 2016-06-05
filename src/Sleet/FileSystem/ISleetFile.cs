@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using NuGet.Logging;
+using NuGet.Common;
 
 namespace Sleet
 {

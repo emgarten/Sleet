@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
-using NuGet.Logging;
+using NuGet.Common;
 
 namespace Sleet
 {

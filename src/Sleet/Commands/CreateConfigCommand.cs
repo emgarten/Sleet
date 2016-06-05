@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using Microsoft.Dnx.Runtime.Common.CommandLine;
+using Microsoft.Extensions.CommandLineUtils;
 using Newtonsoft.Json.Linq;
-using NuGet.Logging;
+using NuGet.Common;
 
 namespace Sleet
 {

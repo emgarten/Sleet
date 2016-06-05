@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Dnx.Runtime.Common.CommandLine;
-using NuGet.Logging;
+using Microsoft.Extensions.CommandLineUtils;
+using NuGet.Common;
 using NuGet.Packaging.Core;
 
 namespace Sleet

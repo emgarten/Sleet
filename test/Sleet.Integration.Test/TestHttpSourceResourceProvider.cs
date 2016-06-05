@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
 using NuGet.Configuration;
-using NuGet.Logging;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
-using NuGet.Protocol.Core.v3;
 
 namespace Sleet.Integration.Test
 {
@@ -148,32 +144,24 @@ namespace Sleet.Integration.Test
                 _fileSystem = fileSystem;
             }
 
-            protected override async Task<HttpSourceResult> TryReadCacheFile(string uri, string cacheKey, HttpSourceCacheContext context, ILogger log, CancellationToken token)
+            protected override Stream TryReadCacheFile(string uri, TimeSpan maxAge, string cacheFile)
             {
                 var file = (PhysicalFile)_fileSystem.Get(UriUtility.CreateUri(uri));
 
-                if (await file.Exists(NullLogger.Instance, token))
+                if (file.Exists(NullLogger.Instance, CancellationToken.None).Result)
                 {
-                    using (var stream = await file.GetStream(NullLogger.Instance, token))
+                    using (var stream = file.GetStream(NullLogger.Instance, CancellationToken.None).Result)
                     {
                         var memoryStream = new MemoryStream();
                         stream.CopyTo(memoryStream);
                         memoryStream.Seek(0, SeekOrigin.Begin);
 
-                        return new HttpSourceResult()
-                        {
-                            Stream = memoryStream,
-                            CacheFileName = cacheKey
-                        };
+                        return memoryStream;
                     }
                 }
                 else
                 {
-                    return new HttpSourceResult()
-                    {
-                        Stream = null,
-                        CacheFileName = cacheKey
-                    };
+                    return null;
                 }
             }
         }

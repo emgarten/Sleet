@@ -1,5 +1,5 @@
 ﻿using System;
-using NuGet.Logging;
+using NuGet.Common;
 
 namespace Sleet
 {
@@ -17,7 +17,17 @@ namespace Sleet
             Log(data, ConsoleColor.Red);
         }
 
+        public void LogErrorSummary(string data)
+        {
+            throw new NotImplementedException();
+        }
+
         public void LogInformation(string data)
+        {
+            Log(data);
+        }
+
+        public void LogInformationSummary(string data)
         {
             Log(data);
         }
@@ -29,7 +39,7 @@ namespace Sleet
 
         public void LogSummary(string data)
         {
-            throw new NotImplementedException();
+            Log(data);
         }
 
         public void LogVerbose(string data)

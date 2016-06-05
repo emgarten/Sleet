@@ -1,8 +1,4 @@
 $RepoRoot = $PSScriptRoot
-$ArtifactsDir = Join-Path $RepoRoot 'artifacts'
-$NuGetExe = Join-Path $RepoRoot '.nuget\nuget.exe'
-$ILMergeExe = Join-Path $RepoRoot 'packages\ILMerge.2.14.1208\tools\ILMerge.exe'
-$DnvmCmd = Join-Path $env:USERPROFILE '.dnx\bin\dnvm.cmd'
 
 trap
 {
@@ -10,61 +6,49 @@ trap
     exit 1
 }
 
-if (-not (Test-Path $NuGetExe))
+# Load common build script helper methods
+. "$PSScriptRoot\build\common.ps1"
+
+# Ensure dotnet.exe exists in .cli
+Install-DotnetCLI $RepoRoot
+
+# Ensure packages.config packages
+Install-PackagesConfig $RepoRoot
+
+$ArtifactsDir = Join-Path $RepoRoot 'artifacts'
+$nugetExe = Join-Path $RepoRoot '.nuget\nuget.exe'
+$ILMergeExe = Join-Path $RepoRoot 'packages\ILMerge.2.14.1208\tools\ILMerge.exe'
+$dotnetExe = Get-DotnetCLIExe $RepoRoot
+
+# Restore project.json files
+& $nugetExe restore $RepoRoot
+
+# Run tests
+& $dotnetExe test (Join-Path $RepoRoot "test\Sleet.Test")
+
+if (-not $?)
 {
-    wget https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile $NuGetExe
-}
-
-& $NuGetExe restore (Join-Path $RepoRoot '.nuget\packages.config') -SolutionDirectory $RepoRoot
-
-# install DNX
-if (-not (Test-Path $DnvmCmd)) {
-    iex (`
-      (new-object net.webclient).DownloadString('https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.ps1')`
-    )
-}
-
-$env:DNX_FEED = 'https://www.nuget.org/api/v2/'
-& dnvm install 1.0.0-rc1-update1 -runtime coreclr -arch x64
-& dnvm install 1.0.0-rc1-update1 -runtime clr -arch x86 -alias default
-
-# restore
-& dnu restore
-
-if (-not $?) {
-    Write-Host "restore failed"
+    Write-Host "tests failed!!!"
     exit 1
 }
 
-# test
-& dnvm use 1.0.0-rc1-update1 -runtime coreclr -arch x64
-& dnx --project test\Sleet.Test test
+& $dotnetExe test (Join-Path $RepoRoot "test\Sleet.Integration.Test")
 
-if (-not $?) {
-    Write-Host "tests failed"
+if (-not $?)
+{
+    Write-Host "tests failed!!!"
     exit 1
 }
 
-& dnvm use 1.0.0-rc1-update1 -runtime clr -arch x86
-& dnx --project test\Sleet.Test test
 
-if (-not $?) {
-    Write-Host "tests failed"
-    exit 1
-}
+# Publish for ILMerge
+& $dotnetExe publish src\sleet -o artifacts\publish\net451 -f net451 -r win7-x86 --configuration release
 
-& dnvm use 1.0.0-rc1-update1 -runtime coreclr -arch x64
-& dnx --project test\Sleet.Integration.Test test
+$net46Root = (Join-Path $ArtifactsDir 'publish\net451')
+$ILMergeOpts = , (Join-Path $net46Root 'Sleet.exe')
+$ILMergeOpts += Get-ChildItem $net46Root -Exclude @('*.exe', '*compression*', '*System.*', '*.config', '*.pdb') | where { ! $_.PSIsContainer } | %{ $_.FullName }
+$ILMergeOpts += '/out:' + (Join-Path $ArtifactsDir 'sleet.exe')
+$ILMergeOpts += '/log'
+$ILMergeOpts += '/ndebug'
 
-if (-not $?) {
-    Write-Host "tests failed"
-    exit 1
-}
-
-& dnvm use 1.0.0-rc1-update1 -runtime clr -arch x86
-& dnx --project test\Sleet.Integration.Test test
-
-if (-not $?) {
-    Write-Host "tests failed"
-    exit 1
-}
+& $ILMergeExe $ILMergeOpts
