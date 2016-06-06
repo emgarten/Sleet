@@ -5,25 +5,27 @@ RESULTCODE=0
 # increase open file limit for osx
 ulimit -n 2048
 
-# install dnx rc1
-if ! type dnvm > /dev/null 2>&1; then
-	curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh | DNX_BRANCH=dev sh && source ~/.dnx/dnvm/dnvm.sh
-fi
+# Download dotnet cli
+echo "Installing dotnet"
+mkdir -p .cli
+curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/cli/7652335195989b2c8c9c7aa705d89b0cd4af3551/scripts/obtain/dotnet-install.sh
 
-if ! type dnx > /dev/null 2>&1; then
-    dnvm install 1.0.0-rc1-update1 -runtime coreclr -alias default
-fi
+# Run install.sh
+chmod +x .cli/dotnet-install.sh
+.cli/dotnet-install.sh -i .cli -c beta -v 1.0.0-preview1-002702
 
-dnvm use 1.0.0-rc1-update1 -runtime coreclr
+# Display info
+DOTNET="$(pwd)/.cli/dotnet"
+$DOTNET --info
 
 # restore
-dnu restore
+$DOTNET restore
 
 for testProj in `find test -type f -name project.json`
 do
     echo "Running tests for $testProj"
 
-    dnx --project $testProj test
+    $DOTNET test $testProj -f netcoreapp1.0
 
     if [ $? -ne 0 ]; then
         echo "$testProj FAILED"
