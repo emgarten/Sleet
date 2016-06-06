@@ -21,7 +21,10 @@ Sleet is a cross platform command line tool to generate NuGet v3 static feeds.
 
 ##### Supported clients
 * NuGet 3.4.0
-* dotnet CLI 1.0.0-beta
+* dotnet CLI 1.0.0-rc2
 
 ##### Getting started
 Check out the getting started guide [here](http://emgarten.com/2016/04/25/how-to-host-a-nuget-v3-feed-on-azure-storage/).
+
+##### Coding
+This solution uses .NET Core, get the tools [here](http://dot.net/).
