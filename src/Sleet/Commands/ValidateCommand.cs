@@ -104,7 +104,6 @@ namespace Sleet
             var flatContainer = new FlatContainer(context);
             var search = new Search(context);
             var autoComplete = new AutoComplete(context);
-            var pinService = new PinService(context);
             var packageIndex = new PackageIndex(context);
 
             var services = new List<ISleetService>();
