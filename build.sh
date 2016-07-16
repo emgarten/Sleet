@@ -8,11 +8,11 @@ ulimit -n 2048
 # Download dotnet cli
 echo "Installing dotnet"
 mkdir -p .cli
-curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/cli/7652335195989b2c8c9c7aa705d89b0cd4af3551/scripts/obtain/dotnet-install.sh
+curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/cli/f4ceb1f2136c5b0be16a7b551d28f5634a6c84bb/scripts/obtain/dotnet-install.sh
 
 # Run install.sh
 chmod +x .cli/dotnet-install.sh
-.cli/dotnet-install.sh -i .cli -c beta -v 1.0.0-preview1-002702
+.cli/dotnet-install.sh -i .cli -c preview -v 1.0.0-preview2-003121
 
 # Display info
 DOTNET="$(pwd)/.cli/dotnet"

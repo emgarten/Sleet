@@ -2,30 +2,25 @@
   "version": "1.0.0-*",
   "description": "Integration tests",
   "authors": [ "emgarten" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
   "dependencies": {
-    "dotnet-test-xunit": "1.0.0-rc2-build10025",
+    "dotnet-test-xunit": "2.2.0-preview2-build1029",
     "Sleet.Test": {
       "target": "project"
     },
-    "NuGet.Protocol.Core.v3": "3.5.0-beta-final",
-    "xunit": "2.1.0"
+    "NuGet.Protocol.Core.v3": "3.5.0-beta2-1484",
+    "xunit": "2.2.0-beta2-build3300"
   },
   "testRunner": "xunit",
   "frameworks": {
     "net46": { },
     "netcoreapp1.0": {
       "imports": [
-        "dotnet5.6",
-        "dnxcore50",
         "portable-net45+win8"
       ],
       "dependencies": {
         "Microsoft.NETCore.App": {
           "type": "platform",
-          "version": "1.0.0-rc2-3002702"
+          "version": "1.0.0"
         }
       },
       "buildOptions": {
