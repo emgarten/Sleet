@@ -26,5 +26,10 @@ namespace Sleet
         /// Verify that a source is usable.
         /// </summary>
         Task<bool> Validate(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// Create a file system lock.
+        /// </summary>
+        ISleetFileSystemLock CreateLock(ILogger log);
     }
 }

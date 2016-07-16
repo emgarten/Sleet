@@ -92,9 +92,6 @@ namespace Sleet
             // Create search
             noChanges &= !await CreateSearch(source, log, token, now);
 
-            // Create pins
-            noChanges &= !await CreatePins(source, log, token, now);
-
             // Create package index
             noChanges &= !await CreatePackageIndex(source, log, token, now);
 
@@ -162,25 +159,6 @@ namespace Sleet
                 json.Add("lastEdited", new JValue(now.GetDateString()));
 
                 await sleetSettings.Write(json, log, token);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        private static async Task<bool> CreatePins(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
-        {
-            var sleetPins = source.Get("sleet.pins.json");
-
-            if (!await sleetPins.Exists(log, token))
-            {
-                var json = JsonUtility.Create(sleetPins.EntityUri, "Pins");
-
-                json.Add("created", new JValue(now.GetDateString()));
-                json.Add("lastEdited", new JValue(now.GetDateString()));
-
-                await sleetPins.Write(json, log, token);
 
                 return true;
             }

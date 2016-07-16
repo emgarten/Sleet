@@ -80,109 +80,110 @@ namespace Sleet
             var token = CancellationToken.None;
 
             // Check if already initialized
-            await SourceUtility.VerifyInit(source, log, token);
-
-            // Validate source
-            await UpgradeUtility.UpgradeIfNeeded(source, log, token);
-
-            // Get sleet.settings.json
-            var sourceSettings = new SourceSettings();
-
-            // Settings context used for all operations
-            var context = new SleetContext()
+            using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
             {
-                LocalSettings = settings,
-                SourceSettings = sourceSettings,
-                Log = log,
-                Source = source,
-                Token = token
-            };
+                // Validate source
+                await UpgradeUtility.UpgradeIfNeeded(source, log, token);
 
-            // Create all services
-            var catalog = new Catalog(context);
-            var registrations = new Registrations(context);
-            var flatContainer = new FlatContainer(context);
-            var search = new Search(context);
-            var autoComplete = new AutoComplete(context);
-            var packageIndex = new PackageIndex(context);
+                // Get sleet.settings.json
+                var sourceSettings = new SourceSettings();
 
-            var services = new List<ISleetService>();
-            services.Add(catalog);
-            services.Add(registrations);
-            services.Add(flatContainer);
-            services.Add(search);
-
-            // Verify against the package index
-            var indexedPackages = await packageIndex.GetPackages();
-            var allIndexIds = indexedPackages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-
-            // Verify auto complete
-            log.LogMinimal($"Validating {autoComplete.Name}");
-            var autoCompleteIds = await autoComplete.GetPackageIds();
-            var missingACIds = allIndexIds.Except(autoCompleteIds).ToList();
-            var extraACIds = autoCompleteIds.Except(allIndexIds).ToList();
-
-            if (missingACIds.Count() > 0 || extraACIds.Count() > 0)
-            {
-                log.LogError("Missing autocomplete packages: " + string.Join(", ", missingACIds));
-                log.LogError("Extra autocomplete packages: " + string.Join(", ", extraACIds));
-                exitCode = 1;
-            }
-            else
-            {
-                log.LogMinimal("Autocomplete packages valid");
-            }
-
-            // Verify everything else
-            foreach (var service in services)
-            {
-                log.LogMinimal($"Validating {service.Name}");
-
-                var allPackagesService = service as IPackagesLookup;
-                var byIdService = service as IPackageIdLookup;
-
-                var servicePackages = new HashSet<PackageIdentity>();
-
-                // Use get all if possible
-                if (allPackagesService != null)
+                // Settings context used for all operations
+                var context = new SleetContext()
                 {
-                    servicePackages.UnionWith(await allPackagesService.GetPackages());
-                }
-                else if (byIdService != null)
-                {
-                    foreach (var id in allIndexIds)
-                    {
-                        servicePackages.UnionWith(await byIdService.GetPackagesById(id));
-                    }
-                }
-                else
-                {
-                    log.LogError($"Unable to get packages for {service.Name}");
-                    continue;
-                }
+                    LocalSettings = settings,
+                    SourceSettings = sourceSettings,
+                    Log = log,
+                    Source = source,
+                    Token = token
+                };
 
-                var diff = new PackageDiff(indexedPackages, servicePackages);
+                // Create all services
+                var catalog = new Catalog(context);
+                var registrations = new Registrations(context);
+                var flatContainer = new FlatContainer(context);
+                var search = new Search(context);
+                var autoComplete = new AutoComplete(context);
+                var packageIndex = new PackageIndex(context);
 
-                if (diff.HasErrors)
+                var services = new List<ISleetService>();
+                services.Add(catalog);
+                services.Add(registrations);
+                services.Add(flatContainer);
+                services.Add(search);
+
+                // Verify against the package index
+                var indexedPackages = await packageIndex.GetPackages();
+                var allIndexIds = indexedPackages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+                // Verify auto complete
+                log.LogMinimal($"Validating {autoComplete.Name}");
+                var autoCompleteIds = await autoComplete.GetPackageIds();
+                var missingACIds = allIndexIds.Except(autoCompleteIds).ToList();
+                var extraACIds = autoCompleteIds.Except(allIndexIds).ToList();
+
+                if (missingACIds.Count() > 0 || extraACIds.Count() > 0)
                 {
-                    log.LogError(diff.ToString());
-
+                    log.LogError("Missing autocomplete packages: " + string.Join(", ", missingACIds));
+                    log.LogError("Extra autocomplete packages: " + string.Join(", ", extraACIds));
                     exitCode = 1;
                 }
                 else
                 {
-                    log.LogMinimal(diff.ToString());
-                    log.LogMinimal($"{service.Name} packages valid");
+                    log.LogMinimal("Autocomplete packages valid");
                 }
-            }
 
-            if (exitCode != 0)
-            {
-                log.LogError($"Feed invalid!");
-            }
-            else
-            {
-                log.LogMinimal($"Feed valid");
+                // Verify everything else
+                foreach (var service in services)
+                {
+                    log.LogMinimal($"Validating {service.Name}");
+
+                    var allPackagesService = service as IPackagesLookup;
+                    var byIdService = service as IPackageIdLookup;
+
+                    var servicePackages = new HashSet<PackageIdentity>();
+
+                    // Use get all if possible
+                    if (allPackagesService != null)
+                    {
+                        servicePackages.UnionWith(await allPackagesService.GetPackages());
+                    }
+                    else if (byIdService != null)
+                    {
+                        foreach (var id in allIndexIds)
+                        {
+                            servicePackages.UnionWith(await byIdService.GetPackagesById(id));
+                        }
+                    }
+                    else
+                    {
+                        log.LogError($"Unable to get packages for {service.Name}");
+                        continue;
+                    }
+
+                    var diff = new PackageDiff(indexedPackages, servicePackages);
+
+                    if (diff.HasErrors)
+                    {
+                        log.LogError(diff.ToString());
+
+                        exitCode = 1;
+                    }
+                    else
+                    {
+                        log.LogMinimal(diff.ToString());
+                        log.LogMinimal($"{service.Name} packages valid");
+                    }
+                }
+
+                if (exitCode != 0)
+                {
+                    log.LogError($"Feed invalid!");
+                }
+                else
+                {
+                    log.LogMinimal($"Feed valid");
+                }
             }
 
             return exitCode;

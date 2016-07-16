@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
 using NuGet.Packaging;
-using NuGet.Packaging.Core;
-using NuGet.Versioning;
 
 namespace Sleet
 {
@@ -95,54 +93,49 @@ namespace Sleet
             var packages = GetPackageInputs(inputs, now, log);
 
             // Check if already initialized
-            await SourceUtility.VerifyInit(source, log, token);
-
-            // Validate source
-            await UpgradeUtility.UpgradeIfNeeded(source, log, token);
-
-            // Get sleet.settings.json
-            var sourceSettings = new SourceSettings();
-
-            // Settings context used for all operations
-            var context = new SleetContext()
+            using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
             {
-                LocalSettings = settings,
-                SourceSettings = sourceSettings,
-                Log = log,
-                Source = source,
-                Token = token
-            };
 
-            var packageIndex = new PackageIndex(context);
+                // Validate source
+                await UpgradeUtility.UpgradeIfNeeded(source, log, token);
 
-            // var pinned = await pinService.GetEntries();
+                // Get sleet.settings.json
+                var sourceSettings = new SourceSettings();
 
-            foreach (var package in packages)
-            {
-                // Prune
-                // TODO: add pruning and pinning
-                // TODO: make space for
-                // TODO: delete and prune
-
-                if (await packageIndex.Exists(package.Identity))
+                // Settings context used for all operations
+                var context = new SleetContext()
                 {
-                    if (force)
+                    LocalSettings = settings,
+                    SourceSettings = sourceSettings,
+                    Log = log,
+                    Source = source,
+                    Token = token
+                };
+
+                var packageIndex = new PackageIndex(context);
+
+                foreach (var package in packages)
+                {
+                    if (await packageIndex.Exists(package.Identity))
                     {
-                        log.LogInformation($"Package already exists, removing {package.ToString()}");
-                        await SleetUtility.RemovePackage(context, package.Identity);
+                        if (force)
+                        {
+                            log.LogInformation($"Package already exists, removing {package.ToString()}");
+                            await SleetUtility.RemovePackage(context, package.Identity);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException($"Package already exists: '{package.Identity}'.");
+                        }
                     }
-                    else
-                    {
-                        throw new InvalidOperationException($"Package already exists: '{package.Identity}'.");
-                    }
+
+                    log.LogInformation($"Adding {package.Identity.ToString()}");
+                    await SleetUtility.AddPackage(context, package);
                 }
 
-                log.LogInformation($"Adding {package.Identity.ToString()}");
-                await SleetUtility.AddPackage(context, package);
+                // Save all
+                await source.Commit(log, token);
             }
-
-            // Save all
-            await source.Commit(log, token);
 
             return exitCode;
         }

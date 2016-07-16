@@ -124,5 +124,10 @@ namespace Sleet
 
             return true;
         }
+
+        public ISleetFileSystemLock CreateLock(ILogger log)
+        {
+            return new AzureFileSystemLock(_container, log);
+        }
     }
 }

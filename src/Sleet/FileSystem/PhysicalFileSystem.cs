@@ -144,5 +144,10 @@ namespace Sleet
 
             return Task.FromResult(true);
         }
+
+        public ISleetFileSystemLock CreateLock(ILogger log)
+        {
+            return new PhysicalFileSystemLock(Root.LocalPath, log);
+        }
     }
 }

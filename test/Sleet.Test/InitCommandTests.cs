@@ -22,7 +22,6 @@ namespace Sleet.Test
 
                 var indexJsonOutput = new FileInfo(Path.Combine(target.Root, "index.json"));
                 var settingsOutput = new FileInfo(Path.Combine(target.Root, "sleet.settings.json"));
-                var pinsOutput = new FileInfo(Path.Combine(target.Root, "sleet.pins.json"));
                 var autoCompleteOutput = new FileInfo(Path.Combine(target.Root, "autocomplete", "query"));
                 var catalogOutput = new FileInfo(Path.Combine(target.Root, "catalog", "index.json"));
                 var searchOutput = new FileInfo(Path.Combine(target.Root, "search", "query"));
@@ -38,7 +37,6 @@ namespace Sleet.Test
                 Assert.True(autoCompleteOutput.Exists);
                 Assert.True(catalogOutput.Exists);
                 Assert.True(searchOutput.Exists);
-                Assert.True(pinsOutput.Exists);
                 Assert.True(packageIndexOutput.Exists);
             }
         }
