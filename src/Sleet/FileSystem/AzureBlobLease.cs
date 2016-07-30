@@ -48,7 +48,15 @@ namespace Sleet
 
         public async Task Renew()
         {
-            await _blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(_leaseId));
+            try
+            {
+                await _blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(_leaseId));
+            }
+            catch
+            {
+                // attempt to get the lease again
+                await GetLease();
+            }
         }
 
         public void Dispose()

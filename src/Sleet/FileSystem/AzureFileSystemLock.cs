@@ -15,6 +15,8 @@ namespace Sleet
         private const string LockFile = "feedlock";
         private readonly AzureBlobLease _lease;
         private readonly CloudBlockBlob _blob;
+        private Task _keepLockTask;
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
         public AzureFileSystemLock(CloudBlobContainer container, ILogger log)
         {
@@ -32,62 +34,105 @@ namespace Sleet
             }
         }
 
-        public void Dispose()
-        {
-            Release();
-        }
-
         public async Task<bool> GetLock(TimeSpan wait, CancellationToken token)
         {
             var result = false;
 
-            var exists = await _blob.ExistsAsync();
-            if (!exists)
+            if (!_isLocked)
             {
-                // Create the feed lock blob if it doesn't exist
-                var bytes = Encoding.UTF8.GetBytes("feed lock");
-                await _blob.UploadFromByteArrayAsync(bytes, 0, bytes.Length);
-            }
+                var exists = await _blob.ExistsAsync();
+                if (!exists)
+                {
+                    // Create the feed lock blob if it doesn't exist
+                    var bytes = Encoding.UTF8.GetBytes("feedlock");
+                    await _blob.UploadFromByteArrayAsync(bytes, 0, bytes.Length);
+                }
 
-            var timer = new Stopwatch();
-            timer.Start();
+                var timer = new Stopwatch();
+                timer.Start();
 
-            var lastNotify = TimeSpan.Zero;
+                var lastNotify = TimeSpan.Zero;
 
-            do
-            {
-                result = await _lease.GetLease();
+                do
+                {
+                    result = await _lease.GetLease();
+
+                    if (!result)
+                    {
+                        var diff = timer.Elapsed.Subtract(lastNotify);
+
+                        if (diff.TotalSeconds > 60)
+                        {
+                            _log.LogMinimal($"Waiting to obtain an exclusive lock on the feed.");
+                        }
+
+                        await Task.Delay(100);
+                    }
+                }
+                while (!result && timer.Elapsed < wait);
 
                 if (!result)
                 {
-                    var diff = timer.Elapsed.Subtract(lastNotify);
-
-                    if (diff.TotalSeconds > 60)
-                    {
-                        _log.LogMinimal($"Waiting to obtain an exclusive lock on the feed.");
-                    }
-
-                    Thread.Sleep(100);
+                    _log.LogError($"Unable to obtain a lock on the feed. Try again later.");
                 }
-            }
-            while (!result && timer.Elapsed < wait);
+                else if (_keepLockTask == null)
+                {
+                    _keepLockTask = Task.Run(async () => await KeepLock());
+                }
 
-            if (!result)
-            {
-                _log.LogError($"Unable to obtain a lock on the feed. Try again later.");
+                _isLocked = result;
             }
-
-            _isLocked = result;
 
             return result;
         }
 
         public void Release()
         {
+            _cts.Cancel();
+
+            // Wait for the task to complete
+            if (_keepLockTask != null)
+            {
+                _keepLockTask.Wait();
+            }
+
             if (_isLocked)
             {
                 _lease.Release();
             }
+        }
+
+        private async Task KeepLock()
+        {
+            try
+            {
+                while (!_cts.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await _lease.Renew();
+
+                        await Task.Delay(TimeSpan.FromSeconds(30), _cts.Token);
+                    }
+                    catch
+                    {
+                        // Ignore exceptions, continue the inner loop
+                        Debug.Fail("KeepLock failed");
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore
+                Debug.Fail("KeepLock failed");
+            }
+        }
+
+        public void Dispose()
+        {
+            Release();
+
+            _cts.Dispose();
         }
     }
 }
