@@ -1,10 +1,20 @@
 {
-  "version": "1.0.0-*",
-  "description": "Sleet",
+  "version": "1.0.0",
+  "description": "Sleet is a cross platform command line tool to generate NuGet v3 static feeds.",
   "authors": [ "emgarten" ],
   "packOptions": {
-    "projectUrl": "https://github.com/emgarten/sleet",
-    "tags": [ "nuget feed" ]
+    "projectUrl": "https://github.com/emgarten/Sleet",
+    "tags": [ "nuget nugetserver nugetfeed" ],
+    "licenseUrl": "https://github.com/emgarten/Sleet/blob/master/LICENSE.md",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/emgarten/Sleet"
+    },
+    "files": {
+      "mappings": {
+        "tools/": "../../artifacts/Sleet.exe"
+      }
+    }
   },
   "buildOptions": {
     "emitEntryPoint": true,

@@ -20,6 +20,9 @@ $nugetExe = Join-Path $RepoRoot '.nuget\nuget.exe'
 $ILMergeExe = Join-Path $RepoRoot 'packages\ILMerge.2.14.1208\tools\ILMerge.exe'
 $dotnetExe = Get-DotnetCLIExe $RepoRoot
 
+# Clear artifacts
+Remove-Item -Recurse -Force $ArtifactsDir | Out-Null
+
 # Restore project.json files
 & $nugetExe restore $RepoRoot
 
@@ -47,8 +50,26 @@ if (-not $?)
 $net46Root = (Join-Path $ArtifactsDir 'publish\net451')
 $ILMergeOpts = , (Join-Path $net46Root 'Sleet.exe')
 $ILMergeOpts += Get-ChildItem $net46Root -Exclude @('*.exe', '*compression*', '*System.*', '*.config', '*.pdb') | where { ! $_.PSIsContainer } | %{ $_.FullName }
-$ILMergeOpts += '/out:' + (Join-Path $ArtifactsDir 'sleet.exe')
+$ILMergeOpts += '/out:' + (Join-Path $ArtifactsDir 'Sleet.exe')
 $ILMergeOpts += '/log'
 $ILMergeOpts += '/ndebug'
 
-& $ILMergeExe $ILMergeOpts
+Write-Host "ILMerging Sleet.exe"
+& $ILMergeExe $ILMergeOpts | Out-Null
+
+if (-not $?)
+{
+    Write-Host "ILMerge failed!"
+    exit 1
+}
+
+# Pack
+& $dotnetExe pack (Join-Path $RepoRoot "src\Sleet") --no-build --output $ArtifactsDir
+
+if (-not $?)
+{
+    Write-Host "Pack failed!"
+    exit 1
+}
+
+Write-Host "Success!"
