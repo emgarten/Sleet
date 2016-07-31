@@ -38,9 +38,9 @@ namespace Sleet
             {
                 actualLease = await _blob.AcquireLeaseAsync(_leaseTime, _leaseId);
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Debug.Fail($"GetLease failed: {ex}");
             }
 
             return StringComparer.Ordinal.Equals(_leaseId, actualLease);
@@ -52,10 +52,11 @@ namespace Sleet
             {
                 await _blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(_leaseId));
             }
-            catch
+            catch (Exception ex)
             {
                 // attempt to get the lease again
                 await GetLease();
+                Debug.Fail($"Renew failed: {ex}");
             }
         }
 
@@ -68,12 +69,12 @@ namespace Sleet
         {
             try
             {
-                _blob.ReleaseLeaseAsync(AccessCondition.GenerateLeaseCondition(_leaseId)).RunSynchronously();
+                _blob.ReleaseLeaseAsync(AccessCondition.GenerateLeaseCondition(_leaseId)).Wait(TimeSpan.FromSeconds(60));
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore the lease error, it will expire in time.
-                Debug.Fail("Lease dispose failed");
+                // Ignore
+                Debug.Fail($"Release failed: {ex}");
             }
         }
     }

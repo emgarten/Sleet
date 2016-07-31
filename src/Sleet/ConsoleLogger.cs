@@ -7,14 +7,26 @@ namespace Sleet
     {
         private static readonly Object _lockObj = new object();
 
+        public LogLevel VerbosityLevel { get; set; }
+
+        public ConsoleLogger()
+            : this(LogLevel.Debug)
+        {
+        }
+
+        public ConsoleLogger(LogLevel level)
+        {
+            VerbosityLevel = level;
+        }
+
         public void LogDebug(string data)
         {
-            Log(data);
+            Log(LogLevel.Debug, data);
         }
 
         public void LogError(string data)
         {
-            Log(data, ConsoleColor.Red);
+            Log(LogLevel.Error, data, ConsoleColor.Red);
         }
 
         public void LogErrorSummary(string data)
@@ -24,50 +36,53 @@ namespace Sleet
 
         public void LogInformation(string data)
         {
-            Log(data);
+            Log(LogLevel.Information, data);
         }
 
         public void LogInformationSummary(string data)
         {
-            Log(data);
+            Log(LogLevel.Information, data);
         }
 
         public void LogMinimal(string data)
         {
-            Log(data);
+            Log(LogLevel.Minimal, data);
         }
 
         public void LogSummary(string data)
         {
-            Log(data);
+            Log(LogLevel.Information, data);
         }
 
         public void LogVerbose(string data)
         {
-            Log(data);
+            Log(LogLevel.Verbose, data);
         }
 
         public void LogWarning(string data)
         {
-            Log(data, ConsoleColor.Yellow);
+            Log(LogLevel.Warning, data, ConsoleColor.Yellow);
         }
 
-        private void Log(string message)
+        private void Log(LogLevel level, string message)
         {
-            Log(message, color: null);
+            Log(level, message, color: null);
         }
 
-        private void Log(string message, ConsoleColor? color)
+        private void Log(LogLevel level, string message, ConsoleColor? color)
         {
-            lock (_lockObj)
+            if ((int)level >= (int)VerbosityLevel)
             {
-                if (color.HasValue)
+                lock (_lockObj)
                 {
-                    Console.ForegroundColor = color.Value;
-                }
+                    if (color.HasValue)
+                    {
+                        Console.ForegroundColor = color.Value;
+                    }
 
-                Console.WriteLine(message);
-                Console.ResetColor();
+                    Console.WriteLine(message);
+                    Console.ResetColor();
+                }
             }
         }
     }

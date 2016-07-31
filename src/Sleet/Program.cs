@@ -11,7 +11,14 @@ namespace Sleet
     {
         public static int Main(string[] args)
         {
-            var log = new ConsoleLogger();
+            var logLevel = LogLevel.Information;
+
+            if (Environment.GetEnvironmentVariable("SLEET_DEBUG") == "1")
+            {
+                logLevel = LogLevel.Debug;
+            }
+
+            var log = new ConsoleLogger(logLevel);
 
             var task = MainCore(args, log);
             return task.Result;

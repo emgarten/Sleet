@@ -114,17 +114,21 @@ namespace Sleet
 
                         await Task.Delay(TimeSpan.FromSeconds(30), _cts.Token);
                     }
-                    catch
+                    catch (TaskCanceledException)
                     {
-                        // Ignore exceptions, continue the inner loop
-                        Debug.Fail("KeepLock failed");
+                        // Ignore
+                    }
+                    catch (Exception ex)
+                    {
+                        // Ignore
+                        Debug.Fail($"KeepLock failed: {ex}");
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 // Ignore
-                Debug.Fail("KeepLock failed");
+                Debug.Fail($"KeepLock failed: {ex}");
             }
         }
 
