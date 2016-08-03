@@ -14,6 +14,85 @@ namespace Sleet.Test
 {
     public class AddRemoveTests
     {
+        [Fact]
+        public async Task AddRemove_AddNonNormalizedPackage()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new SourceSettings()
+                };
+
+                var testPackage = new TestPackageContext()
+                {
+                    Nuspec = new TestNuspecContext()
+                    {
+                        Id = "packageA",
+                        Version = "1.0"
+                    }
+                };
+
+                var zipFile = testPackage.Create(packagesFolder.Root);
+                using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
+                {
+                    var input = new PackageInput()
+                    {
+                        Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")),
+                        Zip = zip,
+                        Package = new PackageArchiveReader(zip),
+                        PackagePath = zipFile.FullName
+                    };
+
+                    var catalog = new Catalog(context);
+                    var registration = new Registrations(context);
+                    var packageIndex = new PackageIndex(context);
+                    var search = new Search(context);
+                    var autoComplete = new AutoComplete(context);
+
+                    // Act
+                    // run commands
+                    await InitCommandTestHook.RunCore(context.LocalSettings, context.Source, context.Log);
+                    await PushCommandTestHook.RunCore(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, context.Log);
+                    var validateOutput = await ValidateCommandTestHook.RunCore(context.LocalSettings, context.Source, context.Log);
+
+                    // read outputs
+                    var catalogEntries = await catalog.GetIndexEntries();
+                    var catalogExistingEntries = await catalog.GetExistingPackagesIndex();
+                    var catalogLatest = await catalog.GetLatestEntry(input.Identity);
+
+                    var regPackages = await registration.GetPackagesById(input.Identity.Id);
+                    var indexPackages = await packageIndex.GetPackages();
+                    var searchPackages = await search.GetPackages();
+                    var autoCompletePackages = await autoComplete.GetPackageIds();
+
+                    // Assert
+                    Assert.Equal(0, validateOutput);
+                    Assert.Equal(1, catalogEntries.Count);
+                    Assert.Equal(1, catalogExistingEntries.Count);
+                    Assert.Equal(1, regPackages.Count);
+                    Assert.Equal(1, indexPackages.Count);
+                    Assert.Equal(1, searchPackages.Count);
+                    Assert.Equal(1, autoCompletePackages.Count);
+
+                    Assert.Equal("packageA", catalogLatest.Id);
+                    Assert.Equal("1.0.0", catalogLatest.Version.ToIdentityString());
+                    Assert.Equal(SleetOperation.Add, catalogLatest.Operation);
+                }
+            }
+        }
+
         // Add and remove a package, verify that the feed is valid and that no packages exist
         [Fact]
         public async Task AddRemove_AddAndRemovePackage()

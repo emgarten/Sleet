@@ -214,10 +214,11 @@ namespace Sleet
                     throw;
                 }
 
-                // Only normalized versions are allowed.
+                // Display a message for non-normalized packages
                 if (packageInput.Identity.Version.ToString() != packageInput.Identity.Version.ToNormalizedString())
                 {
-                    throw new InvalidDataException($"Package '{packageInput.PackagePath}' does not contain a valid version: '{packageInput.Identity.Version.ToString()}'. See https://semver.org/ for details.");
+                    var message = $"Package '{packageInput.PackagePath}' does not contain a normalized version. Normalized: '{packageInput.Identity.Version.ToNormalizedString()}' Nuspec version: '{packageInput.Identity.Version.ToString()}'. See https://semver.org/ for details.";
+                    log.LogVerbose(message);
                 }
 
                 // Check for correct nuspec name
