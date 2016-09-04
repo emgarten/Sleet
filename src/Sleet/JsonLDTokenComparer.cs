@@ -104,13 +104,13 @@ namespace Sleet
                     return 1;
                 }
 
-                if (xProp.Name.StartsWith(AtSymbol, StringComparison.Ordinal) 
+                if (xProp.Name.StartsWith(AtSymbol, StringComparison.Ordinal)
                     && !yProp.Name.StartsWith(AtSymbol, StringComparison.Ordinal))
                 {
                     return 1;
                 }
 
-                if (!xProp.Name.StartsWith(AtSymbol, StringComparison.Ordinal) 
+                if (!xProp.Name.StartsWith(AtSymbol, StringComparison.Ordinal)
                     && yProp.Name.StartsWith(AtSymbol, StringComparison.Ordinal))
                 {
                     return -1;

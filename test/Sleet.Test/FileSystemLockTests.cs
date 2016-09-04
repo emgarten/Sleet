@@ -27,7 +27,7 @@ namespace Sleet.Test
                 var lock1Result = await lock1.GetLock(TimeSpan.FromSeconds(1), CancellationToken.None);
                 var lock2Result = await lock2.GetLock(TimeSpan.FromSeconds(1), CancellationToken.None);
                 var lock3Result = await lock3.GetLock(TimeSpan.FromSeconds(1), CancellationToken.None);
-                
+
                 // Assert
                 Assert.True(lock1Result);
                 Assert.False(lock2Result);
@@ -88,7 +88,7 @@ namespace Sleet.Test
                 var data = new ConcurrentDictionary<string, object>();
 
                 // Act
-                for (int i=0; i < 100; i++)
+                for (int i = 0; i < 100; i++)
                 {
                     tasks.Add(Task.Run(async () => await ThreadWork(data, target.Root)));
                 }

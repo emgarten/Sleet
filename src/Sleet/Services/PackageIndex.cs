@@ -93,7 +93,7 @@ namespace Sleet
             var json = await GetJson();
 
             var packagesNode = json["packages"] as JObject;
-            
+
             if (packagesNode == null)
             {
                 throw new InvalidDataException("Packages node missing from sleet.packageindex.json");

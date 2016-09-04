@@ -30,7 +30,6 @@ namespace Sleet.Test
             }
             catch
             {
-
             }
         }
     }

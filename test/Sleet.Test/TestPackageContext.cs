@@ -9,7 +9,6 @@ namespace Sleet.Test
     {
         public TestPackageContext()
         {
-
         }
 
         public TestPackageContext(string id, string version)

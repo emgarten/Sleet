@@ -95,7 +95,7 @@ namespace Sleet
 
                 _blob.Properties.CacheControl = "no-store";
 
-                // TODO: re-enable this once it works again. 
+                // TODO: re-enable this once it works again.
                 _blob.Properties.ContentMD5 = null;
 
                 await _blob.SetPropertiesAsync();

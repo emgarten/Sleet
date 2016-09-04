@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Sleet.Test
@@ -30,7 +27,7 @@ namespace Sleet.Test
         }
 
         [Theory]
-        [InlineData("http://testa.org/a/", "http://testb.org/b/",  "http://testa.org/a/blah.json", "http://testb.org/b/blah.json")]
+        [InlineData("http://testa.org/a/", "http://testb.org/b/", "http://testa.org/a/blah.json", "http://testb.org/b/blah.json")]
         [InlineData("file:///c:/temp/", "http://testb.org/b/", "file:///c:/temp/blah.json", "http://testb.org/b/blah.json")]
         public void UriUtility_ChangeRoot(string origRoot, string destRoot, string fullPath, string expected)
         {

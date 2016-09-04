@@ -634,6 +634,7 @@ namespace Sleet
             {
                 case "add":
                     return SleetOperation.Add;
+
                 case "remove":
                     return SleetOperation.Remove;
             }
