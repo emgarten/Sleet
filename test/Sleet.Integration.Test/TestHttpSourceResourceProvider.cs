@@ -139,7 +139,7 @@ namespace Sleet.Integration.Test
             private PhysicalFileSystem _fileSystem;
 
             public TestHttpSource(PackageSource source, Func<Task<HttpHandlerResource>> messageHandlerFactory, PhysicalFileSystem fileSystem)
-                : base(source, messageHandlerFactory)
+                : base(source, messageHandlerFactory, NullThrottle.Instance)
             {
                 _fileSystem = fileSystem;
             }
