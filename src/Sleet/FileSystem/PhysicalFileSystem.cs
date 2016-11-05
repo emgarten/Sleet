@@ -22,8 +22,8 @@ namespace Sleet
 
         public PhysicalFileSystem(LocalCache cache, Uri root, Uri baseUri)
         {
-            _baseUri = UriUtility.CreateUri(baseUri.AbsoluteUri.TrimEnd(new char[] { '/', '\\' }) + Path.DirectorySeparatorChar);
-            _root = UriUtility.CreateUri(root.AbsoluteUri.TrimEnd(new char[] { '/', '\\' }) + Path.DirectorySeparatorChar);
+            _baseUri = UriUtility.EnsureTrailingSlash(baseUri);
+            _root = UriUtility.EnsureTrailingSlash(root);
             _cache = cache;
             _files = new ConcurrentDictionary<Uri, ISleetFile>();
         }

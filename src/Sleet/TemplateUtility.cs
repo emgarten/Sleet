@@ -12,7 +12,7 @@ namespace Sleet
             {
                 return reader.ReadToEnd()
                     .Replace("$SLEETVERSION$", Constants.SleetVersion.ToFullVersionString())
-                    .Replace("$BASEURI$", baseUri.AbsoluteUri.TrimEnd(new char[] { '/', '\\' }))
+                    .Replace("$BASEURI$", UriUtility.RemoveTrailingSlash(baseUri).AbsoluteUri.TrimEnd('/'))
                     .Replace("$NOW$", now.GetDateString());
             }
         }

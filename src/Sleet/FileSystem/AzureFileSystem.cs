@@ -25,8 +25,8 @@ namespace Sleet
 
         public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, CloudStorageAccount azureAccount, string container)
         {
-            _baseUri = UriUtility.AddTrailingSlash(baseUri);
-            _root = UriUtility.AddTrailingSlash(root);
+            _baseUri = UriUtility.EnsureTrailingSlash(baseUri);
+            _root = UriUtility.EnsureTrailingSlash(root);
             _cache = cache;
             _files = new ConcurrentDictionary<Uri, ISleetFile>();
 

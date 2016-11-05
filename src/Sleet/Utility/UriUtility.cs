@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Sleet
 {
@@ -37,7 +39,7 @@ namespace Sleet
 
             relativePath = relativePath.TrimStart(new char[] { '\\', '/' });
 
-            var combined = new Uri(AddTrailingSlash(root), relativePath);
+            var combined = new Uri(EnsureTrailingSlash(root), relativePath);
             return combined;
         }
 
@@ -51,16 +53,6 @@ namespace Sleet
             throw new ArgumentException("Uri is not rooted in the basePath");
         }
 
-        public static Uri AddTrailingSlash(string path)
-        {
-            return UriUtility.CreateUri(path.TrimEnd(new char[] { '/', '\\' }) + '/');
-        }
-
-        public static Uri AddTrailingSlash(Uri uri)
-        {
-            return AddTrailingSlash(uri.AbsoluteUri);
-        }
-
         /// <summary>
         /// Create a URI in a safe manner that works for UNIX file paths.
         /// </summary>
@@ -72,6 +64,37 @@ namespace Sleet
             }
 
             return new Uri(path);
+        }
+
+        /// <summary>
+        /// Create a URI in a safe manner that works for UNIX file paths.
+        /// </summary>
+        public static Uri CreateUri(string path, bool ensureTrailingSlash)
+        {
+            var uri = CreateUri(path);
+
+            if (ensureTrailingSlash)
+            {
+                uri = EnsureTrailingSlash(uri);
+            };
+
+            return uri;
+        }
+
+        public static Uri EnsureTrailingSlash(Uri uri)
+        {
+            return new Uri(uri.AbsoluteUri.TrimEnd('/') + "/");
+        }
+
+        public static Uri RemoveTrailingSlash(Uri uri)
+        {
+            return new Uri(uri.AbsoluteUri.TrimEnd('/'));
+        }
+
+        public static bool IsHttp(Uri uri)
+        {
+            return (uri.AbsoluteUri.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                || uri.AbsoluteUri.StartsWith("https://", StringComparison.OrdinalIgnoreCase));
         }
     }
 }

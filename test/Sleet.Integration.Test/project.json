@@ -8,7 +8,7 @@
       "target": "project"
     },
     "NuGet.Protocol.Core.v3": "3.5.0",
-    "xunit": "2.2.0-beta2-build3300"
+    "xunit": "2.2.0-beta3-build3402"
   },
   "testRunner": "xunit",
   "frameworks": {

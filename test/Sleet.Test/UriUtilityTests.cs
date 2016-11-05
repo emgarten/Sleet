@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Xunit;
 
 namespace Sleet.Test
@@ -32,6 +33,20 @@ namespace Sleet.Test
         public void UriUtility_ChangeRoot(string origRoot, string destRoot, string fullPath, string expected)
         {
             Assert.Equal(expected, UriUtility.ChangeRoot(new Uri(origRoot), new Uri(destRoot), new Uri(fullPath)).AbsoluteUri);
+        }
+
+        [Theory]
+        [InlineData("http://testa.org/a/", "http://testa.org/a/")]
+        [InlineData("http://testa.org/a", "http://testa.org/a/")]
+        [InlineData("http://testa.org/", "http://testa.org/")]
+        [InlineData("http://testa.org", "http://testa.org/")]
+        [InlineData("file:///tmp/", "file:///tmp/")]
+        [InlineData("file:///tmp", "file:///tmp/")]
+        [InlineData("file:///tmp/////", "file:///tmp/")]
+        [InlineData("http://testa.org/////", "http://testa.org/")]
+        public void UriUtility_EnsureTrailingSlash(string uri, string expected)
+        {
+            Assert.Equal(expected, UriUtility.EnsureTrailingSlash(new Uri(uri)).AbsoluteUri);
         }
     }
 }
