@@ -12,7 +12,8 @@ Sleet is a cross platform command line tool to generate NuGet v3 static feeds.
 
 * [Github releases](https://github.com/emgarten/Sleet/releases/latest)
 * [NuGet package](https://www.nuget.org/packages/Sleet)
-* [Nightly build](https://www.myget.org/F/sleet/api/v2/package/Sleet/)
+* [Nightly nupkgs](https://www.myget.org/F/sleet/api/v2/package/Sleet/)
+* [Nightly builds](https://ci.appveyor.com/project/emgarten/sleet/build/artifacts)
 
 ## Features
 * Add and remove packages from a feed.
