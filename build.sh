@@ -33,4 +33,11 @@ do
     fi
 done
 
+$DOTNET publish src/Sleet -o artifacts/publish/Sleet -f netcoreapp1.0 --configuration release
+
+if [ $? -ne 0 ]; then
+    echo "publish FAILED"
+    RESULTCODE=1
+fi
+
 exit $RESULTCODE
