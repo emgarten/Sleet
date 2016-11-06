@@ -12,7 +12,7 @@ curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/cli/f4ce
 
 # Run install.sh
 chmod +x .cli/dotnet-install.sh
-.cli/dotnet-install.sh -i .cli -c preview -v 1.0.0-preview2-003121
+.cli/dotnet-install.sh -i .cli -c preview -v 1.0.0-preview2-003131
 
 # Display info
 DOTNET="$(pwd)/.cli/dotnet"
