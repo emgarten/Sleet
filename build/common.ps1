@@ -20,7 +20,7 @@ Function Install-DotnetCLI {
 
     wget https://raw.githubusercontent.com/dotnet/cli/f4ceb1f2136c5b0be16a7b551d28f5634a6c84bb/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
 
-    & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.0-preview2-003131
+    & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.0-preview2-003121
 
     $DotnetExe = DotnetCLIExe $RepositoryRootDir
 
@@ -71,8 +71,12 @@ Function Install-PackagesConfig {
 
     if (-not (Test-Path $nugetExe))
     {
-        wget https://dist.nuget.org/win-x86-commandline/v3.5.0/NuGet.exe -OutFile $nugetExe
+        wget https://dist.nuget.org/win-x86-commandline/v3.5.0-beta2/NuGet.exe -OutFile $nugetExe
     }
 
     & $nugetExe restore $packagesConfig -SolutionDirectory $RepositoryRootDir
+}
+
+Function Get-BuildNumber([string]$inputDate) {
+    [int](((Get-Date) - (Get-Date $inputDate)).TotalMinutes / 5)
 }
