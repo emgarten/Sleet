@@ -7,8 +7,6 @@ build_script:
   - build.cmd
 clone_depth: 1
 test: off
-cache:
-  - '%USERPROFILE%\.nuget\packages'
 artifacts:
   - path: 'artifacts\*.nupkg'
 deploy:

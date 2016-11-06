@@ -32,8 +32,6 @@ namespace Sleet
             {
                 try
                 {
-                    cmd.ShowRootCommandFullNameAndVersion();
-
                     var outputPath = Directory.GetCurrentDirectory();
 
                     if (output.HasValue())

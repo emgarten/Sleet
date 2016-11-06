@@ -34,8 +34,6 @@ namespace Sleet
 
             cmd.OnExecute(async () =>
             {
-                cmd.ShowRootCommandFullNameAndVersion();
-
                 // Validate parameters
                 foreach (var requiredOption in required)
                 {

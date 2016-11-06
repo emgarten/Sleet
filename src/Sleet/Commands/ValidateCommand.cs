@@ -38,8 +38,6 @@ namespace Sleet
             {
                 try
                 {
-                    cmd.ShowRootCommandFullNameAndVersion();
-
                     // Validate parameters
                     foreach (var requiredOption in required)
                     {
