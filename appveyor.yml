@@ -9,6 +9,13 @@ clone_depth: 1
 test: off
 artifacts:
   - path: 'artifacts\*.nupkg'
+    name: Sleet.nupkg
+
+  - path: 'artifacts\Sleet.exe'
+    name: Sleet.exe
+
+  - path: 'artifacts\*.tar.bz2'
+    name: Sleet.tar
 deploy:
   provider: NuGet
   server: https://www.myget.org/F/sleet/api/v2/package
