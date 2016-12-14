@@ -154,7 +154,7 @@ namespace Sleet
             }
 
             // Create commit
-            var pageCommit = JsonUtility.Create(packageDetailsFile.EntityUri, "nuget:PackageDetails");
+            var pageCommit = JsonUtility.Create(packageDetailsFile.EntityUri, "nuget:PackageDelete");
             pageCommit["commitId"] = _context.CommitId.ToString().ToLowerInvariant();
             pageCommit["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
             pageCommit["nuget:id"] = package.Id;
