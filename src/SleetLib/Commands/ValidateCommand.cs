@@ -4,76 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
 using NuGet.Packaging.Core;
 
 namespace Sleet
 {
-    internal static class ValidateCommand
+    public static class ValidateCommand
     {
-        public static void Register(CommandLineApplication cmdApp, ILogger log)
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, ILogger log)
         {
-            cmdApp.Command("validate", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
-        }
-
-        private static void Run(CommandLineApplication cmd, ILogger log)
-        {
-            cmd.Description = "Validate a feed.";
-
-            var optionConfigFile = cmd.Option("-c|--config", "sleet.json file to read sources and settings from.",
-                CommandOptionType.SingleValue);
-
-            var sourceName = cmd.Option("-s|--source", "Source name from sleet.json.",
-                            CommandOptionType.SingleValue);
-
-            cmd.HelpOption("-?|-h|--help");
-
-            var required = new List<CommandOption>()
-            {
-                sourceName
-            };
-
-            cmd.OnExecute(async () =>
-            {
-                try
-                {
-                    // Validate parameters
-                    foreach (var requiredOption in required)
-                    {
-                        if (!requiredOption.HasValue())
-                        {
-                            throw new ArgumentException($"Missing required parameter --{requiredOption.LongName}.");
-                        }
-                    }
-
-                    var settings = LocalSettings.Load(optionConfigFile.Value());
-
-                    using (var cache = new LocalCache())
-                    {
-                        var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, sourceName.Value());
-
-                        if (fileSystem == null)
-                        {
-                            throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
-                        }
-
-                        return await RunCore(settings, fileSystem, log);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    log.LogError(ex.Message);
-                    log.LogDebug(ex.ToString());
-                }
-
-                return 1;
-            });
-        }
-
-        public static async Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, ILogger log)
-        {
-            var exitCode = 0;
+            var success = true;
 
             var token = CancellationToken.None;
 
@@ -104,11 +44,13 @@ namespace Sleet
                 var autoComplete = new AutoComplete(context);
                 var packageIndex = new PackageIndex(context);
 
-                var services = new List<ISleetService>();
-                services.Add(catalog);
-                services.Add(registrations);
-                services.Add(flatContainer);
-                services.Add(search);
+                var services = new List<ISleetService>
+                {
+                    catalog,
+                    registrations,
+                    flatContainer,
+                    search
+                };
 
                 // Verify against the package index
                 var indexedPackages = await packageIndex.GetPackages();
@@ -124,7 +66,7 @@ namespace Sleet
                 {
                     log.LogError("Missing autocomplete packages: " + string.Join(", ", missingACIds));
                     log.LogError("Extra autocomplete packages: " + string.Join(", ", extraACIds));
-                    exitCode = 1;
+                    success = false;
                 }
                 else
                 {
@@ -165,7 +107,7 @@ namespace Sleet
                     {
                         log.LogError(diff.ToString());
 
-                        exitCode = 1;
+                        success = false;
                     }
                     else
                     {
@@ -174,7 +116,7 @@ namespace Sleet
                     }
                 }
 
-                if (exitCode != 0)
+                if (!success)
                 {
                     log.LogError($"Feed invalid!");
                 }
@@ -184,7 +126,7 @@ namespace Sleet
                 }
             }
 
-            return exitCode;
+            return success;
         }
 
         private class PackageDiff
@@ -233,14 +175,6 @@ namespace Sleet
 
                 return sb.ToString().TrimEnd();
             }
-        }
-    }
-
-    public static class ValidateCommandTestHook
-    {
-        public static Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, ILogger log)
-        {
-            return ValidateCommand.RunCore(settings, source, log);
         }
     }
 }

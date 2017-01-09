@@ -5,84 +5,16 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
 using NuGet.Packaging;
 
 namespace Sleet
 {
-    internal static class PushCommand
+    public static class PushCommand
     {
-        public static void Register(CommandLineApplication cmdApp, ILogger log)
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, ILogger log)
         {
-            cmdApp.Command("push", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
-        }
-
-        private static void Run(CommandLineApplication cmd, ILogger log)
-        {
-            cmd.Description = "Push a package to a feed.";
-
-            var optionConfigFile = cmd.Option("-c|--config", "sleet.json file to read sources and settings from.",
-                CommandOptionType.SingleValue);
-
-            var sourceName = cmd.Option("-s|--source", "Source name from sleet.json.",
-                            CommandOptionType.SingleValue);
-
-            var forceName = cmd.Option("-f|--force", "Overwrite existing packages.",
-                            CommandOptionType.NoValue);
-
-            var argRoot = cmd.Argument(
-                "[root]",
-                "Paths to individual packages or directories containing packages.",
-                multipleValues: true);
-
-            cmd.HelpOption("-?|-h|--help");
-
-            var required = new List<CommandOption>()
-            {
-                sourceName
-            };
-
-            cmd.OnExecute(async () =>
-            {
-                try
-                {
-                    // Validate parameters
-                    foreach (var requiredOption in required)
-                    {
-                        if (!requiredOption.HasValue())
-                        {
-                            throw new ArgumentException($"Missing required parameter --{requiredOption.LongName}.");
-                        }
-                    }
-
-                    var settings = LocalSettings.Load(optionConfigFile.Value());
-
-                    using (var cache = new LocalCache())
-                    {
-                        var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, sourceName.Value());
-
-                        if (fileSystem == null)
-                        {
-                            throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
-                        }
-
-                        return await RunCore(settings, fileSystem, argRoot.Values.ToList(), forceName.HasValue(), log);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    log.LogError(ex.Message);
-                    log.LogDebug(ex.ToString());
-                }
-
-                return 1;
-            });
-        }
-
-        public static async Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, ILogger log)
-        {
-            var exitCode = 0;
+            var exitCode = true;
 
             var token = CancellationToken.None;
             var now = DateTimeOffset.UtcNow;
@@ -241,14 +173,6 @@ namespace Sleet
             }
 
             return packages;
-        }
-    }
-
-    public static class PushCommandTestHook
-    {
-        public static Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, ILogger log)
-        {
-            return PushCommand.RunCore(settings, source, inputs, force, log);
         }
     }
 }

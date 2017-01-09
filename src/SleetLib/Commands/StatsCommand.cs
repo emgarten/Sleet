@@ -3,75 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
 
 namespace Sleet
 {
-    internal static class StatsCommand
+    public static class StatsCommand
     {
-        public static void Register(CommandLineApplication cmdApp, ILogger log)
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, ILogger log)
         {
-            cmdApp.Command("stats", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
-        }
-
-        private static void Run(CommandLineApplication cmd, ILogger log)
-        {
-            cmd.Description = "Report feed statistics.";
-
-            var optionConfigFile = cmd.Option("-c|--config", "sleet.json file to read sources and settings from.",
-                CommandOptionType.SingleValue);
-
-            var sourceName = cmd.Option("-s|--source", "Source name from sleet.json.",
-                            CommandOptionType.SingleValue);
-
-            cmd.HelpOption("-?|-h|--help");
-
-            var required = new List<CommandOption>()
-            {
-                sourceName
-            };
-
-            cmd.OnExecute(async () =>
-            {
-                try
-                {
-                    // Validate parameters
-                    foreach (var requiredOption in required)
-                    {
-                        if (!requiredOption.HasValue())
-                        {
-                            throw new ArgumentException($"Missing required parameter --{requiredOption.LongName}.");
-                        }
-                    }
-
-                    var settings = LocalSettings.Load(optionConfigFile.Value());
-
-                    using (var cache = new LocalCache())
-                    {
-                        var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, sourceName.Value());
-
-                        if (fileSystem == null)
-                        {
-                            throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
-                        }
-
-                        return await RunCore(settings, fileSystem, log);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    log.LogError(ex.Message);
-                    log.LogDebug(ex.ToString());
-                }
-
-                return 1;
-            });
-        }
-
-        public static async Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, ILogger log)
-        {
-            var exitCode = 0;
+            var exitCode = true;
 
             log.LogMinimal($"Stats for {source.BaseURI}");
 

@@ -6,5 +6,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <WarningsAsErrors>true</WarningsAsErrors>
   </PropertyGroup>
 </Project>

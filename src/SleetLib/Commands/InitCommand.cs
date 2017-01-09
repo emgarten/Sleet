@@ -2,66 +2,16 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.CommandLineUtils;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 
 namespace Sleet
 {
-    internal static class InitCommand
+    public static class InitCommand
     {
-        public static void Register(CommandLineApplication cmdApp, ILogger log)
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, ILogger log)
         {
-            cmdApp.Command("init", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
-        }
-
-        private static void Run(CommandLineApplication cmd, ILogger log)
-        {
-            cmd.Description = "Initialize a new sleet feed.";
-
-            var optionConfigFile = cmd.Option("-c|--config", "sleet.json file to read sources and settings from.",
-                CommandOptionType.SingleValue);
-
-            var sourceName = cmd.Option("-s|--source", "Source from sleet.json.",
-                CommandOptionType.SingleValue);
-
-            cmd.HelpOption("-?|-h|--help");
-
-            var required = new List<CommandOption>()
-            {
-                sourceName
-            };
-
-            cmd.OnExecute(async () =>
-            {
-                // Validate parameters
-                foreach (var requiredOption in required)
-                {
-                    if (!requiredOption.HasValue())
-                    {
-                        throw new ArgumentException($"Missing required parameter --{requiredOption.LongName}.");
-                    }
-                }
-
-                var settings = LocalSettings.Load(optionConfigFile.Value());
-
-                using (var cache = new LocalCache())
-                {
-                    var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, sourceName.Value());
-
-                    if (fileSystem == null)
-                    {
-                        throw new InvalidOperationException("Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.");
-                    }
-
-                    return await RunCore(settings, fileSystem, log);
-                }
-            });
-        }
-
-        public static async Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, ILogger log)
-        {
-            var exitCode = 0;
+            var exitCode = true;
 
             var noChanges = true;
             var token = CancellationToken.None;
@@ -72,26 +22,26 @@ namespace Sleet
 
             if (!exists)
             {
-                return 1;
+                return false;
             }
 
             // Create sleet.settings.json
-            noChanges &= !await CreateSettings(source, log, token, now);
+            noChanges &= !await CreateSettingsAsync(source, log, token, now);
 
             // Create service index.json
-            noChanges &= !await CreateServiceIndex(source, log, token, now);
+            noChanges &= !await CreateServiceIndexAsync(source, log, token, now);
 
             // Create catalog/index.json
-            noChanges &= !await CreateCatalog(source, log, token, now);
+            noChanges &= !await CreateCatalogAsync(source, log, token, now);
 
             // Create autocomplete
-            noChanges &= !await CreateAutoComplete(source, log, token, now);
+            noChanges &= !await CreateAutoCompleteAsync(source, log, token, now);
 
             // Create search
-            noChanges &= !await CreateSearch(source, log, token, now);
+            noChanges &= !await CreateSearchAsync(source, log, token, now);
 
             // Create package index
-            noChanges &= !await CreatePackageIndex(source, log, token, now);
+            noChanges &= !await CreatePackageIndexAsync(source, log, token, now);
 
             if (noChanges)
             {
@@ -104,7 +54,7 @@ namespace Sleet
             return exitCode;
         }
 
-        private static async Task<bool> CreateFromTemplate(
+        private static async Task<bool> CreateFromTemplateAsync(
             ISleetFileSystem source,
             ILogger log,
             DateTimeOffset now,
@@ -125,27 +75,27 @@ namespace Sleet
             return false;
         }
 
-        private static async Task<bool> CreateCatalog(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateCatalogAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
-            return await CreateFromTemplate(source, log, now, "CatalogIndex", "catalog/index.json", token);
+            return await CreateFromTemplateAsync(source, log, now, "CatalogIndex", "catalog/index.json", token);
         }
 
-        private static async Task<bool> CreateAutoComplete(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateAutoCompleteAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
-            return await CreateFromTemplate(source, log, now, "AutoComplete", "autocomplete/query", token);
+            return await CreateFromTemplateAsync(source, log, now, "AutoComplete", "autocomplete/query", token);
         }
 
-        private static async Task<bool> CreateSearch(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateSearchAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
-            return await CreateFromTemplate(source, log, now, "Search", "search/query", token);
+            return await CreateFromTemplateAsync(source, log, now, "Search", "search/query", token);
         }
 
-        private static async Task<bool> CreateServiceIndex(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateServiceIndexAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
-            return await CreateFromTemplate(source, log, now, "ServiceIndex", "index.json", token);
+            return await CreateFromTemplateAsync(source, log, now, "ServiceIndex", "index.json", token);
         }
 
-        private static async Task<bool> CreateSettings(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateSettingsAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
             var sleetSettings = source.Get("sleet.settings.json");
 
@@ -164,33 +114,25 @@ namespace Sleet
             return false;
         }
 
-        private static async Task<bool> CreatePackageIndex(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreatePackageIndexAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
         {
             var packageIndex = source.Get("/sleet.packageindex.json");
 
             if (!await packageIndex.Exists(log, token))
             {
-                var json = new JObject();
+                var json = new JObject
+                {
+                    { "created", new JValue(now.GetDateString()) },
+                    { "lastEdited", new JValue(now.GetDateString()) },
 
-                json.Add("created", new JValue(now.GetDateString()));
-                json.Add("lastEdited", new JValue(now.GetDateString()));
-
-                json.Add("packages", new JObject());
-
+                    { "packages", new JObject() }
+                };
                 await packageIndex.Write(json, log, token);
 
                 return true;
             }
 
             return false;
-        }
-    }
-
-    public static class InitCommandTestHook
-    {
-        public static Task<int> RunCore(LocalSettings settings, ISleetFileSystem source, ILogger log)
-        {
-            return InitCommand.RunCore(settings, source, log);
         }
     }
 }

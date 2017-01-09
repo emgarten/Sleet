@@ -8,20 +8,27 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net46</TargetFrameworks>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.3' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
+    <Description>Sleet is a cross platform command line tool to generate NuGet v3 static feeds.</Description>
+    <Version>1.1.0</Version>
+    <Authors>emgarten</Authors>
+    <WarningsAsErrors>true</WarningsAsErrors>
+    <AssemblyName>Sleet</AssemblyName>
+    <PackageTags>nuget nugetserver nugetfeed</PackageTags>
+    <PackageProjectUrl>https://github.com/emgarten/Sleet</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/emgarten/Sleet</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="**\*.cs" />
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <PackageReference Include="NETStandard.Library" Version="1.6" />
+    <PackageReference Include="NETStandard.Library" Version="1.6.1" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Packaging">
       <Version>3.5.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.CommandLineUtils">
-      <Version>1.0.0</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>8.0.0</Version>
@@ -32,9 +39,6 @@
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
     <Reference Include="System.IO.Compression" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net46' ">
     <DefineConstants>$(DefineConstants);IS_DESKTOP</DefineConstants>
