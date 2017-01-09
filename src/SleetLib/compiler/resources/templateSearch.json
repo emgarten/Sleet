@@ -1,0 +1,13 @@
+﻿{
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "sleet": "http://schema.emgarten.com/sleet#",
+    "totalHits": {
+      "@type": "http://www.w3.org/2001/XMLSchema#integer"
+    }
+  },
+  "totalHits": 0,
+  "lastReopen": "$NOW$",
+  "index": "sleet-static",
+  "data": [ ]
+}

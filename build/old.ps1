@@ -18,9 +18,9 @@ Function Install-DotnetCLI {
 
     Write-Host "Fetching $installDotnet"
 
-    wget https://raw.githubusercontent.com/dotnet/cli/58b0566d9ac399f5fa973315c6827a040b7aae1f/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
+    wget https://raw.githubusercontent.com/dotnet/cli/f4ceb1f2136c5b0be16a7b551d28f5634a6c84bb/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
 
-    & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.0-preview4-004233
+    & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.0-preview2-003131
 
     $DotnetExe = DotnetCLIExe $RepositoryRootDir
 
@@ -79,26 +79,4 @@ Function Install-PackagesConfig {
 
 Function Get-BuildNumber([string]$inputDate) {
     [int](((Get-Date) - (Get-Date $inputDate)).TotalMinutes / 5)
-}
-
-Function Get-SleetConfig {
-    param(
-        [string]$RepositoryRootDir
-    )
-
-    $path = Join-Path $RepositoryRootDir "sleet.json"
-
-    if (-not (Test-Path $path))
-    {
-        $parentPath =(get-item $RepositoryRootDir ).parent.FullName
-
-        $path = Join-Path $parentPath "sleet.json"
-    }
-
-    if (-not (Test-Path $path))
-    {
-        $path = "sleet.json"
-    }
-
-    return $path
 }
