@@ -23,7 +23,7 @@ namespace Sleet
             _context = context;
         }
 
-        public async Task AddPackage(PackageInput packageInput)
+        public async Task AddPackageAsync(PackageInput packageInput)
         {
             var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
@@ -44,7 +44,7 @@ namespace Sleet
             await file.Write(json, _context.Log, _context.Token);
         }
 
-        public async Task RemovePackage(PackageIdentity packageIdentity)
+        public async Task RemovePackageAsync(PackageIdentity packageIdentity)
         {
             var packageIndex = new PackageIndex(_context);
             var versions = await packageIndex.GetPackageVersions(packageIdentity.Id);
@@ -126,7 +126,7 @@ namespace Sleet
             var registrationUri = Registrations.GetIndexUri(_context.Source.BaseURI, package.Id);
 
             var catalog = new Catalog(_context);
-            var catalogEntry = await catalog.GetLatestPackageDetails(latestIdentity);
+            var catalogEntry = await catalog.GetLatestPackageDetailsAsync(latestIdentity);
 
             Debug.Assert(catalogEntry != null);
 
@@ -185,7 +185,7 @@ namespace Sleet
         /// <summary>
         /// Find all packages listed in search, and all versions of those package ids.
         /// </summary>
-        public async Task<ISet<PackageIdentity>> GetPackages()
+        public async Task<ISet<PackageIdentity>> GetPackagesAsync()
         {
             var packages = new HashSet<PackageIdentity>();
 
@@ -210,9 +210,9 @@ namespace Sleet
         /// <summary>
         /// Find all packages of the given id.
         /// </summary>
-        public async Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        public async Task<ISet<PackageIdentity>> GetPackagesByIdAsync(string packageId)
         {
-            var allPackages = await GetPackages();
+            var allPackages = await GetPackagesAsync();
 
             return new HashSet<PackageIdentity>(allPackages.Where(e => e.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase)));
         }

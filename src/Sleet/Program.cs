@@ -38,18 +38,20 @@ namespace Sleet
             }
 #endif
 
-            var app = new CommandLineApplication();
-            app.Name = "sleet";
-            app.FullName = "Sleet";
-            app.HelpOption("-h|--help");
-            app.VersionOption("--version", Constants.SleetVersion.ToFullVersionString());
+            var app = new CommandLineApplication()
+            {
+                Name = "sleet",
+                FullName = "Sleet"
+            };
+            app.HelpOption(Constants.HelpOption);
+            app.VersionOption("--version", AssemblyVersionHelper.GetVersion().ToFullVersionString());
 
-            InitCommand.Register(app, log);
-            PushCommand.Register(app, log);
-            DeleteCommand.Register(app, log);
-            ValidateCommand.Register(app, log);
-            StatsCommand.Register(app, log);
-            CreateConfigCommand.Register(app, log);
+            InitAppCommand.Register(app, log);
+            PushAppCommand.Register(app, log);
+            DeleteAppCommand.Register(app, log);
+            ValidateAppCommand.Register(app, log);
+            StatsAppCommand.Register(app, log);
+            CreateConfigAppCommand.Register(app, log);
 
             app.OnExecute(() =>
             {

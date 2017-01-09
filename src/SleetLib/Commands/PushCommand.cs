@@ -26,7 +26,7 @@ namespace Sleet
             using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
             {
                 // Validate source
-                await UpgradeUtility.UpgradeIfNeeded(source, log, token);
+                await UpgradeUtility.UpgradeIfNeededAsync(source, log, token);
 
                 // Get sleet.settings.json
                 var sourceSettings = new SourceSettings();

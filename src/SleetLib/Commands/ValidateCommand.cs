@@ -21,7 +21,7 @@ namespace Sleet
             using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
             {
                 // Validate source
-                await UpgradeUtility.UpgradeIfNeeded(source, log, token);
+                await UpgradeUtility.UpgradeIfNeededAsync(source, log, token);
 
                 // Get sleet.settings.json
                 var sourceSettings = new SourceSettings();
@@ -53,7 +53,7 @@ namespace Sleet
                 };
 
                 // Verify against the package index
-                var indexedPackages = await packageIndex.GetPackages();
+                var indexedPackages = await packageIndex.GetPackagesAsync();
                 var allIndexIds = indexedPackages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
                 // Verify auto complete
@@ -86,13 +86,13 @@ namespace Sleet
                     // Use get all if possible
                     if (allPackagesService != null)
                     {
-                        servicePackages.UnionWith(await allPackagesService.GetPackages());
+                        servicePackages.UnionWith(await allPackagesService.GetPackagesAsync());
                     }
                     else if (byIdService != null)
                     {
                         foreach (var id in allIndexIds)
                         {
-                            servicePackages.UnionWith(await byIdService.GetPackagesById(id));
+                            servicePackages.UnionWith(await byIdService.GetPackagesByIdAsync(id));
                         }
                     }
                     else

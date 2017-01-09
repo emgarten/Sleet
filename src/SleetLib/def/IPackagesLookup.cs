@@ -9,6 +9,6 @@ namespace Sleet
         /// <summary>
         /// Returns all existing packages.
         /// </summary>
-        Task<ISet<PackageIdentity>> GetPackages();
+        Task<ISet<PackageIdentity>> GetPackagesAsync();
     }
 }

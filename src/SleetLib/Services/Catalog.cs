@@ -36,7 +36,7 @@ namespace Sleet
         /// <summary>
         /// Add a package to the catalog.
         /// </summary>
-        public async Task AddPackage(PackageInput packageInput)
+        public async Task AddPackageAsync(PackageInput packageInput)
         {
             // Create package details page
             var packageDetails = CreatePackageDetails(packageInput);
@@ -109,7 +109,7 @@ namespace Sleet
             await catalogIndexFile.Write(catalogIndexJson, _context.Log, _context.Token);
         }
 
-        public async Task RemovePackage(PackageIdentity package)
+        public async Task RemovePackageAsync(PackageIdentity package)
         {
             // Create package details page
             var packageDetails = CreateDeleteDetails(package, string.Empty);
@@ -239,9 +239,8 @@ namespace Sleet
         public static List<JObject> GetItems(JObject json)
         {
             var result = new List<JObject>();
-            var items = json["items"] as JArray;
 
-            if (items != null)
+            if (json["items"] is JArray items)
             {
                 foreach (var item in items)
                 {
@@ -255,9 +254,9 @@ namespace Sleet
         /// <summary>
         /// True if the package exists in the catalog and has not been removed.
         /// </summary>
-        public async Task<bool> Exists(PackageIdentity packageIdentity)
+        public async Task<bool> ExistsAsync(PackageIdentity packageIdentity)
         {
-            var mostRecent = await GetLatestEntry(packageIdentity);
+            var mostRecent = await GetLatestEntryAsync(packageIdentity);
 
             return mostRecent?.Operation == SleetOperation.Add;
         }
@@ -265,7 +264,7 @@ namespace Sleet
         /// <summary>
         /// Returns all pages from the catalog index.
         /// </summary>
-        public async Task<List<JObject>> GetPages()
+        public async Task<List<JObject>> GetPagesAsync()
         {
             var pageTasks = new List<Task<JObject>>();
 
@@ -313,7 +312,7 @@ namespace Sleet
             json.Add("created", DateTimeOffset.UtcNow.GetDateString());
             json.Add("sleet:removeReason", reason);
 
-            json.Add("sleet:toolVersion", Constants.SleetVersion.ToFullVersionString());
+            json.Add("sleet:toolVersion", AssemblyVersionHelper.GetVersion().ToFullVersionString());
 
             return JsonLDTokenComparer.Format(json);
         }
@@ -493,7 +492,7 @@ namespace Sleet
                 packageEntryIndex++;
             }
 
-            json.Add("sleet:toolVersion", Constants.SleetVersion.ToFullVersionString());
+            json.Add("sleet:toolVersion", AssemblyVersionHelper.GetVersion().ToFullVersionString());
 
             return JsonLDTokenComparer.Format(json);
         }
@@ -516,9 +515,9 @@ namespace Sleet
         /// <summary>
         /// All packages that exist and have not been removed.
         /// </summary>
-        public async Task<ISet<PackageIdentity>> GetPackages()
+        public async Task<ISet<PackageIdentity>> GetPackagesAsync()
         {
-            var existingPackages = await GetExistingPackagesIndex();
+            var existingPackages = await GetExistingPackagesIndexAsync();
 
             return new HashSet<PackageIdentity>(existingPackages.Select(e => e.PackageIdentity));
         }
@@ -526,9 +525,9 @@ namespace Sleet
         /// <summary>
         /// All packages for the given id that exist and have not been removed.
         /// </summary>
-        public async Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        public async Task<ISet<PackageIdentity>> GetPackagesByIdAsync(string packageId)
         {
-            var allPackages = await GetPackages();
+            var allPackages = await GetPackagesAsync();
 
             return new HashSet<PackageIdentity>(allPackages.Where(e => e.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase)));
         }
@@ -536,9 +535,9 @@ namespace Sleet
         /// <summary>
         /// Latest index entry for the package. This could be an add or remove.
         /// </summary>
-        public async Task<CatalogIndexEntry> GetLatestEntry(PackageIdentity package)
+        public async Task<CatalogIndexEntry> GetLatestEntryAsync(PackageIdentity package)
         {
-            var entries = await GetRolledUpIndex();
+            var entries = await GetRolledUpIndexAsync();
 
             return entries.Where(e => e.PackageIdentity.Equals(package)).FirstOrDefault();
         }
@@ -547,10 +546,10 @@ namespace Sleet
         /// Returns the json of the latest package details page. If the package does
         /// not exist or has been removed this will be null.
         /// </summary>
-        public async Task<JObject> GetLatestPackageDetails(PackageIdentity package)
+        public async Task<JObject> GetLatestPackageDetailsAsync(PackageIdentity package)
         {
             JObject json = null;
-            var latestEntry = await GetLatestEntry(package);
+            var latestEntry = await GetLatestEntryAsync(package);
 
             if (latestEntry != null && latestEntry.Operation == SleetOperation.Add)
             {
@@ -564,9 +563,9 @@ namespace Sleet
         /// <summary>
         /// Returns all index entries from newest to oldest.
         /// </summary>
-        public async Task<IReadOnlyList<CatalogIndexEntry>> GetIndexEntries()
+        public async Task<IReadOnlyList<CatalogIndexEntry>> GetIndexEntriesAsync()
         {
-            var pages = await GetPages();
+            var pages = await GetPagesAsync();
 
             // These cannot be ordered by commit time since add and remove may happen in the same commit.
             // Instead the page order needs to be used.
@@ -576,9 +575,9 @@ namespace Sleet
         /// <summary>
         /// Returns the latest operation for each package.
         /// </summary>
-        public async Task<ISet<CatalogIndexEntry>> GetRolledUpIndex()
+        public async Task<ISet<CatalogIndexEntry>> GetRolledUpIndexAsync()
         {
-            var entries = await GetIndexEntries();
+            var entries = await GetIndexEntriesAsync();
 
             var latest = new HashSet<CatalogIndexEntry>();
 
@@ -594,9 +593,9 @@ namespace Sleet
         /// <summary>
         /// Returns the latest operation for each package that has not been removed.
         /// </summary>
-        public async Task<ISet<CatalogIndexEntry>> GetExistingPackagesIndex()
+        public async Task<ISet<CatalogIndexEntry>> GetExistingPackagesIndexAsync()
         {
-            var entries = await GetRolledUpIndex();
+            var entries = await GetRolledUpIndexAsync();
 
             var latest = new HashSet<CatalogIndexEntry>();
 

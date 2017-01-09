@@ -15,7 +15,7 @@ namespace Sleet
 
             foreach (var service in services)
             {
-                await service.AddPackage(package);
+                await service.AddPackageAsync(package);
             }
         }
 
@@ -28,7 +28,7 @@ namespace Sleet
 
             foreach (var service in services)
             {
-                await service.RemovePackage(package);
+                await service.RemovePackageAsync(package);
             }
         }
 

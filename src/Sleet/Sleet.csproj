@@ -1,82 +1,51 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <ImportGroup>
+    <Import Project="..\..\build\common.props" />
+  </ImportGroup>
+  <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
+    <TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
+    <TargetFrameworks>netcoreapp1.0</TargetFrameworks>
+  </PropertyGroup>
   <PropertyGroup>
-    <Description>Sleet is a cross platform command line tool to generate NuGet v3 static feeds.</Description>
-    <VersionPrefix>1.0.2</VersionPrefix>
-    <Authors>emgarten</Authors>
-    <TargetFrameworks>net451;netcoreapp1.0</TargetFrameworks>
-    <RuntimeIdentifiers>win7-x64;win7-x86;osx.10.10-x64;osx.10.11-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;centos.7-x64;rhel.7.2-x64;debian.8-x64;fedora.23-x64;opensuse.13.2-x64</RuntimeIdentifiers>
-    <WarningsAsErrors>true</WarningsAsErrors>
-    <AssemblyName>Sleet</AssemblyName>
     <OutputType>Exe</OutputType>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
+    <Description>Sleet is a cross platform command line tool to generate NuGet v3 static feeds.</Description>
+    <Version>1.1.0</Version>
+    <Authors>emgarten</Authors>
+    <AssemblyName>Sleet</AssemblyName>
     <PackageTags>nuget nugetserver nugetfeed</PackageTags>
     <PackageProjectUrl>https://github.com/emgarten/Sleet</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/emgarten/Sleet</RepositoryUrl>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="**\*.cs" />
     <EmbeddedResource Include="**\*.resx" />
-    <EmbeddedResource Include="compiler\resources\**\*" />
-    <Content Include="..\..\artifacts\Sleet.exe">
-      <PackagePath>tools/</PackagePath>
-      <Pack>true</Pack>
-    </Content>
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="NuGet.Packaging">
-      <Version>3.5.0</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils">
-      <Version>1.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="WindowsAzure.Storage">
-      <Version>7.2.1</Version>
+      <Version>1.1.0</Version>
     </PackageReference>
   </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>6.0.8</Version>
-    </PackageReference>
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System" />
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
     <PackageReference Include="Microsoft.NETCore.App">
       <Version>1.0.1</Version>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>9.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Runtime.Serialization.Primitives">
-      <Version>4.1.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Xml.XmlSerializer">
-      <Version>4.0.11</Version>
-    </PackageReference>
   </ItemGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net46' ">
     <DefineConstants>$(DefineConstants);IS_DESKTOP</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
     <DefineConstants>$(DefineConstants);IS_CORECLR</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\SleetLib\SleetLib.csproj" />
+  </ItemGroup>
 </Project>

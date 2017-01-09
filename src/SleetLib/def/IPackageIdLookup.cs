@@ -9,6 +9,6 @@ namespace Sleet
         /// <summary>
         /// Find all existing packages with the given id.
         /// </summary>
-        Task<ISet<PackageIdentity>> GetPackagesById(string packageId);
+        Task<ISet<PackageIdentity>> GetPackagesByIdAsync(string packageId);
     }
 }

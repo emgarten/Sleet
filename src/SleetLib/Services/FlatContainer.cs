@@ -20,7 +20,7 @@ namespace Sleet
             _context = context;
         }
 
-        public async Task AddPackage(PackageInput packageInput)
+        public async Task AddPackageAsync(PackageInput packageInput)
         {
             // Add nupkg
             var nupkgFile = _context.Source.Get(GetNupkgPath(packageInput.Identity));
@@ -64,7 +64,7 @@ namespace Sleet
             packageInput.NupkgUri = nupkgFile.EntityUri;
         }
 
-        public async Task RemovePackage(PackageIdentity package)
+        public async Task RemovePackageAsync(PackageIdentity package)
         {
             // Nupkg
             var nupkgFile = _context.Source.Get(GetNupkgPath(package));
@@ -162,7 +162,7 @@ namespace Sleet
             return json;
         }
 
-        public async Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        public async Task<ISet<PackageIdentity>> GetPackagesByIdAsync(string packageId)
         {
             var results = new HashSet<PackageIdentity>();
             var versions = await GetVersions(packageId);

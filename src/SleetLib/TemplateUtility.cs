@@ -11,7 +11,7 @@ namespace Sleet
             using (var reader = new StreamReader(GetResource($"template{name}.json")))
             {
                 return reader.ReadToEnd()
-                    .Replace("$SLEETVERSION$", Constants.SleetVersion.ToFullVersionString())
+                    .Replace("$SLEETVERSION$", AssemblyVersionHelper.GetVersion().ToFullVersionString())
                     .Replace("$BASEURI$", UriUtility.RemoveTrailingSlash(baseUri).AbsoluteUri.TrimEnd('/'))
                     .Replace("$NOW$", now.GetDateString());
             }
@@ -19,7 +19,7 @@ namespace Sleet
 
         public static Stream GetResource(string name)
         {
-            var path = $"sleet.compiler.resources.{name}";
+            var path = $"sleetlib.compiler.resources.{name}";
 
             foreach (var foundPath in typeof(TemplateUtility).GetTypeInfo().Assembly.GetManifestResourceNames())
             {

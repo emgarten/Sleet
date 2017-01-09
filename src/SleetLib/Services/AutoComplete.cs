@@ -31,7 +31,7 @@ namespace Sleet
             }
         }
 
-        public async Task AddPackage(PackageInput packageInput)
+        public async Task AddPackageAsync(PackageInput packageInput)
         {
             var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
@@ -56,10 +56,10 @@ namespace Sleet
             await file.Write(json, _context.Log, _context.Token);
         }
 
-        public async Task RemovePackage(PackageIdentity packageIdentity)
+        public async Task RemovePackageAsync(PackageIdentity packageIdentity)
         {
             var packageIndex = new PackageIndex(_context);
-            var allPackagesForId = await packageIndex.GetPackagesById(packageIdentity.Id);
+            var allPackagesForId = await packageIndex.GetPackagesByIdAsync(packageIdentity.Id);
             allPackagesForId.Remove(packageIdentity);
 
             // Only remove the package if all versions have been removed

@@ -23,7 +23,7 @@ namespace Sleet
             _context = context;
         }
 
-        public async Task AddPackage(PackageInput packageInput)
+        public async Task AddPackageAsync(PackageInput packageInput)
         {
             // Load existing index
             var index = await GetPackageIndex();
@@ -45,7 +45,7 @@ namespace Sleet
             await file.Write(json, _context.Log, _context.Token);
         }
 
-        public async Task RemovePackage(PackageIdentity package)
+        public async Task RemovePackageAsync(PackageIdentity package)
         {
             // Load existing index
             var index = await GetPackageIndex();
@@ -65,7 +65,7 @@ namespace Sleet
         /// <summary>
         /// Creates a set of all indexed packages
         /// </summary>
-        public async Task<ISet<PackageIdentity>> GetPackages()
+        public async Task<ISet<PackageIdentity>> GetPackagesAsync()
         {
             var result = new HashSet<PackageIdentity>();
 
@@ -125,7 +125,7 @@ namespace Sleet
         /// <summary>
         /// Find all versions of a package.
         /// </summary>
-        public async Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        public async Task<ISet<PackageIdentity>> GetPackagesByIdAsync(string packageId)
         {
             var results = new HashSet<PackageIdentity>();
             var versions = await GetPackageVersions(packageId);
@@ -169,7 +169,7 @@ namespace Sleet
                 throw new ArgumentNullException(nameof(version));
             }
 
-            var byId = await GetPackagesById(packageId);
+            var byId = await GetPackagesByIdAsync(packageId);
 
             return byId.Contains(new PackageIdentity(packageId, version));
         }

@@ -21,7 +21,7 @@ namespace Sleet
             using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
             {
                 // Validate source
-                await UpgradeUtility.UpgradeIfNeeded(source, log, token);
+                await UpgradeUtility.UpgradeIfNeededAsync(source, log, token);
 
                 // Get sleet.settings.json
                 var sourceSettings = new SourceSettings();
@@ -38,11 +38,11 @@ namespace Sleet
 
                 var catalog = new Catalog(context);
 
-                var existingEntries = await catalog.GetExistingPackagesIndex();
+                var existingEntries = await catalog.GetExistingPackagesIndexAsync();
                 var packages = existingEntries.Select(e => e.PackageIdentity).ToList();
                 var uniqueIds = packages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase);
 
-                var catalogEntries = await catalog.GetIndexEntries();
+                var catalogEntries = await catalog.GetIndexEntriesAsync();
 
                 log.LogMinimal($"Catalog entries: {catalogEntries.Count}");
                 log.LogMinimal($"Packages: {existingEntries.Count}");

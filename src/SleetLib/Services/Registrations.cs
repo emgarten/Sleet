@@ -23,7 +23,7 @@ namespace Sleet
             _context = context;
         }
 
-        public async Task AddPackage(PackageInput package)
+        public async Task AddPackageAsync(PackageInput package)
         {
             // Retrieve index
             var rootUri = GetIndexUri(package.Identity);
@@ -66,7 +66,7 @@ namespace Sleet
             await packageFile.Write(packageJson, _context.Log, _context.Token);
         }
 
-        public async Task RemovePackage(PackageIdentity package)
+        public async Task RemovePackageAsync(PackageIdentity package)
         {
             var found = false;
 
@@ -318,7 +318,7 @@ namespace Sleet
         /// <summary>
         /// Find all versions of a package.
         /// </summary>
-        public async Task<ISet<PackageIdentity>> GetPackagesById(string packageId)
+        public async Task<ISet<PackageIdentity>> GetPackagesByIdAsync(string packageId)
         {
             var results = new HashSet<PackageIdentity>();
 

@@ -13,11 +13,11 @@ namespace Sleet
         /// <summary>
         /// Add a package to the service.
         /// </summary>
-        Task AddPackage(PackageInput packageInput);
+        Task AddPackageAsync(PackageInput packageInput);
 
         /// <summary>
         /// Remove a package from the service.
         /// </summary>
-        Task RemovePackage(PackageIdentity package);
+        Task RemovePackageAsync(PackageIdentity package);
     }
 }
