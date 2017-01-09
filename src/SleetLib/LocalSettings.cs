@@ -11,10 +11,10 @@ namespace Sleet
         {
             if (string.IsNullOrEmpty(path))
             {
-                path = Path.Combine(Directory.GetCurrentDirectory(), "sleet.json");
+                path = FindFileInParents(Directory.GetCurrentDirectory(), "sleet.json");
             }
 
-            if (!File.Exists(path))
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
             {
                 throw new FileNotFoundException($"Unable to find source settings. File not found '{path}'.");
             }
@@ -25,6 +25,28 @@ namespace Sleet
             {
                 Json = json
             };
+        }
+
+        /// <summary>
+        /// Search a dir and all parents for a file.
+        /// </summary>
+        private static string FindFileInParents(string root, string fileName)
+        {
+            var dir = new DirectoryInfo(root);
+
+            while (dir != null)
+            {
+                var file = Path.Combine(dir.FullName, fileName);
+
+                if (File.Exists(file))
+                {
+                    return file;
+                }
+
+                dir = dir.Parent;
+            }
+
+            return null;
         }
     }
 }

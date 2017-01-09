@@ -171,11 +171,9 @@ if (-not $SkipPack)
     Write-Host "-----------------------------"
 }
 
-$SleetConfig = Get-SleetConfig $RepoRoot
-
-if ($Push -and (Test-Path $SleetConfig) -and ($gitBranch -eq "master"))
+if ($Push -and ($gitBranch -eq "master"))
 {
-    & $sleetExe push --source $SleetFeedId --config $SleetConfig $ArtifactsDir
+    & $sleetExe push --source $SleetFeedId $ArtifactsDir
 
     if (-not $?)
     {
@@ -183,7 +181,7 @@ if ($Push -and (Test-Path $SleetConfig) -and ($gitBranch -eq "master"))
        exit 1
     }
 
-    & $sleetExe validate --source $SleetFeedId --config $SleetConfig
+    & $sleetExe validate --source $SleetFeedId
 
     if (-not $?)
     {
