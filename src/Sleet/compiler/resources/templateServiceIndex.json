@@ -34,8 +34,8 @@
     },
     {
       "@id": "$BASEURI$/catalog/index.json",
-      "@type": "http://schema.emgarten.com/sleet#Catalog/1.0.0",
-      "comment": "Sleet package catalog."
+      "@type": "Catalog/3.0.0",
+      "comment": "Catalog service."
     },
     {
       "@id": "$BASEURI$/sleet.packageindex.json",
