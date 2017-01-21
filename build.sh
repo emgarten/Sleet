@@ -35,7 +35,7 @@ if [ $? -ne 0 ]; then
     RESULTCODE=1
 fi
 
-$DOTNET publish src/Sleet/Sleet.csproj -o artifacts/publish/Sleet -f netcoreapp1.0 --configuration release
+$DOTNET publish src/Sleet/Sleet.csproj -o $(pwd)/artifacts/publish/Sleet -f netcoreapp1.0 --configuration release
 
 if [ $? -ne 0 ]; then
     echo "publish FAILED"
