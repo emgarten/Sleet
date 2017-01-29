@@ -6,5 +6,6 @@
     <PackageLicenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/emgarten/Sleet</RepositoryUrl>
+    <PackageTags>nuget nugetserver nugetfeed</PackageTags>
   </PropertyGroup>
 </Project>
