@@ -20,7 +20,7 @@ Function Install-DotnetCLI {
 
     wget https://raw.githubusercontent.com/dotnet/cli/58b0566d9ac399f5fa973315c6827a040b7aae1f/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
 
-    & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.0-preview4-004233
+    & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.0-rc4-004706
 
     $DotnetExe = DotnetCLIExe $RepositoryRootDir
 
@@ -71,7 +71,7 @@ Function Install-PackagesConfig {
 
     if (-not (Test-Path $nugetExe))
     {
-        wget https://dist.nuget.org/win-x86-commandline/v3.5.0/NuGet.exe -OutFile $nugetExe
+        wget https://dist.nuget.org/win-x86-commandline/v4.0.0-rc3/NuGet.exe -OutFile $nugetExe
     }
 
     & $nugetExe restore $packagesConfig -SolutionDirectory $RepositoryRootDir
@@ -101,4 +101,35 @@ Function Get-SleetConfig {
     }
 
     return $path
+}
+
+# Tests
+Function Run-Tests {
+    param(
+        [string]$RepoRoot,
+        [string]$DotnetExe
+    )
+
+    Write-Host "Running Tests"
+
+    $failed = $false
+
+    Get-ChildItem (Join-Path $RepoRoot "test") -Filter *.csproj -Recurse | 
+    Foreach-Object {
+        $testProject = $_.FullName
+        Write-Host $testProject
+
+        & $dotnetExe test $testProject -c release --no-build
+
+        if (-not $?)
+        {
+            Write-Host "$testProject FAILED!!!"
+            $failed = $true
+        }
+    }
+
+    if ($failed -eq $true)
+    {
+        exit 1
+    }
 }

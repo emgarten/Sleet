@@ -57,21 +57,7 @@ if (-not $?)
 # Run tests
 if (-not $SkipTests)
 {
-    & $dotnetExe test (Join-Path $RepoRoot "test\SleetLib.Tests\SleetLib.Tests.csproj")
-
-    if (-not $?)
-    {
-        Write-Host "SleetLib tests failed!!!"
-        exit 1
-    }
-
-     & $dotnetExe test (Join-Path $RepoRoot "test\Sleet.Integration.Tests\Sleet.Integration.Tests.csproj")
-
-    if (-not $?)
-    {
-        Write-Host "Sleet.Integration.Tests tests failed!!!"
-        exit 1
-    }
+    Run-Tests $RepoRoot $DotnetExe
 }
 
 $json608Lib  = (Join-Path $RepoRoot 'packages\Newtonsoft.Json.6.0.8\lib\net45')

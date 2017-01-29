@@ -1,0 +1,10 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Version>1.1.0</Version>
+    <Authors>emgarten</Authors>
+    <ProjectUrl>https://github.com/emgarten/Sleet</ProjectUrl>
+    <PackageLicenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/emgarten/Sleet</RepositoryUrl>
+  </PropertyGroup>
+</Project>

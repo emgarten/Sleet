@@ -1,0 +1,18 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Shared test project template -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="4.18.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk">
+      <Version>15.0.0-preview-20170125-04</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>2.2.0-beta5-build1225</Version>
+    </PackageReference>
+    <PackageReference Include="xunit">
+      <Version>2.2.0-beta5-build3474</Version>
+    </PackageReference>
+  </ItemGroup>
+</Project>

@@ -6,6 +6,11 @@
   </PropertyGroup>
   <PropertyGroup>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-    <WarningsAsErrors>true</WarningsAsErrors>
+    <WarningsAsErrors>True</WarningsAsErrors>
   </PropertyGroup>
+  <ItemGroup>
+  	<Compile Include="$(MSBuildThisFileDirectory)CommonAssemblyInfo.cs">
+  		<Visible>false</Visible>
+  	</Compile>
+  </ItemGroup>
 </Project>
