@@ -48,5 +48,7 @@ namespace Sleet
         bool HasChanges { get; }
 
         Task<Stream> GetStream(ILogger log, CancellationToken token);
+
+        Task<bool> CopyTo(string path, bool overwrite, ILogger log, CancellationToken token);
     }
 }

@@ -32,6 +32,8 @@ namespace Sleet
 
             var force = cmd.Option("-f|--force", "Ignore missing packages.", CommandOptionType.NoValue);
 
+            var verbose = cmd.Option(Constants.VerboseOption, Constants.VerboseDesc, CommandOptionType.NoValue);
+
             cmd.HelpOption(Constants.HelpOption);
 
             var required = new List<CommandOption>()
@@ -44,6 +46,9 @@ namespace Sleet
             {
                 // Validate parameters
                 Util.ValidateRequiredOptions(required);
+
+                // Init logger
+                Util.SetVerbosity(log, verbose.HasValue());
 
                 // Create a temporary folder for caching files during the operation.
                 using (var cache = new LocalCache())

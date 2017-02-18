@@ -12,7 +12,7 @@ namespace Sleet
     {
         private readonly ILogger _log;
         private volatile bool _isLocked;
-        private const string LockFile = "feedlock";
+        public const string LockFile = "feedlock";
         private readonly AzureBlobLease _lease;
         private readonly CloudBlockBlob _blob;
         private Task _keepLockTask;

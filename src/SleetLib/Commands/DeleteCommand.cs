@@ -17,11 +17,13 @@ namespace Sleet
             var token = CancellationToken.None;
             var now = DateTimeOffset.UtcNow;
 
+            log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
+
             // Check if already initialized
             using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
             {
                 // Validate source
-                await UpgradeUtility.UpgradeIfNeededAsync(source, log, token);
+                await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);
 
                 // Get sleet.settings.json
                 var sourceSettings = new SourceSettings();
@@ -80,7 +82,18 @@ namespace Sleet
                 }
 
                 // Save all
-                await source.Commit(log, token);
+                log.LogMinimal($"Committing changes to {source.BaseURI.AbsoluteUri}");
+
+                success &= await source.Commit(log, token);
+            }
+
+            if (success)
+            {
+                log.LogMinimal($"Successfully deleted packages.");
+            }
+            else
+            {
+                log.LogError($"Failed to delete packages.");
             }
 
             return success;

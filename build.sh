@@ -12,7 +12,7 @@ if [ ! -f $DOTNET ]; then
 
     # Run install.sh
     chmod +x .cli/dotnet-install.sh
-    .cli/dotnet-install.sh -i .cli -c preview -v 1.0.0-rc4-004706
+    .cli/dotnet-install.sh -i .cli -c preview -v 1.0.0-rc4-004842
 fi
 
 # Display info
@@ -59,7 +59,7 @@ if [ $RESULTCODE -ne 0 ]; then
 fi
 
 # pack
-$DOTNET pack $(pwd)/src/SleetLib/SleetLib.csproj --no-build -o $(pwd)/artifacts -c Release
+$DOTNET pack $(pwd)/src/SleetLib/SleetLib.csproj --no-build -o $(pwd)/artifacts -c Release --include-symbols --include-source
 
 if [ $RESULTCODE -ne 0 ]; then
     echo "pack FAILED!"

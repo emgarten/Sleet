@@ -17,6 +17,8 @@ namespace Sleet
             var token = CancellationToken.None;
             var now = DateTimeOffset.UtcNow;
 
+            log.LogMinimal($"Initializing {source.BaseURI.AbsoluteUri}");
+
             // Validate source
             var exists = await source.Validate(log, token);
 
@@ -49,7 +51,16 @@ namespace Sleet
             }
 
             // Save all
-            await source.Commit(log, token);
+            exitCode &= await source.Commit(log, token);
+
+            if (exitCode)
+            {
+                log.LogMinimal($"Successfully initialized {source.BaseURI.AbsoluteUri}");
+            }
+            else
+            {
+                log.LogError($"Failed to initialize {source.BaseURI.AbsoluteUri}");
+            }
 
             return exitCode;
         }

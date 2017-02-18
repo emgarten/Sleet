@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.Extensions.CommandLineUtils;
+using NuGet.Common;
 
 namespace Sleet
 {
@@ -28,6 +29,24 @@ namespace Sleet
                 if (!requiredOption.HasValue())
                 {
                     throw new ArgumentException($"Missing required parameter --{requiredOption.LongName}.");
+                }
+            }
+        }
+
+        internal static void SetVerbosity(ILogger log, bool verbose)
+        {
+            var consoleLogger = log as ConsoleLogger;
+
+            if (consoleLogger != null)
+            {
+                if (verbose)
+                {
+                    consoleLogger.VerbosityLevel = LogLevel.Verbose;
+                }
+                else
+                {
+                    consoleLogger.VerbosityLevel = LogLevel.Information;
+                    consoleLogger.CollapseMessages = true;
                 }
             }
         }

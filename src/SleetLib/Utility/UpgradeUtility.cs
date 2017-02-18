@@ -8,8 +8,22 @@ namespace Sleet
 {
     public static class UpgradeUtility
     {
+        /// <summary>
+        /// Override this to set the tool version instead of reading the assembly.
+        /// </summary>
+        public static SemanticVersion OverrideSleetVersion = null;
+
+        /// <summary>
+        /// Read the assembly version.
+        /// </summary>
         public static async Task<SemanticVersion> GetSleetVersionAsync(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
         {
+            // Check for override
+            if (OverrideSleetVersion != null)
+            {
+                return OverrideSleetVersion;
+            }
+
             var indexPath = fileSystem.Get("index.json");
             var json = await indexPath.GetJson(log, token);
             var sleetVersion = json.GetValue("sleet:version")?.ToString();
@@ -21,7 +35,10 @@ namespace Sleet
             return version;
         }
 
-        public static async Task<bool> UpgradeIfNeededAsync(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
+        /// <summary>
+        /// Throw if the tool versions does not match the feed.
+        /// </summary>
+        public static async Task<bool> EnsureFeedVersionMatchesTool(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
         {
             var sourceVersion = await GetSleetVersionAsync(fileSystem, log, token);
 
@@ -29,18 +46,11 @@ namespace Sleet
 
             if (sourceVersion < assemblyVersion)
             {
-                // upgrade
-                log.LogInformation($"Upgrading source from {sourceVersion} to {assemblyVersion}.");
-
-                var indexPath = fileSystem.Get("index.json");
-                var json = await indexPath.GetJson(log, token);
-                json["sleet:version"] = assemblyVersion.ToFullVersionString();
-
-                await indexPath.Write(json, log, token);
+                throw new InvalidOperationException($"{fileSystem.BaseURI} uses an older version of Sleet: {sourceVersion}. Upgrade the feed to {assemblyVersion} by running 'Sleet recreate' against this feed.");
             }
             else if (sourceVersion > assemblyVersion)
             {
-                throw new InvalidOperationException($"{fileSystem.BaseURI} was created using a newer version of this tool: {sourceVersion}. Use the same or higher version to make changes.");
+                throw new InvalidOperationException($"{fileSystem.BaseURI} was created using a newer version of Sleet: {sourceVersion}. Use the same or higher version to make changes.");
             }
 
             return false;

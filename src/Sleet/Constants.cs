@@ -11,5 +11,7 @@ namespace Sleet
         internal const string ConfigDesc = "sleet.json file to read sources and settings from.";
         internal const string SourceOption = "-s|--source";
         internal const string SourceDesc = "Source name from sleet.json.";
+        internal const string VerboseOption = "-v|--verbose";
+        internal const string VerboseDesc = "Write out additional messages for verbose output.";
     }
 }

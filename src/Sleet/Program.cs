@@ -18,10 +18,11 @@ namespace Sleet
                 logLevel = LogLevel.Debug;
             }
 
-            var log = new ConsoleLogger(logLevel);
-
-            var task = MainCore(args, log);
-            return task.Result;
+            using (var log = new ConsoleLogger(logLevel))
+            {
+                var task = MainCore(args, log);
+                return task.Result;
+            }
         }
 
         public static Task<int> MainCore(string[] args, ILogger log)
@@ -52,6 +53,9 @@ namespace Sleet
             ValidateAppCommand.Register(app, log);
             StatsAppCommand.Register(app, log);
             CreateConfigAppCommand.Register(app, log);
+            DestroyAppCommand.Register(app, log);
+            DownloadAppCommand.Register(app, log);
+            RecreateAppCommand.Register(app, log);
 
             app.OnExecute(() =>
             {

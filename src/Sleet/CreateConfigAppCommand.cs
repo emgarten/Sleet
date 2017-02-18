@@ -23,10 +23,15 @@ namespace Sleet
             var output = cmd.Option("--output", "Output path. If not specified the file will be created in the working directory.",
                 CommandOptionType.SingleValue);
 
+            var verbose = cmd.Option(Constants.VerboseOption, Constants.VerboseDesc, CommandOptionType.NoValue);
+
             cmd.HelpOption(Constants.HelpOption);
 
             cmd.OnExecute(async () =>
             {
+                // Init logger
+                Util.SetVerbosity(log, verbose.HasValue());
+
                 var outputPath = output.HasValue() ? output.Value() : null;
 
                 var success = await CreateConfigCommand.RunAsync(azure.HasValue(), folder.HasValue(), outputPath, log);

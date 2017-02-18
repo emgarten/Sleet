@@ -11,13 +11,12 @@ namespace Sleet
     {
         private readonly ILogger _log;
         private volatile bool _isLocked;
-        private const string LockFile = ".lock";
-        private readonly string _lockPath;
+        public const string LockFile = ".lock";
 
         public PhysicalFileSystemLock(string root, ILogger log)
         {
             _log = log;
-            _lockPath = Path.Combine(root, LockFile);
+            LockPath = Path.Combine(root, LockFile);
         }
 
         public bool IsLocked
@@ -27,6 +26,8 @@ namespace Sleet
                 return _isLocked;
             }
         }
+
+        public string LockPath { get; }
 
         public void Dispose()
         {
@@ -46,9 +47,11 @@ namespace Sleet
             {
                 try
                 {
-                    if (!File.Exists(_lockPath))
+                    if (!File.Exists(LockPath))
                     {
-                        using (var stream = new FileStream(_lockPath, FileMode.CreateNew))
+                        Directory.CreateDirectory(Path.GetDirectoryName(LockPath));
+
+                        using (var stream = new FileStream(LockPath, FileMode.CreateNew))
                         using (var writer = new StreamWriter(stream))
                         {
                             writer.WriteLine(DateTime.UtcNow.ToString("o"));
@@ -78,7 +81,7 @@ namespace Sleet
 
             if (!result)
             {
-                _log.LogError($"Unable to obtain a lock on the feed. If this is an error delete {_lockPath} and try again.");
+                _log.LogError($"Unable to obtain a lock on the feed. If this is an error delete {LockPath} and try again.");
             }
 
             _isLocked = result;
@@ -92,14 +95,14 @@ namespace Sleet
             {
                 try
                 {
-                    if (File.Exists(_lockPath))
+                    if (File.Exists(LockPath))
                     {
-                        File.Delete(_lockPath);
+                        File.Delete(LockPath);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _log.LogWarning($"Unable to clean up lock: {_lockPath} due to: {ex.Message}");
+                    _log.LogWarning($"Unable to clean up lock: {LockPath} due to: {ex.Message}");
                 }
             }
         }

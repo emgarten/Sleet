@@ -36,7 +36,7 @@ namespace Sleet.Test
 
                 // Act
                 var initSuccess = await InitCommand.RunAsync(settings, fileSystem, log);
-                var pushSuccess = await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, false, log);
+                var pushSuccess = await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, false, false, log);
 
                 var files = Directory.GetFiles(outputRoot, "*.json", SearchOption.AllDirectories);
 

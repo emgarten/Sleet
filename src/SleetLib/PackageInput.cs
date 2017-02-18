@@ -5,7 +5,7 @@ using NuGet.Packaging.Core;
 
 namespace Sleet
 {
-    public class PackageInput
+    public class PackageInput : IDisposable
     {
         public string PackagePath { get; set; }
 
@@ -25,6 +25,15 @@ namespace Sleet
         public override string ToString()
         {
             return $"{Identity.Id} {Identity.Version.ToFullVersionString()}";
+        }
+
+        public void Dispose()
+        {
+            Package?.Dispose();
+            Package = null;
+
+            Zip?.Dispose();
+            Zip = null;
         }
     }
 }

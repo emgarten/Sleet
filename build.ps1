@@ -87,24 +87,23 @@ if (-not $?)
 if (-not $SkipPack)
 {
     # Pack
-    if ($StableVersion)
-    {
-        & $dotnetExe pack (Join-Path $RepoRoot "src\$PackageId\$PackageId.csproj") --configuration release --output $ArtifactsDir /p:NoPackageAnalysis=true
-        & $dotnetExe pack (Join-Path $RepoRoot "src\SleetLib\SleetLib.csproj") --configuration release --output $ArtifactsDir /p:NoPackageAnalysis=true
-    }
-    else
-    {
-        $buildNumber = Get-BuildNumber $BuildNumberDateBase
-
-        & $dotnetExe pack (Join-Path $RepoRoot "src\$PackageId\$PackageId.csproj") --configuration release --output $ArtifactsDir --version-suffix "beta.$buildNumber" /p:NoPackageAnalysis=true
-        & $dotnetExe pack (Join-Path $RepoRoot "src\SleetLib\SleetLib.csproj") --configuration release --output $ArtifactsDir --version-suffix "beta.$buildNumber" /p:NoPackageAnalysis=true
-    }
+    & $dotnetExe pack (Join-Path $RepoRoot "src\$PackageId\$PackageId.csproj") --configuration release --output $ArtifactsDir /p:NoPackageAnalysis=true
 
     if (-not $?)
     {
        Write-Host "Pack failed!"
        exit 1
     }
+
+    & $dotnetExe pack (Join-Path $RepoRoot "src\SleetLib\SleetLib.csproj") --configuration release --output $ArtifactsDir /p:NoPackageAnalysis=true
+    
+    if (-not $?)
+    {
+       Write-Host "Pack failed!"
+       exit 1
+    }
+
+    $buildNumber = Get-BuildNumber $BuildNumberDateBase
     
     # Clear out net46 lib
     & $nupkgWrenchExe files emptyfolder artifacts -p lib/net46 --id Sleet
@@ -117,6 +116,11 @@ if (-not $SkipPack)
     # Get version number
     $nupkgVersion = (& $nupkgWrenchExe version $ArtifactsDir --id Sleet) | Out-String
     $nupkgVersion = $nupkgVersion.Trim()
+
+    if (-not $StableVersion)
+    {
+        $nupkgVersion = $nupkgVersion + "-" + "beta.$buildNumber"
+    }
 
     $updatedVersion = $nupkgVersion + "+git." + $commitHash
 

@@ -177,5 +177,32 @@ namespace Sleet
                 return null;
             }
         }
+
+        /// <summary>
+        /// Copy the file to the destination path.
+        /// </summary>
+        /// <returns>True if the file was successfully copied.</returns>
+        public async Task<bool> CopyTo(string path, bool overwrite, ILogger log, CancellationToken token)
+        {
+            var pathInfo = new FileInfo(path);
+
+            if (!overwrite && pathInfo.Exists)
+            {
+                return false;
+            }
+
+            if (await Exists(log, token))
+            {
+                // Create the parent dir
+                pathInfo.Directory.Create();
+
+                // Copy the file
+                LocalCacheFile.CopyTo(pathInfo.FullName, overwrite);
+
+                return true;
+            }
+
+            return false;
+        }
     }
 }

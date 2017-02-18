@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -13,6 +14,12 @@ namespace Sleet
         ISleetFile Get(Uri path);
 
         ISleetFile Get(string relativePath);
+
+        /// <summary>
+        /// Read all files from the feed.
+        /// </summary>
+        /// <remarks>This does not include the .lock file.</remarks>
+        Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token);
 
         LocalCache LocalCache { get; }
 
@@ -31,5 +38,10 @@ namespace Sleet
         /// Create a file system lock.
         /// </summary>
         ISleetFileSystemLock CreateLock(ILogger log);
+
+        /// <summary>
+        /// Delete all files.
+        /// </summary>
+        Task<bool> Destroy(ILogger log, CancellationToken token);
     }
 }

@@ -5,8 +5,6 @@ Function Install-DotnetCLI {
         [string]$RepositoryRootDir
     )
 
-    Write-Host 'Fetching dotnet CLI'
-
     $CLIRoot = Get-DotnetCLIRoot $RepositoryRootDir
 
     New-Item -ItemType Directory -Force -Path $CLIRoot | Out-Null
@@ -14,19 +12,22 @@ Function Install-DotnetCLI {
     $env:DOTNET_HOME=$CLIRoot
     $installDotnet = Join-Path $CLIRoot "install.ps1"
 
-    New-Item -ItemType Directory -Force -Path $CLIRoot
-
-    Write-Host "Fetching $installDotnet"
-
-    wget https://raw.githubusercontent.com/dotnet/cli/58b0566d9ac399f5fa973315c6827a040b7aae1f/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
-
-    & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.0-rc4-004706
-
     $DotnetExe = DotnetCLIExe $RepositoryRootDir
 
     if (-not (Test-Path $DotnetExe)) {
-        Write-Log "Missing $DotnetExe"
-        exit 1
+
+        New-Item -ItemType Directory -Force -Path $CLIRoot
+
+        Write-Host "Fetching $installDotnet"
+
+        wget https://raw.githubusercontent.com/dotnet/cli/58b0566d9ac399f5fa973315c6827a040b7aae1f/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
+
+        & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.0-rc4-004842
+
+        if (-not (Test-Path $DotnetExe)) {
+            Write-Log "Missing $DotnetExe"
+            exit 1
+        }
     }
 
     & $DotnetExe --info

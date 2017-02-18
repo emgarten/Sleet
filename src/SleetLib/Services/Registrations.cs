@@ -200,9 +200,8 @@ namespace Sleet
         public static List<JObject> GetItems(JObject json)
         {
             var result = new List<JObject>();
-            var items = json["items"] as JArray;
 
-            if (items != null)
+            if (json["items"] is JArray items)
             {
                 foreach (var item in items)
                 {

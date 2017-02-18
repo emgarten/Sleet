@@ -50,7 +50,7 @@ namespace Sleet.Integration.Test
                     var zipFile = testPackage.Save(packagesFolder.Root);
                 }
 
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
                 success &= await ValidateCommand.RunAsync(settings, fileSystem, log);
 
                 // Act
@@ -96,7 +96,7 @@ namespace Sleet.Integration.Test
                     var zipFile = testPackage.Save(packagesFolder.Root);
                 }
 
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
                 success &= await DeleteCommand.RunAsync(settings, fileSystem, "packageA", "1.0.0-alpha.5", string.Empty, false, log);
                 success &= await ValidateCommand.RunAsync(settings, fileSystem, log);
 
@@ -142,7 +142,7 @@ namespace Sleet.Integration.Test
 
                 // Act
                 // Run sleet
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
 
                 // Create a repository abstraction for nuget
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
@@ -185,7 +185,7 @@ namespace Sleet.Integration.Test
 
                 // Act
                 // Run sleet
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
 
                 // Create a repository abstraction for nuget
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
@@ -234,7 +234,7 @@ namespace Sleet.Integration.Test
 
                 // Act
                 // Run sleet
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
 
                 // Create a repository abstraction for nuget
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
@@ -280,7 +280,7 @@ namespace Sleet.Integration.Test
 
                 // Act
                 // Run sleet
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
 
                 // Create a repository abstraction for nuget
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
@@ -371,8 +371,8 @@ namespace Sleet.Integration.Test
 
                 // Act
                 // Run sleet
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile2.FullName }, false, log);
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile2.FullName }, false, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, false, false, log);
 
                 // Create a repository abstraction for nuget
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
@@ -493,8 +493,8 @@ namespace Sleet.Integration.Test
 
                 // Act
                 // Run sleet
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile2.FullName }, false, log);
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile2.FullName }, false, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, false, false, log);
 
                 // Create a repository abstraction for nuget
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
@@ -569,7 +569,7 @@ namespace Sleet.Integration.Test
 
                 // Act
                 // Run sleet
-                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, false, log);
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, false, false, log);
 
                 // Create a repository abstraction for nuget
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);

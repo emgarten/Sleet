@@ -34,9 +34,10 @@ namespace Sleet
 
         public static JObject Create(Uri id, IEnumerable<string> types)
         {
-            var json = new JObject();
-
-            json.Add("@id", new JValue(id.AbsoluteUri));
+            var json = new JObject
+            {
+                { "@id", new JValue(id.AbsoluteUri) }
+            };
 
             JToken typeValue = null;
 

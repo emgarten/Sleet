@@ -1,26 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
-using NuGet.Packaging;
 
 namespace Sleet
 {
-    internal static class PushAppCommand
+    internal static class DownloadAppCommand
     {
         public static void Register(CommandLineApplication cmdApp, ILogger log)
         {
-            cmdApp.Command("push", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
+            cmdApp.Command("download", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
         }
 
         private static void Run(CommandLineApplication cmd, ILogger log)
         {
-            cmd.Description = "Push a package to a feed.";
+            cmd.Description = "Download packages from a feed to a local folder.";
 
             var optionConfigFile = cmd.Option(Constants.ConfigOption, Constants.ConfigDesc,
                 CommandOptionType.SingleValue);
@@ -30,21 +23,14 @@ namespace Sleet
 
             var verbose = cmd.Option(Constants.VerboseOption, Constants.VerboseDesc, CommandOptionType.NoValue);
 
-            var forceName = cmd.Option("-f|--force", "Overwrite existing packages.",
-                            CommandOptionType.NoValue);
-
-            var skipExisting = cmd.Option("--skip-existing", "Skip packages that already exist on the feed.", CommandOptionType.NoValue);
-
-            var argRoot = cmd.Argument(
-                "[root]",
-                "Paths to individual packages or directories containing packages.",
-                multipleValues: true);
-
             cmd.HelpOption(Constants.HelpOption);
+
+            var outputPath = cmd.Option("-o|--output-path", "Output directory to store downloaded nupkgs.", CommandOptionType.SingleValue);
 
             var required = new List<CommandOption>()
             {
-                sourceName
+                sourceName,
+                outputPath
             };
 
             cmd.OnExecute(async () =>
@@ -62,7 +48,8 @@ namespace Sleet
                     var settings = LocalSettings.Load(optionConfigFile.Value());
                     var fileSystem = Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
-                    var success = await PushCommand.RunAsync(settings, fileSystem, argRoot.Values.ToList(), forceName.HasValue(), skipExisting.HasValue(), log);
+                    // Download packages
+                    var success = await DownloadCommand.RunAsync(settings, fileSystem, outputPath.Value(), ignoreErrors: false, log: log);
 
                     return success ? 0 : 1;
                 }

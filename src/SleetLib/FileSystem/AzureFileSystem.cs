@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -125,6 +127,52 @@ namespace Sleet
         public ISleetFileSystemLock CreateLock(ILogger log)
         {
             return new AzureFileSystemLock(_container, log);
+        }
+
+        public async Task<bool> Destroy(ILogger log, CancellationToken token)
+        {
+            var success = true;
+
+            var files = await GetFiles(log, token);
+
+            foreach (var file in Files.Values)
+            {
+                try
+                {
+                    log.LogInformation($"Deleting {file.EntityUri.AbsoluteUri}");
+                    file.Delete(log, token);
+                }
+                catch
+                {
+                    log.LogError($"Unable to delete {file.EntityUri.AbsoluteUri}");
+                    success = false;
+                }
+            }
+
+            return success;
+        }
+
+        public async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
+        {
+            BlobContinuationToken continuationToken = null;
+            string prefix = null;
+            var useFlatBlobListing = true;
+            var blobListingDetails = BlobListingDetails.All;
+            int? maxResults = null;
+
+            // Return all files except feedlock
+            var blobs = new List<IListBlobItem>();
+
+            do
+            {
+                var result = await _container.ListBlobsSegmentedAsync(prefix, useFlatBlobListing, blobListingDetails, maxResults, continuationToken, options: null, operationContext: null);
+                blobs.AddRange(result.Results);
+            }
+            while (continuationToken != null);
+
+            return blobs.Where(e => !e.Uri.AbsoluteUri.EndsWith($"/{AzureFileSystemLock.LockFile}"))
+                 .Select(e => Get(e.Uri))
+                 .ToList();
         }
     }
 }

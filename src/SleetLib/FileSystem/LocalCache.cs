@@ -6,8 +6,12 @@ namespace Sleet
     public class LocalCache : IDisposable
     {
         public LocalCache()
+            : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
         {
-            var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        }
+
+        public LocalCache(string path)
+        {
             Root = new DirectoryInfo(path);
             Root.Create();
         }

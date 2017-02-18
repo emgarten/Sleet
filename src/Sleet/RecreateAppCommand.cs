@@ -1,26 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
-using NuGet.Packaging;
 
 namespace Sleet
 {
-    internal static class PushAppCommand
+    internal static class RecreateAppCommand
     {
         public static void Register(CommandLineApplication cmdApp, ILogger log)
         {
-            cmdApp.Command("push", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
+            cmdApp.Command("recreate", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
         }
 
         private static void Run(CommandLineApplication cmd, ILogger log)
         {
-            cmd.Description = "Push a package to a feed.";
+            cmd.Description = "Recreate a feed. This downloads all packages, deletes the feed, and then creates a new feed from the existing packages. This may be used to fix feed problems or to upgrade between Sleet versions.";
 
             var optionConfigFile = cmd.Option(Constants.ConfigOption, Constants.ConfigDesc,
                 CommandOptionType.SingleValue);
@@ -30,17 +23,11 @@ namespace Sleet
 
             var verbose = cmd.Option(Constants.VerboseOption, Constants.VerboseDesc, CommandOptionType.NoValue);
 
-            var forceName = cmd.Option("-f|--force", "Overwrite existing packages.",
-                            CommandOptionType.NoValue);
-
-            var skipExisting = cmd.Option("--skip-existing", "Skip packages that already exist on the feed.", CommandOptionType.NoValue);
-
-            var argRoot = cmd.Argument(
-                "[root]",
-                "Paths to individual packages or directories containing packages.",
-                multipleValues: true);
-
             cmd.HelpOption(Constants.HelpOption);
+
+            var nupkgPath = cmd.Option("--nupkg-path", "Optional temporary directory to store downloaded nupkgs in. This folder will be cleaned up if the command completes successfully. If the command fails these files will be left as a backup.", CommandOptionType.SingleValue);
+
+            var force = cmd.Option("-f|--force", "Ignore errors when recreating the feed.", CommandOptionType.NoValue);
 
             var required = new List<CommandOption>()
             {
@@ -62,7 +49,10 @@ namespace Sleet
                     var settings = LocalSettings.Load(optionConfigFile.Value());
                     var fileSystem = Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
-                    var success = await PushCommand.RunAsync(settings, fileSystem, argRoot.Values.ToList(), forceName.HasValue(), skipExisting.HasValue(), log);
+                    var tmpPath = nupkgPath.HasValue() ? nupkgPath.Value() : null;
+
+                    // Run
+                    var success = await RecreateCommand.RunAsync(settings, fileSystem, tmpPath, force.HasValue(), log);
 
                     return success ? 0 : 1;
                 }

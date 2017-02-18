@@ -135,9 +135,7 @@ namespace Sleet
             {
                 var json = await file.GetJson(_context.Log, _context.Token);
 
-                var versionArray = json?.Property("versions")?.Value as JArray;
-
-                if (versionArray != null)
+                if (json?.Property("versions")?.Value is JArray versionArray)
                 {
                     results.UnionWith(versionArray.Select(s => NuGetVersion.Parse(s.ToString())));
                 }

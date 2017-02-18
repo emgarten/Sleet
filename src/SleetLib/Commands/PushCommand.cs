@@ -12,21 +12,32 @@ namespace Sleet
 {
     public static class PushCommand
     {
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, ILogger log)
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, bool skipExisting, ILogger log)
         {
-            var exitCode = true;
-
             var token = CancellationToken.None;
-            var now = DateTimeOffset.UtcNow;
 
-            // Get packages
-            var packages = GetPackageInputs(inputs, now, log);
+            log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
 
             // Check if already initialized
             using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
             {
                 // Validate source
-                await UpgradeUtility.UpgradeIfNeededAsync(source, log, token);
+                await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);
+
+                return await PushPackages(settings, source, inputs, force, skipExisting, log, token);
+            }
+        }
+
+        public static async Task<bool> PushPackages(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, bool skipExisting, ILogger log, CancellationToken token)
+        {
+            var exitCode = true;
+            var now = DateTimeOffset.UtcNow;
+            var packages = new List<PackageInput>();
+
+            try
+            {
+                // Get packages
+                packages.AddRange(GetPackageInputs(inputs, now, log));
 
                 // Get sleet.settings.json
                 var sourceSettings = new SourceSettings();
@@ -41,29 +52,61 @@ namespace Sleet
                     Token = token
                 };
 
+                log.LogInformation("Reading existing package index");
+
                 var packageIndex = new PackageIndex(context);
 
                 foreach (var package in packages)
                 {
+                    var packageString = $"{package.Identity.Id} {package.Identity.Version.ToFullString()}";
+
+                    log.LogMinimal($"Pushing {packageString}");
+
+                    log.LogInformation($"Checking if package exists.");
+
                     if (await packageIndex.Exists(package.Identity))
                     {
-                        if (force)
+                        if (skipExisting)
                         {
-                            log.LogInformation($"Package already exists, removing {package.ToString()}");
+                            log.LogMinimal($"Package already exists, skipping {packageString}");
+                            continue;
+                        }
+                        else if (force)
+                        {
+                            log.LogInformation($"Package already exists, removing {packageString}");
                             await SleetUtility.RemovePackage(context, package.Identity);
                         }
                         else
                         {
-                            throw new InvalidOperationException($"Package already exists: '{package.Identity}'.");
+                            throw new InvalidOperationException($"Package already exists: {packageString}.");
                         }
                     }
 
-                    log.LogInformation($"Adding {package.Identity.ToString()}");
+                    log.LogInformation($"Adding {packageString}");
                     await SleetUtility.AddPackage(context, package);
                 }
 
                 // Save all
+                log.LogMinimal($"Committing changes to {source.BaseURI.AbsoluteUri}");
+
                 await source.Commit(log, token);
+            }
+            finally
+            {
+                // Close all zip readers
+                foreach (var package in packages)
+                {
+                    package.Dispose();
+                }
+            }
+
+            if (exitCode)
+            {
+                log.LogMinimal("Successfully pushed packages.");
+            }
+            else
+            {
+                log.LogError("Failed to push packages.");
             }
 
             return exitCode;

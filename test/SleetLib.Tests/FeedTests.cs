@@ -72,7 +72,7 @@ namespace Sleet.Test
                     // Act
                     // run commands
                     await InitCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
-                    await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, context.Log);
+                    await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
                     var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
 
                     // read outputs
