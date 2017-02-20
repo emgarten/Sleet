@@ -45,7 +45,7 @@ do
 
 	echo $testDir
 
-	$DOTNET test $testDir -f netcoreapp1.0 --no-build -r $(pwd)/artifacts -c Release
+	$DOTNET test $testDir -f netcoreapp1.0 --no-build -c Release
 
 	if [ $? -ne 0 ]; then
 	    echo "$testProject FAILED!"
