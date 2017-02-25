@@ -29,8 +29,7 @@ namespace Sleet
             var index = await GetPackageIndex();
 
             // Add package
-            ISet<NuGetVersion> versions;
-            if (!index.TryGetValue(packageInput.Identity.Id, out versions))
+            if (!index.TryGetValue(packageInput.Identity.Id, out ISet<NuGetVersion> versions))
             {
                 versions = new HashSet<NuGetVersion>();
                 index.Add(packageInput.Identity.Id, versions);
@@ -51,8 +50,7 @@ namespace Sleet
             var index = await GetPackageIndex();
 
             // Remove package
-            ISet<NuGetVersion> versions;
-            if (index.TryGetValue(package.Id, out versions) && versions.Remove(package.Version))
+            if (index.TryGetValue(package.Id, out ISet<NuGetVersion> versions) && versions.Remove(package.Version))
             {
                 // Create updated index
                 var json = CreateJson(index);
@@ -108,8 +106,7 @@ namespace Sleet
                     var packageVersion = NuGetVersion.Parse(versionEntry.ToObject<string>());
                     var id = property.Name;
 
-                    ISet<NuGetVersion> packageVersions;
-                    if (!index.TryGetValue(id, out packageVersions))
+                    if (!index.TryGetValue(id, out ISet<NuGetVersion> packageVersions))
                     {
                         packageVersions = new HashSet<NuGetVersion>();
                         index.Add(id, packageVersions);
@@ -145,8 +142,7 @@ namespace Sleet
         {
             var index = await GetPackageIndex();
 
-            ISet<NuGetVersion> versions;
-            if (!index.TryGetValue(packageId, out versions))
+            if (!index.TryGetValue(packageId, out ISet<NuGetVersion> versions))
             {
                 versions = new HashSet<NuGetVersion>();
             }

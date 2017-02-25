@@ -35,9 +35,7 @@ namespace Sleet
 
         internal static void SetVerbosity(ILogger log, bool verbose)
         {
-            var consoleLogger = log as ConsoleLogger;
-
-            if (consoleLogger != null)
+            if (log is ConsoleLogger consoleLogger)
             {
                 if (verbose)
                 {

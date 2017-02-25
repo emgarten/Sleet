@@ -102,13 +102,10 @@ namespace Sleet
         public static JObject[] GetJObjectArray(this JToken json, string propertyName)
         {
             var results = new List<JObject>();
-            var root = json as JObject;
 
-            if (root != null)
+            if (json is JObject root)
             {
-                var array = root[propertyName] as JArray;
-
-                if (array != null)
+                if (root[propertyName] is JArray array)
                 {
                     foreach (var entry in array)
                     {
