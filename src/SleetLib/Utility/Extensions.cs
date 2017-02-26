@@ -116,5 +116,13 @@ namespace Sleet
 
             return results.ToArray();
         }
+
+        /// <summary>
+        /// Returns the @id as a URI
+        /// </summary>
+        public static Uri GetIdUri(this JObject json)
+        {
+            return JsonUtility.GetIdUri(json);
+        }
     }
 }

@@ -179,5 +179,32 @@ namespace Sleet
                 }
             }
         }
+
+        /// <summary>
+        /// Get the @id of a json page.
+        /// </summary>
+        public static Uri GetIdUri(JObject json)
+        {
+            var s = json["@id"].ToObject<string>();
+            return UriUtility.CreateUri(s);
+        }
+
+        /// <summary>
+        /// Get items from a page or index page.
+        /// </summary>
+        public static List<JObject> GetItems(JObject json)
+        {
+            var result = new List<JObject>();
+
+            if (json["items"] is JArray items)
+            {
+                foreach (var item in items)
+                {
+                    result.Add((JObject)item);
+                }
+            }
+
+            return result;
+        }
     }
 }

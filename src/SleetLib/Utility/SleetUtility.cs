@@ -36,15 +36,28 @@ namespace Sleet
         {
             // Order is important here
             // Packages must be added to flat container, then the catalog, then registrations.
-            return new List<ISleetService>()
+            var services = new List<ISleetService>
             {
-                new FlatContainer(context),
-                new Catalog(context),
-                new Registrations(context),
-                new AutoComplete(context),
-                new Search(context),
-                new PackageIndex(context),
+                new FlatContainer(context)
             };
+
+            if (context.SourceSettings.CatalogEnabled)
+            {
+                // Catalog on disk
+                services.Add(new Catalog(context));
+            }
+            else
+            {
+                // In memory catalog
+                services.Add(new VirtualCatalog(context));
+            }
+
+            services.Add(new Registrations(context));
+            services.Add(new AutoComplete(context));
+            services.Add(new Search(context));
+            services.Add(new PackageIndex(context));
+
+            return services;
         }
     }
 }

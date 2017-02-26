@@ -238,7 +238,7 @@ namespace Sleet
 
             var json = JsonUtility.Create(rootUri, new string[] { "Package", "http://schema.nuget.org/catalog#Permalink" });
 
-            var packageDetailsFile = _context.Source.Get(packageInput.PackageDetailsUri);
+            var packageDetailsFile = _context.Source.Get(packageInput.PackageDetails.GetIdUri());
 
             if (!await packageDetailsFile.Exists(_context.Log, _context.Token))
             {
@@ -247,7 +247,7 @@ namespace Sleet
 
             var detailsJson = await packageDetailsFile.GetJson(_context.Log, _context.Token);
 
-            json.Add("catalogEntry", packageInput.PackageDetailsUri.AbsoluteUri);
+            json.Add("catalogEntry", packageInput.PackageDetails.GetIdUri().AbsoluteUri);
             json.Add("packageContent", detailsJson["packageContent"].ToString());
             json.Add("registration", GetIndexUri(packageInput.Identity));
 
@@ -276,7 +276,7 @@ namespace Sleet
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
             json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
 
-            var packageDetailsFile = _context.Source.Get(packageInput.PackageDetailsUri);
+            var packageDetailsFile = _context.Source.Get(packageInput.PackageDetails.GetIdUri());
             var detailsJson = await packageDetailsFile.GetJson(_context.Log, _context.Token);
 
             json.Add("packageContent", detailsJson["packageContent"].ToString());

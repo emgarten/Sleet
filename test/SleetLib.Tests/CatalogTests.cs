@@ -103,7 +103,7 @@ namespace Sleet.Test
                     };
 
                     // Act
-                    var actual = catalog.CreatePackageDetails(input);
+                    var actual = CatalogUtility.CreatePackageDetails(input, catalog.CatalogBaseURI, context.CommitId);
 
                     var dependencyGroups = actual["dependencyGroups"] as JArray;
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;
@@ -187,7 +187,7 @@ namespace Sleet.Test
                     };
 
                     // Act
-                    var actual = catalog.CreatePackageDetails(input);
+                    var actual = CatalogUtility.CreatePackageDetails(input, catalog.CatalogBaseURI, context.CommitId);
 
                     var dependencyGroups = actual["dependencyGroups"] as JArray;
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;

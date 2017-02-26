@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Compression;
+using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 
@@ -18,7 +19,7 @@ namespace Sleet
         // Thehse fields are populated by other steps
         public Uri NupkgUri { get; set; }
 
-        public Uri PackageDetailsUri { get; set; }
+        public JObject PackageDetails { get; set; }
 
         public Uri RegistrationUri { get; set; }
 
