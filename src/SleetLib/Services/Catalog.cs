@@ -139,20 +139,23 @@ namespace Sleet
         {
             var pageTasks = new List<Task<JObject>>();
 
-            var catalogIndexJson = await RootIndexFile.GetJson(_context.Log, _context.Token);
-
-            var items = (JArray)catalogIndexJson["items"];
-
-            foreach (var item in items)
+            if (await RootIndexFile.Exists(_context.Log, _context.Token))
             {
-                var itemUrl = item["@id"].ToObject<Uri>();
+                var catalogIndexJson = await RootIndexFile.GetJson(_context.Log, _context.Token);
 
-                var itemFile = _context.Source.Get(itemUrl);
+                var items = (JArray)catalogIndexJson["items"];
 
-                pageTasks.Add(itemFile.GetJson(_context.Log, _context.Token));
+                foreach (var item in items)
+                {
+                    var itemUrl = item["@id"].ToObject<Uri>();
+
+                    var itemFile = _context.Source.Get(itemUrl);
+
+                    pageTasks.Add(itemFile.GetJson(_context.Log, _context.Token));
+                }
+
+                await Task.WhenAll(pageTasks);
             }
-
-            await Task.WhenAll(pageTasks);
 
             return pageTasks.Select(e => e.Result).ToList();
         }

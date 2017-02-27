@@ -35,7 +35,7 @@ namespace Sleet
             var success = true;
 
             // Get sleet.settings.json
-            var sourceSettings = new SourceSettings();
+            var sourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
 
             // Settings context used for all operations
             var context = new SleetContext()
@@ -48,20 +48,24 @@ namespace Sleet
             };
 
             // Create all services
-            var catalog = new Catalog(context);
+            var services = new List<ISleetService>();
+
             var registrations = new Registrations(context);
             var flatContainer = new FlatContainer(context);
             var search = new Search(context);
             var autoComplete = new AutoComplete(context);
             var packageIndex = new PackageIndex(context);
 
-            var services = new List<ISleetService>
-                {
-                    catalog,
-                    registrations,
-                    flatContainer,
-                    search
-                };
+            if (context.SourceSettings.CatalogEnabled)
+            {
+                // Add the catalog only if it is enabled
+                var catalog = new Catalog(context);
+                services.Add(catalog);
+            }
+
+            services.Add(registrations);
+            services.Add(flatContainer);
+            services.Add(search);
 
             // Verify against the package index
             var indexedPackages = await packageIndex.GetPackagesAsync();

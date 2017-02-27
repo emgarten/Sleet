@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
@@ -31,7 +32,7 @@ namespace Sleet.Test
                     LocalSettings = settings,
                     Log = log,
                     Source = fileSystem,
-                    SourceSettings = new SourceSettings()
+                    SourceSettings = new FeedSettings()
                 };
 
                 var testPackage = new TestNupkg("packageA", "1.0");
@@ -104,7 +105,7 @@ namespace Sleet.Test
                     LocalSettings = settings,
                     Log = log,
                     Source = fileSystem,
-                    SourceSettings = new SourceSettings()
+                    SourceSettings = new FeedSettings()
                 };
 
                 var testPackage = new TestNupkg("packageA", "1.0.0");
@@ -177,7 +178,7 @@ namespace Sleet.Test
                     LocalSettings = settings,
                     Log = log,
                     Source = fileSystem,
-                    SourceSettings = new SourceSettings()
+                    SourceSettings = new FeedSettings()
                 };
 
                 var testPackage = new TestNupkg("packageA", "1.0.0");
@@ -232,6 +233,223 @@ namespace Sleet.Test
         }
 
         [Fact]
+        public async Task GivenThatIAddAPackageWithTheCatalogDisabledVerifyItSucceeds()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                };
+
+                context.SourceSettings.CatalogEnabled = false;
+
+                var testPackage = new TestNupkg("packageA", "1.0.0");
+
+                var zipFile = testPackage.Save(packagesFolder.Root);
+                using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
+                {
+                    var input = new PackageInput()
+                    {
+                        Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")),
+                        Zip = zip,
+                        Package = new PackageArchiveReader(zip),
+                        PackagePath = zipFile.FullName
+                    };
+
+                    var catalog = new Catalog(context);
+                    var registration = new Registrations(context);
+                    var packageIndex = new PackageIndex(context);
+                    var search = new Search(context);
+                    var autoComplete = new AutoComplete(context);
+
+                    // Act
+                    // run commands
+                    await InitCommand.InitAsync(context.LocalSettings, context.Source, context.SourceSettings, context.Log, CancellationToken.None);
+                    await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
+                    var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+
+                    // read outputs
+                    var catalogEntries = await catalog.GetIndexEntriesAsync();
+                    var catalogExistingEntries = await catalog.GetExistingPackagesIndexAsync();
+                    var catalogLatest = await catalog.GetLatestEntryAsync(input.Identity);
+
+                    var regPackages = await registration.GetPackagesByIdAsync(input.Identity.Id);
+                    var indexPackages = await packageIndex.GetPackagesAsync();
+                    var searchPackages = await search.GetPackagesAsync();
+                    var autoCompletePackages = await autoComplete.GetPackageIds();
+
+                    var catalogEntry = await registration.GetCatalogEntryFromPackageBlob(input.Identity);
+
+                    // Assert
+                    validateOutput.Should().BeTrue("the feed is valid");
+                    catalogEntries.Should().BeEmpty("the catalog is disabled");
+                    catalogExistingEntries.Should().BeEmpty("the catalog is disabled");
+                    regPackages.Should().BeEquivalentTo(new[] { input.Identity });
+                    indexPackages.Should().BeEquivalentTo(new[] { input.Identity });
+                    searchPackages.Should().BeEquivalentTo(new[] { input.Identity });
+                    autoCompletePackages.Should().BeEquivalentTo(new[] { input.Identity.Id });
+
+                    catalogLatest.Should().BeNull();
+                    catalogEntry["version"].ToString().Should().Be("1.0.0");
+                    catalogEntry["sleet:operation"].ToString().Should().Be("add");
+                }
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatIRemoveAPackageWithTheCatalogDisabledVerifyItSucceeds()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                };
+
+                context.SourceSettings.CatalogEnabled = false;
+
+                var testPackage1 = new TestNupkg("packageA", "1.0.1");
+                var testPackage2 = new TestNupkg("packageA", "1.0.2");
+                var testPackage3 = new TestNupkg("packageA", "1.0.3");
+
+                var zipFile1 = testPackage1.Save(packagesFolder.Root);
+                var zipFile2 = testPackage2.Save(packagesFolder.Root);
+                var zipFile3 = testPackage3.Save(packagesFolder.Root);
+
+                var catalog = new Catalog(context);
+                var registration = new Registrations(context);
+                var packageIndex = new PackageIndex(context);
+                var search = new Search(context);
+                var autoComplete = new AutoComplete(context);
+
+                // Act
+                // run commands
+                await InitCommand.InitAsync(context.LocalSettings, context.Source, context.SourceSettings, context.Log, CancellationToken.None);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile1.FullName }, false, false, context.Log);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile2.FullName }, false, false, context.Log);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile3.FullName }, false, false, context.Log);
+                await DeleteCommand.RunAsync(context.LocalSettings, context.Source, "packageA", "1.0.3", "", false, context.Log);
+                await DeleteCommand.RunAsync(context.LocalSettings, context.Source, "packageA", "1.0.1", "", false, context.Log);
+
+                var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+
+                // read outputs
+                var catalogEntries = await catalog.GetIndexEntriesAsync();
+                var catalogExistingEntries = await catalog.GetExistingPackagesIndexAsync();
+
+                var regPackages = await registration.GetPackagesByIdAsync("packageA");
+                var indexPackages = await packageIndex.GetPackagesAsync();
+                var searchPackages = await search.GetPackagesAsync();
+                var autoCompletePackages = await autoComplete.GetPackageIds();
+
+                var catalogEntry = await registration.GetCatalogEntryFromPackageBlob(new PackageIdentity("packageA", NuGetVersion.Parse("1.0.2")));
+
+                // Assert
+                validateOutput.Should().BeTrue("the feed is valid");
+                catalogEntries.Should().BeEmpty("the catalog is disabled");
+                catalogExistingEntries.Should().BeEmpty("the catalog is disabled");
+                regPackages.Should().BeEquivalentTo(new[] { new PackageIdentity("packageA", NuGetVersion.Parse("1.0.2")) });
+                indexPackages.Should().BeEquivalentTo(new[] { new PackageIdentity("packageA", NuGetVersion.Parse("1.0.2")) });
+                searchPackages.Should().BeEquivalentTo(new[] { new PackageIdentity("packageA", NuGetVersion.Parse("1.0.2")) });
+                autoCompletePackages.Should().BeEquivalentTo(new[] { "packageA" });
+                catalogEntry["version"].ToString().Should().Be("1.0.2");
+                catalogEntry["sleet:operation"].ToString().Should().Be("add");
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatIRemoveAllPackagesWithTheCatalogDisabledVerifyItSucceeds()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                };
+
+                context.SourceSettings.CatalogEnabled = false;
+
+                var testPackage1 = new TestNupkg("packageA", "1.0.1");
+                var testPackage2 = new TestNupkg("packageA", "1.0.2");
+                var testPackage3 = new TestNupkg("packageA", "1.0.3");
+
+                var zipFile1 = testPackage1.Save(packagesFolder.Root);
+                var zipFile2 = testPackage2.Save(packagesFolder.Root);
+                var zipFile3 = testPackage3.Save(packagesFolder.Root);
+
+                var catalog = new Catalog(context);
+                var registration = new Registrations(context);
+                var packageIndex = new PackageIndex(context);
+                var search = new Search(context);
+                var autoComplete = new AutoComplete(context);
+
+                // Act
+                // run commands
+                await InitCommand.InitAsync(context.LocalSettings, context.Source, context.SourceSettings, context.Log, CancellationToken.None);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile1.FullName }, false, false, context.Log);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile2.FullName }, false, false, context.Log);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile3.FullName }, false, false, context.Log);
+                await DeleteCommand.RunAsync(context.LocalSettings, context.Source, "packageA", "1.0.3", "", false, context.Log);
+                await DeleteCommand.RunAsync(context.LocalSettings, context.Source, "packageA", "1.0.1", "", false, context.Log);
+                await DeleteCommand.RunAsync(context.LocalSettings, context.Source, "packageA", "1.0.2", "", false, context.Log);
+
+                var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+
+                // read outputs
+                var catalogEntries = await catalog.GetIndexEntriesAsync();
+                var catalogExistingEntries = await catalog.GetExistingPackagesIndexAsync();
+
+                var regPackages = await registration.GetPackagesByIdAsync("packageA");
+                var indexPackages = await packageIndex.GetPackagesAsync();
+                var searchPackages = await search.GetPackagesAsync();
+                var autoCompletePackages = await autoComplete.GetPackageIds();
+
+                // Assert
+                validateOutput.Should().BeTrue("the feed is valid");
+                catalogEntries.Should().BeEmpty("the catalog is disabled");
+                catalogExistingEntries.Should().BeEmpty("the catalog is disabled");
+                regPackages.Should().BeEmpty("all packages were removed");
+                indexPackages.Should().BeEmpty("all packages were removed");
+                searchPackages.Should().BeEmpty("all packages were removed");
+                autoCompletePackages.Should().BeEmpty("all packages were removed");
+            }
+        }
+
+        [Fact]
         public async Task AddRemove_AddTwoPackagesOfSameId()
         {
             // Arrange
@@ -249,7 +467,7 @@ namespace Sleet.Test
                     LocalSettings = settings,
                     Log = log,
                     Source = fileSystem,
-                    SourceSettings = new SourceSettings()
+                    SourceSettings = new FeedSettings()
                 };
 
                 var testPackage1 = new TestNupkg("packageA", "1.0.0");
@@ -328,7 +546,7 @@ namespace Sleet.Test
                     LocalSettings = settings,
                     Log = log,
                     Source = fileSystem,
-                    SourceSettings = new SourceSettings()
+                    SourceSettings = new FeedSettings()
                 };
 
                 var testPackage1 = new TestNupkg("packageA", "1.0.0");

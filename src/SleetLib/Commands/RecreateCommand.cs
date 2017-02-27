@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
-using Sleet;
 
 namespace Sleet
 {
@@ -42,6 +38,9 @@ namespace Sleet
                     await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);
                 }
 
+                // Read settings and persist them in the new feed.
+                var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
+
                 try
                 {
                     var downloadSuccess = await DownloadCommand.DownloadPackages(settings, source, localCache.Root.FullName, force, log, token);
@@ -60,7 +59,7 @@ namespace Sleet
                         return false;
                     }
 
-                    var initSuccess = await InitCommand.RunAsync(settings, source, log);
+                    var initSuccess = await InitCommand.InitAsync(settings, source, feedSettings, log, token);
 
                     if (!initSuccess)
                     {

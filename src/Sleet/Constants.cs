@@ -13,5 +13,9 @@ namespace Sleet
         internal const string SourceDesc = "Source name from sleet.json.";
         internal const string VerboseOption = "-v|--verbose";
         internal const string VerboseDesc = "Write out additional messages for verbose output.";
+        internal const string DisableCatalogOption = "--disable-catalog";
+        internal const string DisableCatalogDesc = "Disable the feed catalog and all change history tracking. This is useful for feeds that frequently replace or remove packages.";
+        internal const string DisableSymbolsFeedOption = "--disable-symbols-feed";
+        internal const string DisableSymbolsFeedDesc = "Disable the symbols feed. This will block the upload of symbol packages.";
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -9,12 +8,26 @@ namespace Sleet
 {
     public static class InitCommand
     {
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, ILogger log)
+        public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, ILogger log)
+        {
+            var token = CancellationToken.None;
+            return RunAsync(settings, source, disableCatalog: false, disableSymbols: false, log: log, token: token);
+        }
+
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool disableCatalog, bool disableSymbols, ILogger log, CancellationToken token)
+        {
+            var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
+
+            feedSettings.CatalogEnabled = !disableCatalog;
+            feedSettings.SymbolsFeedEnabled = !disableSymbols;
+
+            return await InitAsync(settings, source, feedSettings, log, token);
+        }
+
+        public static async Task<bool> InitAsync(LocalSettings settings, ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token)
         {
             var exitCode = true;
-
             var noChanges = true;
-            var token = CancellationToken.None;
             var now = DateTimeOffset.UtcNow;
 
             log.LogMinimal($"Initializing {source.BaseURI.AbsoluteUri}");
@@ -28,13 +41,16 @@ namespace Sleet
             }
 
             // Create sleet.settings.json
-            noChanges &= !await CreateSettingsAsync(source, log, token, now);
+            noChanges &= !await CreateSettingsAsync(source, feedSettings, log, token, now);
 
             // Create service index.json
             noChanges &= !await CreateServiceIndexAsync(source, log, token, now);
 
             // Create catalog/index.json
-            noChanges &= !await CreateCatalogAsync(source, log, token, now);
+            if (feedSettings.CatalogEnabled)
+            {
+                noChanges &= !await CreateCatalogAsync(source, log, token, now);
+            }
 
             // Create autocomplete
             noChanges &= !await CreateAutoCompleteAsync(source, log, token, now);
@@ -106,23 +122,15 @@ namespace Sleet
             return await CreateFromTemplateAsync(source, log, now, "ServiceIndex", "index.json", token);
         }
 
-        private static async Task<bool> CreateSettingsAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateSettingsAsync(ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token, DateTimeOffset now)
         {
-            var sleetSettings = source.Get("sleet.settings.json");
+            // Create new file.
+            var result = await CreateFromTemplateAsync(source, log, now, "Settings", "sleet.settings.json", token);
 
-            if (!await sleetSettings.Exists(log, token))
-            {
-                var json = JsonUtility.Create(sleetSettings.EntityUri, "Settings");
+            // Write out the current settings.
+            await FeedSettingsUtility.SaveSettings(source, feedSettings, log, token);
 
-                json.Add("created", new JValue(now.GetDateString()));
-                json.Add("lastEdited", new JValue(now.GetDateString()));
-
-                await sleetSettings.Write(json, log, token);
-
-                return true;
-            }
-
-            return false;
+            return result;
         }
 
         private static async Task<bool> CreatePackageIndexAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)

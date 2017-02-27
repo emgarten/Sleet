@@ -48,7 +48,7 @@ namespace Sleet.Test
                     LocalSettings = settings,
                     Log = log,
                     Source = fileSystem,
-                    SourceSettings = new SourceSettings()
+                    SourceSettings = new FeedSettings()
                 };
 
                 var testPackage = new TestNupkg("packageA", "1.0.0");

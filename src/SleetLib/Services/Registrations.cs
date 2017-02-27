@@ -40,7 +40,7 @@ namespace Sleet
             }
 
             // Add entry
-            var newEntry = await CreateItem(package);
+            var newEntry = CreateItem(package);
             var removed = packages.RemoveAll(p => GetPackageVersion(p) == package.Identity.Version);
 
             if (removed > 0)
@@ -60,7 +60,7 @@ namespace Sleet
             var packageUri = GetPackageUri(package.Identity);
             var packageFile = _context.Source.Get(packageUri);
 
-            var packageJson = await CreatePackageBlob(package);
+            var packageJson = CreatePackageBlob(package);
 
             // Write package page
             await packageFile.Write(packageJson, _context.Log, _context.Token);
@@ -232,23 +232,33 @@ namespace Sleet
             return UriUtility.CreateUri($"{sourceRoot.AbsoluteUri}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
         }
 
-        public async Task<JObject> CreatePackageBlob(PackageInput packageInput)
+        /// <summary>
+        /// Retrieve the PackageDetails from a package blob.
+        /// </summary>
+        public async Task<JObject> GetCatalogEntryFromPackageBlob(PackageIdentity package)
+        {
+            var uri = GetPackageUri(package);
+
+            var file = _context.Source.Get(uri);
+
+            if (await file.Exists(_context.Log, _context.Token))
+            {
+                var json = await file.GetJson(_context.Log, _context.Token);
+
+                return json["sleet:catalogEntry"] as JObject;
+            }
+
+            return null;
+        }
+
+        public JObject CreatePackageBlob(PackageInput packageInput)
         {
             var rootUri = GetPackageUri(packageInput.Identity);
 
             var json = JsonUtility.Create(rootUri, new string[] { "Package", "http://schema.nuget.org/catalog#Permalink" });
 
-            var packageDetailsFile = _context.Source.Get(packageInput.PackageDetails.GetIdUri());
-
-            if (!await packageDetailsFile.Exists(_context.Log, _context.Token))
-            {
-                throw new FileNotFoundException($"Unable to find {packageDetailsFile.EntityUri.AbsoluteUri}");
-            }
-
-            var detailsJson = await packageDetailsFile.GetJson(_context.Log, _context.Token);
-
             json.Add("catalogEntry", packageInput.PackageDetails.GetIdUri().AbsoluteUri);
-            json.Add("packageContent", detailsJson["packageContent"].ToString());
+            json.Add("packageContent", packageInput.PackageDetails["packageContent"].ToString());
             json.Add("registration", GetIndexUri(packageInput.Identity));
 
             var copyProperties = new List<string>()
@@ -257,7 +267,17 @@ namespace Sleet
                 "published",
             };
 
-            JsonUtility.CopyProperties(detailsJson, json, copyProperties, skipEmpty: true);
+            JsonUtility.CopyProperties(packageInput.PackageDetails, json, copyProperties, skipEmpty: true);
+
+            // Copy the catalog entry into the package blob. This allows the feed to 
+            // save this info even if the catalog is disabled.
+            // Note that this is different from NuGet.org, so the sleet: namespace is used.
+            var catalogEntry = (JObject)packageInput.PackageDetails.DeepClone();
+
+            // Clear packageEntries, this can be very large in some cases.
+            catalogEntry.Remove("packageEntries");
+
+            json.Add("sleet:catalogEntry", catalogEntry);
 
             var context = JsonUtility.GetContext("Package");
             json.Add("@context", context);
@@ -268,7 +288,7 @@ namespace Sleet
         /// <summary>
         /// Create a package item entry.
         /// </summary>
-        public async Task<JObject> CreateItem(PackageInput packageInput)
+        public JObject CreateItem(PackageInput packageInput)
         {
             var rootUri = GetPackageUri(packageInput.Identity);
 
@@ -276,10 +296,7 @@ namespace Sleet
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
             json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
 
-            var packageDetailsFile = _context.Source.Get(packageInput.PackageDetails.GetIdUri());
-            var detailsJson = await packageDetailsFile.GetJson(_context.Log, _context.Token);
-
-            json.Add("packageContent", detailsJson["packageContent"].ToString());
+            json.Add("packageContent", packageInput.PackageDetails["packageContent"].ToString());
             json.Add("registration", GetIndexUri(packageInput.Identity));
 
             var copyProperties = new List<string>()
@@ -307,7 +324,7 @@ namespace Sleet
 
             var catalogEntry = new JObject();
 
-            JsonUtility.CopyProperties(detailsJson, catalogEntry, copyProperties, skipEmpty: true);
+            JsonUtility.CopyProperties(packageInput.PackageDetails, catalogEntry, copyProperties, skipEmpty: true);
 
             json.Add("catalogEntry", catalogEntry);
 
@@ -325,20 +342,23 @@ namespace Sleet
             var rootUri = GetIndexUri(_context.Source.BaseURI, packageId);
             var rootFile = _context.Source.Get(rootUri);
 
-            var packages = new List<JObject>();
-
             if (await rootFile.Exists(_context.Log, _context.Token))
             {
-                var json = await rootFile.GetJson(_context.Log, _context.Token);
+                var packages = new List<JObject>();
 
-                // Get all entries
-                packages = await GetPackageDetails(json);
-
-                var versions = packages.Select(GetPackageVersion);
-
-                foreach (var version in versions)
+                if (await rootFile.Exists(_context.Log, _context.Token))
                 {
-                    results.Add(new PackageIdentity(packageId, version));
+                    var json = await rootFile.GetJson(_context.Log, _context.Token);
+
+                    // Get all entries
+                    packages = await GetPackageDetails(json);
+
+                    var versions = packages.Select(GetPackageVersion);
+
+                    foreach (var version in versions)
+                    {
+                        results.Add(new PackageIdentity(packageId, version));
+                    }
                 }
             }
 

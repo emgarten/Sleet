@@ -1,6 +1,7 @@
 ﻿{
   "@context": {
     "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "sleet": "http://schema.emgarten.com/sleet#",
     "catalogEntry": {
@@ -13,6 +14,35 @@
       "@type": "@id"
     },
     "published": {
+      "@type": "xsd:dateTime"
+    },
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
       "@type": "xsd:dateTime"
     }
   }

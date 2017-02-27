@@ -8,7 +8,7 @@ namespace Sleet
     {
         public ISleetFileSystem Source { get; set; }
 
-        public SourceSettings SourceSettings { get; set; }
+        public FeedSettings SourceSettings { get; set; }
 
         public LocalSettings LocalSettings { get; set; }
 

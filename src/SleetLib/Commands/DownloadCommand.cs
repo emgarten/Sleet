@@ -41,7 +41,7 @@ namespace Sleet
             var success = true;
 
             // Get sleet.settings.json
-            var sourceSettings = new SourceSettings();
+            var sourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
 
             // Settings context used for all operations
             var context = new SleetContext()

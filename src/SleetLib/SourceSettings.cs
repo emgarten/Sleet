@@ -1,6 +1,6 @@
 ﻿namespace Sleet
 {
-    public class SourceSettings
+    public class FeedSettings
     {
         /// <summary>
         /// Entries per catalog page.
@@ -11,5 +11,10 @@
         /// If false the catalog will not be written to the feed.
         /// </summary>
         public bool CatalogEnabled { get; set; } = true;
+
+        /// <summary>
+        /// If false the symbol feed will be disabled.
+        /// </summary>
+        public bool SymbolsFeedEnabled { get; set; } = true;
     }
 }

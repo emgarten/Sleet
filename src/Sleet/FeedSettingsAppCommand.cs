@@ -1,21 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
 
 namespace Sleet
 {
-    internal static class InitAppCommand
+    internal static class FeedSettingsAppCommand
     {
         public static void Register(CommandLineApplication cmdApp, ILogger log)
         {
-            cmdApp.Command("init", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
+            cmdApp.Command("feed-settings", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
         }
 
         private static void Run(CommandLineApplication cmd, ILogger log)
         {
-            cmd.Description = "Initialize a new sleet feed.";
+            cmd.Description = "Read or modify feed settings stored in sleet.settings.json for the feed.";
 
             var optionConfigFile = cmd.Option(Constants.ConfigOption, Constants.ConfigDesc,
                 CommandOptionType.SingleValue);
@@ -27,8 +26,11 @@ namespace Sleet
 
             cmd.HelpOption(Constants.HelpOption);
 
-            var disableCatalogOption = cmd.Option(Constants.DisableCatalogOption, Constants.DisableCatalogDesc, CommandOptionType.NoValue);
-            var disableSymbolsOption = cmd.Option(Constants.DisableSymbolsFeedOption, Constants.DisableSymbolsFeedDesc, CommandOptionType.NoValue);
+            var unsetAll = cmd.Option("--unset-all", "Clear all feed settings.", CommandOptionType.NoValue);
+            var unset = cmd.Option("--unset", "Remove a feed setting. May be specified multiple times.", CommandOptionType.MultipleValue);
+            var setSetting = cmd.Option("--set", "Add a feed setting. Value must be in the form {key}:{value}  May be specified multiple times.", CommandOptionType.MultipleValue);
+            var getSetting = cmd.Option("--get", "Display a feed setting. May be specified multiple times.", CommandOptionType.MultipleValue);
+            var getAll = cmd.Option("--get-all", "Diplay all feed settings.", CommandOptionType.NoValue);
 
             var required = new List<CommandOption>()
             {
@@ -50,7 +52,15 @@ namespace Sleet
                     var settings = LocalSettings.Load(optionConfigFile.Value());
                     var fileSystem = Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
-                    var success = await InitCommand.RunAsync(settings, fileSystem, disableCatalogOption.HasValue(), disableSymbolsOption.HasValue(), log, CancellationToken.None);
+                    var success = await FeedSettingsCommand.RunAsync(
+                        fileSystem,
+                        unsetAll.HasValue(),
+                        getAll.HasValue(),
+                        getSetting.Values,
+                        unset.Values,
+                        setSetting.Values,
+                        log,
+                        CancellationToken.None);
 
                     return success ? 0 : 1;
                 }

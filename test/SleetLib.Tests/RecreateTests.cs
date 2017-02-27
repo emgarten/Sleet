@@ -31,7 +31,7 @@ namespace SleetLib.Tests
                     LocalSettings = settings,
                     Log = log,
                     Source = fileSystem,
-                    SourceSettings = new SourceSettings()
+                    SourceSettings = new FeedSettings()
                 };
 
                 Func<Task> action = async () => await RecreateCommand.RunAsync(settings, fileSystem, outputFolder, force: false, log: log);

@@ -125,8 +125,9 @@ namespace Sleet
 
             var registrationUri = Registrations.GetIndexUri(_context.Source.BaseURI, package.Id);
 
-            var catalog = new Catalog(_context);
-            var catalogEntry = await catalog.GetLatestPackageDetailsAsync(latestIdentity);
+            // Read the catalog entry from the package blob. The catalog may not be enabled.
+            var registrations = new Registrations(_context);
+            var catalogEntry = await registrations.GetCatalogEntryFromPackageBlob(latestIdentity);
 
             Debug.Assert(catalogEntry != null);
 

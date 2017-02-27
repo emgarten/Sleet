@@ -33,7 +33,7 @@ namespace Sleet.Test
                     LocalSettings = settings,
                     Log = log,
                     Source = fileSystem,
-                    SourceSettings = new SourceSettings()
+                    SourceSettings = new FeedSettings()
                 };
 
                 var catalog = new Catalog(context);
@@ -168,7 +168,7 @@ namespace Sleet.Test
                     LocalSettings = settings,
                     Log = log,
                     Source = fileSystem,
-                    SourceSettings = new SourceSettings()
+                    SourceSettings = new FeedSettings()
                 };
 
                 var catalog = new Catalog(context);
