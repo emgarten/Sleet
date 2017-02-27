@@ -5,7 +5,7 @@ param (
     [switch]$StableVersion
 )
 
-$BuildNumberDateBase = "2017-01-08"
+$BuildNumberDateBase = "2017-02-25"
 $RepoRoot = $PSScriptRoot
 $PackageId = "Sleet"
 $SleetFeedId = "packages"
