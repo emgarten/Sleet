@@ -53,7 +53,7 @@ namespace Sleet
                 throw new InvalidOperationException($"{fileSystem.BaseURI} was created using a newer version of Sleet: {sourceVersion}. Use the same or higher version to make changes.");
             }
 
-            return false;
+            return true;
         }
     }
 }

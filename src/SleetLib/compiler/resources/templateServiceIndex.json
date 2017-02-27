@@ -1,48 +1,7 @@
 ﻿{
   "version": "3.0.0",
   "sleet:version": "$SLEETVERSION$",
-  "resources": [
-    {
-      "@id": "$BASEURI$/search/query",
-      "@type": "SearchQueryService/3.0.0-beta",
-      "comment": "Static package list in search result form."
-    },
-    {
-      "@id": "$BASEURI$/autocomplete/query",
-      "@type": "SearchAutocompleteService/3.0.0-beta",
-      "comment": "Powershell autocomplete."
-    },
-    {
-      "@id": "$BASEURI$/registration/",
-      "@type": "RegistrationsBaseUrl/3.4.0",
-      "comment": "Package registrations used for search and packages.config."
-    },
-    {
-      "@id": "$BASEURI$/",
-      "@type": "ReportAbuseUriTemplate/3.0.0",
-      "comment": "Report abuse template."
-    },
-    {
-      "@id": "$BASEURI$/flatcontainer/",
-      "@type": "PackageBaseAddress/3.0.0",
-      "comment": "Packages used by project.json"
-    },
-    {
-      "@id": "$BASEURI$/sleet.settings.json",
-      "@type": "http://schema.emgarten.com/sleet#SettingsFile/1.0.0",
-      "comment": "Sleet feed settings."
-    },
-    {
-      "@id": "$BASEURI$/catalog/index.json",
-      "@type": "Catalog/3.0.0",
-      "comment": "Catalog service."
-    },
-    {
-      "@id": "$BASEURI$/sleet.packageindex.json",
-      "@type": "http://schema.emgarten.com/sleet#PackageIndex/1.0.0",
-      "comment": "Sleet package index."
-    }
-  ],
+  "resources": [ ],
   "@context": {
     "@vocab": "http://schema.nuget.org/services#",
     "sleet": "http://schema.emgarten.com/sleet#",

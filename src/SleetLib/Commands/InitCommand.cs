@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -40,31 +41,48 @@ namespace Sleet
                 return false;
             }
 
-            // Create sleet.settings.json
-            noChanges &= !await CreateSettingsAsync(source, feedSettings, log, token, now);
-
             // Create service index.json
             noChanges &= !await CreateServiceIndexAsync(source, log, token, now);
+
+            var serviceIndexFile = source.Get("index.json");
+            var serviceIndexJson = await serviceIndexFile.GetJson(log, token);
+            var serviceIndexJsonBefore = serviceIndexJson.DeepClone();
+
+            serviceIndexJson["resources"] = new JArray();
+
+            // Create sleet.settings.json
+            noChanges &= !await CreateSettingsAsync(source, feedSettings, log, token, now, serviceIndexJson);
 
             // Create catalog/index.json
             if (feedSettings.CatalogEnabled)
             {
-                noChanges &= !await CreateCatalogAsync(source, log, token, now);
+                noChanges &= !await CreateCatalogAsync(source, log, token, now, serviceIndexJson);
             }
 
             // Create autocomplete
-            noChanges &= !await CreateAutoCompleteAsync(source, log, token, now);
+            noChanges &= !await CreateAutoCompleteAsync(source, log, token, now, serviceIndexJson);
 
             // Create search
-            noChanges &= !await CreateSearchAsync(source, log, token, now);
+            noChanges &= !await CreateSearchAsync(source, log, token, now, serviceIndexJson);
 
             // Create package index
-            noChanges &= !await CreatePackageIndexAsync(source, log, token, now);
+            noChanges &= !await CreatePackageIndexAsync(source, log, token, now, serviceIndexJson);
+
+            // Additional entries
+            AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
+            AddServiceIndexEntry(source.BaseURI, "", "ReportAbuseUriTemplate/3.0.0", "Report abuse template.", serviceIndexJson);
+            AddServiceIndexEntry(source.BaseURI, "flatcontainer/", "PackageBaseAddress/3.0.0", "Packages used by project.json", serviceIndexJson);
+
+            // Check if services changed
+            noChanges &= serviceIndexJsonBefore.Equals(serviceIndexJson);
 
             if (noChanges)
             {
                 throw new InvalidOperationException("Source is already initialized. No actions taken.");
             }
+
+            // Write the service index out
+            await serviceIndexFile.Write(serviceIndexJson, log, token);
 
             // Save all
             exitCode &= await source.Commit(log, token);
@@ -79,6 +97,41 @@ namespace Sleet
             }
 
             return exitCode;
+        }
+
+        private static void AddServiceIndexEntry(Uri baseUri, string relativeFilePath, string type, string comment, JObject json)
+        {
+            var id = UriUtility.GetPath(baseUri, relativeFilePath);
+
+            RemoveServiceIndexEntry(id, json);
+
+            var array = (JArray)json["resources"];
+
+            array.Add(GetServiceIndexEntry(baseUri, relativeFilePath, type, comment));
+        }
+
+        private static JObject GetServiceIndexEntry(Uri baseUri, string relativeFilePath, string type, string comment)
+        {
+            var id = UriUtility.GetPath(baseUri, relativeFilePath);
+
+            var json = new JObject
+            {
+                ["@id"] = id.AbsoluteUri,
+                ["@type"] = type,
+                ["comment"] = comment
+            };
+
+            return json;
+        }
+
+        private static void RemoveServiceIndexEntry(Uri id, JObject json)
+        {
+            var array = (JArray)json["resources"];
+
+            foreach (var item in array.Where(e => id.Equals(((JObject)e).GetIdUri())))
+            {
+                array.Remove(item);
+            }
         }
 
         private static async Task<bool> CreateFromTemplateAsync(
@@ -102,18 +155,24 @@ namespace Sleet
             return false;
         }
 
-        private static async Task<bool> CreateCatalogAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateCatalogAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
         {
+            AddServiceIndexEntry(source.BaseURI, "catalog/index.json", "Catalog/3.0.0", "Catalog service.", serviceIndexJson);
+
             return await CreateFromTemplateAsync(source, log, now, "CatalogIndex", "catalog/index.json", token);
         }
 
-        private static async Task<bool> CreateAutoCompleteAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateAutoCompleteAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
         {
+            AddServiceIndexEntry(source.BaseURI, "autocomplete/query", "SearchAutocompleteService/3.0.0-beta", "Powershell autocomplete.", serviceIndexJson);
+
             return await CreateFromTemplateAsync(source, log, now, "AutoComplete", "autocomplete/query", token);
         }
 
-        private static async Task<bool> CreateSearchAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateSearchAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
         {
+            AddServiceIndexEntry(source.BaseURI, "search/query", "SearchQueryService/3.0.0-beta", "Static package list in search result form.", serviceIndexJson);
+
             return await CreateFromTemplateAsync(source, log, now, "Search", "search/query", token);
         }
 
@@ -122,8 +181,10 @@ namespace Sleet
             return await CreateFromTemplateAsync(source, log, now, "ServiceIndex", "index.json", token);
         }
 
-        private static async Task<bool> CreateSettingsAsync(ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateSettingsAsync(ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
         {
+            AddServiceIndexEntry(source.BaseURI, "sleet.settings.json", "http://schema.emgarten.com/sleet#SettingsFile/1.0.0", "Sleet feed settings.", serviceIndexJson);
+
             // Create new file.
             var result = await CreateFromTemplateAsync(source, log, now, "Settings", "sleet.settings.json", token);
 
@@ -133,9 +194,11 @@ namespace Sleet
             return result;
         }
 
-        private static async Task<bool> CreatePackageIndexAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreatePackageIndexAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
         {
-            var packageIndex = source.Get("/sleet.packageindex.json");
+            var packageIndex = source.Get("sleet.packageindex.json");
+
+            AddServiceIndexEntry(source.BaseURI, "sleet.packageindex.json", "http://schema.emgarten.com/sleet#PackageIndex/1.0.0", "Sleet package index.", serviceIndexJson);
 
             if (!await packageIndex.Exists(log, token))
             {

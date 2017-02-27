@@ -11,7 +11,7 @@ using Xunit;
 
 namespace SleetLib.Tests
 {
-    public class RecreateTests
+    public class RecreateCommandTests
     {
         [Fact]
         public void GivenThatTheFeedIsNotInitializedVerifyRecreateFails()

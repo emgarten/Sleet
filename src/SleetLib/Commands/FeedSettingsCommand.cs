@@ -67,7 +67,7 @@ namespace Sleet
 
             if (unsetAll)
             {
-                setKeys.UnionWith(settings.Keys);
+                unsetKeys.UnionWith(settings.Keys);
             }
 
             if (getKeys.Count > 0 && (setKeys.Count + unsetKeys.Count) > 0)
@@ -96,6 +96,8 @@ namespace Sleet
             }
 
             // Set
+            var setKeysSeen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var input in setKeys)
             {
                 var parts = input.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
@@ -107,6 +109,11 @@ namespace Sleet
 
                 var key = parts[0].Trim().ToLowerInvariant();
                 var value = parts[1].Trim();
+
+                if (!setKeysSeen.Add(key))
+                {
+                    throw new ArgumentException($"Duplicate values for '{key}'. This value may only be set once.");
+                }
 
                 if (settings.ContainsKey(key))
                 {

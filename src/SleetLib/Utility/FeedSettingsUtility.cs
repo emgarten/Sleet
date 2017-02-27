@@ -65,7 +65,7 @@ namespace Sleet
                         settings.CatalogEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
                         break;
                     case "catalogpagesize":
-                        settings.CatalogPageSize = GetIntOrDefault(pair.Value, defaultValue: 1024);
+                        settings.CatalogPageSize = Math.Max(1, GetIntOrDefault(pair.Value, defaultValue: 1024));
                         break;
                     case "symbolsfeedenabled":
                         settings.SymbolsFeedEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
@@ -83,18 +83,21 @@ namespace Sleet
         {
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "catalogenabled", settings.CatalogEnabled.ToString() },
+                { "catalogenabled", settings.CatalogEnabled.ToString().ToLowerInvariant() },
                 { "catalogpagesize", settings.CatalogPageSize.ToString() },
-                { "symbolsfeedenabled", settings.SymbolsFeedEnabled.ToString() }
+                { "symbolsfeedenabled", settings.SymbolsFeedEnabled.ToString().ToLowerInvariant() }
             };
             return values;
         }
 
         private static bool GetBoolOrDefault(string s, bool defaultValue)
         {
-            if (Boolean.TryParse(s, out var result))
+            switch (s?.ToLowerInvariant())
             {
-                return result;
+                case "true":
+                    return true;
+                case "false":
+                    return false;
             }
 
             return defaultValue;

@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using NuGet.Test.Helpers;
 using Xunit;
 
@@ -8,7 +11,7 @@ namespace Sleet.Test
     public class InitCommandTests
     {
         [Fact]
-        public async Task InitCommand_BasicAsync()
+        public async Task GivenInitWithCatalogDisabledVerifyBasicOutputs()
         {
             using (var target = new TestFolder())
             using (var cache = new LocalCache())
@@ -26,16 +29,90 @@ namespace Sleet.Test
                 var packageIndexOutput = new FileInfo(Path.Combine(target.Root, "sleet.packageindex.json"));
 
                 // Act
-                var exitCode = await InitCommand.RunAsync(settings, fileSystem, log);
+                var success = await InitCommand.RunAsync(settings, fileSystem, disableCatalog: true, disableSymbols: true, log: log, token: CancellationToken.None);
+
+                var rootFile = fileSystem.Get("index.json");
+                var rootJson = await rootFile.GetJson(log, CancellationToken.None);
+
+                success &= await FeedSettingsCommand.RunAsync(
+                                    fileSystem,
+                                    unsetAll: false,
+                                    getAll: true,
+                                    getSettings: new string[] { },
+                                    unsetSettings: new string[] { },
+                                    setSettings: new string[] { },
+                                    log: log,
+                                    token: CancellationToken.None);
 
                 // Assert
-                Assert.True(exitCode);
-                Assert.True(indexJsonOutput.Exists);
-                Assert.True(settingsOutput.Exists);
-                Assert.True(autoCompleteOutput.Exists);
-                Assert.True(catalogOutput.Exists);
-                Assert.True(searchOutput.Exists);
-                Assert.True(packageIndexOutput.Exists);
+                success.Should().BeTrue();
+
+                catalogOutput.Exists.Should().BeFalse();
+
+                indexJsonOutput.Exists.Should().BeTrue();
+                settingsOutput.Exists.Should().BeTrue();
+                autoCompleteOutput.Exists.Should().BeTrue();
+                searchOutput.Exists.Should().BeTrue();
+                packageIndexOutput.Exists.Should().BeTrue();
+
+                rootJson.ToString().Should().NotContain("catalog/index.json");
+                rootJson.ToString().Should().NotContain("Catalog/3.0.0");
+
+                log.GetMessages().Should().Contain("catalogpagesize : 1024");
+                log.GetMessages().Should().Contain("catalogenabled : false");
+                log.GetMessages().Should().Contain("symbolsfeedenabled : false");
+            }
+        }
+
+        [Fact]
+        public async Task GivenInitVerifyBasicOutputs()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var indexJsonOutput = new FileInfo(Path.Combine(target.Root, "index.json"));
+                var settingsOutput = new FileInfo(Path.Combine(target.Root, "sleet.settings.json"));
+                var autoCompleteOutput = new FileInfo(Path.Combine(target.Root, "autocomplete", "query"));
+                var catalogOutput = new FileInfo(Path.Combine(target.Root, "catalog", "index.json"));
+                var searchOutput = new FileInfo(Path.Combine(target.Root, "search", "query"));
+                var packageIndexOutput = new FileInfo(Path.Combine(target.Root, "sleet.packageindex.json"));
+
+                // Act
+                var success = await InitCommand.RunAsync(settings, fileSystem, log);
+
+                var rootFile = fileSystem.Get("index.json");
+                var rootJson = await rootFile.GetJson(log, CancellationToken.None);
+
+                success &= await FeedSettingsCommand.RunAsync(
+                    fileSystem,
+                    unsetAll: false,
+                    getAll: true,
+                    getSettings: new string[] { },
+                    unsetSettings: new string[] { },
+                    setSettings: new string[] { },
+                    log: log,
+                    token: CancellationToken.None);
+
+                // Assert
+                success.Should().BeTrue();
+                indexJsonOutput.Exists.Should().BeTrue();
+                settingsOutput.Exists.Should().BeTrue();
+                autoCompleteOutput.Exists.Should().BeTrue();
+                catalogOutput.Exists.Should().BeTrue();
+                searchOutput.Exists.Should().BeTrue();
+                packageIndexOutput.Exists.Should().BeTrue();
+
+                log.GetMessages().Should().Contain("catalogpagesize : 1024");
+                log.GetMessages().Should().Contain("catalogenabled : true");
+                log.GetMessages().Should().Contain("symbolsfeedenabled : true");
+
+                rootJson.ToString().Should().Contain("catalog/index.json");
+                rootJson.ToString().Should().Contain("Catalog/3.0.0");
             }
         }
     }
