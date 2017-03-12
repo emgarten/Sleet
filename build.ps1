@@ -68,7 +68,7 @@ if (-not $?)
 }
 
 $json608Lib  = (Join-Path $RepoRoot 'packages\Newtonsoft.Json.6.0.8\lib\net45')
-$net46Root = (Join-Path $RepoRoot 'src\Sleet\bin\release\net46')
+$net46Root = (Join-Path $RepoRoot 'src\Sleet\bin\release\net46\win7-x64')
 $ILMergeOpts = , (Join-Path $net46Root 'Sleet.exe')
 $ILMergeOpts += Get-ChildItem $net46Root -Exclude @('*.exe', '*compression*', '*System.*', '*.config', '*.pdb', '*.json', '*.xml') | where { ! $_.PSIsContainer } | %{ $_.FullName }
 $ILMergeOpts += '/out:' + (Join-Path $ArtifactsDir 'Sleet.exe')
@@ -87,29 +87,12 @@ if (-not $?)
     # Get failure message
     Write-Host $ILMergeExe $ILMergeOpts
     & $ILMergeExe $ILMergeOpts
-    Write-Host "ILMerge failed!"
+    Write-Error "ILMerge failed!"
     exit 1
 }
 
 if (-not $SkipPack)
 {
-    # Pack
-    & $dotnetExe pack (Join-Path $RepoRoot "src\$PackageId\$PackageId.csproj") --configuration release --output $ArtifactsDir /p:NoPackageAnalysis=true
-
-    if (-not $?)
-    {
-       Write-Host "Pack failed!"
-       exit 1
-    }
-
-    & $dotnetExe pack (Join-Path $RepoRoot "src\SleetLib\SleetLib.csproj") --configuration release --output $ArtifactsDir /p:NoPackageAnalysis=true
-    
-    if (-not $?)
-    {
-       Write-Host "Pack failed!"
-       exit 1
-    }
-
     # Clear out net46 lib
     & $nupkgWrenchExe files emptyfolder artifacts -p lib/net46 --id Sleet
     & $nupkgWrenchExe nuspec frameworkassemblies clear artifacts
@@ -119,7 +102,7 @@ if (-not $SkipPack)
     & $nupkgWrenchExe files add --path tools/Sleet.exe --file $sleetExe --id Sleet
 
     # Get version number
-    $nupkgVersion = (& $nupkgWrenchExe version $ArtifactsDir --id Sleet) | Out-String
+    $nupkgVersion = (& $nupkgWrenchExe version $ArtifactsDir --id Sleet --exclude-symbols --highest-version) | Out-String
     $nupkgVersion = $nupkgVersion.Trim()
 
     # Create xplat tar
@@ -130,7 +113,7 @@ if (-not $SkipPack)
 
     if (-not $?)
     {
-        Write-Host "Publish failed!"
+        Write-Error "Publish failed!"
         exit 1
     }
 
@@ -145,7 +128,7 @@ if (-not $SkipPack)
 
     if (-not $?)
     {
-        Write-Host "Zip failed!"
+        Write-Error "Zip failed!"
         exit 1
     }
 
@@ -156,13 +139,13 @@ if (-not $SkipPack)
     Write-Host "-----------------------------"
 }
 
-if ($Push -and ($gitBranch -eq "master"))
+if ($Push)
 {
     & $sleetExe push --source $SleetFeedId $ArtifactsDir
 
     if (-not $?)
     {
-       Write-Host "Push failed!"
+       Write-Error "Push failed!"
        exit 1
     }
 
@@ -170,7 +153,7 @@ if ($Push -and ($gitBranch -eq "master"))
 
     if (-not $?)
     {
-       Write-Host "Feed corrupt!"
+       Write-Error "Feed corrupt!"
        exit 1
     }
 }

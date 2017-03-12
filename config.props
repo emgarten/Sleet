@@ -8,7 +8,7 @@
   <!-- Dependency versions -->
   <PropertyGroup>
     <NuGetPackageVersion>3.5.0</NuGetPackageVersion>
-    <WindowsAzureStorageVersion>8.0.0</WindowsAzureStorageVersion>
+    <WindowsAzureStorageVersion>8.1.1</WindowsAzureStorageVersion>
     <JsonVersion>9.0.1</JsonVersion>
     <CommandLineUtilsVersion>1.1.0</CommandLineUtilsVersion>
     <NuGetTestHelpersVersion>0.1.0-beta.13789</NuGetTestHelpersVersion>

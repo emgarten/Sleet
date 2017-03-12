@@ -10,6 +10,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
+    <TestProject>true</TestProject>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Protocol.Core.v3" Version="$(NuGetPackageVersion)" />

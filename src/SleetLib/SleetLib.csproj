@@ -15,6 +15,7 @@
     <PackageId>SleetLib</PackageId>
     <AssemblyName>SleetLib</AssemblyName>
     <Description>Access Sleet.exe commands through the Sleet API.</Description>
+    <PackProject>true</PackProject>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="compiler\resources\**\*" />

@@ -10,9 +10,10 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
+    <TestProject>true</TestProject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Test.Helpers" Version="0.1.0-beta.13789" />
+    <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SleetLib\SleetLib.csproj" />

@@ -12,6 +12,8 @@
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
     <Description>Sleet is a cross platform command line tool to generate NuGet v3 static feeds.</Description>
     <AssemblyName>Sleet</AssemblyName>
+    <PackProject>true</PackProject>
+    <SkipDocs>true</SkipDocs>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="$(CommandLineUtilsVersion)" />
