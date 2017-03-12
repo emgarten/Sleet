@@ -5,7 +5,6 @@ param (
     [switch]$StableVersion
 )
 
-$BuildNumberDateBase = "2017-02-25"
 $RepoRoot = $PSScriptRoot
 $PackageId = "Sleet"
 $SleetFeedId = "packages"
@@ -23,7 +22,7 @@ $ArtifactsDir = Join-Path $RepoRoot 'artifacts'
 $nugetExe = Join-Path $RepoRoot '.nuget\nuget.exe'
 $dotnetExe = Get-DotnetCLIExe $RepoRoot
 $nupkgWrenchExe = Join-Path $RepoRoot "packages\NupkgWrench.1.1.0\tools\NupkgWrench.exe"
-$sleetExe = Join-Path $ArtifactsDir "Sleet.exe"
+$sleetExe = Join-Path $RepoRoot "packages\Sleet.2.0.0-beta.2017.3.12.4.50\tools\Sleet.exe"
 $ILMergeExe = Join-Path $RepoRoot 'packages\ILRepack.2.0.12\tools\ILRepack.exe'
 $zipExe = Join-Path $RepoRoot 'packages\7ZipCLI.9.20.0\tools\7za.exe'
 
