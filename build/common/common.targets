@@ -1,0 +1,49 @@
+﻿<Project ToolsVersion="15.0">
+  <!-- Symbols -->
+  <ItemGroup Condition=" '$(PackProject)' == 'true' AND '$(SkipSourceLink)' != 'true' ">
+    <PackageReference Include="SourceLink.Create.GitHub" Version="2.0.2" PrivateAssets="all" />
+    <DotNetCliToolReference Include="dotnet-sourcelink-git" Version="2.0.2" />
+    <DotNetCliToolReference Include="dotnet-sourcelink" Version="2.0.2" />
+  </ItemGroup>
+
+  <!-- Nupkg -->
+  <PropertyGroup Condition=" '$(PackProject)' == 'true' AND '$(SkipDocs)' != 'true' ">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <NoWarn>1591;1573</NoWarn>
+  </PropertyGroup>
+
+  <!-- Create nupkg hook -->
+  <PropertyGroup Condition=" '$(PackProject)' == 'true' ">
+    <IsPackable>true</IsPackable>
+    <IncludeSymbols Condition=" '$(IncludeSymbols)' == '' ">true</IncludeSymbols>
+    <PackageOutputPath>$(ArtifactsDirectory)</PackageOutputPath>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+  </PropertyGroup>
+
+  <!-- Version -->
+  <PropertyGroup>
+    <BuildNumber Condition=" '$(BuildNumber)' == '' ">$([System.DateTime]::UtcNow.Year).$([System.DateTime]::UtcNow.Month).$([System.DateTime]::UtcNow.Day).$([System.DateTime]::UtcNow.Hour).$([System.DateTime]::UtcNow.Minute)</BuildNumber>
+    <Version>$(StableVersion)</Version>
+    <Version Condition=" '$(ReleaseLabel)' != '' ">$(StableVersion)-$(ReleaseLabel).$(BuildNumber)</Version>
+  </PropertyGroup>
+
+  <!--
+    ============================================================
+    TestProject
+    Runs tests on the current project if it is a test project.
+    ============================================================
+  -->
+  <Target Name="TestProject" Condition=" '$(TestProject)' == 'true' " DependsOnTargets="VSTest">
+    <Message Text="Tested project $(MSBuildProjectName)" Importance="high"  />
+  </Target>
+
+  <!--
+    ============================================================
+    PackProject
+    Packs the current project if it is marked as a pack project.
+    ============================================================
+  -->
+  <Target Name="PackProject" Condition=" '$(PackProject)' == 'true' " DependsOnTargets="Pack">
+    <Message Text="Packed project $(MSBuildProjectName)" Importance="high"  />
+  </Target>
+</Project>

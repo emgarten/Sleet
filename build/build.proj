@@ -1,0 +1,93 @@
+﻿<Project ToolsVersion="15.0" DefaultTargets="Run">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'config.props'))\config.props" />
+
+  <!-- Configuration/global properties -->
+  <PropertyGroup>
+    <CommonMSBuildProperties>Configuration=Release</CommonMSBuildProperties>
+    <CommonMSBuildProperties Condition=" '$(Configuration)' != '' ">Configuration=$(Configuration)</CommonMSBuildProperties>
+  </PropertyGroup>
+
+  <!-- Find all projects in the repository  -->
+  <ItemGroup>
+    <RepoProjects Include="$(RepositoryRootDirectory)src\**\*.csproj" />
+    <RepoProjects Include="$(RepositoryRootDirectory)test\**\*.csproj" />
+  </ItemGroup>
+
+  <!--
+    ============================================================
+    Run full build.
+    ============================================================
+  -->
+  <Target Name="Run" DependsOnTargets="Clean;Build;Test;Pack">
+  </Target>
+
+  <!--
+    ============================================================
+    Build solution.
+    ============================================================
+  -->
+  <Target Name="Build" Condition=" '$(SkipBuild)' != 'true' ">
+    <Message Text="Building $(SolutionFile)" Importance="high" />
+
+    <MSBuild BuildInParallel="true"
+             Projects="$(SolutionFile)"
+             Targets="Build"
+             Properties="$(CommonMSBuildProperties)" />
+  </Target>
+
+  <!--
+    ============================================================
+    Restore solution.
+    ============================================================
+  -->
+  <Target Name="Restore" Condition=" '$(SkipRestore)' != 'true' ">
+    <Message Text="Restoring projects" Importance="high" />
+
+    <MSBuild BuildInParallel="true"
+             Projects="$(SolutionFile)"
+             Targets="Restore"
+             Properties="$(CommonMSBuildProperties)" />
+  </Target>
+
+  <!--
+    ============================================================
+    Delete the root\artifacts directory
+    ============================================================
+  -->
+  <Target Name="Clean" Condition=" '$(SkipClean)' != 'true' ">
+    <Message Text="Cleaning $(ArtifactsDirectory)" Importance="high" />
+
+    <!-- Delete the entire artifacts dir -->
+    <RemoveDir Directories="$(ArtifactsDirectory)" />
+
+    <!-- Clean projects -->
+    <MSBuild BuildInParallel="true"
+         Projects="@(RepoProjects)"
+         Targets="Clean"
+         Properties="$(CommonMSBuildProperties)" />
+  </Target>
+
+  <!--
+    ============================================================
+    Test all projects in the solution.
+    ============================================================
+  -->
+  <Target Name="Test" DependsOnTargets="Build" Condition=" '$(SkipTest)' != 'true' ">
+    <MSBuild BuildInParallel="false"
+             Projects="@(RepoProjects)"
+             Targets="TestProject"
+             Properties="$(CommonMSBuildProperties)" />
+  </Target>
+
+  <!--
+    ============================================================
+    Pack all projects in the solution.
+    ============================================================
+  -->
+  <Target Name="Pack" DependsOnTargets="Build" Condition=" '$(SkipPack)' != 'true' ">
+    <MSBuild BuildInParallel="true"
+             Projects="@(RepoProjects)"
+             Targets="PackProject"
+             Properties="$(CommonMSBuildProperties)" />
+  </Target>
+</Project>

@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-  <Import Project="..\..\build\common.props" />
+  <Import Project="..\..\build\common\common.props" />
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
     <TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
@@ -17,6 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SleetLib\SleetLib.csproj" />
   </ItemGroup>
-  <Import Project="..\..\build\test.targets" />
-  <Import Project="..\..\build\common.targets" />
+  <Import Project="$(BuildCommonDirectory)\test.targets" />
+  <Import Project="$(BuildCommonDirectory)\common.targets" />
 </Project>

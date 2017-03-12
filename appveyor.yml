@@ -1,6 +1,6 @@
 version: '1.0.2-ci.{build}'
 init:
-  - git config --global core.autocrlf true
+  - git config --global core.autocrlf input
 branches:
   only:
     - master
@@ -17,13 +17,3 @@ artifacts:
 
   - path: 'artifacts\*.tar.bz2'
     name: Sleet.tar
-deploy:
-  provider: NuGet
-  server: https://www.myget.org/F/sleet/api/v2/package
-  api_key:
-    secure: xap/w8Pi8ZkgpAwE0ofkKjtO8NTzeK0Gwm4LUPwRb+crbXkLInOfoapPE/fZXHvz
-  skip_symbols: false
-  symbol_server: https://www.myget.org/F/sleet/symbols/api/v2/package
-  artifact: /.*\.nupkg/
-  on:
-    branch: master

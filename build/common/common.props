@@ -1,0 +1,25 @@
+﻿<Project ToolsVersion="15.0">
+  <!-- Get solution wide config -->
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'config.props'))\config.props" />
+
+  <!-- Check if the build is running on linux or OSX -->
+  <PropertyGroup Condition=" '$(IsXPlat)' == '' ">
+    <IsXPlat>false</IsXPlat>
+    <IsXPlat Condition=" $(MSBuildProjectFullPath.StartsWith('/')) == 'true' OR $(MSBuildProjectFullPath.StartsWith('\')) == 'true' ">true</IsXPlat>
+  </PropertyGroup>
+
+  <!-- Properties -->
+  <PropertyGroup>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <WarningsAsErrors>True</WarningsAsErrors>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <!-- Compiler flags -->
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net46' ">
+    <DefineConstants>$(DefineConstants);IS_DESKTOP</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' OR '$(TargetFramework)' == 'netstandard1.3' ">
+    <DefineConstants>$(DefineConstants);IS_CORECLR</DefineConstants>
+  </PropertyGroup>
+</Project>

@@ -11,7 +11,7 @@ $PackageId = "Sleet"
 $SleetFeedId = "packages"
 
 # Load common build script helper methods
-. "$PSScriptRoot\build\common.ps1"
+. "$PSScriptRoot\build\common\common.ps1"
 
 # Ensure dotnet.exe exists in .cli
 Install-DotnetCLI $RepoRoot
@@ -27,37 +27,44 @@ $sleetExe = Join-Path $ArtifactsDir "Sleet.exe"
 $ILMergeExe = Join-Path $RepoRoot 'packages\ILRepack.2.0.12\tools\ILRepack.exe'
 $zipExe = Join-Path $RepoRoot 'packages\7ZipCLI.9.20.0\tools\7za.exe'
 
-# Clear artifacts
-Remove-Item -Recurse -Force $ArtifactsDir | Out-Null
-
-# Git commit
-$commitHash = git rev-parse HEAD | Out-String
-$commitHash = $commitHash.Trim()
-$gitBranch = git rev-parse --abbrev-ref HEAD | Out-String
-$gitBranch = $gitBranch.Trim()
-
-# Restore project.json files
-& $dotnetExe restore (Join-Path $RepoRoot "$PackageId.sln")
+# Clean
+& $dotnetExe msbuild build\build.proj /t:Clean
 
 if (-not $?)
 {
-    Write-Host "Restore failed!"
+    Write-Error "Clean failed!"
     exit 1
 }
 
-& $dotnetExe clean (Join-Path $RepoRoot "$PackageId.sln") --configuration release /m
-& $dotnetExe build (Join-Path $RepoRoot "$PackageId.sln") --configuration release /m
+# Restore
+& $dotnetExe msbuild build\build.proj /t:Restore
 
 if (-not $?)
 {
-    Write-Host "Build failed!"
+    Write-Error "Restore failed!"
     exit 1
 }
 
-# Run tests
-if (-not $SkipTests)
+# Build, Pack, Test
+$buildArgs = , "msbuild"
+$buildArgs += "build\build.proj"
+
+if ($SkipTests)
 {
-    Run-Tests $RepoRoot $DotnetExe
+    $buildArgs += "/p:SkipTest=true"
+}
+
+if ($SkipPack)
+{
+    $buildArgs += "/p:SkipPack=true"
+}
+
+& $dotnetExe $buildArgs
+
+if (-not $?)
+{
+    Write-Error "Build failed!"
+    exit 1
 }
 
 $json608Lib  = (Join-Path $RepoRoot 'packages\Newtonsoft.Json.6.0.8\lib\net45')
@@ -103,8 +110,6 @@ if (-not $SkipPack)
        exit 1
     }
 
-    $buildNumber = Get-BuildNumber $BuildNumberDateBase
-    
     # Clear out net46 lib
     & $nupkgWrenchExe files emptyfolder artifacts -p lib/net46 --id Sleet
     & $nupkgWrenchExe nuspec frameworkassemblies clear artifacts
@@ -116,16 +121,6 @@ if (-not $SkipPack)
     # Get version number
     $nupkgVersion = (& $nupkgWrenchExe version $ArtifactsDir --id Sleet) | Out-String
     $nupkgVersion = $nupkgVersion.Trim()
-
-    if (-not $StableVersion)
-    {
-        $nupkgVersion = $nupkgVersion + "-" + "beta.$buildNumber"
-    }
-
-    $updatedVersion = $nupkgVersion + "+git." + $commitHash
-
-    & $nupkgWrenchExe nuspec edit --property version --value $updatedVersion $ArtifactsDir
-    & $nupkgWrenchExe updatefilename $ArtifactsDir
 
     # Create xplat tar
     $versionFolderName = "sleet.$nupkgVersion".ToLowerInvariant()
@@ -157,7 +152,7 @@ if (-not $SkipPack)
     popd
 
     Write-Host "-----------------------------"
-    Write-Host "Version: $updatedVersion"
+    Write-Host "Version: $nupkgVersion"
     Write-Host "-----------------------------"
 }
 

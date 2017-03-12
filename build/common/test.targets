@@ -1,7 +1,8 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="15.0">
   <!-- Shared test project template -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <TestProject>true</TestProject>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="4.19.0" />

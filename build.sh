@@ -12,18 +12,22 @@ if [ ! -f $DOTNET ]; then
 
     # Run install.sh
     chmod +x .cli/dotnet-install.sh
-    .cli/dotnet-install.sh -i .cli -c preview -v 1.0.0-rc4-004842
+    .cli/dotnet-install.sh -i .cli -c preview -v 1.0.1
 fi
 
 # Display info
 $DOTNET --info
 
-# clean up
-rm -rf $(pwd)/artifacts
-mkdir $(pwd)/artifacts
+# clean
+$DOTNET msbuild build/build.proj /t:Clean
+
+if [ $? -ne 0 ]; then
+    echo "Clean FAILED!"
+    exit 1
+fi
 
 # restore
-$DOTNET restore $(pwd)
+$DOTNET msbuild build/build.proj /t:Restore
 
 if [ $? -ne 0 ]; then
     echo "Restore FAILED!"
@@ -31,46 +35,12 @@ if [ $? -ne 0 ]; then
 fi
 
 # build
-$DOTNET build $(pwd) -c Release
+$DOTNET msbuild build/build.proj
 
 if [ $? -ne 0 ]; then
     echo "Build FAILED!"
     exit 1
 fi
 
-# run all test projects under test/
-for testProject in `find test -type f -name *.csproj`
-do
-	testDir="$(pwd)/$testProject"
-
-	echo $testDir
-
-	$DOTNET test $testDir -f netcoreapp1.0 --no-build -c Release
-
-	if [ $? -ne 0 ]; then
-	    echo "$testProject FAILED!"
-	    RESULTCODE=1
-	fi
-done
-
-if [ $RESULTCODE -ne 0 ]; then
-    echo "tests FAILED!"
-    exit 1
-fi
-
-# pack
-$DOTNET pack $(pwd)/src/SleetLib/SleetLib.csproj --no-build -o $(pwd)/artifacts -c Release --include-symbols --include-source
-
-if [ $RESULTCODE -ne 0 ]; then
-    echo "pack FAILED!"
-    RESULTCODE=1
-fi
-
-$DOTNET publish src/Sleet/Sleet.csproj -o $(pwd)/artifacts/publish/Sleet -f netcoreapp1.0 --configuration release
-
-if [ $? -ne 0 ]; then
-    echo "publish FAILED"
-    RESULTCODE=1
-fi
-
 exit $RESULTCODE
+
