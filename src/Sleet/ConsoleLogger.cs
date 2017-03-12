@@ -7,7 +7,7 @@ namespace Sleet
 {
     public class ConsoleLogger : ILogger, IDisposable
     {
-        private static readonly Object _lockObj = new object();
+        private static readonly object _lockObj = new object();
         private readonly bool _cursorVisibleOriginalState;
         private static readonly Lazy<bool> _ciMode = new Lazy<bool>(IsCIMode);
 
@@ -114,7 +114,7 @@ namespace Sleet
                 // Break up multi-line messages
                 var messages = message.Split('\n');
 
-                for (int i = 0; i < messages.Length; i++)
+                for (var i = 0; i < messages.Length; i++)
                 {
                     if (messages[i].EndsWith("\r"))
                     {
@@ -129,7 +129,7 @@ namespace Sleet
                         Console.ForegroundColor = color.Value;
                     }
 
-                    for (int i = 0; i < messages.Length; i++)
+                    for (var i = 0; i < messages.Length; i++)
                     {
                         // Modify message
                         var updatedMessage = GetCollapsedMessage(messages[i], isCollapsed);
@@ -161,6 +161,12 @@ namespace Sleet
 
             var minLength = _lastCollapsedMessage?.TrimEnd().Length ?? 0;
             var maxLength = Math.Max(1, Console.WindowWidth - 1);
+
+            if (!isCollapsed)
+            {
+                // Non-collapsed messages can take up more room.
+                maxLength = Math.Max(maxLength, message.Length);
+            }
 
             while (lastMessageWasCollapsed && updatedMessage.Length < minLength)
             {
@@ -223,7 +229,7 @@ namespace Sleet
         {
             var val = Environment.GetEnvironmentVariable("CI");
 
-            if (!string.IsNullOrEmpty(val) && Boolean.TryParse(val, out var result))
+            if (!string.IsNullOrEmpty(val) && bool.TryParse(val, out var result))
             {
                 return result;
             }
