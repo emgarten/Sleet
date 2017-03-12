@@ -38,13 +38,21 @@ namespace Sleet
         /// <summary>
         /// Throw if the tool versions does not match the feed.
         /// </summary>
-        public static async Task<bool> EnsureFeedVersionMatchesTool(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
+        public static Task<bool> EnsureFeedVersionMatchesTool(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
+        {
+            return EnsureFeedVersionMatchesTool(fileSystem, allowNewer: false, log: log, token: token);
+        }
+
+        /// <summary>
+        /// Throw if the tool versions does not match the feed.
+        /// </summary>
+        public static async Task<bool> EnsureFeedVersionMatchesTool(ISleetFileSystem fileSystem, bool allowNewer, ILogger log, CancellationToken token)
         {
             var sourceVersion = await GetSleetVersionAsync(fileSystem, log, token);
 
             var assemblyVersion = AssemblyVersionHelper.GetVersion();
 
-            if (sourceVersion < assemblyVersion)
+            if (!allowNewer && sourceVersion < assemblyVersion)
             {
                 throw new InvalidOperationException($"{fileSystem.BaseURI} uses an older version of Sleet: {sourceVersion}. Upgrade the feed to {assemblyVersion} by running 'Sleet recreate' against this feed.");
             }
