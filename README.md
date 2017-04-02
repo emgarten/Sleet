@@ -11,9 +11,15 @@ Sleet is a cross platform command line tool to generate NuGet v3 static feeds.
 ## Getting Sleet
 
 * [Github releases](https://github.com/emgarten/Sleet/releases/latest)
-* [NuGet package](https://www.nuget.org/packages/Sleet)
-* [Nightly nupkgs](https://www.myget.org/F/sleet/api/v2/package/Sleet/)
-* [Nightly builds](https://ci.appveyor.com/project/emgarten/sleet/build/artifacts)
+* [NuGet.org packages](https://www.nuget.org/packages/Sleet)
+
+## CI builds
+
+CI builds are located on the following NuGet feed:
+
+``https://nuget.blob.core.windows.net/packages/index.json``
+
+The list of packages on this feed is [here](https://nuget.blob.core.windows.net/packages/sleet.packageindex.json).
 
 ## Features
 * Add and remove packages from a feed.
