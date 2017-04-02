@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -45,7 +44,7 @@ namespace Sleet.Integration.Test
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 // push 100 packages
-                for (int i = 0; i < 100; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     var testPackage = new TestNupkg("packageA", $"1.0.0-alpha.{i}");
                     var zipFile = testPackage.Save(packagesFolder.Root);
@@ -91,7 +90,7 @@ namespace Sleet.Integration.Test
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 // push 100 packages
-                for (int i = 0; i < 100; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     var testPackage = new TestNupkg("packageA", $"1.0.0-alpha.{i}");
                     var zipFile = testPackage.Save(packagesFolder.Root);
@@ -193,13 +192,13 @@ namespace Sleet.Integration.Test
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
                 var resource = await localSource.GetResourceAsync<FindPackageByIdResource>();
-                resource.Logger = log;
-                resource.CacheContext = new SourceCacheContext()
+
+                var cacheContext = new SourceCacheContext()
                 {
                     NoCache = true
                 };
 
-                var versions = await resource.GetAllVersionsAsync("packageA", CancellationToken.None);
+                var versions = await resource.GetAllVersionsAsync("packageA", cacheContext, log, CancellationToken.None);
 
                 // Assert
                 Assert.True(success, log.ToString());
@@ -213,6 +212,7 @@ namespace Sleet.Integration.Test
         {
             // Arrange
             using (var packagesFolder = new TestFolder())
+            using (var globalFolder = new TestFolder())
             using (var target = new TestFolder())
             using (var cache = new LocalCache())
             {
@@ -242,7 +242,15 @@ namespace Sleet.Integration.Test
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
                 var resource = await localSource.GetResourceAsync<DownloadResource>();
-                var result = await resource.GetDownloadResourceResultAsync(new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), NullSettings.Instance, log, CancellationToken.None);
+
+                var cacheContext = new SourceCacheContext()
+                {
+                    NoCache = true
+                };
+
+                var downloadContext = new PackageDownloadContext(cacheContext, globalFolder, directDownload: false);
+
+                var result = await resource.GetDownloadResourceResultAsync(new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), downloadContext, globalFolder, log, CancellationToken.None);
 
                 // Assert
                 Assert.True(success, log.ToString());
@@ -502,7 +510,7 @@ namespace Sleet.Integration.Test
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
                 var resource = await localSource.GetResourceAsync<PackageSearchResource>();
-                var results = await resource.SearchAsync(string.Empty, new SearchFilter(), 0, 10, log, CancellationToken.None);
+                var results = await resource.SearchAsync(string.Empty, new SearchFilter(includePrerelease: true), 0, 10, log, CancellationToken.None);
                 var result = results.Single();
 
                 var versions = await result.GetVersionsAsync();

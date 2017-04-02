@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>SleetDotnetTool</id>
+    <version>$version$</version>
+    <authors>emgarten</authors>
+    <owners>emgarten</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</licenseUrl>
+    <description>Sleet is a cross platform Dotnet CLI Tool that generates NuGet v3 static feeds.</description>
+    <copyright>Copyright © 2017 Justin Emgarten</copyright>
+    <tags>nuget nugetserver nugetfeed</tags>
+    <repository type="git" url="https://github.com/emgarten/Sleet" />
+	<developmentDependency>true</developmentDependency>
+	<packageTypes>
+      <packageType name="DotnetCliTool" />
+    </packageTypes>
+	<dependencies>
+      <group targetFramework=".NETCoreApp1.0">
+        <dependency id="SleetLib" version="$version$" />
+        <dependency id="Microsoft.NETCore.App" version="1.0.4" />
+        <dependency id="Microsoft.Extensions.CommandLineUtils" version="1.1.0" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\..\artifacts\dotnettoolassemblies\Sleet\Sleet.dll" target="lib\netcoreapp1.0\dotnet-sleet.dll" />
+	<file src="..\..\artifacts\dotnettoolassemblies\Sleet\Sleet.runtimeconfig.json" target="lib\netcoreapp1.0\dotnet-sleet.runtimeconfig.json" />
+  </files>
+</package>

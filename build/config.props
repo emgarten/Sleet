@@ -1,17 +1,17 @@
 ﻿<Project ToolsVersion="15.0">
-  <!-- Version -->
-  <PropertyGroup>
-    <StableVersion>2.0.0</StableVersion>
-    <ReleaseLabel>beta</ReleaseLabel>
-  </PropertyGroup>
 
   <!-- Dependency versions -->
   <PropertyGroup>
-    <NuGetPackageVersion>3.5.0</NuGetPackageVersion>
+    <NuGetPackageVersion>4.0.0</NuGetPackageVersion>
     <WindowsAzureStorageVersion>8.1.1</WindowsAzureStorageVersion>
-    <JsonVersion>9.0.1</JsonVersion>
+    <JsonVersion>10.0.1</JsonVersion>
     <CommandLineUtilsVersion>1.1.0</CommandLineUtilsVersion>
-    <NuGetTestHelpersVersion>0.1.0-beta.13789</NuGetTestHelpersVersion>
+    <NuGetTestHelpersVersion>1.0.0</NuGetTestHelpersVersion>
+    <TestSDKVersion>15.0.0</TestSDKVersion>
+    <FluentAssertionsVersion>4.19.0</FluentAssertionsVersion>
+    <SourceLinkVersion>2.0.2</SourceLinkVersion>
+    <XunitVersion>2.3.0-beta1-build3557</XunitVersion>
+    <XunitRunnerVisualStudioVersion>2.2.0</XunitRunnerVisualStudioVersion>
   </PropertyGroup>
   
   <!-- Config -->
@@ -27,16 +27,8 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/emgarten/Sleet</RepositoryUrl>
     <PackageTags>nuget nugetserver nugetfeed</PackageTags>
-    <Description>Sleet feed creator.</Description>
+    <Description>Sleet creates nuget v3.0.0 nupkg feeds.</Description>
     <Copyright>Copyright © 2017 Justin Emgarten</Copyright>
   </PropertyGroup>
 
-  <!-- Common -->
-  <PropertyGroup>
-    <RepositoryRootDirectory>$(MSBuildThisFileDirectory)</RepositoryRootDirectory>
-    <BuildCommonDirectory>$(MSBuildThisFileDirectory)build\common</BuildCommonDirectory>
-    <SolutionFile>$(MSBuildThisFileDirectory)$(RepositoryName).sln</SolutionFile>
-    <ArtifactsDirectory>$(MSBuildThisFileDirectory)artifacts</ArtifactsDirectory>
-    <DotnetExePath>$(MSBuildThisFileDirectory).cli\dotnet.exe</DotnetExePath>
-  </PropertyGroup>
 </Project>

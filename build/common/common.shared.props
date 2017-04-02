@@ -1,0 +1,58 @@
+﻿<Project ToolsVersion="15.0">
+  <!-- Check if the build is running on linux or OSX -->
+  <PropertyGroup Condition=" '$(IsXPlat)' == '' ">
+    <IsXPlat>false</IsXPlat>
+    <IsXPlat Condition=" $(MSBuildProjectFullPath.StartsWith('/')) == 'true' OR $(MSBuildProjectFullPath.StartsWith('\')) == 'true' ">true</IsXPlat>
+  </PropertyGroup>
+
+  <!-- Common -->
+  <PropertyGroup>
+    <RepositoryRootDirectory>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\</RepositoryRootDirectory>
+    <RepositoryBuildDirectory>$(RepositoryRootDirectory)build\</RepositoryBuildDirectory>
+    <BuildCommonDirectory>$(RepositoryRootDirectory)build\common\</BuildCommonDirectory>
+    <SolutionFile>$(RepositoryRootDirectory)$(RepositoryName).sln</SolutionFile>
+    <ArtifactsDirectory>$(RepositoryRootDirectory)artifacts\</ArtifactsDirectory>
+    <DotnetExePath>$(RepositoryRootDirectory).cli\dotnet.exe</DotnetExePath>
+    <DotnetExePath Condition=" '$(IsXPlat)' == 'true' ">$(RepositoryRootDirectory).cli\dotnet</DotnetExePath>
+    <TestResultsDirectory>$(ArtifactsDirectory)TestResults\</TestResultsDirectory>
+    <NuGetExePath>$(RepositoryRootDirectory).nuget\nuget.exe</NuGetExePath>
+    <PackagesConfigDirectory>$(RepositoryRootDirectory).nuget\packages\</PackagesConfigDirectory>
+    <CIRootDirectory>$(RepositoryRootDirectory).ci\</CIRootDirectory>
+    <MSBuildArtifactsDirectory>$(RepositoryRootDirectory)artifacts\msbuild\</MSBuildArtifactsDirectory>
+    <XunitConsoleExePath>$(PackagesConfigDirectory)xunit.runner.console.2.2.0\tools\xunit.console.exe</XunitConsoleExePath>
+    <NupkgOutputDirectory>$(ArtifactsDirectory)nupkgs\</NupkgOutputDirectory>
+    <PublishOutputDirectory>$(ArtifactsDirectory)publish\</PublishOutputDirectory>
+    <LogOutputDirectory>$(ArtifactsDirectory)logs\</LogOutputDirectory>
+  </PropertyGroup>
+
+  <!-- Properties -->
+  <PropertyGroup>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <WarningsAsErrors>True</WarningsAsErrors>
+    <DebugType>portable</DebugType>
+    <DebugType Condition=" '$(TestProject)' == 'true' ">embedded</DebugType>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ComVisible>false</ComVisible>
+  </PropertyGroup>
+
+  <!-- output paths -->
+  <PropertyGroup Condition=" '$(TestProject)' != 'true' ">
+    <BaseIntermediateOutputPath>$(ArtifactsDirectory)proj\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+    <BaseOutputPath>$(ArtifactsDirectory)proj\$(MSBuildProjectName)\bin\</BaseOutputPath>
+    <OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
+  </PropertyGroup>
+
+  <!-- Import .ci build specific props if needed -->
+  <PropertyGroup>
+    <CICommonProps>$(CIRootDirectory)common\common.props</CICommonProps>
+    <CIRepoProps>$(CIRootDirectory)$(RepositoryName)\common.props</CIRepoProps>
+  </PropertyGroup>
+
+  <Import Project="$(CIRootDirectory)common\*.props" />
+  <Import Project="$(CIRootDirectory)$(RepositoryName)\*.props" />
+
+  <!-- MSBuild generated props -->
+  <Import Project="$(MSBuildArtifactsDirectory)*.props" />
+</Project>

@@ -1,5 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-  <Import Project="..\..\build\common\common.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
+
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
     <TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
@@ -7,19 +8,86 @@
   <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
     <TargetFrameworks>netcoreapp1.0</TargetFrameworks>
   </PropertyGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
     <Description>Sleet is a cross platform command line tool to generate NuGet v3 static feeds.</Description>
     <AssemblyName>Sleet</AssemblyName>
     <PackProject>true</PackProject>
     <SkipDocs>true</SkipDocs>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="$(CommandLineUtilsVersion)" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\SleetLib\SleetLib.csproj" />
   </ItemGroup>
+
   <Import Project="$(BuildCommonDirectory)\common.targets" />
+
+  <!--
+    ============================================================
+    Copy dotnet-sleet assemblies, these are used by the nuspec later
+    ============================================================
+  -->
+  <Target Name="PublishToolFolder" BeforeTargets="PackProjects" DependsOnTargets="Build">
+
+    <PropertyGroup>
+      <PublishToolDirectory>$(ArtifactsDirectory)dotnettoolassemblies\$(AssemblyName)\</PublishToolDirectory>
+      <PublishToolInputDirectory>$(ArtifactsDirectory)proj\$(AssemblyName)\bin\$(Configuration)\netcoreapp1.0\</PublishToolInputDirectory>
+      <PublishToolInputDirectory Condition=" '$(IsXPlat)' != 'true' ">$(PublishToolInputDirectory)win7-x64\</PublishToolInputDirectory>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(PublishToolDirectory)" />
+
+    <ItemGroup>
+      <PublishFiles Include="$(PublishToolInputDirectory)$(AssemblyName).dll" />
+      <PublishFiles Include="$(PublishToolInputDirectory)$(AssemblyName).runtimeconfig.json" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(PublishFiles)" DestinationFolder="$(PublishToolDirectory)" />
+
+  </Target>
+
+  <!--
+    ============================================================
+    Create Sleet and SleetDotnetTool
+    ============================================================
+  -->
+  <Target Name="PackProjects">
+    <PropertyGroup>
+      <MergedExePath>$(PublishOutputDirectory)$(AssemblyName).exe</MergedExePath>
+      <MergedExePathExists Condition="Exists($(MergedExePath))">true</MergedExePathExists>
+      <NuspecProperties>version=$(Version);configuration=$(Configuration)</NuspecProperties>
+    </PropertyGroup>
+
+    <Error Condition=" '$(IsXPlat)' != 'true' AND '$(MergedExePathExists)' != 'true' " Text="Missing $(MergedExePath)" />
+
+    <!-- Pack Sleet with sleet.exe -->
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="Pack"
+			 Condition=" '$(IsXPlat)' != 'true' "
+             Properties="Configuration=$(Configuration);
+                         PackageOutputPath=$(NupkgOutputDirectory);
+                         NoPackageAnalysis=true;
+                         IncludeSymbols=false;
+                         IsTool=true;
+                         NuspecFile=Sleet.nuspec;
+                         NuspecProperties=$(NuspecProperties)">
+    </MSBuild>
+
+    <!-- Pack SleetDotnetTool with dotnet-sleet.dll -->
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="Pack"
+             Properties="Configuration=$(Configuration);
+             PackageOutputPath=$(NupkgOutputDirectory);
+             NoPackageAnalysis=true;
+             IncludeSymbols=false;
+             NuspecFile=SleetDotnetTool.nuspec;
+             NuspecProperties=$(NuspecProperties)">
+    </MSBuild>
+  </Target>
+
 </Project>

@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-  <Import Project="..\..\build\common\common.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\test.props" />
+
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
     <TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
@@ -7,17 +8,19 @@
   <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
     <TargetFrameworks>netcoreapp1.0</TargetFrameworks>
   </PropertyGroup>
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
     <TestProject>true</TestProject>
   </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SleetLib\SleetLib.csproj" />
   </ItemGroup>
-  <Import Project="$(BuildCommonDirectory)\test.targets" />
+
   <Import Project="$(BuildCommonDirectory)\common.targets" />
 </Project>

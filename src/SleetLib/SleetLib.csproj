@@ -1,32 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-  <Import Project="..\..\build\common\common.props" />
-  <PropertyGroup Label="Configuration">
-    <RootNamespace>SleetLib</RootNamespace>
-    <AssemblyName>SleetLib</AssemblyName>
-  </PropertyGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
+	
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
     <TargetFrameworks>netstandard1.3;net46</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
     <TargetFrameworks>netstandard1.3</TargetFrameworks>
   </PropertyGroup>
+  
   <PropertyGroup>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.3' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
     <PackageId>SleetLib</PackageId>
+	<RootNamespace>SleetLib</RootNamespace>
     <AssemblyName>SleetLib</AssemblyName>
     <Description>Access Sleet.exe commands through the Sleet API.</Description>
     <PackProject>true</PackProject>
   </PropertyGroup>
+
   <ItemGroup>
     <EmbeddedResource Include="compiler\resources\**\*" />
   </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
     <PackageReference Include="WindowsAzure.Storage" Version="$(WindowsAzureStorageVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" />
   </ItemGroup>
+  
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
     <Reference Include="System.IO.Compression" />
   </ItemGroup>
+  
   <Import Project="$(BuildCommonDirectory)\common.targets" />
 </Project>
