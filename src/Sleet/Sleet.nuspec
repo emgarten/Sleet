@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Sleet</id>
+    <version>$version$</version>
+    <authors>emgarten</authors>
+    <owners>emgarten</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</licenseUrl>
+    <description>Sleet is a command line tool that generates NuGet v3 static feeds.</description>
+    <copyright>Copyright © 2017 Justin Emgarten</copyright>
+    <tags>nuget nugetserver nugetfeed</tags>
+    <repository type="git" url="https://github.com/emgarten/Sleet" />
+	<developmentDependency>true</developmentDependency>
+  </metadata>
+  <files>
+    <file src="..\..\artifacts\publish\Sleet.exe" target="tools\" />
+  </files>
+</package>

@@ -1,4 +1,4 @@
-version: '1.0.2-ci.{build}'
+version: '0.1.0-ci.{build}'
 init:
   - git config --global core.autocrlf input
 branches:
@@ -10,10 +10,4 @@ clone_depth: 1
 test: off
 artifacts:
   - path: 'artifacts\*.nupkg'
-    name: Sleet.nupkg
-
-  - path: 'artifacts\Sleet.exe'
-    name: Sleet.exe
-
-  - path: 'artifacts\*.tar.bz2'
-    name: Sleet.tar
+    name: nupkg

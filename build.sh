@@ -2,8 +2,11 @@
 
 RESULTCODE=0
 
+pushd $(pwd)
+
 # Download dotnet cli
 DOTNET="$(pwd)/.cli/dotnet"
+
 
 if [ ! -f $DOTNET ]; then
     echo "Installing dotnet"
@@ -19,15 +22,18 @@ fi
 $DOTNET --info
 
 # clean
-$DOTNET msbuild build/build.proj /t:Clean
+rm -r -f $(pwd)/artifacts
+
+# Clean projects and write out git info
+$DOTNET msbuild build/build.proj /t:Clean\;WriteGitInfo /p:Configuration=Release /nologo /v:m
 
 if [ $? -ne 0 ]; then
-    echo "Clean FAILED!"
+    echo "Clean;WriteGitInfo FAILED!"
     exit 1
 fi
 
 # restore
-$DOTNET msbuild build/build.proj /t:Restore
+$DOTNET msbuild build/build.proj /t:Restore /p:Configuration=Release /nologo /v:m
 
 if [ $? -ne 0 ]; then
     echo "Restore FAILED!"
@@ -35,12 +41,14 @@ if [ $? -ne 0 ]; then
 fi
 
 # build
-$DOTNET msbuild build/build.proj
+$DOTNET msbuild build/build.proj /t:Build\;Test\;Pack /p:Configuration=Release /nologo /v:m
 
 if [ $? -ne 0 ]; then
     echo "Build FAILED!"
     exit 1
 fi
+
+popd
 
 exit $RESULTCODE
 

@@ -1,0 +1,271 @@
+﻿<Project ToolsVersion="15.0" DefaultTargets="Run">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\config.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.shared.props" />
+
+  <!-- Configuration/global properties -->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <CommonMSBuildProperties>Configuration=$(Configuration)</CommonMSBuildProperties>
+  </PropertyGroup>
+
+  <!-- Find all projects in the repository  -->
+  <ItemGroup>
+    <SolutionProjects Include="$(RepositoryRootDirectory)src\**\*.csproj" />
+    <SolutionProjects Include="$(RepositoryRootDirectory)test\**\*.csproj" />
+  </ItemGroup>
+
+  <!--
+    ============================================================
+    Run full build.
+    ============================================================
+  -->
+  <Target Name="Run" DependsOnTargets="Build;Test;Pack">
+  </Target>
+
+  <!--
+    ============================================================
+    Build solution.
+    ============================================================
+  -->
+  <Target Name="Build" Condition=" '$(SkipBuild)' != 'true' ">
+    <Message Text="Building $(SolutionFile)" Importance="high" />
+
+    <MSBuild BuildInParallel="true"
+             Projects="$(SolutionFile)"
+             Targets="Build"
+             Properties="$(CommonMSBuildProperties)" />
+  </Target>
+
+  <!--
+    ============================================================
+    Restore solution.
+    ============================================================
+  -->
+  <Target Name="Restore" Condition=" '$(SkipRestore)' != 'true' " DependsOnTargets="RestorePackagesConfig">
+    <Message Text="Restoring projects" Importance="high" />
+
+    <MSBuild BuildInParallel="true"
+             Projects="$(SolutionFile)"
+             Targets="Restore"
+             Properties="$(CommonMSBuildProperties)" />
+  </Target>
+
+  <!--
+    ============================================================
+    Delete the root\artifacts directory
+    ============================================================
+  -->
+  <Target Name="Clean" Condition=" '$(SkipClean)' != 'true' ">
+    <Message Text="Cleaning $(ArtifactsDirectory)" Importance="high" />
+
+    <!-- Delete the entire artifacts dir -->
+    <RemoveDir Directories="$(ArtifactsDirectory)" />
+
+    <!-- Clean projects -->
+    <MSBuild BuildInParallel="true"
+         Projects="@(SolutionProjects)"
+         Targets="Clean"
+         Properties="$(CommonMSBuildProperties)" />
+  </Target>
+
+  <!--
+    ============================================================
+    Test all projects in the solution.
+    ============================================================
+  -->
+  <Target Name="Test" Condition=" '$(SkipTest)' != 'true' ">
+    <!-- Test inputs -->
+    <PropertyGroup>
+      <TestProjectPaths>@(SolutionProjects)</TestProjectPaths>
+      <TestResultsFileName>tests</TestResultsFileName>
+    </PropertyGroup>
+
+    <!-- Run tests as a batch -->
+    <MSBuild
+        Projects="$(MSBuildThisFileFullPath)"
+        Targets="RunTestsOnProjects"
+        Properties="$(CommonMSBuildProperties);
+                    TestResultsFileName=$(TestResultsFileName);
+                    TestProjectPaths=$(TestProjectPaths)" />
+  </Target>
+
+  <!--
+    ============================================================
+    Pack projects
+    ============================================================
+  -->
+  <Target Name="Pack">
+    <Message Text="Packing projects" Importance="high" />
+
+    <MSBuild BuildInParallel="true"
+             Projects="@(SolutionProjects)"
+             Targets="PackProjects"
+             Properties="$(CommonMSBuildProperties);" />
+  </Target>
+
+  <!--
+    ============================================================
+    Run tests on all test projects
+    ============================================================
+  -->
+  <Target Name="RunTestsOnProjects">
+    <Message Text="Running $(TestResultsFileName)" Importance="high" />
+
+    <ItemGroup>
+      <TestProjectToSearch Include="$(TestProjectPaths)" />
+    </ItemGroup>
+
+    <MSBuild
+            Projects="@(TestProjectToSearch)"
+            Targets="GetTestAssemblies"
+            Properties="$(CommonMSBuildProperties);"
+            Condition=" '$(TestProjectPaths)' != '' ">
+      <Output TaskParameter="TargetOutputs"
+              ItemName="TestAssemblyPath" />
+    </MSBuild>
+
+    <PropertyGroup>
+      <TestResultsDirectory>$(ArtifactsDirectory)TestResults\</TestResultsDirectory>
+    </PropertyGroup>
+
+    <!-- Ensure the test results dir exists -->
+    <MakeDir Directories="$(TestResultsDirectory)" />
+
+    <PropertyGroup>
+      <!-- Sort assemblies -->
+      <DesktopInputTestAssemblies>@(TestAssemblyPath->WithMetadataValue("IsDesktop", "true"))</DesktopInputTestAssemblies>
+      <DesktopInputTestAssembliesSpaced>$(DesktopInputTestAssemblies.Replace(';', ' '))</DesktopInputTestAssembliesSpaced>
+      <CoreInputTestAssemblies>@(TestAssemblyPath->WithMetadataValue("IsCore", "true"))</CoreInputTestAssemblies>
+      <CoreInputTestAssembliesSpaced>$(CoreInputTestAssemblies.Replace(';', ' '))</CoreInputTestAssembliesSpaced>
+
+      <!-- Build exe commands -->
+      <TestResultsHtml Condition=" '$(TestResultsFileName)' != '' ">$(TestResultsDirectory)$(TestResultsFileName).html</TestResultsHtml>
+      <VSTestCommand>$(DotnetExePath) vstest $(CoreInputTestAssembliesSpaced)</VSTestCommand>
+      <DesktopTestCommand>$(XunitConsoleExePath) $(DesktopInputTestAssembliesSpaced)</DesktopTestCommand>
+      <DesktopTestCommand Condition=" '$(TestResultsHtml)' != '' ">$(DesktopTestCommand) -html $(TestResultsHtml)</DesktopTestCommand>
+    </PropertyGroup>
+
+    <!-- Desktop -->
+    <Exec Command="$(DesktopTestCommand)"
+          ContinueOnError="true"
+          Condition=" '$(DesktopInputTestAssemblies)' != '' AND '$(SkipDesktopTests)' != 'true' ">
+      <Output TaskParameter="ExitCode" PropertyName="DesktopTestErrorCode"/>
+    </Exec>
+
+    <!-- VSTest/NETCore -->
+    <Exec Command="$(VSTestCommand)"
+          ContinueOnError="true"
+          Condition=" '$(CoreInputTestAssemblies)' != '' AND '$(SkipCoreTests)' != 'true' ">
+      <Output TaskParameter="ExitCode" PropertyName="VSTestErrorCode"/>
+    </Exec>
+
+    <Error Text="NETFramework $(TestResultsFileName) tests failed! Results: $(TestResultsHtml)" Condition=" '$(DesktopTestErrorCode)' != '0' AND '$(DesktopTestErrorCode)' != '' " />
+    <Error Text="NETCoreApp $(TestResultsFileName) tests failed!" Condition=" '$(VSTestErrorCode)' != '0' AND '$(VSTestErrorCode)' != '' " />
+
+    <Message Text="NETFramework $(TestResultsFileName) tests passed!" Condition=" '$(DesktopTestErrorCode)' == '0' " />
+    <Message Text="NETCoreApp $(TestResultsFileName) tests passed!" Condition=" '$(VSTestErrorCode)' == '0' " />
+  </Target>
+
+  <!--
+    ============================================================
+    Restore packages.config
+    ============================================================
+  -->
+  <Target Name="RestorePackagesConfig" Condition=" '$(XPlat)' != 'true' AND Exists($(NuGetExePath)) ">
+    <PropertyGroup>
+      <CommonPackagesConfig>$(BuildCommonDirectory)packages.common.config</CommonPackagesConfig>
+      <RepoPackagesConfig>$(RepositoryBuildDirectory)packages.config</RepoPackagesConfig>
+      <CICommonPackagesConfig>$(CIRootDirectory)common\packages.common.config</CICommonPackagesConfig>
+      <CIPackagesConfig>$(CIRootDirectory)common\packages.config</CIPackagesConfig>
+    </PropertyGroup>
+    
+    <Exec Command="$(NuGetExePath) restore $(CommonPackagesConfig) -PackagesDirectory $(PackagesConfigDirectory)" Condition="Exists($(CommonPackagesConfig))" />
+    <Exec Command="$(NuGetExePath) restore $(RepoPackagesConfig) -PackagesDirectory $(PackagesConfigDirectory)" Condition="Exists($(RepoPackagesConfig))" />
+    <Exec Command="$(NuGetExePath) restore $(CICommonPackagesConfig) -PackagesDirectory $(PackagesConfigDirectory)" Condition="Exists($(CICommonPackagesConfig))" />
+    <Exec Command="$(NuGetExePath) restore $(CIPackagesConfig) -PackagesDirectory $(PackagesConfigDirectory)" Condition="Exists($(CIPackagesConfig))" />
+  </Target>
+
+  <!--
+    ============================================================
+    WriteGitInfo
+    Run external git commands to find the current tag info.
+    ============================================================
+  -->
+  <Target Name="WriteGitInfo" Condition=" '$(SkipWriteGitInfo)' != 'true' ">
+    <!-- Find the last tag -->
+    <Exec Command="git describe --tags --abbrev=0"
+          ConsoleToMSBuild="true"
+          StandardOutputImportance="low"
+          ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitTagLabel" />
+      <Output TaskParameter="ExitCode" PropertyName="GitTagLabelExitCode"/>
+    </Exec>
+
+    <!-- Find the number of commits since the last tag -->
+    <Exec Command="git rev-list $(GitTagLabel)..HEAD --count"
+      ConsoleToMSBuild="true"
+      StandardOutputImportance="low"
+      ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="CommitsSinceLastTag" />
+      <Output TaskParameter="ExitCode" PropertyName="CommitsSinceLastTagExitCode"/>
+    </Exec>
+
+    <!-- Find the current commit hash -->
+    <Exec Command="git rev-parse HEAD"
+      ConsoleToMSBuild="true"
+      StandardOutputImportance="low"
+      ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+      <Output TaskParameter="ExitCode" PropertyName="GitCommitHashExitCode"/>
+    </Exec>
+
+    <!-- Find the current branch -->
+    <Exec Command="git rev-parse --abbrev-ref HEAD"
+      ConsoleToMSBuild="true"
+      StandardOutputImportance="low"
+      ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
+      <Output TaskParameter="ExitCode" PropertyName="GitBranchExitCode"/>
+    </Exec>
+
+    <PropertyGroup Condition=" '$(GitTagLabelExitCode)' == '0' AND '$(GitCommitHashExitCode)' == '0' AND '$(GitCommitHashExitCode)' == '0' AND '$(GitBranchExitCode)' == '0' ">
+      <GitVersionSuccess>true</GitVersionSuccess>
+      <GitVersion>$(GitTagLabel.Trim())</GitVersion>
+      <GitVersion>$(GitVersion.TrimStart('release/'))</GitVersion>
+      <GitVersion>$(GitVersion.TrimStart('v'))</GitVersion>
+      <GitVersionIsPreRelease Condition="$(GitVersion.Contains('-'))">true</GitVersionIsPreRelease>
+      <GitCommitsSinceLastTag>$(CommitsSinceLastTag.Trim())</GitCommitsSinceLastTag>
+      <GitCommitHash>$(GitCommitHash.Trim())</GitCommitHash>
+      <GitBranch>$(GitBranch.Trim())</GitBranch>
+      <GitVersion Condition=" '$(GitVersionIsPreRelease)' == 'true' AND '$(GitCommitsSinceLastTag)' != '0' ">$(GitVersion).$(GitCommitsSinceLastTag)</GitVersion>
+      <GitVersion>$(GitVersion)+git.hash.$(GitCommitHash)</GitVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(GitVersionSuccess)' != 'true' ">
+      <GitVersionSuccess>false</GitVersionSuccess>
+      <GitVersion>0.1.0-alpha</GitVersion>
+      <GitBranch>unknown</GitBranch>
+      <GitCommitHash></GitCommitHash>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <GitInfoOutputPath>$(MSBuildArtifactsDirectory)git.props</GitInfoOutputPath>
+    </PropertyGroup>
+
+    <Message Text="Version: $(GitVersion)" Importance="low" />
+
+    <ItemGroup>
+      <LineToWrite Include="&lt;Project&gt;" />
+      <LineToWrite Include="&lt;PropertyGroup&gt;" />
+      <LineToWrite Include="&lt;MSBuildAllProjects&gt;%24(MSBuildAllProjects)%3B%24(MSBuildThisFileFullPath)&lt;/MSBuildAllProjects&gt;" />
+      <LineToWrite Include="&lt;GitVersion&gt;$(GitVersion)&lt;/GitVersion&gt;" />
+      <LineToWrite Include="&lt;GitCommitHash&gt;$(GitCommitHash)&lt;/GitCommitHash&gt;" />
+      <LineToWrite Include="&lt;GitBranch&gt;$(GitBranch)&lt;/GitBranch&gt;" />
+      <LineToWrite Include="&lt;/PropertyGroup&gt;" />
+      <LineToWrite Include="&lt;/Project&gt;" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(MSBuildArtifactsDirectory)" />
+    <WriteLinesToFile File="$(GitInfoOutputPath)" Overwrite="true" Lines="@(LineToWrite)" />
+  </Target>
+</Project>
