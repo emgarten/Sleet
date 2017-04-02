@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Threading;
 using NuGet.Common;
 
 namespace Sleet
@@ -8,8 +6,8 @@ namespace Sleet
     public class ConsoleLogger : ILogger, IDisposable
     {
         private static readonly object _lockObj = new object();
-        private readonly bool _cursorVisibleOriginalState;
-        private static readonly Lazy<bool> _ciMode = new Lazy<bool>(IsCIMode);
+        private bool? _cursorVisibleOriginalState;
+        private static readonly Lazy<bool> _allowAdvancedWrite = new Lazy<bool>(AllowAdvancedWrite);
 
         private string _lastCollapsedMessage;
         private string _lastIndicator;
@@ -29,11 +27,6 @@ namespace Sleet
         public ConsoleLogger(LogLevel level)
         {
             VerbosityLevel = level;
-
-            _cursorVisibleOriginalState = Console.CursorVisible;
-
-            // Hide the cursor to improve overwrites
-            Console.CursorVisible = false;
         }
 
         public void LogDebug(string data)
@@ -88,7 +81,10 @@ namespace Sleet
 
         public void Dispose()
         {
-            Console.CursorVisible = _cursorVisibleOriginalState;
+            if (_cursorVisibleOriginalState.HasValue && _allowAdvancedWrite.IsValueCreated && _allowAdvancedWrite.Value)
+            {
+                Console.CursorVisible = _cursorVisibleOriginalState.Value;
+            }
         }
 
         private void Log(LogLevel level, string message, ConsoleColor? color)
@@ -97,53 +93,81 @@ namespace Sleet
             {
                 var isCollapsed = CollapseMessages
                     && RuntimeEnvironmentHelper.IsWindows
-                    && !_ciMode.Value
+                    && _allowAdvancedWrite.Value
                     && (int)level < (int)LogLevel.Minimal;
 
-                if (!color.HasValue && isCollapsed)
-                {
-                    color = ConsoleColor.Gray;
-                }
-
-                if (!RuntimeEnvironmentHelper.IsWindows || _ciMode.Value)
-                {
-                    // Disallow colors for xplat
-                    color = null;
-                }
+                // Replace or clear the color if needed
+                var updatedColor = GetColor(color, isCollapsed);
 
                 // Break up multi-line messages
-                var messages = message.Split('\n');
-
-                for (var i = 0; i < messages.Length; i++)
-                {
-                    if (messages[i].EndsWith("\r"))
-                    {
-                        messages[i] = messages[i].TrimEnd('\r');
-                    }
-                }
+                var messages = SplitMessages(message);
 
                 lock (_lockObj)
                 {
-                    if (color.HasValue)
+                    if (updatedColor.HasValue)
                     {
-                        Console.ForegroundColor = color.Value;
+                        Console.ForegroundColor = updatedColor.Value;
                     }
 
                     for (var i = 0; i < messages.Length; i++)
                     {
                         // Modify message
-                        var updatedMessage = GetCollapsedMessage(messages[i], isCollapsed);
+                        var updatedMessage = messages[i];
+
+                        if (_allowAdvancedWrite.Value)
+                        {
+                            // Hide the cursor for overwrites
+                            HideCursor();
+
+                            // Modify the message to overwrite if allowed.
+                            updatedMessage = GetCollapsedMessage(messages[i], isCollapsed);
+                        }
+                        else
+                        {
+                            updatedMessage = updatedMessage.TrimEnd() + Environment.NewLine; 
+                        }
 
                         // Write
                         Console.Write(updatedMessage);
                     }
 
-                    if (color.HasValue)
+                    if (updatedColor.HasValue)
                     {
                         Console.ResetColor();
                     }
                 }
             }
+        }
+
+        private static ConsoleColor? GetColor(ConsoleColor? color, bool isCollapsed)
+        {
+            if (!color.HasValue && isCollapsed)
+            {
+                color = ConsoleColor.Gray;
+            }
+
+            if (!RuntimeEnvironmentHelper.IsWindows || !_allowAdvancedWrite.Value)
+            {
+                // Disallow colors for xplat
+                color = null;
+            }
+
+            return color;
+        }
+
+        private static string[] SplitMessages(string message)
+        {
+            var messages = message.Split('\n');
+
+            for (var i = 0; i < messages.Length; i++)
+            {
+                if (messages[i].EndsWith("\r"))
+                {
+                    messages[i] = messages[i].TrimEnd('\r');
+                }
+            }
+
+            return messages;
         }
 
         private string GetCollapsedMessage(string message, bool isCollapsed)
@@ -235,6 +259,41 @@ namespace Sleet
             }
 
             return false;
+        }
+
+        private static bool AllowAdvancedWrite()
+        {
+            try
+            {
+                // Print normally on a CI
+                if (!IsCIMode())
+                {
+                    // Verify the following actions do not throw. This can happen in web consoles.
+                    var visible = Console.CursorVisible;
+                    var color = Console.ForegroundColor;
+                    var width = Console.WindowWidth;
+                    Console.ResetColor();
+
+                    return true;
+                }
+            }
+            catch
+            {
+                // Fall back to normal console out.
+            }
+
+            return false;
+        }
+
+        private void HideCursor()
+        {
+            if (_cursorVisibleOriginalState == null && _allowAdvancedWrite.Value)
+            {
+                _cursorVisibleOriginalState = Console.CursorVisible;
+
+                // Hide the cursor to improve overwrites
+                Console.CursorVisible = false;
+            }
         }
     }
 }
