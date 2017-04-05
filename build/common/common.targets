@@ -46,7 +46,8 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TestProject)' == 'true' ">
-    <None Include="$(BuildCommonDirectory)TestShared\xunit.runner.json">
+    <!-- Disable parallel on appveyor due to an issue with xunit 2.2.0 -->
+    <None Include="$(BuildCommonDirectory)TestShared\xunit.runner.json" Condition=" '$(APPVEYOR)' != 'true' ">
       <Link>xunit.runner.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
