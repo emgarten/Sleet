@@ -7,7 +7,8 @@ namespace Sleet
     {
         private static readonly object _lockObj = new object();
         private bool? _cursorVisibleOriginalState;
-        private static readonly Lazy<bool> _allowAdvancedWrite = new Lazy<bool>(AllowAdvancedWrite);
+        private static readonly Lazy<bool> _isValidConsole = new Lazy<bool>(IsValidConsole);
+        private static readonly Lazy<bool> _isCITrue = new Lazy<bool>(IsCIMode);
 
         private string _lastCollapsedMessage;
         private string _lastIndicator;
@@ -81,7 +82,7 @@ namespace Sleet
 
         public void Dispose()
         {
-            if (_cursorVisibleOriginalState.HasValue && _allowAdvancedWrite.IsValueCreated && _allowAdvancedWrite.Value)
+            if (_cursorVisibleOriginalState.HasValue && AllowAdvancedWrite())
             {
                 Console.CursorVisible = _cursorVisibleOriginalState.Value;
             }
@@ -93,8 +94,8 @@ namespace Sleet
             {
                 var isCollapsed = CollapseMessages
                     && RuntimeEnvironmentHelper.IsWindows
-                    && _allowAdvancedWrite.Value
-                    && (int)level < (int)LogLevel.Minimal;
+                    && (int)level < (int)LogLevel.Minimal
+                    && AllowAdvancedWrite();
 
                 // Replace or clear the color if needed
                 var updatedColor = GetColor(color, isCollapsed);
@@ -114,7 +115,7 @@ namespace Sleet
                         // Modify message
                         var updatedMessage = messages[i];
 
-                        if (_allowAdvancedWrite.Value)
+                        if (AllowAdvancedWrite())
                         {
                             // Hide the cursor for overwrites
                             HideCursor();
@@ -146,7 +147,7 @@ namespace Sleet
                 color = ConsoleColor.Gray;
             }
 
-            if (!RuntimeEnvironmentHelper.IsWindows || !_allowAdvancedWrite.Value)
+            if (!RuntimeEnvironmentHelper.IsWindows || !_isValidConsole.Value)
             {
                 // Disallow colors for xplat
                 color = null;
@@ -228,7 +229,6 @@ namespace Sleet
         private static string GetNextIndicator(string current)
         {
             // - \ | / - \ | / -
-
             if (string.IsNullOrEmpty(current))
             {
                 return "-";
@@ -249,6 +249,17 @@ namespace Sleet
             }
         }
 
+        /// <summary>
+        /// Check if overwriting should be used.
+        /// </summary>
+        private bool AllowAdvancedWrite()
+        {
+            // Allow advanced console writes if this is not in debug mode and the console is interactive.
+            return _isValidConsole.Value
+                && !_isCITrue.Value
+                && VerbosityLevel >= LogLevel.Information;
+        }
+
         private static bool IsCIMode()
         {
             var val = Environment.GetEnvironmentVariable("CI");
@@ -261,21 +272,34 @@ namespace Sleet
             return false;
         }
 
-        private static bool AllowAdvancedWrite()
+        private static bool IsValidConsole()
         {
             try
             {
-                // Print normally on a CI
-                if (!IsCIMode())
+#if IS_DESKTOP
+                // For non-interactive console such as on CIs use normal logging.
+                if (!Environment.UserInteractive)
                 {
-                    // Verify the following actions do not throw. This can happen in web consoles.
-                    var visible = Console.CursorVisible;
-                    var color = Console.ForegroundColor;
-                    var width = Console.WindowWidth;
-                    Console.ResetColor();
-
-                    return true;
+                    return false;
                 }
+#endif
+
+                // Verify the console is valid and does not throw during any of these operations.
+                // Some web consoles have issues with Console.* properties.
+                if (!Console.CursorVisible)
+                {
+                    return false;
+                }
+
+                if (Console.WindowWidth < 50 || Console.WindowHeight < 20)
+                {
+                    return false;
+                }
+
+                var color = Console.ForegroundColor;
+                Console.ResetColor();
+
+                return true;
             }
             catch
             {
@@ -287,7 +311,7 @@ namespace Sleet
 
         private void HideCursor()
         {
-            if (_cursorVisibleOriginalState == null && _allowAdvancedWrite.Value)
+            if (_cursorVisibleOriginalState == null && _isValidConsole.Value)
             {
                 _cursorVisibleOriginalState = Console.CursorVisible;
 
