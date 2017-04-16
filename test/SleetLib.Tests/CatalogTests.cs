@@ -34,6 +34,9 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
                 };
 
                 var catalog = new Catalog(context);
@@ -169,6 +172,9 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
                 };
 
                 var catalog = new Catalog(context);

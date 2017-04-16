@@ -45,7 +45,7 @@ namespace SleetLib.Tests
                 var settings = new LocalSettings();
                 var root = new DirectoryInfo(target);
 
-                await InitCommand.RunAsync(settings, fileSystem, log);
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: true, log: log, token: CancellationToken.None);
 
                 var packageA = new TestNupkg("a", "1.0");
                 var packageB = new TestNupkg("b", "2.0.0-beta+blah");

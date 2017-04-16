@@ -12,17 +12,22 @@ namespace Sleet
         public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, ILogger log)
         {
             var token = CancellationToken.None;
-            return RunAsync(settings, source, disableCatalog: false, disableSymbols: false, log: log, token: token);
+            return RunAsync(settings, source, enableCatalog: false, enableSymbols: false, log: log, token: token);
         }
 
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool disableCatalog, bool disableSymbols, ILogger log, CancellationToken token)
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, bool enableSymbols, ILogger log, CancellationToken token)
         {
             var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
 
-            feedSettings.CatalogEnabled = !disableCatalog;
-            feedSettings.SymbolsFeedEnabled = !disableSymbols;
+            feedSettings.CatalogEnabled = enableCatalog;
+            feedSettings.SymbolsEnabled = enableSymbols;
 
             return await InitAsync(settings, source, feedSettings, log, token);
+        }
+
+        public static Task<bool> InitAsync(SleetContext context)
+        {
+            return InitAsync(context.LocalSettings, context.Source, context.SourceSettings, context.Log, context.Token);
         }
 
         public static async Task<bool> InitAsync(LocalSettings settings, ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token)

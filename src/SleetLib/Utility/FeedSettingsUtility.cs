@@ -68,7 +68,7 @@ namespace Sleet
                         settings.CatalogPageSize = Math.Max(1, GetIntOrDefault(pair.Value, defaultValue: 1024));
                         break;
                     case "symbolsfeedenabled":
-                        settings.SymbolsFeedEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
+                        settings.SymbolsEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
                         break;
                 }
             }
@@ -85,7 +85,7 @@ namespace Sleet
             {
                 { "catalogenabled", settings.CatalogEnabled.ToString().ToLowerInvariant() },
                 { "catalogpagesize", settings.CatalogPageSize.ToString() },
-                { "symbolsfeedenabled", settings.SymbolsFeedEnabled.ToString().ToLowerInvariant() }
+                { "symbolsfeedenabled", settings.SymbolsEnabled.ToString().ToLowerInvariant() }
             };
             return values;
         }

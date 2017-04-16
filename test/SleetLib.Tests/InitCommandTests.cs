@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -29,7 +28,7 @@ namespace Sleet.Test
                 var packageIndexOutput = new FileInfo(Path.Combine(target.Root, "sleet.packageindex.json"));
 
                 // Act
-                var success = await InitCommand.RunAsync(settings, fileSystem, disableCatalog: true, disableSymbols: true, log: log, token: CancellationToken.None);
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
 
                 var rootFile = fileSystem.Get("index.json");
                 var rootJson = await rootFile.GetJson(log, CancellationToken.None);
@@ -83,7 +82,7 @@ namespace Sleet.Test
                 var packageIndexOutput = new FileInfo(Path.Combine(target.Root, "sleet.packageindex.json"));
 
                 // Act
-                var success = await InitCommand.RunAsync(settings, fileSystem, log);
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: true, log: log, token: CancellationToken.None);
 
                 var rootFile = fileSystem.Get("index.json");
                 var rootJson = await rootFile.GetJson(log, CancellationToken.None);

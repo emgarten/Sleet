@@ -33,6 +33,9 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
                 };
 
                 var testPackage = new TestNupkg("packageA", "1.0");
@@ -56,7 +59,7 @@ namespace Sleet.Test
 
                     // Act
                     // run commands
-                    await InitCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+                    await InitCommand.InitAsync(context);
                     await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
                     var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
 
@@ -106,6 +109,9 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
                 };
 
                 var testPackage = new TestNupkg("packageA", "1.0.0");
@@ -129,7 +135,7 @@ namespace Sleet.Test
 
                     // Act
                     // run commands
-                    await InitCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+                    await InitCommand.InitAsync(context);
                     await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
                     await DeleteCommand.RunAsync(context.LocalSettings, context.Source, "packageA", "1.0.0", string.Empty, false, context.Log);
                     var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
@@ -179,6 +185,9 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
                 };
 
                 var testPackage = new TestNupkg("packageA", "1.0.0");
@@ -202,7 +211,7 @@ namespace Sleet.Test
 
                     // Act
                     // run commands
-                    await InitCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+                    await InitCommand.InitAsync(context);
                     await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
                     var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
 
@@ -251,6 +260,9 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
                 };
 
                 context.SourceSettings.CatalogEnabled = false;
@@ -276,7 +288,7 @@ namespace Sleet.Test
 
                     // Act
                     // run commands
-                    await InitCommand.InitAsync(context.LocalSettings, context.Source, context.SourceSettings, context.Log, CancellationToken.None);
+                    await InitCommand.InitAsync(context);
                     await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
                     var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
 
@@ -327,6 +339,9 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
                 };
 
                 context.SourceSettings.CatalogEnabled = false;
@@ -347,7 +362,7 @@ namespace Sleet.Test
 
                 // Act
                 // run commands
-                await InitCommand.InitAsync(context.LocalSettings, context.Source, context.SourceSettings, context.Log, CancellationToken.None);
+                await InitCommand.InitAsync(context);
                 await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile1.FullName }, false, false, context.Log);
                 await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile2.FullName }, false, false, context.Log);
                 await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile3.FullName }, false, false, context.Log);
@@ -399,6 +414,9 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
                 };
 
                 context.SourceSettings.CatalogEnabled = false;
@@ -419,7 +437,7 @@ namespace Sleet.Test
 
                 // Act
                 // run commands
-                await InitCommand.InitAsync(context.LocalSettings, context.Source, context.SourceSettings, context.Log, CancellationToken.None);
+                await InitCommand.InitAsync(context);
                 await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile1.FullName }, false, false, context.Log);
                 await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile2.FullName }, false, false, context.Log);
                 await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile3.FullName }, false, false, context.Log);
@@ -468,6 +486,9 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
                 };
 
                 var testPackage1 = new TestNupkg("packageA", "1.0.0");
@@ -502,7 +523,7 @@ namespace Sleet.Test
 
                     // Act
                     // run commands
-                    await InitCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+                    await InitCommand.InitAsync(context);
                     await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile1.FullName }, false, false, context.Log);
                     await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile2.FullName }, false, false, context.Log);
                     var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
@@ -547,6 +568,9 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
                 };
 
                 var testPackage1 = new TestNupkg("packageA", "1.0.0");
@@ -581,7 +605,7 @@ namespace Sleet.Test
 
                     // Act
                     // run commands
-                    await InitCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+                    await InitCommand.InitAsync(context);
                     await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile1.FullName }, false, false, context.Log);
                     await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile2.FullName }, false, false, context.Log);
                     var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);

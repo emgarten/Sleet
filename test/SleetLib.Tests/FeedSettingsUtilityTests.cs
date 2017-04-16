@@ -21,7 +21,7 @@ namespace SleetLib.Tests
             // Defaults
             settings.CatalogEnabled.Should().BeTrue();
             settings.CatalogPageSize.Should().Be(1024);
-            settings.SymbolsFeedEnabled.Should().BeTrue();
+            settings.SymbolsEnabled.Should().BeTrue();
         }
 
         [Fact]
@@ -38,7 +38,7 @@ namespace SleetLib.Tests
 
             settings.CatalogEnabled.Should().BeFalse();
             settings.CatalogPageSize.Should().Be(5);
-            settings.SymbolsFeedEnabled.Should().BeFalse();
+            settings.SymbolsEnabled.Should().BeFalse();
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace SleetLib.Tests
             // Defaults
             settings.CatalogEnabled.Should().BeTrue();
             settings.CatalogPageSize.Should().Be(1024);
-            settings.SymbolsFeedEnabled.Should().BeTrue();
+            settings.SymbolsEnabled.Should().BeTrue();
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace SleetLib.Tests
 
             settings.CatalogPageSize.Should().Be(1);
             settings.CatalogEnabled.Should().BeTrue();
-            settings.SymbolsFeedEnabled.Should().BeTrue();
+            settings.SymbolsEnabled.Should().BeTrue();
         }
 
         [Fact]
@@ -83,7 +83,7 @@ namespace SleetLib.Tests
             {
                 CatalogEnabled = false,
                 CatalogPageSize = 5,
-                SymbolsFeedEnabled = false
+                SymbolsEnabled = false
             };
 
             var values = FeedSettingsUtility.LoadSettings(settings);
@@ -105,7 +105,7 @@ namespace SleetLib.Tests
             {
                 CatalogEnabled = true,
                 CatalogPageSize = 10,
-                SymbolsFeedEnabled = true
+                SymbolsEnabled = true
             };
 
             var values = FeedSettingsUtility.LoadSettings(settings);

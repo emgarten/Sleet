@@ -49,6 +49,10 @@ namespace Sleet.Test
                     Log = log,
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true,
+                        SymbolsEnabled = true
+                    }
                 };
 
                 var testPackage = new TestNupkg("packageA", "1.0.0");
@@ -71,7 +75,7 @@ namespace Sleet.Test
 
                     // Act
                     // run commands
-                    await InitCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+                    await InitCommand.InitAsync(context);
                     await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
                     var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
 

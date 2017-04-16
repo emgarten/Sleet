@@ -115,7 +115,7 @@ namespace SleetLib.Tests
 
                 var expected = new List<string>();
 
-                for (int i = 0; i < 100; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     var package = new TestNupkg("a", $"{i}.0.0");
                     package.Save(packagesFolder);

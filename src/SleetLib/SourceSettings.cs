@@ -15,6 +15,6 @@
         /// <summary>
         /// If false the symbol feed will be disabled.
         /// </summary>
-        public bool SymbolsFeedEnabled { get; set; } = true;
+        public bool SymbolsEnabled { get; set; } = true;
     }
 }

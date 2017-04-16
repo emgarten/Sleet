@@ -27,8 +27,8 @@ namespace Sleet
 
             cmd.HelpOption(Constants.HelpOption);
 
-            var disableCatalogOption = cmd.Option(Constants.DisableCatalogOption, Constants.DisableCatalogDesc, CommandOptionType.NoValue);
-            var disableSymbolsOption = cmd.Option(Constants.DisableSymbolsFeedOption, Constants.DisableSymbolsFeedDesc, CommandOptionType.NoValue);
+            var enableCatalogOption = cmd.Option(Constants.EnableCatalogOption, Constants.EnableCatalogDesc, CommandOptionType.NoValue);
+            var enableSymbolsOption = cmd.Option(Constants.EnableSymbolsFeedOption, Constants.EnableSymbolsFeedDesc, CommandOptionType.NoValue);
 
             var required = new List<CommandOption>()
             {
@@ -50,7 +50,7 @@ namespace Sleet
                     var settings = LocalSettings.Load(optionConfigFile.Value());
                     var fileSystem = Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
-                    var success = await InitCommand.RunAsync(settings, fileSystem, disableCatalogOption.HasValue(), disableSymbolsOption.HasValue(), log, CancellationToken.None);
+                    var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalogOption.HasValue(), enableSymbolsOption.HasValue(), log, CancellationToken.None);
 
                     return success ? 0 : 1;
                 }
