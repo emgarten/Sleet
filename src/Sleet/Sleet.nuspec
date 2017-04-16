@@ -11,9 +11,25 @@
     <copyright>Copyright © 2017 Justin Emgarten</copyright>
     <tags>nuget nugetserver nugetfeed</tags>
     <repository type="git" url="https://github.com/emgarten/Sleet" />
-	<developmentDependency>true</developmentDependency>
+    <developmentDependency>true</developmentDependency>
+    <packageTypes>
+      <packageType name="DotnetCliTool" />
+    </packageTypes>
+    <dependencies>
+      <group targetFramework=".NETCoreApp1.0">
+        <dependency id="Microsoft.NETCore.App" version="1.0.0" />
+        <dependency id="Microsoft.Extensions.CommandLineUtils" version="1.1.0" />
+        <dependency id="NuGet.Packaging" version="4.0.0" />
+        <dependency id="WindowsAzure.Storage" version="8.1.1" />
+        <dependency id="Newtonsoft.Json" version="10.0.2" />
+        <dependency id="SleetLib" version="$version$" />
+      </group>
+    </dependencies>
   </metadata>
   <files>
     <file src="..\..\artifacts\publish\Sleet.exe" target="tools\" />
+    <file src="..\..\artifacts\dotnettoolassemblies\Sleet\Sleet.dll" target="lib\netcoreapp1.0\dotnet-sleet.dll" />
+    <file src="..\..\build\nupkgIncludes\runtimeconfig.json" target="lib\netcoreapp1.0\dotnet-sleet.runtimeconfig.json" />
+    <file src="..\..\build\nupkgIncludes\prefercliruntime" target="prefercliruntime" />
   </files>
 </package>

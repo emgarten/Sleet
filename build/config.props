@@ -4,13 +4,13 @@
   <PropertyGroup>
     <NuGetPackageVersion>4.0.0</NuGetPackageVersion>
     <WindowsAzureStorageVersion>8.1.1</WindowsAzureStorageVersion>
-    <JsonVersion>10.0.1</JsonVersion>
+    <JsonVersion>10.0.2</JsonVersion>
     <CommandLineUtilsVersion>1.1.0</CommandLineUtilsVersion>
     <NuGetTestHelpersVersion>1.0.0</NuGetTestHelpersVersion>
     <TestSDKVersion>15.0.0</TestSDKVersion>
     <FluentAssertionsVersion>4.19.0</FluentAssertionsVersion>
     <SourceLinkVersion>2.0.2</SourceLinkVersion>
-    <XunitVersion>2.3.0-beta1-build3557</XunitVersion>
+    <XunitVersion>2.2.0</XunitVersion>
     <XunitRunnerVisualStudioVersion>2.2.0</XunitRunnerVisualStudioVersion>
   </PropertyGroup>
   

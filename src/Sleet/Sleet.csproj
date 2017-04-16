@@ -65,7 +65,7 @@
 
     <Error Condition=" '$(IsXPlat)' != 'true' AND '$(MergedExePathExists)' != 'true' " Text="Missing $(MergedExePath)" />
 
-    <!-- Pack Sleet with sleet.exe -->
+    <!-- Pack Sleet -->
     <MSBuild Projects="$(MSBuildProjectFullPath)"
              Targets="Pack"
 			 Condition=" '$(IsXPlat)' != 'true' "
@@ -76,17 +76,6 @@
                          IsTool=true;
                          NuspecFile=Sleet.nuspec;
                          NuspecProperties=$(NuspecProperties)">
-    </MSBuild>
-
-    <!-- Pack SleetDotnetTool with dotnet-sleet.dll -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)"
-             Targets="Pack"
-             Properties="Configuration=$(Configuration);
-             PackageOutputPath=$(NupkgOutputDirectory);
-             NoPackageAnalysis=true;
-             IncludeSymbols=false;
-             NuspecFile=SleetDotnetTool.nuspec;
-             NuspecProperties=$(NuspecProperties)">
     </MSBuild>
   </Target>
 
