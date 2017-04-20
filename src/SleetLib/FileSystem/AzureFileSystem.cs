@@ -19,6 +19,7 @@ namespace Sleet
         private readonly CloudStorageAccount _azureAccount;
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
+        private const int MaxThreads = 4;
 
         public AzureFileSystem(LocalCache cache, Uri root, CloudStorageAccount azureAccount, string container)
             : this(cache, root, root, azureAccount, container)
@@ -94,12 +95,32 @@ namespace Sleet
 
         public async Task<bool> Commit(ILogger log, CancellationToken token)
         {
+            // Push in parallel
+            var tasks = new List<Task>();
+
             foreach (var file in Files.Values)
             {
-                await file.Push(log, token);
+                if (tasks.Count >= MaxThreads)
+                {
+                    await CompleteTask(tasks);
+                }
+
+                tasks.Add(file.Push(log, token));
+            }
+
+            while (tasks.Count > 0)
+            {
+                await CompleteTask(tasks);
             }
 
             return true;
+        }
+
+        private static async Task CompleteTask(List<Task> tasks)
+        {
+            var task = await Task.WhenAny(tasks);
+            tasks.Remove(task);
+            await task;
         }
 
         public string GetRelativePath(Uri uri)
