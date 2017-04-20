@@ -205,7 +205,8 @@ namespace Sleet
 
             foreach (var id in index.Keys.OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
             {
-                var versionArray = new JArray(index[id].Select(v => v.ToNormalizedString()));
+                var versionArray = new JArray(index[id].OrderByDescending(v => v)
+                    .Select(v => v.ToFullString()));
 
                 if (versionArray.Count > 0)
                 {
