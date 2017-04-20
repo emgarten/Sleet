@@ -72,8 +72,8 @@ namespace SleetLib.Tests
             var settings = FeedSettingsUtility.LoadSettings(values);
 
             settings.CatalogPageSize.Should().Be(1);
-            settings.CatalogEnabled.Should().BeTrue();
-            settings.SymbolsEnabled.Should().BeTrue();
+            settings.CatalogEnabled.Should().BeFalse();
+            settings.SymbolsEnabled.Should().BeFalse();
         }
 
         [Fact]

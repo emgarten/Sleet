@@ -56,6 +56,7 @@ namespace Sleet
             DestroyAppCommand.Register(app, log);
             DownloadAppCommand.Register(app, log);
             RecreateAppCommand.Register(app, log);
+            FeedSettingsAppCommand.Register(app, log);
 
             app.OnExecute(() =>
             {
