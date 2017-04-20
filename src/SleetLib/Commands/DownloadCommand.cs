@@ -102,7 +102,7 @@ namespace Sleet
             {
                 if (indexedPackages.Count > 0)
                 {
-                    log.LogMinimal("Succesfully downloaded packages.");
+                    log.LogMinimal("Successfully downloaded packages.");
                 }
             }
             else
