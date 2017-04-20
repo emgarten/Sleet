@@ -62,13 +62,13 @@ namespace Sleet
                 switch (pair.Key.ToLowerInvariant())
                 {
                     case "catalogenabled":
-                        settings.CatalogEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
+                        settings.CatalogEnabled = GetBoolOrDefault(pair.Value, defaultValue: false);
                         break;
                     case "catalogpagesize":
                         settings.CatalogPageSize = Math.Max(1, GetIntOrDefault(pair.Value, defaultValue: 1024));
                         break;
                     case "symbolsfeedenabled":
-                        settings.SymbolsEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
+                        settings.SymbolsEnabled = GetBoolOrDefault(pair.Value, defaultValue: false);
                         break;
                 }
             }
@@ -105,7 +105,7 @@ namespace Sleet
 
         private static int GetIntOrDefault(string s, int defaultValue)
         {
-            if (Int32.TryParse(s, out var result))
+            if (int.TryParse(s, out var result))
             {
                 return result;
             }
