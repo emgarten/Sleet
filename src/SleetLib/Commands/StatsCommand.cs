@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,16 +35,12 @@ namespace Sleet
                     Token = token
                 };
 
-                var catalog = new Catalog(context);
+                var packageIndex = new PackageIndex(context);
 
-                var existingEntries = await catalog.GetExistingPackagesIndexAsync();
-                var packages = existingEntries.Select(e => e.PackageIdentity).ToList();
+                var packages = await packageIndex.GetPackagesAsync();
                 var uniqueIds = packages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase);
 
-                var catalogEntries = await catalog.GetIndexEntriesAsync();
-
-                log.LogMinimal($"Catalog entries: {catalogEntries.Count}");
-                log.LogMinimal($"Packages: {existingEntries.Count}");
+                log.LogMinimal($"Packages: {packages.Count}");
                 log.LogMinimal($"Unique package ids: {uniqueIds.Count()}");
             }
 
