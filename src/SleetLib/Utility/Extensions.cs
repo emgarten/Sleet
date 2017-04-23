@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
@@ -123,6 +125,40 @@ namespace Sleet
         public static Uri GetIdUri(this JObject json)
         {
             return JsonUtility.GetIdUri(json);
+        }
+
+        /// <summary>
+        /// Converts a stream to a MemoryStream.
+        /// Disposes of the original stream.
+        /// </summary>
+        public static MemoryStream AsMemoryStream(this Stream stream)
+        {
+            var mem = new MemoryStream();
+
+            using (stream)
+            {
+                stream.CopyTo(mem);
+            }
+
+            mem.Position = 0;
+            return mem;
+        }
+
+        /// <summary>
+        /// Converts a stream to a MemoryStream.
+        /// Disposes of the original stream.
+        /// </summary>
+        public static async Task<MemoryStream> AsMemoryStreamAsync(this Stream stream)
+        {
+            var mem = new MemoryStream();
+
+            using (stream)
+            {
+                await stream.CopyToAsync(mem);
+            }
+
+            mem.Position = 0;
+            return mem;
         }
     }
 }

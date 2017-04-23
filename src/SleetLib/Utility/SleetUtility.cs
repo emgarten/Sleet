@@ -57,6 +57,12 @@ namespace Sleet
             services.Add(new Search(context));
             services.Add(new PackageIndex(context));
 
+            // Symbols
+            if (context.SourceSettings.SymbolsEnabled)
+            {
+                services.Add(new Symbols(context));
+            }
+
             return services;
         }
     }
