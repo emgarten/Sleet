@@ -12,6 +12,7 @@
     <SourceLinkVersion>2.0.2</SourceLinkVersion>
     <XunitVersion>2.2.0</XunitVersion>
     <XunitRunnerVisualStudioVersion>2.2.0</XunitRunnerVisualStudioVersion>
+    <PortablePdbVersion>1.2.0</PortablePdbVersion>
   </PropertyGroup>
   
   <!-- Config -->
