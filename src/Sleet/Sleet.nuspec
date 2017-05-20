@@ -31,5 +31,6 @@
     <file src="..\..\artifacts\dotnettoolassemblies\Sleet\Sleet.dll" target="lib\netcoreapp1.0\dotnet-sleet.dll" />
     <file src="..\..\build\nupkgIncludes\runtimeconfig.json" target="lib\netcoreapp1.0\dotnet-sleet.runtimeconfig.json" />
     <file src="..\..\build\nupkgIncludes\prefercliruntime" target="prefercliruntime" />
+    <file src="..\..\build\nupkgIncludes\Sleet.props" target="build\net46\Sleet.props" />
   </files>
 </package>
