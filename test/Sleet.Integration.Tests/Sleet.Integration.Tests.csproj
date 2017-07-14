@@ -8,6 +8,11 @@
   <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
     <TargetFrameworks>netcoreapp1.0</TargetFrameworks>
   </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
   
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -16,7 +21,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="NuGet.Protocol.Core.v3" Version="$(NuGetPackageVersion)" />
+    <PackageReference Include="NuGet.Protocol" Version="$(NuGetPackageVersion)" />
     <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
   </ItemGroup>
   

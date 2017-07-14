@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
@@ -53,7 +53,7 @@ namespace Sleet.Integration.Test
             return new TestHttpSource(source.PackageSource, handlerFactory, fileSystem);
         }
 
-        private class TestHttpHandlerResource : HttpHandlerResource
+        private class TestHttpHandlerResource : HttpHandlerResource, IDisposable
         {
             private readonly PhysicalFileSystem _fileSystem;
             private readonly HttpMessageHandler _messageHandler;
@@ -65,21 +65,14 @@ namespace Sleet.Integration.Test
                 _messageHandler = new TestMessageHandler(fileSystem);
             }
 
-            public override HttpClientHandler ClientHandler
-            {
-                get
-                {
+            public override HttpClientHandler ClientHandler =>
                     // should not be used!
-                    return new HttpClientHandler();
-                }
-            }
+                    new HttpClientHandler();
 
-            public override HttpMessageHandler MessageHandler
+            public override HttpMessageHandler MessageHandler => _messageHandler;
+
+            public void Dispose()
             {
-                get
-                {
-                    return _messageHandler;
-                }
             }
         }
 

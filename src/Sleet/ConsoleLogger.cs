@@ -1,9 +1,10 @@
-﻿using System;
+using System;
+using System.Threading.Tasks;
 using NuGet.Common;
 
 namespace Sleet
 {
-    public class ConsoleLogger : ILogger, IDisposable
+    public class ConsoleLogger : LoggerBase, IDisposable
     {
         private static readonly object _lockObj = new object();
         private bool? _cursorVisibleOriginalState;
@@ -12,8 +13,6 @@ namespace Sleet
 
         private string _lastCollapsedMessage;
         private string _lastIndicator;
-
-        public LogLevel VerbosityLevel { get; set; }
 
         /// <summary>
         /// Collapse all messages below the minimal level.
@@ -25,83 +24,29 @@ namespace Sleet
         {
         }
 
-        public ConsoleLogger(LogLevel level)
+        public ConsoleLogger(LogLevel verbosityLevel)
+            : base(verbosityLevel)
         {
-            VerbosityLevel = level;
+            VerbosityLevel = verbosityLevel;
         }
 
-        public void LogDebug(string data)
+        public override void Log(ILogMessage message)
         {
-            Log(LogLevel.Debug, data);
-        }
+            var level = (int)message.Level;
+            var color = GetColor(message);
 
-        public void LogError(string data)
-        {
-            Log(LogLevel.Error, data, ConsoleColor.Red);
-        }
-
-        public void LogErrorSummary(string data)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void LogInformation(string data)
-        {
-            Log(LogLevel.Information, data);
-        }
-
-        public void LogInformationSummary(string data)
-        {
-            Log(LogLevel.Information, data);
-        }
-
-        public void LogMinimal(string data)
-        {
-            Log(LogLevel.Minimal, data);
-        }
-
-        public void LogSummary(string data)
-        {
-            Log(LogLevel.Information, data);
-        }
-
-        public void LogVerbose(string data)
-        {
-            Log(LogLevel.Verbose, data);
-        }
-
-        public void LogWarning(string data)
-        {
-            Log(LogLevel.Warning, data, ConsoleColor.Yellow);
-        }
-
-        private void Log(LogLevel level, string message)
-        {
-            Log(level, message, color: null);
-        }
-
-        public void Dispose()
-        {
-            if (_cursorVisibleOriginalState.HasValue && AllowAdvancedWrite())
-            {
-                Console.CursorVisible = _cursorVisibleOriginalState.Value;
-            }
-        }
-
-        private void Log(LogLevel level, string message, ConsoleColor? color)
-        {
-            if ((int)level >= (int)VerbosityLevel)
+            if (level >= (int)VerbosityLevel)
             {
                 var isCollapsed = CollapseMessages
                     && RuntimeEnvironmentHelper.IsWindows
-                    && (int)level < (int)LogLevel.Minimal
+                    && level < (int)LogLevel.Minimal
                     && AllowAdvancedWrite();
 
                 // Replace or clear the color if needed
                 var updatedColor = GetColor(color, isCollapsed);
 
                 // Break up multi-line messages
-                var messages = SplitMessages(message);
+                var messages = SplitMessages(message.Message);
 
                 lock (_lockObj)
                 {
@@ -125,7 +70,7 @@ namespace Sleet
                         }
                         else
                         {
-                            updatedMessage = updatedMessage.TrimEnd() + Environment.NewLine; 
+                            updatedMessage = updatedMessage.TrimEnd() + Environment.NewLine;
                         }
 
                         // Write
@@ -138,6 +83,37 @@ namespace Sleet
                     }
                 }
             }
+        }
+
+        public override Task LogAsync(ILogMessage message)
+        {
+            Log(message);
+
+            return Task.FromResult(true);
+        }
+
+        public void Dispose()
+        {
+            if (_cursorVisibleOriginalState.HasValue && AllowAdvancedWrite())
+            {
+                Console.CursorVisible = _cursorVisibleOriginalState.Value;
+            }
+        }
+
+        private static ConsoleColor? GetColor(ILogMessage message)
+        {
+            ConsoleColor? color = null;
+
+            if (message.Level == LogLevel.Error)
+            {
+                color = ConsoleColor.Red;
+            }
+            else if (message.Level == LogLevel.Warning)
+            {
+                color = ConsoleColor.Yellow;
+            }
+
+            return color;
         }
 
         private static ConsoleColor? GetColor(ConsoleColor? color, bool isCollapsed)
