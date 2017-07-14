@@ -1,15 +1,15 @@
-﻿<Project ToolsVersion="15.0">
+<Project ToolsVersion="15.0">
 
   <!-- Dependency versions -->
   <PropertyGroup>
-    <NuGetPackageVersion>4.0.0</NuGetPackageVersion>
-    <WindowsAzureStorageVersion>8.1.1</WindowsAzureStorageVersion>
-    <JsonVersion>10.0.2</JsonVersion>
-    <CommandLineUtilsVersion>1.1.0</CommandLineUtilsVersion>
-    <NuGetTestHelpersVersion>1.0.0</NuGetTestHelpersVersion>
-    <TestSDKVersion>15.0.0</TestSDKVersion>
+    <NuGetPackageVersion>4.3.0-preview3-4168</NuGetPackageVersion>
+    <WindowsAzureStorageVersion>8.1.4</WindowsAzureStorageVersion>
+    <JsonVersion>10.0.3</JsonVersion>
+    <CommandLineUtilsVersion>1.1.1</CommandLineUtilsVersion>
+    <NuGetTestHelpersVersion>1.1.0-beta.5</NuGetTestHelpersVersion>
+    <TestSDKVersion>15.3.0-preview-20170628-02</TestSDKVersion>
     <FluentAssertionsVersion>4.19.0</FluentAssertionsVersion>
-    <SourceLinkVersion>2.0.2</SourceLinkVersion>
+    <SourceLinkVersion>2.1.2</SourceLinkVersion>
     <XunitVersion>2.2.0</XunitVersion>
     <XunitRunnerVisualStudioVersion>2.2.0</XunitRunnerVisualStudioVersion>
     <PortablePdbVersion>1.2.0</PortablePdbVersion>

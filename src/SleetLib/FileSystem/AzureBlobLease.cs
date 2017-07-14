@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -18,13 +18,7 @@ namespace Sleet
             _leaseId = Guid.NewGuid().ToString();
         }
 
-        public string LeaseId
-        {
-            get
-            {
-                return _leaseId;
-            }
-        }
+        public string LeaseId => _leaseId;
 
         /// <summary>
         /// Makes a single attempt to get a lease.
@@ -32,7 +26,7 @@ namespace Sleet
         /// <returns></returns>
         public async Task<bool> GetLease()
         {
-            string actualLease = string.Empty;
+            var actualLease = string.Empty;
 
             try
             {
