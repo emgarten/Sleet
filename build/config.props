@@ -2,7 +2,7 @@
 
   <!-- Dependency versions -->
   <PropertyGroup>
-    <NuGetPackageVersion>4.3.0-preview3-4168</NuGetPackageVersion>
+    <NuGetPackageVersion>4.3.0-preview4</NuGetPackageVersion>
     <WindowsAzureStorageVersion>8.1.4</WindowsAzureStorageVersion>
     <JsonVersion>10.0.3</JsonVersion>
     <CommandLineUtilsVersion>1.1.1</CommandLineUtilsVersion>
