@@ -6,8 +6,8 @@
     <WindowsAzureStorageVersion>8.1.4</WindowsAzureStorageVersion>
     <JsonVersion>10.0.3</JsonVersion>
     <CommandLineUtilsVersion>1.1.1</CommandLineUtilsVersion>
-    <NuGetTestHelpersVersion>1.1.0-beta.5</NuGetTestHelpersVersion>
-    <TestSDKVersion>15.3.0-preview-20170628-02</TestSDKVersion>
+    <NuGetTestHelpersVersion>1.1.0-beta.9</NuGetTestHelpersVersion>
+    <TestSDKVersion>15.0.0</TestSDKVersion>
     <FluentAssertionsVersion>4.19.0</FluentAssertionsVersion>
     <SourceLinkVersion>2.1.2</SourceLinkVersion>
     <XunitVersion>2.2.0</XunitVersion>

@@ -20,9 +20,9 @@ Function Install-DotnetCLI {
 
         Write-Host "Fetching $installDotnet"
 
-        wget https://raw.githubusercontent.com/dotnet/cli/58b0566d9ac399f5fa973315c6827a040b7aae1f/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
+        wget https://raw.githubusercontent.com/dotnet/cli/c497bf498fd4e964b00e2ee44bd840f2a269ea6c/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
 
-        & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.1
+        & $installDotnet -Channel 2.0 -i $CLIRoot -Version 2.0.0-preview2-006497
 
         if (-not (Test-Path $DotnetExe)) {
             Write-Log "Missing $DotnetExe"
