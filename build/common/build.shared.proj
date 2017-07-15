@@ -1,4 +1,4 @@
-﻿<Project ToolsVersion="15.0" DefaultTargets="Run">
+<Project ToolsVersion="15.0" DefaultTargets="Run">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\config.props" />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.shared.props" />
 
@@ -219,6 +219,15 @@
       <Output TaskParameter="ExitCode" PropertyName="GitCommitHashExitCode"/>
     </Exec>
 
+    <!-- Find the current short commit hash -->
+    <Exec Command="git rev-parse --short HEAD"
+      ConsoleToMSBuild="true"
+      StandardOutputImportance="low"
+      ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitShortHash" />
+      <Output TaskParameter="ExitCode" PropertyName="GitCommitShortHashExitCode"/>
+    </Exec>
+
     <!-- Find the current branch -->
     <Exec Command="git rev-parse --abbrev-ref HEAD"
       ConsoleToMSBuild="true"
@@ -228,7 +237,7 @@
       <Output TaskParameter="ExitCode" PropertyName="GitBranchExitCode"/>
     </Exec>
 
-    <PropertyGroup Condition=" '$(GitTagLabelExitCode)' == '0' AND '$(GitCommitHashExitCode)' == '0' AND '$(GitCommitHashExitCode)' == '0' AND '$(GitBranchExitCode)' == '0' ">
+    <PropertyGroup Condition=" '$(GitTagLabelExitCode)' == '0' AND '$(GitCommitHashExitCode)' == '0' AND '$(GitCommitHashExitCode)' == '0' AND '$(GitBranchExitCode)' == '0' AND '$(GitCommitShortHashExitCode)' == '0' ">
       <GitVersionSuccess>true</GitVersionSuccess>
       <GitVersion>$(GitTagLabel.Trim())</GitVersion>
       <GitVersion>$(GitVersion.TrimStart('release/'))</GitVersion>
@@ -236,9 +245,10 @@
       <GitVersionIsPreRelease Condition="$(GitVersion.Contains('-'))">true</GitVersionIsPreRelease>
       <GitCommitsSinceLastTag>$(CommitsSinceLastTag.Trim())</GitCommitsSinceLastTag>
       <GitCommitHash>$(GitCommitHash.Trim())</GitCommitHash>
+      <GitCommitShortHash>$(GitCommitShortHash.Trim())</GitCommitShortHash>
       <GitBranch>$(GitBranch.Trim())</GitBranch>
       <GitVersion Condition=" '$(GitVersionIsPreRelease)' == 'true' AND '$(GitCommitsSinceLastTag)' != '0' ">$(GitVersion).$(GitCommitsSinceLastTag)</GitVersion>
-      <GitVersion>$(GitVersion)+git.hash.$(GitCommitHash)</GitVersion>
+      <GitVersion>$(GitVersion)+git.$(GitCommitShortHash)</GitVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(GitVersionSuccess)' != 'true' ">
@@ -246,6 +256,7 @@
       <GitVersion>0.1.0-alpha</GitVersion>
       <GitBranch>unknown</GitBranch>
       <GitCommitHash></GitCommitHash>
+      <GitCommitShortHash></GitCommitShortHash>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -260,6 +271,7 @@
       <LineToWrite Include="&lt;MSBuildAllProjects&gt;%24(MSBuildAllProjects)%3B%24(MSBuildThisFileFullPath)&lt;/MSBuildAllProjects&gt;" />
       <LineToWrite Include="&lt;GitVersion&gt;$(GitVersion)&lt;/GitVersion&gt;" />
       <LineToWrite Include="&lt;GitCommitHash&gt;$(GitCommitHash)&lt;/GitCommitHash&gt;" />
+      <LineToWrite Include="&lt;GitCommitShortHash&gt;$(GitCommitShortHash)&lt;/GitCommitShortHash&gt;" />
       <LineToWrite Include="&lt;GitBranch&gt;$(GitBranch)&lt;/GitBranch&gt;" />
       <LineToWrite Include="&lt;/PropertyGroup&gt;" />
       <LineToWrite Include="&lt;/Project&gt;" />
