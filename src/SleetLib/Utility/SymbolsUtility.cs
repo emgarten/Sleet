@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection.PortableExecutable;
@@ -18,7 +18,7 @@ namespace Sleet
                 throw new ArgumentException($"Invalid file name: {fileName}");
             }
 
-            return $"{fileName}/{hash.ToLowerInvariant()}/{fileName}";
+            return $"{fileName}/{hash.ToUpperInvariant()}/{fileName}";
         }
 
         /// <summary>

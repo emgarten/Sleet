@@ -18,6 +18,10 @@
     <OutputType>Exe</OutputType>
     <TestProject>true</TestProject>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="compiler\resources\**\*" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
@@ -25,6 +29,10 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\src\SleetLib\SleetLib.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="compiler\resources\" />
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />

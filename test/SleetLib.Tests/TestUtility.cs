@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,8 +12,17 @@ namespace Sleet.Test
     {
         public static Stream GetResource(string name)
         {
-            var path = $"Sleet.Test.compiler.resources.{name}";
+            var path = $"SleetLib.Tests.compiler.resources.{name}";
             return typeof(TestUtility).GetTypeInfo().Assembly.GetManifestResourceStream(path);
+        }
+
+        public static byte[] GetBytes(this Stream stream)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                stream.CopyTo(memoryStream);
+                return memoryStream.ToArray();
+            }
         }
 
         public static JObject CreateConfigWithLocal(string sourceName, string sourcePath, string baseUri)
