@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -30,8 +30,6 @@ namespace Sleet
             var pdbFiles = packageInput.Zip.Entries
                 .Where(e => e.FullName.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
                 .ToList();
-
-            var tasks = new List<Task>();
 
             foreach (var assembly in assemblyFiles)
             {
@@ -68,22 +66,18 @@ namespace Sleet
                     var fileInfo = new FileInfo(assembly.FullName);
                     var file = GetFile(fileInfo.Name, assemblyHash);
 
-                    var task = AddFileIfNotExists(assembly, file);
-                    tasks.Add(task);
-                    
+                    await AddFileIfNotExists(assembly, file);
+
                     // Add .pdb
                     if (pdbEntry != null)
                     {
                         var pdbFileInfo = new FileInfo(pdbEntry.FullName);
                         var pdbFile = GetFile(pdbFileInfo.Name, pdbHash);
 
-                        var pdbTask = AddFileIfNotExists(pdbEntry, pdbFile);
-                        tasks.Add(pdbTask);
+                        await AddFileIfNotExists(pdbEntry, pdbFile);
                     }
                 }
             }
-
-            await Task.WhenAll(tasks);
         }
 
         public Task RemovePackageAsync(PackageIdentity package)
