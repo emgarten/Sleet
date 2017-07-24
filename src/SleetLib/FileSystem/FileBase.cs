@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +12,7 @@ namespace Sleet
         private bool _downloaded = false;
         private bool _hasChanges = false;
 
-        public FileBase(ISleetFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile)
+        protected FileBase(ISleetFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile)
         {
             FileSystem = fileSystem;
             RootPath = rootPath;
@@ -47,7 +47,7 @@ namespace Sleet
         {
             if (HasChanges)
             {
-                for (int i = 0; i < 5; i++)
+                for (var i = 0; i < 5; i++)
                 {
                     try
                     {
@@ -130,7 +130,7 @@ namespace Sleet
         {
             if (!_downloaded)
             {
-                for (int i = 0; !_downloaded && i < 5; i++)
+                for (var i = 0; !_downloaded && i < 5; i++)
                 {
                     try
                     {
@@ -203,6 +203,11 @@ namespace Sleet
             }
 
             return false;
+        }
+
+        public override string ToString()
+        {
+            return EntityUri.AbsoluteUri;
         }
     }
 }

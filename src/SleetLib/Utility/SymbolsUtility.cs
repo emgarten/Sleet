@@ -18,7 +18,7 @@ namespace Sleet
                 throw new ArgumentException($"Invalid file name: {fileName}");
             }
 
-            return $"{fileName}/{hash.ToUpperInvariant()}/{fileName}";
+            return $"{fileName}/{hash}/{fileName}";
         }
 
         /// <summary>
@@ -28,7 +28,11 @@ namespace Sleet
         {
             var size = peReader.PEHeaders.PEHeader.SizeOfImage;
             var time = peReader.PEHeaders.CoffHeader.TimeDateStamp;
-            return string.Format("{0:X}{1:X}", time, size).ToUpperInvariant();
+
+            var timeHash = string.Format("{0:X}", time).ToUpperInvariant();
+            var sizeHash = string.Format("{0:X}", size).ToLowerInvariant();
+
+            return $"{timeHash}{sizeHash}";
         }
 
         /// <summary>
@@ -36,6 +40,8 @@ namespace Sleet
         /// </summary>
         public static string GetPDBHashFromAssembly(PEReader peReader)
         {
+            string hash = null;
+
             foreach (var entry in peReader.ReadDebugDirectory())
             {
                 if (entry.Type == DebugDirectoryEntryType.CodeView)
@@ -43,16 +49,38 @@ namespace Sleet
                     var codeViewData = peReader.ReadCodeViewDebugDirectoryData(entry);
                     var age = codeViewData.Age;
                     var guid = codeViewData.Guid;
+                    var portablePdb = entry.MinorVersion == 20557 && entry.MajorVersion >= 256;
 
                     if (guid != Guid.Empty)
                     {
-                        var guidString = guid.ToString().Replace("-", string.Empty);
-                        return string.Format("{0}{1:X}", guidString, age).ToUpperInvariant();
+                        if (portablePdb)
+                        {
+                            if (age == 1)
+                            {
+                                // Age must be 1 for portable pdbs
+                                hash = GetPortablePdbHash(guid);
+                            }
+                        }
+                        else
+                        {
+                            // Legacy pdb
+                            hash = GetWindowsPdbHash(guid, age);
+                        }
                     }
                 }
             }
 
-            return null;
+            return hash;
+        }
+
+        public static string GetPortablePdbHash(Guid guid)
+        {
+            return guid.ToString("N").ToUpperInvariant() + "ffffffff";
+        }
+
+        public static string GetWindowsPdbHash(Guid guid, int age)
+        {
+            return guid.ToString("N").ToUpperInvariant() + age;
         }
     }
 }

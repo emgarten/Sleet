@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -83,6 +83,11 @@ namespace Sleet
                         log.LogInformation($"Compressing {_blob.Uri.AbsoluteUri}");
                         writeStream = GZipAndMinify(cache);
                     }
+                    else if(_blob.Uri.AbsoluteUri.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
+                        || _blob.Uri.AbsoluteUri.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _blob.Properties.ContentType = "application/octet-stream";
+                    }
                     else
                     {
                         log.LogWarning($"Unknown file type: {_blob.Uri.AbsoluteUri}");
@@ -120,7 +125,7 @@ namespace Sleet
 
             var json = JsonUtility.LoadJson(input);
 
-            using (GZipStream zipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+            using (var zipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
             using (var writer = new StreamWriter(zipStream, Encoding.UTF8))
             {
                 writer.Write(json.ToString(Formatting.None));

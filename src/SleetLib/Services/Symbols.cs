@@ -7,6 +7,7 @@ using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using NuGet.Packaging.Core;
+using SleetLib;
 
 namespace Sleet
 {
@@ -47,11 +48,11 @@ namespace Sleet
                         pdbHash = SymbolsUtility.GetPDBHashFromAssembly(reader);
                     }
 
-                    var assemblyWithoutExt = Path.GetFileNameWithoutExtension(assembly.FullName);
+                    var assemblyWithoutExt = PathUtility.GetFullPathWithoutExtension(assembly.FullName);
 
                     pdbEntry = pdbFiles.FirstOrDefault(e => 
                         StringComparer.OrdinalIgnoreCase.Equals(
-                            Path.GetFileNameWithoutExtension(e.FullName), assemblyWithoutExt));
+                            PathUtility.GetFullPathWithoutExtension(e.FullName), assemblyWithoutExt));
 
                     valid = true;
                 }
