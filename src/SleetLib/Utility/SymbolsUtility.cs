@@ -5,6 +5,7 @@ using System.Reflection.PortableExecutable;
 using System.IO.Compression;
 using System.Linq;
 using System.IO;
+using NuGet.Packaging.Core;
 
 namespace Sleet
 {
@@ -81,6 +82,26 @@ namespace Sleet
         public static string GetWindowsPdbHash(Guid guid, int age)
         {
             return guid.ToString("N").ToUpperInvariant() + age;
+        }
+
+        /// <summary>
+        /// True if the package is a symbols package.
+        /// </summary>
+        public static bool IsSymbolsPackage(ZipArchive zip, string fullPath)
+        {
+            // check the path, this is the easiest way to check the type
+            if (fullPath.EndsWith(".symbols.nupkg", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            // Check for the src folder, this is added to symbol packages.
+            if (zip.Entries.Any(s => s.FullName.StartsWith("src/", StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

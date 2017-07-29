@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO.Compression;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
@@ -23,9 +23,21 @@ namespace Sleet
 
         public Uri RegistrationUri { get; set; }
 
+        /// <summary>
+        /// True if the package is a .symbols.nupkg
+        /// </summary>
+        public bool IsSymbolsPackage { get; set; }
+
         public override string ToString()
         {
-            return $"{Identity.Id} {Identity.Version.ToFullVersionString()}";
+            var s = $"{Identity.Id} {Identity.Version.ToFullVersionString()}";
+
+            if (IsSymbolsPackage)
+            {
+                s += " (Symbols)";
+            }
+
+            return s;
         }
 
         public void Dispose()
