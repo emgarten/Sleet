@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,17 +12,24 @@ namespace Sleet
     /// <summary>
     /// PackageIndexFile is a simple json index of all ids and versions contained in the feed.
     /// </summary>
-    public abstract class PackageIndexFile : ISleetService, IPackagesLookup
+    public class PackageIndexFile : ISleetService, IPackagesLookup
     {
         private readonly SleetContext _context;
-        private readonly ISleetFile _file;
 
-        public abstract string Name { get; }
+        public string Name { get; }
 
-        public PackageIndexFile(SleetContext context, string path)
+        private ISleetFile Index { get; set; }
+
+        public PackageIndexFile(SleetContext context, string path, string name)
         {
-            _context = context;
-            _file = context.Source.Get(path);
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            Index = context.Source.Get(path);
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         public async Task AddPackageAsync(PackageInput packageInput)
@@ -180,14 +187,6 @@ namespace Sleet
             }
 
             return Exists(package.Id, package.Version);
-        }
-
-        private ISleetFile Index
-        {
-            get
-            {
-                return _file;
-            }
         }
 
         private async Task<JObject> GetJson()

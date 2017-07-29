@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -154,11 +154,6 @@ namespace Sleet
                 }
             }
 
-            if (files.Any(file => file.IndexOf(".symbols.nupkg") > -1))
-            {
-                throw new ArgumentException("Symbol packages are not supported.");
-            }
-
             foreach (var file in files)
             {
                 // Validate package
@@ -178,6 +173,7 @@ namespace Sleet
                         Identity = package.GetIdentity(),
                         Package = package,
                         Zip = zip,
+                        IsSymbolsPackage = SymbolsUtility.IsSymbolsPackage(zip, file)
                     };
                 }
                 catch
