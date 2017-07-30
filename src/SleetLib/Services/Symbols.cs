@@ -18,14 +18,29 @@ namespace Sleet
 
         public string Name => nameof(Symbols);
 
+        public PackageIndexFile PackageIndex { get; }
+
+        public PackageIndexFile SymbolsPackageIndex { get; }
+
         public Symbols(SleetContext context)
         {
             _context = context;
+            PackageIndex = new PackageIndexFile(context, SymbolsIndexUtility.PackageIndexPath, "NonSymbolsPackageIndex");
+            SymbolsPackageIndex = new PackageIndexFile(context, SymbolsIndexUtility.SymbolsPackageIndexPath, "SymbolsPackageIndex");
         }
 
         public async Task AddPackageAsync(PackageInput packageInput)
         {
             await AddAssembliesAsync(packageInput);
+
+            if (packageInput.IsSymbolsPackage)
+            {
+                await SymbolsPackageIndex.AddPackageAsync(packageInput);
+            }
+            else
+            {
+                await PackageIndex.AddPackageAsync(packageInput);
+            }
         }
 
         public Task RemovePackageAsync(PackageIdentity package)
@@ -35,6 +50,10 @@ namespace Sleet
 
         private async Task AddFileIfNotExists(ZipArchiveEntry entry, ISleetFile file, PackageInput packageInput)
         {
+            // Assembly -> Package indexes
+            var packageIndex = SymbolsIndexUtility.GetPackageIndexFile(_context, packageInput.Identity);
+            var symbolsPackageIndex = SymbolsIndexUtility.GetSymbolsPackageIndexFile(_context, packageInput.Identity);
+
             if (await file.Exists(_context.Log, _context.Token) == false)
             {
                 // Write assembly
@@ -43,18 +62,17 @@ namespace Sleet
                     await file.Write(stream, _context.Log, _context.Token);
                 }
 
-                // Write indexes, an empty index should file should exist even if it is not used.
-                var packageIndex = SymbolsIndexUtility.GetPackageIndexFile(_context, packageInput.Identity);
-                var symbolsPackageIndex = SymbolsIndexUtility.GetSymbolsPackageIndexFile(_context, packageInput.Identity);
+                await packageIndex.Init();
+                await symbolsPackageIndex.Init();
+            }
 
-                if (packageInput.IsSymbolsPackage)
-                {
-                    await symbolsPackageIndex.AddPackageAsync(packageInput);
-                }
-                else
-                {
-                    await packageIndex.AddPackageAsync(packageInput);
-                }
+            if (packageInput.IsSymbolsPackage)
+            {
+                await symbolsPackageIndex.AddPackageAsync(packageInput);
+            }
+            else
+            {
+                await packageIndex.AddPackageAsync(packageInput);
             }
         }
 

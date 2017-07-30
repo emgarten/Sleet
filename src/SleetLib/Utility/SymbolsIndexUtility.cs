@@ -11,6 +11,10 @@ namespace Sleet
 {
     public static class SymbolsIndexUtility
     {
+        public static readonly string PackageIndexPath = "symbols/packages/packageindex.json";
+
+        public static readonly string SymbolsPackageIndexPath = "symbols/packages/symbolspackageindex.json";
+
         public static string GetIndexRootFolderPath(PackageIdentity identity)
         {
             return $"/symbols/packages/{identity.Id}/{identity.Version.ToNormalizedString()}/".ToLowerInvariant();
