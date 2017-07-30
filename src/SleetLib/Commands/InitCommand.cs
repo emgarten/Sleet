@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,6 +72,9 @@ namespace Sleet
 
             // Create package index
             noChanges &= !await CreatePackageIndexAsync(source, log, token, now, serviceIndexJson);
+
+            // Create symbols
+            noChanges &= !await CreateSymbolsAsync(source, log, token, now, serviceIndexJson);
 
             // Additional entries
             AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
@@ -207,19 +210,42 @@ namespace Sleet
 
             if (!await packageIndex.Exists(log, token))
             {
-                var json = new JObject
-                {
-                    { "created", new JValue(now.GetDateString()) },
-                    { "lastEdited", new JValue(now.GetDateString()) },
-
-                    { "packages", new JObject() }
-                };
+                var json = PackageIndexFile.GetEmptyJson(now);
                 await packageIndex.Write(json, log, token);
 
                 return true;
             }
 
             return false;
+        }
+
+        private static async Task<bool> CreateSymbolsAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
+        {
+            var indexes = new[]
+            {
+                // .nupkg packages
+                source.Get(SymbolsIndexUtility.PackageIndexPath),
+
+                // .symbols.nupkg packages
+                source.Get(SymbolsIndexUtility.SymbolsPackageIndexPath)
+            };
+
+            var result = true;
+
+            foreach (var index in indexes)
+            {
+                if (!await index.Exists(log, token))
+                {
+                    var json = PackageIndexFile.GetEmptyJson(now);
+                    await index.Write(json, log, token);
+                }
+                else
+                {
+                    result = false;
+                }
+            }
+
+            return result;
         }
     }
 }

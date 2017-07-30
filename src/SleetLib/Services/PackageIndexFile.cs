@@ -189,6 +189,29 @@ namespace Sleet
             return Exists(package.Id, package.Version);
         }
 
+        /// <summary>
+        /// Create a new file.
+        /// </summary>
+        public Task Init()
+        {
+            var json = GetEmptyJson(_context.OperationStart);
+
+            return Index.Write(json, _context.Log, _context.Token);
+        }
+
+        /// <summary>
+        /// Empty json file.
+        /// </summary>
+        public static JObject GetEmptyJson(DateTimeOffset createdDate)
+        {
+            return new JObject
+                {
+                    { "created", new JValue(createdDate.GetDateString()) },
+                    { "lastEdited", new JValue(createdDate.GetDateString()) },
+                    { "packages", new JObject() }
+                };
+        }
+
         private async Task<JObject> GetJson()
         {
             var file = Index;
