@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -54,31 +54,6 @@ namespace Sleet.Test
             {
                 yield return file;
             }
-        }
-
-        public static void WalkJson(string root, Action<FileInfo, JObject, string> walker)
-        {
-            var valid = false;
-
-            foreach (var file in GetJsonFiles(root))
-            {
-                var json = JsonUtility.LoadJson(file);
-
-                var tokens = json.Descendants().ToArray();
-
-                foreach (var token in tokens)
-                {
-                    if (token.Type == JTokenType.String
-                        || token.Type == JTokenType.Uri)
-                    {
-                        valid = true;
-                        walker(file, json, token.Value<string>());
-                    }
-                }
-            }
-
-            // Ensure that the input was valid
-            Assert.True(valid);
         }
     }
 }

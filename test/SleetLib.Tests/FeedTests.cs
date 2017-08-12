@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -99,7 +99,7 @@ namespace Sleet.Test
                     Assert.Equal(1, autoCompletePackages.Count);
 
                     // Walk json to check for bad urls
-                    TestUtility.WalkJson(target.Root, (file, json, toCheck) =>
+                    await TestUtility.WalkJsonAsync(target.Root, (file, json, toCheck) =>
                     {
                         // Check only URLs found
                         if (toCheck.IndexOf("://") > -1)

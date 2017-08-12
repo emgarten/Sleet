@@ -1,8 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -55,28 +58,76 @@ namespace Sleet
             return json;
         }
 
-        public static void SaveJson(FileInfo file, JObject json)
+        /// <summary>
+        /// Compress and remove indentation for json data
+        /// </summary>
+        public static async Task<MemoryStream> GZipAndMinifyAsync(Stream input)
+        {
+            var memoryStream = new MemoryStream();
+
+            if (input.CanSeek)
+            {
+                input.Position = 0;
+            }
+
+            var json = await LoadJsonAsync(input);
+
+            using (var zipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+            {
+                await WriteJsonAsync(json, zipStream);
+                await zipStream.FlushAsync();
+                await memoryStream.FlushAsync();
+            }
+
+            memoryStream.Position = 0;
+
+            return memoryStream;
+        }
+
+        public static async Task SaveJsonAsync(FileInfo file, JObject json)
         {
             if (File.Exists(file.FullName))
             {
                 File.Delete(file.FullName);
             }
 
-            using (var writer = new StreamWriter(File.OpenWrite(file.FullName), Encoding.UTF8))
+            using (var stream = File.OpenWrite(file.FullName))
             {
-                // TODO: make this minified after testing
-                writer.Write(json.ToString(Formatting.Indented));
+                await WriteJsonAsync(json, stream);
+            }
+        }
+
+        public static async Task WriteJsonAsync(JObject json, Stream stream)
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 8192, leaveOpen: false))
+            using (var jsonWriter = new JsonTextWriter(writer))
+            {
+                jsonWriter.Formatting = Formatting.None;
+                await json.WriteToAsync(jsonWriter);
+
+                await writer.FlushAsync();
+                await jsonWriter.FlushAsync();
+            }
+
+            if (stream.CanSeek)
+            {
+                stream.Position = 0;
             }
         }
 
         /// <summary>
         /// True if the file can be loaded as a JObject.
         /// </summary>
-        public static bool IsJson(string path)
+        public static async Task<bool> IsJsonAsync(string path)
         {
             try
             {
-                var json = LoadJson(path);
+                var json = await LoadJsonAsync(path);
                 return true;
             }
             catch
@@ -85,37 +136,45 @@ namespace Sleet
             }
         }
 
-        public static JObject LoadJson(FileInfo file)
+        public static Task<JObject> LoadJsonAsync(FileInfo file)
         {
-            return LoadJson(file.FullName);
+            return LoadJsonAsync(file.FullName);
         }
 
-        public static JObject LoadJson(string path)
+        public static async Task<JObject> LoadJsonAsync(string path)
         {
+            Debug.Assert(File.Exists(path), "File must exist");
+
+            JObject json = null;
+
             using (var stream = File.OpenRead(path))
             {
-                return LoadJson(stream);
+                json = await LoadJsonAsync(stream);
             }
+
+            return json;
         }
 
-        public static JObject LoadJson(Stream stream)
+        public static async Task<JObject> LoadJsonAsync(Stream stream)
         {
-            JObject json = null;
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
 
             using (var reader = new StreamReader(stream))
             using (var jsonReader = new JsonTextReader(reader))
             {
                 jsonReader.DateParseHandling = DateParseHandling.None;
 
-                json = JObject.Load(jsonReader);
+                var json = await JObject.LoadAsync(jsonReader);
+                return json;
             }
-
-            return json;
         }
 
-        public static JObject GetContext(string name)
+        public static async Task<JObject> GetContextAsync(string name)
         {
-            var json = LoadJson(TemplateUtility.GetResource($"context{name}.json"));
+            var json = await LoadJsonAsync(TemplateUtility.GetResource($"context{name}.json"));
             return (JObject)json["@context"];
         }
 

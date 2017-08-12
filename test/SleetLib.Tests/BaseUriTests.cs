@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -27,7 +27,7 @@ namespace Sleet.Test
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
 
                 var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
-                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
@@ -46,7 +46,7 @@ namespace Sleet.Test
 
                 foreach (var file in files)
                 {
-                    var fileJson = JsonUtility.LoadJson(new FileInfo(file));
+                    var fileJson = await JsonUtility.LoadJsonAsync(new FileInfo(file));
 
                     foreach (var entityId in GetEntityIds(fileJson))
                     {
