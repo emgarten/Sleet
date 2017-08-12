@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -408,7 +408,7 @@ namespace Sleet.Integration.Test
                 Assert.Equal(testPackage.Nuspec.Title, resultArray[0].Title);
                 Assert.True(resultArray[0].Published.Value.Year == DateTime.UtcNow.Year);
                 Assert.Equal("https://localhost:8080/testFeed/", resultArray[0].ReportAbuseUrl.AbsoluteUri);
-                Assert.Equal(true, resultArray[0].RequireLicenseAcceptance);
+                Assert.True(resultArray[0].RequireLicenseAcceptance);
 
                 Assert.Equal(testPackage2.Nuspec.Authors, resultArray[1].Authors);
                 Assert.Equal(testPackage2.Nuspec.Description, resultArray[1].Description);
@@ -424,7 +424,7 @@ namespace Sleet.Integration.Test
                 Assert.Equal(testPackage2.Nuspec.Title, resultArray[1].Title);
                 Assert.True(resultArray[1].Published.Value.Year == DateTime.UtcNow.Year);
                 Assert.Equal("https://localhost:8080/testFeed/", resultArray[1].ReportAbuseUrl.AbsoluteUri);
-                Assert.Equal(true, resultArray[1].RequireLicenseAcceptance);
+                Assert.True(resultArray[1].RequireLicenseAcceptance);
             }
         }
 
@@ -602,7 +602,7 @@ namespace Sleet.Integration.Test
                 Assert.True(success, log.ToString());
 
                 Assert.Equal("https://localhost:8080/testFeed/flatcontainer/packagea/1.0.0/packagea.1.0.0.nupkg", dependencyPackageNet46.DownloadUri.AbsoluteUri);
-                Assert.Equal(true, dependencyPackageNet46.Listed);
+                Assert.True(dependencyPackageNet46.Listed);
                 Assert.Equal("packageA", dependencyPackageNet46.Id);
                 Assert.Equal("1.0.0", dependencyPackageNet46.Version.ToNormalizedString());
                 Assert.Equal("", depString46);

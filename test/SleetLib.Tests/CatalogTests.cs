@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -112,7 +112,7 @@ namespace Sleet.Test
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;
 
                     // Assert
-                    Assert.True(actual["@id"].ToString().EndsWith(".json"));
+                    Assert.EndsWith(".json", actual["@id"].ToString());
                     Assert.Contains("/catalog/data/", actual["@id"].ToString());
                     Assert.Equal(testPackage.Nuspec.Authors, actual["authors"].ToString());
                     Assert.Equal(testPackage.Nuspec.Copyright, actual["copyright"].ToString());
@@ -128,7 +128,7 @@ namespace Sleet.Test
                     Assert.Equal("tagA", ((JArray)actual["tags"])[0].ToString());
                     Assert.Equal("tagB", ((JArray)actual["tags"])[1].ToString());
                     Assert.Equal("tagC", ((JArray)actual["tags"])[2].ToString());
-                    Assert.True(actual["packageContent"].ToString().EndsWith(".nupkg"));
+                    Assert.EndsWith(".nupkg", actual["packageContent"].ToString());
 
                     Assert.Null(dependencyGroups[0]["targetFramework"]);
                     Assert.Equal("packageB", ((JArray)dependencyGroups[0]["dependencies"]).Single()["id"]);
@@ -200,7 +200,7 @@ namespace Sleet.Test
                     var tags = actual["tags"] as JArray;
 
                     // Assert
-                    Assert.True(actual["@id"].ToString().EndsWith(".json"));
+                    Assert.EndsWith(".json", actual["@id"].ToString());
                     Assert.Equal(string.Empty, actual["authors"].ToString());
                     Assert.Equal(string.Empty, actual["copyright"].ToString());
                     Assert.Equal(string.Empty, actual["description"].ToString());
@@ -212,11 +212,11 @@ namespace Sleet.Test
                     Assert.Null(actual["title"]);
                     Assert.Equal(testPackage.Nuspec.Id, actual["id"].ToString());
                     Assert.Equal(testPackage.Nuspec.Version, actual["version"].ToString());
-                    Assert.True(actual["packageContent"].ToString().EndsWith(".nupkg"));
+                    Assert.EndsWith(".nupkg", actual["packageContent"].ToString());
 
-                    Assert.Equal(0, dependencyGroups.Count);
-                    Assert.Equal(0, frameworkAssemblyGroups.Count);
-                    Assert.Equal(0, tags.Count);
+                    Assert.Empty(dependencyGroups);
+                    Assert.Empty(frameworkAssemblyGroups);
+                    Assert.Empty(tags);
                 }
             }
         }
