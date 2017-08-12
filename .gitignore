@@ -6,7 +6,7 @@
 .ci 
 artifacts/
 sleet.json
-launchSettings.json
+*launchSettings.json
 
 # User-specific files
 *.suo
