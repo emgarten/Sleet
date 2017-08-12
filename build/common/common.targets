@@ -1,4 +1,4 @@
-﻿<Project ToolsVersion="15.0">
+<Project ToolsVersion="15.0">
   <!-- MSBuild generated props -->
   <Import Project="$(MSBuildArtifactsDirectory)*.targets" />
 
@@ -8,14 +8,30 @@
   </PropertyGroup>
 
   <!-- Compiler flags -->
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <DefineConstants>$(DefineConstants);IS_DESKTOP</DefineConstants>
-    <IsDesktop>true</IsDesktop>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' OR '$(TargetFramework)' == 'netstandard1.3' ">
-    <DefineConstants>$(DefineConstants);IS_CORECLR</DefineConstants>
-    <IsCore>true</IsCore>
-  </PropertyGroup>
+  <Choose>
+    <When Condition="$(TargetFramework.Contains('net4'))">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);IS_DESKTOP</DefineConstants>
+        <IsDesktop>true</IsDesktop>
+      </PropertyGroup>
+    </When>
+    <When Condition="$(TargetFramework.Contains('netstandard')) OR $(TargetFramework.Contains('netcoreapp'))">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);IS_CORECLR</DefineConstants>
+        <IsCore>true</IsCore>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <IsFrameworkInvalid Condition=" '$(TargetFramework)' != '' ">true</IsFrameworkInvalid>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  
+  <!-- Verify that the framework was identified above -->
+  <Target Name="VerifyTargetFrameworkPlatform" BeforeTargets="Build;Rebuild" Condition=" '$(IsFrameworkInvalid)' == 'true' ">
+    <Error Message="Unknown target framework: $(TargetFramework), update build scripts." />
+  </Target>
 
   <!-- Symbols -->
   <ItemGroup Condition=" '$(PackProject)' == 'true' AND '$(SkipSourceLink)' != 'true' ">
@@ -59,6 +75,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSDKVersion)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitRunnerVisualStudioVersion)" />
     <PackageReference Include="xunit" Version="$(XunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(XunitAnalyzersVersion)" />
   </ItemGroup>
   
   <!-- Sign -->

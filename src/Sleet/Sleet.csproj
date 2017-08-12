@@ -2,11 +2,11 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
 
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
-    <TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.0;net46</TargetFrameworks>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
-    <TargetFrameworks>netcoreapp1.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -36,7 +36,7 @@
 
     <PropertyGroup>
       <PublishToolDirectory>$(ArtifactsDirectory)dotnettoolassemblies\$(AssemblyName)\</PublishToolDirectory>
-      <PublishToolInputDirectory>$(ArtifactsDirectory)proj\$(AssemblyName)\bin\$(Configuration)\netcoreapp1.0\</PublishToolInputDirectory>
+      <PublishToolInputDirectory>$(ArtifactsDirectory)proj\$(AssemblyName)\bin\$(Configuration)\netcoreapp2.0\</PublishToolInputDirectory>
       <PublishToolInputDirectory Condition=" '$(IsXPlat)' != 'true' ">$(PublishToolInputDirectory)win7-x64\</PublishToolInputDirectory>
     </PropertyGroup>
 
@@ -66,16 +66,7 @@
     <Error Condition=" '$(IsXPlat)' != 'true' AND '$(MergedExePathExists)' != 'true' " Text="Missing $(MergedExePath)" />
 
     <!-- Pack Sleet -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)"
-             Targets="Pack"
-			 Condition=" '$(IsXPlat)' != 'true' "
-             Properties="Configuration=$(Configuration);
-                         PackageOutputPath=$(NupkgOutputDirectory);
-                         NoPackageAnalysis=true;
-                         IncludeSymbols=false;
-                         IsTool=true;
-                         NuspecFile=Sleet.nuspec;
-                         NuspecProperties=$(NuspecProperties)">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Condition=" '$(IsXPlat)' != 'true' " Properties="Configuration=$(Configuration);&#xD;&#xA;                         PackageOutputPath=$(NupkgOutputDirectory);&#xD;&#xA;                         NoPackageAnalysis=true;&#xD;&#xA;                         IncludeSymbols=false;&#xD;&#xA;                         IsTool=true;&#xD;&#xA;                         NuspecFile=Sleet.nuspec;&#xD;&#xA;                         NuspecProperties=$(NuspecProperties)">
     </MSBuild>
   </Target>
 
