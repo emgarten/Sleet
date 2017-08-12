@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -131,25 +131,18 @@ namespace Sleet
         /// Converts a stream to a MemoryStream.
         /// Disposes of the original stream.
         /// </summary>
-        public static MemoryStream AsMemoryStream(this Stream stream)
-        {
-            var mem = new MemoryStream();
-
-            using (stream)
-            {
-                stream.CopyTo(mem);
-            }
-
-            mem.Position = 0;
-            return mem;
-        }
-
-        /// <summary>
-        /// Converts a stream to a MemoryStream.
-        /// Disposes of the original stream.
-        /// </summary>
         public static async Task<MemoryStream> AsMemoryStreamAsync(this Stream stream)
         {
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            if (stream.CanSeek)
+            {
+                stream.Position = 0;
+            }
+
             var mem = new MemoryStream();
 
             using (stream)

@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -16,7 +17,7 @@ namespace Sleet.Test
     public class CatalogTests
     {
         [Fact]
-        public void CatalogTest_CreatePackageDetails()
+        public async Task CatalogTest_CreatePackageDetails()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
@@ -106,7 +107,7 @@ namespace Sleet.Test
                     };
 
                     // Act
-                    var actual = CatalogUtility.CreatePackageDetails(input, catalog.CatalogBaseURI, context.CommitId);
+                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, context.CommitId);
 
                     var dependencyGroups = actual["dependencyGroups"] as JArray;
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;
@@ -154,7 +155,7 @@ namespace Sleet.Test
         }
 
         [Fact]
-        public void CatalogTest_CreatePackageDetails_Minimal()
+        public async Task CatalogTest_CreatePackageDetails_Minimal()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
@@ -193,7 +194,7 @@ namespace Sleet.Test
                     };
 
                     // Act
-                    var actual = CatalogUtility.CreatePackageDetails(input, catalog.CatalogBaseURI, context.CommitId);
+                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, context.CommitId);
 
                     var dependencyGroups = actual["dependencyGroups"] as JArray;
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;

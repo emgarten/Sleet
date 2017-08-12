@@ -35,7 +35,7 @@ namespace Sleet.Integration.Test
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
 
                 var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
-                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
                 var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, "local");
@@ -83,7 +83,7 @@ namespace Sleet.Integration.Test
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
 
                 var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
-                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
                 var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, "local");
@@ -132,7 +132,7 @@ namespace Sleet.Integration.Test
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
 
                 var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
-                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
@@ -175,7 +175,7 @@ namespace Sleet.Integration.Test
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
 
                 var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
-                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
@@ -225,7 +225,7 @@ namespace Sleet.Integration.Test
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
 
                 var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
-                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
@@ -279,7 +279,7 @@ namespace Sleet.Integration.Test
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
 
                 var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
-                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
@@ -369,7 +369,7 @@ namespace Sleet.Integration.Test
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
 
                 var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
-                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 var zipFile2 = testPackage2.Save(packagesFolder.Root);
@@ -491,7 +491,7 @@ namespace Sleet.Integration.Test
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
 
                 var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
-                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 var zipFile2 = testPackage2.Save(packagesFolder.Root);
@@ -568,7 +568,7 @@ namespace Sleet.Integration.Test
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
 
                 var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
-                JsonUtility.SaveJson(new FileInfo(sleetConfigPath), sleetConfig);
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var zipFile = testPackage.Save(packagesFolder.Root);
 

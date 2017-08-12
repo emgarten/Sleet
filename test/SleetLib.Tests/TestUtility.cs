@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -62,13 +63,13 @@ namespace Sleet.Test
             }
         }
 
-        public static void WalkJson(string root, Action<FileInfo, JObject, string> walker)
+        public static async Task WalkJsonAsync(string root, Action<FileInfo, JObject, string> walker)
         {
             var valid = false;
 
             foreach (var file in GetJsonFiles(root))
             {
-                var json = JsonUtility.LoadJson(file);
+                var json = await JsonUtility.LoadJsonAsync(file);
 
                 var tokens = json.Descendants().ToArray();
 

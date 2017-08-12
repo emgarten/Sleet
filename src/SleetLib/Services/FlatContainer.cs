@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -40,14 +40,7 @@ namespace Sleet
             }
 
             var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, nuspecPath));
-
-            using (var stream = nuspecEntry.Open())
-            using (var ms = new MemoryStream())
-            {
-                stream.CopyTo(ms);
-                ms.Seek(0, SeekOrigin.Begin);
-                await entryFile.Write(ms, _context.Log, _context.Token);
-            }
+            await entryFile.Write(nuspecEntry.Open(), _context.Log, _context.Token);
 
             // Update index
             var indexFile = _context.Source.Get(GetIndexUri(packageInput.Identity.Id));

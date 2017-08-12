@@ -72,7 +72,7 @@ namespace Sleet
             }
         }
 
-        public Task Write(Stream stream, ILogger log, CancellationToken token)
+        public async Task Write(Stream stream, ILogger log, CancellationToken token)
         {
             _downloaded = true;
             _hasChanges = true;
@@ -86,19 +86,20 @@ namespace Sleet
 
                 using (var writeStream = File.OpenWrite(LocalCacheFile.FullName))
                 {
-                    stream.CopyTo(writeStream);
-                    stream.Seek(0, SeekOrigin.Begin);
+                    await stream.CopyToAsync(writeStream);
+                    writeStream.Seek(0, SeekOrigin.Begin);
                 }
             }
-
-            return Task.FromResult(true);
         }
 
         public async Task<JObject> GetJson(ILogger log, CancellationToken token)
         {
-            await EnsureFile(log, token);
+            if (await Exists(log, token) == false)
+            {
+                throw new FileNotFoundException($"File does not exist. Remote: {EntityUri.AbsoluteUri} Local: {LocalCacheFile.FullName}");
+            }
 
-            return JsonUtility.LoadJson(LocalCacheFile);
+            return await JsonUtility.LoadJsonAsync(LocalCacheFile);
         }
 
         public Task Write(JObject json, ILogger log, CancellationToken token)
@@ -111,9 +112,7 @@ namespace Sleet
                 LocalCacheFile.Delete();
             }
 
-            JsonUtility.SaveJson(LocalCacheFile, json);
-
-            return Task.FromResult(true);
+            return JsonUtility.SaveJsonAsync(LocalCacheFile, json);
         }
 
         public void Delete(ILogger log, CancellationToken token)

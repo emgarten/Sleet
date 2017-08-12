@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using NuGet.Packaging.Core;
 
@@ -53,13 +53,11 @@ namespace Sleet
             CatalogBaseURI = catalogBaseURI;
         }
 
-        public Task AddPackageAsync(PackageInput packageInput)
+        public async Task AddPackageAsync(PackageInput packageInput)
         {
             // Create package details page
-            var packageDetails = CatalogUtility.CreatePackageDetails(packageInput, CatalogBaseURI, _context.CommitId);
+            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, _context.CommitId);
             packageInput.PackageDetails = packageDetails;
-
-            return Task.FromResult(true);
         }
 
         public Task RemovePackageAsync(PackageIdentity package)

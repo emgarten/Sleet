@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -51,7 +51,7 @@ namespace Sleet
             packages.Add(newEntry);
 
             // Create index
-            var newIndexJson = CreateIndex(rootUri, packages);
+            var newIndexJson = await CreateIndexAsync(rootUri, packages);
 
             // Write
             await rootFile.Write(newIndexJson, _context.Log, _context.Token);
@@ -60,7 +60,7 @@ namespace Sleet
             var packageUri = GetPackageUri(package.Identity);
             var packageFile = _context.Source.Get(packageUri);
 
-            var packageJson = CreatePackageBlob(package);
+            var packageJson = await CreatePackageBlobAsync(package);
 
             // Write package page
             await packageFile.Write(packageJson, _context.Log, _context.Token);
@@ -109,7 +109,7 @@ namespace Sleet
                 if (packages.Count > 0)
                 {
                     // Create index
-                    var newIndexJson = CreateIndex(rootUri, packages);
+                    var newIndexJson = await CreateIndexAsync(rootUri, packages);
 
                     // Write
                     await rootFile.Write(newIndexJson, _context.Log, _context.Token);
@@ -131,7 +131,7 @@ namespace Sleet
             return Task.FromResult(pages.SelectMany(GetItems).ToList());
         }
 
-        public JObject CreateIndex(Uri indexUri, List<JObject> packageDetails)
+        public async Task<JObject> CreateIndexAsync(Uri indexUri, List<JObject> packageDetails)
         {
             var json = JsonUtility.Create(indexUri,
                 new string[] {
@@ -151,7 +151,7 @@ namespace Sleet
             var pageJson = CreatePage(indexUri, packageDetails);
             itemsArray.Add(pageJson);
 
-            var context = JsonUtility.GetContext("Registration");
+            var context = await JsonUtility.GetContextAsync("Registration");
             json.Add("@context", context);
 
             return JsonLDTokenComparer.Format(json);
@@ -251,7 +251,7 @@ namespace Sleet
             return null;
         }
 
-        public JObject CreatePackageBlob(PackageInput packageInput)
+        public async Task<JObject> CreatePackageBlobAsync(PackageInput packageInput)
         {
             var rootUri = GetPackageUri(packageInput.Identity);
 
@@ -279,7 +279,7 @@ namespace Sleet
 
             json.Add("sleet:catalogEntry", catalogEntry);
 
-            var context = JsonUtility.GetContext("Package");
+            var context = await JsonUtility.GetContextAsync("Package");
             json.Add("@context", context);
 
             return JsonLDTokenComparer.Format(json);

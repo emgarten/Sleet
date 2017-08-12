@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -61,7 +61,7 @@ namespace Sleet
         public async Task AddPackageAsync(PackageInput packageInput)
         {
             // Create package details page
-            var packageDetails = CatalogUtility.CreatePackageDetails(packageInput, CatalogBaseURI, _context.CommitId);
+            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, _context.CommitId);
             var packageDetailsUri = JsonUtility.GetIdUri(packageDetails);
 
             // Add output to the package input for other services to use.
@@ -84,7 +84,7 @@ namespace Sleet
         public async Task RemovePackageAsync(PackageIdentity package)
         {
             // Create package details page for the delete
-            var packageDetails = CatalogUtility.CreateDeleteDetails(package, string.Empty, CatalogBaseURI, _context.CommitId);
+            var packageDetails = await CatalogUtility.CreateDeleteDetailsAsync(package, string.Empty, CatalogBaseURI, _context.CommitId);
             var packageDetailsFile = _context.Source.Get(packageDetails.GetEntityId());
 
             await packageDetailsFile.Write(packageDetails, _context.Log, _context.Token);
@@ -332,7 +332,7 @@ namespace Sleet
             pageCommits.Add(pageCommit);
 
             // Write catalog page
-            var pageJson = CatalogUtility.CreateCatalogPage(RootIndexFile.EntityUri, currentPageUri, pageCommits, _context.CommitId);
+            var pageJson = await CatalogUtility.CreateCatalogPageAsync(RootIndexFile.EntityUri, currentPageUri, pageCommits, _context.CommitId);
 
             await currentPageFile.Write(pageJson, _context.Log, _context.Token);
 

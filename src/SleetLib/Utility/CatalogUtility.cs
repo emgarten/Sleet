@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
@@ -15,7 +16,7 @@ namespace Sleet
         /// <summary>
         /// Create PackageDetails for a delete
         /// </summary>
-        public static JObject CreateDeleteDetails(PackageIdentity package, string reason, Uri catalogBaseURI, Guid commitId)
+        public static async Task<JObject> CreateDeleteDetailsAsync(PackageIdentity package, string reason, Uri catalogBaseURI, Guid commitId)
         {
             var now = DateTimeOffset.UtcNow;
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
@@ -27,7 +28,7 @@ namespace Sleet
             json.Add("commitTimeStamp", now.GetDateString());
             json.Add("sleet:operation", "remove");
 
-            var context = JsonUtility.GetContext("Catalog");
+            var context = await JsonUtility.GetContextAsync("Catalog");
             json.Add("@context", context);
 
             json.Add("id", package.Id);
@@ -44,7 +45,7 @@ namespace Sleet
         /// <summary>
         /// Catalog index page.
         /// </summary>
-        public static JObject CreateCatalogPage(Uri indexUri, Uri rootUri, List<JObject> packageDetails, Guid commitId)
+        public static async Task<JObject> CreateCatalogPageAsync(Uri indexUri, Uri rootUri, List<JObject> packageDetails, Guid commitId)
         {
             var json = JsonUtility.Create(rootUri, "CatalogPage");
             json.Add("commitId", commitId.ToString().ToLowerInvariant());
@@ -62,7 +63,7 @@ namespace Sleet
                 itemArray.Add(entry);
             }
 
-            var context = JsonUtility.GetContext("CatalogPage");
+            var context = await JsonUtility.GetContextAsync("CatalogPage");
             json.Add("@context", context);
 
             return JsonLDTokenComparer.Format(json);
@@ -71,7 +72,7 @@ namespace Sleet
         /// <summary>
         /// Create a PackageDetails page that contains all the package information.
         /// </summary>
-        public static JObject CreatePackageDetails(PackageInput packageInput, Uri catalogBaseURI, Guid commitId)
+        public static async Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Guid commitId)
         {
             var now = DateTimeOffset.UtcNow;
             var package = packageInput.Package;
@@ -87,7 +88,7 @@ namespace Sleet
             json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
             json.Add("sleet:operation", "add");
 
-            var context = JsonUtility.GetContext("Catalog");
+            var context = await JsonUtility.GetContextAsync("Catalog");
             json.Add("@context", context);
 
             json.Add("id", packageInput.Identity.Id);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -8,7 +8,7 @@ namespace Sleet
 {
     public static class CreateConfigCommand
     {
-        public static Task<bool> RunAsync(bool isAzure, bool isLocal, string output, ILogger log)
+        public static async Task<bool> RunAsync(bool isAzure, bool isLocal, string output, ILogger log)
         {
             var outputPath = Directory.GetCurrentDirectory();
 
@@ -27,13 +27,13 @@ namespace Sleet
             if (File.Exists(outputPath))
             {
                 log.LogError($"File already exists {outputPath}");
-                return Task.FromResult(false);
+                return false;
             }
 
             if (!Directory.Exists(Path.GetDirectoryName(outputPath)))
             {
                 log.LogError($"Directory does not exist {Path.GetDirectoryName(outputPath)}");
-                return Task.FromResult(false);
+                return false;
             }
 
             // Create the config template
@@ -70,13 +70,13 @@ namespace Sleet
                 sourcesArray.Add(azureJson);
             }
 
-            JsonUtility.SaveJson(new FileInfo(outputPath), json);
+            await JsonUtility.SaveJsonAsync(new FileInfo(outputPath), json);
 
             log.LogMinimal($"Writing config template to {outputPath}");
 
             log.LogMinimal("Modify this template by changing the name and path for your own feed.");
 
-            return Task.FromResult(true);
+            return true;
         }
     }
 }
