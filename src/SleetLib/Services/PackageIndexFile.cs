@@ -97,31 +97,34 @@ namespace Sleet
         {
             var index = new Dictionary<string, ISet<NuGetVersion>>(StringComparer.OrdinalIgnoreCase);
 
-            var json = await GetJson();
-
-            var packagesNode = json["packages"] as JObject;
-
-            if (packagesNode == null)
+            if (await Index.Exists(_context.Log, _context.Token))
             {
-                throw new InvalidDataException("Packages node missing from sleet.packageindex.json");
-            }
+                var json = await GetJson();
 
-            foreach (var property in packagesNode.Properties())
-            {
-                var versions = (JArray)property.Value;
+                var packagesNode = json["packages"] as JObject;
 
-                foreach (var versionEntry in versions)
+                if (packagesNode == null)
                 {
-                    var packageVersion = NuGetVersion.Parse(versionEntry.ToObject<string>());
-                    var id = property.Name;
+                    throw new InvalidDataException("Packages node missing from sleet.packageindex.json");
+                }
 
-                    if (!index.TryGetValue(id, out ISet<NuGetVersion> packageVersions))
+                foreach (var property in packagesNode.Properties())
+                {
+                    var versions = (JArray)property.Value;
+
+                    foreach (var versionEntry in versions)
                     {
-                        packageVersions = new HashSet<NuGetVersion>();
-                        index.Add(id, packageVersions);
-                    }
+                        var packageVersion = NuGetVersion.Parse(versionEntry.ToObject<string>());
+                        var id = property.Name;
 
-                    packageVersions.Add(packageVersion);
+                        if (!index.TryGetValue(id, out ISet<NuGetVersion> packageVersions))
+                        {
+                            packageVersions = new HashSet<NuGetVersion>();
+                            index.Add(id, packageVersions);
+                        }
+
+                        packageVersions.Add(packageVersion);
+                    }
                 }
             }
 
