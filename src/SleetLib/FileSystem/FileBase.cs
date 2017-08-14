@@ -153,7 +153,7 @@ namespace Sleet
                         log.LogWarning($"Failed to sync '{RootPath}'. Retrying.");
                         log.LogDebug(ex.ToString());
 
-                        Thread.Sleep(5000);
+                        await Task.Delay(5000);
                     }
                 }
             }
