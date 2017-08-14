@@ -277,9 +277,9 @@ namespace Sleet
 
         private class PackageSets
         {
-            public PackageSet Packages { get; set; }
+            public PackageSet Packages { get; set; } = new PackageSet();
 
-            public PackageSet Symbols { get; set; }
+            public PackageSet Symbols { get; set; } = new PackageSet();
         }
 
         private async Task Save(PackageSets index)

@@ -1,5 +1,7 @@
 using System;
 using System.IO.Compression;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
@@ -8,6 +10,8 @@ namespace Sleet
 {
     public class PackageInput : IDisposable
     {
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+
         public string PackagePath { get; set; }
 
         public ZipArchive Zip { get; set; }
@@ -28,6 +32,23 @@ namespace Sleet
         /// </summary>
         public bool IsSymbolsPackage { get; set; }
 
+        /// <summary>
+        /// Run a non-thread safe action on the zip or package reader.
+        /// </summary>
+        public async Task<T> RunWithLockAsync<T>(Func<PackageInput, T> action)
+        {
+            await _semaphore.WaitAsync();
+
+            try
+            {
+                return action(this);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
         public override string ToString()
         {
             var s = $"{Identity.Id} {Identity.Version.ToFullVersionString()}";
@@ -47,6 +68,8 @@ namespace Sleet
 
             Zip?.Dispose();
             Zip = null;
+
+            _semaphore.Dispose();
         }
     }
 }

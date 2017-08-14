@@ -12,7 +12,7 @@ using SleetLib;
 
 namespace Sleet
 {
-    public class Symbols : ISleetService
+    public class Symbols : ISleetService, ISymbolsAddRemovePackages, ISymbolsPackagesLookup
     {
         private readonly SleetContext _context;
 
@@ -28,15 +28,28 @@ namespace Sleet
 
         public async Task AddPackageAsync(PackageInput packageInput)
         {
-            await AddAssembliesAsync(packageInput);
+            // Read dll/pdb files from the package.
+            var assemblies = await GetAssembliesAsync(packageInput);
 
-            if (packageInput.IsSymbolsPackage)
+            if (assemblies.Count > 0)
             {
-                await PackageIndex.AddSymbolsPackageAsync(packageInput);
+                var tasks = new List<Task>();
+
+                // Add the id/version to the package index.
+                tasks.Add(PackageIndex.AddPackageAsync(packageInput));
+
+                // Add dll/pdb files to the feed.
+                tasks.AddRange(assemblies.Select(AddAssemblyAsync));
+
+                // Add index of all dll/pdb files added for the package.
+                tasks.Add(AddAssemblyIndexAsync(packageInput.Identity, assemblies, isSymbolsPackage: false));
+
+                // Wait for everything to finish
+                await Task.WhenAll(tasks);
             }
             else
             {
-                await PackageIndex.AddPackageAsync(packageInput);
+                await _context.Log.LogAsync(LogLevel.Verbose, $"No files found that could be added to the symbols feed. Skipping package {packageInput.Identity}");
             }
         }
 
@@ -45,34 +58,37 @@ namespace Sleet
             return Task.FromResult<bool>(false);
         }
 
-        private Task AddFileIndexEntryIfNotExists()
+        public async Task AddSymbolsPackageAsync(PackageInput packageInput)
         {
-            return Task.FromResult(0);
+            await PackageIndex.AddSymbolsPackageAsync(packageInput);
         }
 
-        private async Task AddFileIfNotExists(ZipArchiveEntry entry, ISleetFile file, PackageInput packageInput)
+        public Task RemoveSymbolsPackageAsync(PackageIdentity package)
         {
-            // Assembly -> Package indexes
-            var packageIndex = SymbolsIndexUtility.GetPackageIndexFile(_context, packageInput.Identity);
+            throw new NotImplementedException();
+        }
+
+        public Task<ISet<PackageIdentity>> GetSymbolsPackagesAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ISet<PackageIdentity>> GetSymbolsPackagesByIdAsync(string packageId)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task AddAssemblyAsync(PackageFile assembly)
+        {
+            var file = _context.Source.Get(SymbolsIndexUtility.GetAssemblyFilePath(assembly.FileName, assembly.Hash));
 
             if (await file.Exists(_context.Log, _context.Token) == false)
             {
                 // Write assembly
-                using (var stream = await entry.Open().AsMemoryStreamAsync())
+                using (var stream = await assembly.ZipEntry.Open().AsMemoryStreamAsync())
                 {
                     await file.Write(stream, _context.Log, _context.Token);
                 }
-
-                await packageIndex.Init();
-            }
-
-            if (packageInput.IsSymbolsPackage)
-            {
-                await packageIndex.AddSymbolsPackageAsync(packageInput);
-            }
-            else
-            {
-                await packageIndex.AddPackageAsync(packageInput);
             }
         }
 
@@ -83,19 +99,20 @@ namespace Sleet
             return _context.Source.Get($"/symbols/{symbolsPath}");
         }
 
-        private async Task AddAssembliesAsync(PackageInput packageInput)
+        private Task AddAssemblyIndexAsync(PackageIdentity package, List<PackageFile> assemblies, bool isSymbolsPackage)
         {
-            var files = await GetAssembliesAsync(packageInput);
+            var path = SymbolsIndexUtility.GetAssemblyPackageIndexPath(package);
+            var file = _context.Source.Get(path);
 
-            foreach (var file in files)
-            {
-                await AddFileIfNotExists(file.Value, file.Key, packageInput);
-            }
+            // TODO: implement
+            throw new NotImplementedException();
+
+            //return Task.FromResult(0);
         }
 
-        private async Task<List<KeyValuePair<ISleetFile, ZipArchiveEntry>>> GetAssembliesAsync(PackageInput packageInput)
+        private async Task<List<PackageFile>> GetAssembliesAsync(PackageInput packageInput)
         {
-            var result = new List<KeyValuePair<ISleetFile, ZipArchiveEntry>>();
+            var result = new List<PackageFile>();
 
             var assemblyFiles = packageInput.Zip.Entries
                 .Where(e => e.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
@@ -140,20 +157,37 @@ namespace Sleet
                 {
                     // Add .dll
                     var fileInfo = new FileInfo(assembly.FullName);
-                    var file = GetFile(fileInfo.Name, assemblyHash);
-                    result.Add(new KeyValuePair<ISleetFile, ZipArchiveEntry>(file, assembly));
+                    result.Add(new PackageFile()
+                    {
+                        FileName = fileInfo.Name,
+                        Hash = assemblyHash,
+                        ZipEntry = assembly
+                    });
 
                     // Add .pdb
                     if (pdbEntry != null)
                     {
                         var pdbFileInfo = new FileInfo(pdbEntry.FullName);
-                        var pdbFile = GetFile(pdbFileInfo.Name, pdbHash);
-                        result.Add(new KeyValuePair<ISleetFile, ZipArchiveEntry>(pdbFile, pdbEntry));
+                        result.Add(new PackageFile()
+                        {
+                            FileName = pdbFileInfo.Name,
+                            Hash = pdbHash,
+                            ZipEntry = pdbEntry
+                        });
                     }
                 }
             }
 
             return result;
+        }
+
+        private class PackageFile
+        {
+            public string FileName { get; set; }
+
+            public string Hash { get; set; }
+
+            public ZipArchiveEntry ZipEntry { get; set; }
         }
     }
 }

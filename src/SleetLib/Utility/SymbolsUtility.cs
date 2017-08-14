@@ -14,12 +14,20 @@ namespace Sleet
         // SymbolLib.pdb/4B26B9A60D384F90855C3A6196C6C8781/SymbolLib.pdb
         public static string GetSymbolsServerPath(string fileName, string hash)
         {
+            var root = GetSymbolsServerDirectoryPath(fileName, hash);
+
+            return $"{root}{fileName}";
+        }
+
+        // SymbolLib.pdb/4B26B9A60D384F90855C3A6196C6C8781/
+        public static string GetSymbolsServerDirectoryPath(string fileName, string hash)
+        {
             if (string.IsNullOrEmpty(fileName) || fileName.IndexOf('.') == -1 || fileName.IndexOf('/') > -1)
             {
                 throw new ArgumentException($"Invalid file name: {fileName}");
             }
 
-            return $"{fileName}/{hash}/{fileName}";
+            return $"{fileName}/{hash}/";
         }
 
         /// <summary>
