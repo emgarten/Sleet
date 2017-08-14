@@ -6,8 +6,10 @@ namespace Sleet
     public class PackageIndex : PackageIndexFile, ISleetService, IPackagesLookup
     {
         public PackageIndex(SleetContext context)
-            : base(context, "/sleet.packageindex.json", nameof(PackageIndex))
+            : base(context, "/sleet.packageindex.json")
         {
         }
+
+        public string Name => nameof(PackageIndex);
     }
 }

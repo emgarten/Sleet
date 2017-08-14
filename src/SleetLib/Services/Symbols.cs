@@ -20,13 +20,10 @@ namespace Sleet
 
         public PackageIndexFile PackageIndex { get; }
 
-        public PackageIndexFile SymbolsPackageIndex { get; }
-
         public Symbols(SleetContext context)
         {
             _context = context;
-            PackageIndex = new PackageIndexFile(context, SymbolsIndexUtility.PackageIndexPath, "NonSymbolsPackageIndex");
-            SymbolsPackageIndex = new PackageIndexFile(context, SymbolsIndexUtility.SymbolsPackageIndexPath, "SymbolsPackageIndex");
+            PackageIndex = new PackageIndexFile(context, SymbolsIndexUtility.PackageIndexPath);
         }
 
         public async Task AddPackageAsync(PackageInput packageInput)
@@ -35,7 +32,7 @@ namespace Sleet
 
             if (packageInput.IsSymbolsPackage)
             {
-                await SymbolsPackageIndex.AddPackageAsync(packageInput);
+                await PackageIndex.AddSymbolsPackageAsync(packageInput);
             }
             else
             {
@@ -57,7 +54,6 @@ namespace Sleet
         {
             // Assembly -> Package indexes
             var packageIndex = SymbolsIndexUtility.GetPackageIndexFile(_context, packageInput.Identity);
-            var symbolsPackageIndex = SymbolsIndexUtility.GetSymbolsPackageIndexFile(_context, packageInput.Identity);
 
             if (await file.Exists(_context.Log, _context.Token) == false)
             {
@@ -68,12 +64,11 @@ namespace Sleet
                 }
 
                 await packageIndex.Init();
-                await symbolsPackageIndex.Init();
             }
 
             if (packageInput.IsSymbolsPackage)
             {
-                await symbolsPackageIndex.AddPackageAsync(packageInput);
+                await packageIndex.AddSymbolsPackageAsync(packageInput);
             }
             else
             {

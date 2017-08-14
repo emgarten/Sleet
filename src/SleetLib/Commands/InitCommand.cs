@@ -225,9 +225,6 @@ namespace Sleet
             {
                 // .nupkg packages
                 source.Get(SymbolsIndexUtility.PackageIndexPath),
-
-                // .symbols.nupkg packages
-                source.Get(SymbolsIndexUtility.SymbolsPackageIndexPath)
             };
 
             var result = true;

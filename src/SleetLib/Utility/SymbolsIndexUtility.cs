@@ -13,8 +13,6 @@ namespace Sleet
     {
         public static readonly string PackageIndexPath = "symbols/packages/packageindex.json";
 
-        public static readonly string SymbolsPackageIndexPath = "symbols/packages/symbolspackageindex.json";
-
         public static string GetIndexRootFolderPath(PackageIdentity identity)
         {
             return $"/symbols/packages/{identity.Id}/{identity.Version.ToNormalizedString()}/".ToLowerInvariant();
@@ -25,19 +23,9 @@ namespace Sleet
             return GetIndexRootFolderPath(identity) + "package.json";
         }
 
-        public static string GetSymbolsPackageIndexPath(PackageIdentity identity)
-        {
-            return GetIndexRootFolderPath(identity) + "symbolspackage.json";
-        }
-
         public static PackageIndexFile GetPackageIndexFile(SleetContext context, PackageIdentity identity)
         {
-            return new PackageIndexFile(context, GetPackageIndexPath(identity), "PackageIndexForNonSymbolsPackages");
-        }
-
-        public static PackageIndexFile GetSymbolsPackageIndexFile(SleetContext context, PackageIdentity identity)
-        {
-            return new PackageIndexFile(context, GetSymbolsPackageIndexPath(identity), "PackageIndexForNonSymbolsPackages");
+            return new PackageIndexFile(context, GetPackageIndexPath(identity));
         }
     }
 }

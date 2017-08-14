@@ -12,15 +12,13 @@ namespace Sleet
     /// <summary>
     /// PackageIndexFile is a simple json index of all ids and versions contained in the feed.
     /// </summary>
-    public class PackageIndexFile : ISleetService, IPackagesLookup
+    public class PackageIndexFile : IAddRemovePackages, IPackagesLookup, ISymbolsAddRemovePackages, ISymbolsPackagesLookup
     {
         private readonly SleetContext _context;
 
-        public string Name { get; }
+        private ISleetFile File { get; set; }
 
-        private ISleetFile Index { get; set; }
-
-        public PackageIndexFile(SleetContext context, string path, string name)
+        public PackageIndexFile(SleetContext context, string path)
         {
             if (path == null)
             {
@@ -28,44 +26,56 @@ namespace Sleet
             }
 
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            Index = context.Source.Get(path);
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            File = context.Source.Get(path);
         }
 
         public async Task AddPackageAsync(PackageInput packageInput)
         {
             // Load existing index
-            var index = await GetPackageIndex();
+            var sets = await GetPackageSetsAsync();
 
             // Add package
-            if (!index.TryGetValue(packageInput.Identity.Id, out ISet<NuGetVersion> versions))
-            {
-                versions = new HashSet<NuGetVersion>();
-                index.Add(packageInput.Identity.Id, versions);
-            }
+            await sets.Packages.AddPackageAsync(packageInput);
 
-            versions.Add(packageInput.Identity.Version);
-
-            // Create updated index
-            var json = CreateJson(index);
-            var file = Index;
-
-            await file.Write(json, _context.Log, _context.Token);
+            // Write file
+            await Save(sets);
         }
 
         public async Task RemovePackageAsync(PackageIdentity package)
         {
             // Load existing index
-            var index = await GetPackageIndex();
+            var sets = await GetPackageSetsAsync();
 
             // Remove package
-            if (index.TryGetValue(package.Id, out ISet<NuGetVersion> versions) && versions.Remove(package.Version))
+            if (sets.Packages.Index.Remove(package))
             {
                 // Create updated index
-                var json = CreateJson(index);
-                var file = Index;
+                await Save(sets);
+            }
+        }
 
-                await file.Write(json, _context.Log, _context.Token);
+        public async Task AddSymbolsPackageAsync(PackageInput packageInput)
+        {
+            // Load existing index
+            var sets = await GetPackageSetsAsync();
+
+            // Add package
+            await sets.Symbols.AddPackageAsync(packageInput);
+
+            // Write file
+            await Save(sets);
+        }
+
+        public async Task RemoveSymbolsPackageAsync(PackageIdentity package)
+        {
+            // Load existing index
+            var sets = await GetPackageSetsAsync();
+
+            // Remove package
+            if (sets.Symbols.Index.Remove(package))
+            {
+                // Create updated index
+                await Save(sets);
             }
         }
 
@@ -74,30 +84,46 @@ namespace Sleet
         /// </summary>
         public async Task<ISet<PackageIdentity>> GetPackagesAsync()
         {
-            var result = new HashSet<PackageIdentity>();
+            var sets = await GetPackageSetsAsync();
 
-            var packages = await GetPackageIndex();
+            return sets.Packages.Index;
+        }
 
-            foreach (var pair in packages)
-            {
-                foreach (var version in pair.Value)
-                {
-                    result.Add(new PackageIdentity(pair.Key, version));
-                }
-            }
+        public async Task<ISet<PackageIdentity>> GetSymbolsPackagesAsync()
+        {
+            var sets = await GetPackageSetsAsync();
 
-            return result;
+            return sets.Symbols.Index;
+        }
+
+        public async Task<ISet<PackageIdentity>> GetSymbolsPackagesByIdAsync(string packageId)
+        {
+            var packages = await GetSymbolsPackagesAsync();
+
+            return GetSetForId(packageId, packages);
+        }
+
+        public async Task<ISet<NuGetVersion>> GetPackageVersions(string packageId)
+        {
+            var packages = await GetPackagesByIdAsync(packageId);
+            return new SortedSet<NuGetVersion>(packages.Select(e => e.Version));
+        }
+
+        public async Task<ISet<NuGetVersion>> GetSymbolsPackageVersions(string packageId)
+        {
+            var packages = await GetSymbolsPackagesByIdAsync(packageId);
+            return new SortedSet<NuGetVersion>(packages.Select(e => e.Version));
         }
 
         /// <summary>
         /// Returns all packages in the feed.
         /// Id -> Version
         /// </summary>
-        public async Task<IDictionary<string, ISet<NuGetVersion>>> GetPackageIndex()
+        private async Task<PackageSets> GetPackageSetsAsync()
         {
-            var index = new Dictionary<string, ISet<NuGetVersion>>(StringComparer.OrdinalIgnoreCase);
+            var index = new PackageSets();
 
-            if (await Index.Exists(_context.Log, _context.Token))
+            if (await File.Exists(_context.Log, _context.Token))
             {
                 var json = await GetJson();
 
@@ -108,27 +134,38 @@ namespace Sleet
                     throw new InvalidDataException("Packages node missing from sleet.packageindex.json");
                 }
 
-                foreach (var property in packagesNode.Properties())
+                index.Packages = GetPackageSetFromJson(packagesNode);
+
+                var symbolsNode = json["symbols"] as JObject;
+
+                if (symbolsNode == null)
                 {
-                    var versions = (JArray)property.Value;
-
-                    foreach (var versionEntry in versions)
-                    {
-                        var packageVersion = NuGetVersion.Parse(versionEntry.ToObject<string>());
-                        var id = property.Name;
-
-                        if (!index.TryGetValue(id, out ISet<NuGetVersion> packageVersions))
-                        {
-                            packageVersions = new HashSet<NuGetVersion>();
-                            index.Add(id, packageVersions);
-                        }
-
-                        packageVersions.Add(packageVersion);
-                    }
+                    throw new InvalidDataException("Symbols node missing from sleet.packageindex.json");
                 }
+
+                index.Symbols = GetPackageSetFromJson(symbolsNode);
             }
 
             return index;
+        }
+
+        private static PackageSet GetPackageSetFromJson(JObject packagesNode)
+        {
+            var result = new PackageSet();
+
+            foreach (var property in packagesNode.Properties())
+            {
+                var versions = (JArray)property.Value;
+                var id = property.Name;
+
+                foreach (var versionEntry in versions)
+                {
+                    var packageVersion = NuGetVersion.Parse(versionEntry.ToObject<string>());
+                    result.Index.Add(new PackageIdentity(id, packageVersion));
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -136,30 +173,9 @@ namespace Sleet
         /// </summary>
         public async Task<ISet<PackageIdentity>> GetPackagesByIdAsync(string packageId)
         {
-            var results = new HashSet<PackageIdentity>();
-            var versions = await GetPackageVersions(packageId);
+            var sets = await GetPackageSetsAsync();
 
-            foreach (var version in versions)
-            {
-                results.Add(new PackageIdentity(packageId, version));
-            }
-
-            return results;
-        }
-
-        /// <summary>
-        /// Find all versions of a package.
-        /// </summary>
-        public async Task<ISet<NuGetVersion>> GetPackageVersions(string packageId)
-        {
-            var index = await GetPackageIndex();
-
-            if (!index.TryGetValue(packageId, out ISet<NuGetVersion> versions))
-            {
-                versions = new HashSet<NuGetVersion>();
-            }
-
-            return versions;
+            return GetSetForId(packageId, sets.Packages.Index);
         }
 
         /// <summary>
@@ -199,7 +215,7 @@ namespace Sleet
         {
             var json = GetEmptyJson(_context.OperationStart);
 
-            return Index.Write(json, _context.Log, _context.Token);
+            return File.Write(json, _context.Log, _context.Token);
         }
 
         /// <summary>
@@ -211,37 +227,68 @@ namespace Sleet
                 {
                     { "created", new JValue(createdDate.GetDateString()) },
                     { "lastEdited", new JValue(createdDate.GetDateString()) },
-                    { "packages", new JObject() }
+                    { "packages", new JObject() },
+                    { "symbols", new JObject() }
                 };
         }
 
         private async Task<JObject> GetJson()
         {
-            var file = Index;
+            var file = File;
 
             return await file.GetJson(_context.Log, _context.Token);
         }
 
-        private static JObject CreateJson(IDictionary<string, ISet<NuGetVersion>> index)
+        private static JObject CreateJson(PackageSets index)
+        {
+            var json = new JObject
+            {
+                { "packages", CreatePackageSetJson(index.Packages) },
+                { "symbols", CreatePackageSetJson(index.Symbols) }
+            };
+
+            return json;
+        }
+
+        private static JObject CreatePackageSetJson(PackageSet packages)
         {
             var json = new JObject();
 
-            var packages = new JObject();
+            var groups = packages.Index.GroupBy(e => e.Id, StringComparer.OrdinalIgnoreCase).ToList();
 
-            json.Add("packages", packages);
-
-            foreach (var id in index.Keys.OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
+            foreach (var group in groups.OrderBy(e => e.Key, StringComparer.OrdinalIgnoreCase))
             {
-                var versionArray = new JArray(index[id].OrderByDescending(v => v)
-                    .Select(v => v.ToFullString()));
+                var versionArray = new JArray(group.OrderByDescending(e => e.Version)
+                    .Select(e => e.Version.ToFullString()));
 
                 if (versionArray.Count > 0)
                 {
-                    packages.Add(id, versionArray);
+                    json.Add(group.Key, versionArray);
                 }
             }
 
             return json;
+        }
+
+        private static SortedSet<PackageIdentity> GetSetForId(string packageId, IEnumerable<PackageIdentity> packages)
+        {
+            return new SortedSet<PackageIdentity>(packages.Where(e => StringComparer.OrdinalIgnoreCase.Equals(packageId, e.Id)));
+        }
+
+        private class PackageSets
+        {
+            public PackageSet Packages { get; set; }
+
+            public PackageSet Symbols { get; set; }
+        }
+
+        private async Task Save(PackageSets index)
+        {
+            // Create updated index
+            var json = CreateJson(index);
+            var file = File;
+
+            await file.Write(json, _context.Log, _context.Token);
         }
     }
 }
