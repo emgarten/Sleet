@@ -48,6 +48,11 @@ namespace Sleet
             return Task.FromResult<bool>(false);
         }
 
+        private Task AddFileIndexEntryIfNotExists()
+        {
+            return Task.FromResult(0);
+        }
+
         private async Task AddFileIfNotExists(ZipArchiveEntry entry, ISleetFile file, PackageInput packageInput)
         {
             // Assembly -> Package indexes
@@ -85,9 +90,21 @@ namespace Sleet
 
         private async Task AddAssembliesAsync(PackageInput packageInput)
         {
+            var files = await GetAssembliesAsync(packageInput);
+
+            foreach (var file in files)
+            {
+                await AddFileIfNotExists(file.Value, file.Key, packageInput);
+            }
+        }
+
+        private async Task<List<KeyValuePair<ISleetFile, ZipArchiveEntry>>> GetAssembliesAsync(PackageInput packageInput)
+        {
+            var result = new List<KeyValuePair<ISleetFile, ZipArchiveEntry>>();
+
             var assemblyFiles = packageInput.Zip.Entries
-                            .Where(e => e.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                            .ToList();
+                .Where(e => e.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
             var pdbFiles = packageInput.Zip.Entries
                 .Where(e => e.FullName.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
@@ -129,19 +146,19 @@ namespace Sleet
                     // Add .dll
                     var fileInfo = new FileInfo(assembly.FullName);
                     var file = GetFile(fileInfo.Name, assemblyHash);
-
-                    await AddFileIfNotExists(assembly, file, packageInput);
+                    result.Add(new KeyValuePair<ISleetFile, ZipArchiveEntry>(file, assembly));
 
                     // Add .pdb
                     if (pdbEntry != null)
                     {
                         var pdbFileInfo = new FileInfo(pdbEntry.FullName);
                         var pdbFile = GetFile(pdbFileInfo.Name, pdbHash);
-
-                        await AddFileIfNotExists(pdbEntry, pdbFile, packageInput);
+                        result.Add(new KeyValuePair<ISleetFile, ZipArchiveEntry>(pdbFile, pdbEntry));
                     }
                 }
             }
+
+            return result;
         }
     }
 }
