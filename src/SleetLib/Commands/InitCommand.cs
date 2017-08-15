@@ -210,7 +210,7 @@ namespace Sleet
 
             if (!await packageIndex.Exists(log, token))
             {
-                var json = PackageIndexFile.GetEmptyJson(now);
+                var json = PackageIndexFile.GetEmptyJson();
                 await packageIndex.Write(json, log, token);
 
                 return true;
@@ -233,7 +233,7 @@ namespace Sleet
             {
                 if (!await index.Exists(log, token))
                 {
-                    var json = PackageIndexFile.GetEmptyJson(now);
+                    var json = PackageIndexFile.GetEmptyJson();
                     await index.Write(json, log, token);
                 }
                 else

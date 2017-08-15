@@ -18,15 +18,23 @@ namespace Sleet
 
         private ISleetFile File { get; set; }
 
-        public PackageIndexFile(SleetContext context, string path)
-        {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
+        private readonly bool _persistWhenEmpty;
 
+        public PackageIndexFile(SleetContext context, string path)
+            : this(context, path, persistWhenEmpty: false)
+        {
+        }
+
+        public PackageIndexFile(SleetContext context, string path, bool persistWhenEmpty)
+            : this(context, context.Source.Get(path), persistWhenEmpty)
+        {
+        }
+
+        public PackageIndexFile(SleetContext context, ISleetFile file, bool persistWhenEmpty)
+        {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            File = context.Source.Get(path);
+            File = file ?? throw new ArgumentNullException(nameof(file));
+            _persistWhenEmpty = persistWhenEmpty;
         }
 
         public async Task AddPackageAsync(PackageInput packageInput)
@@ -213,7 +221,7 @@ namespace Sleet
         /// </summary>
         public Task Init()
         {
-            var json = GetEmptyJson(_context.OperationStart);
+            var json = GetEmptyJson();
 
             return File.Write(json, _context.Log, _context.Token);
         }
@@ -221,12 +229,10 @@ namespace Sleet
         /// <summary>
         /// Empty json file.
         /// </summary>
-        public static JObject GetEmptyJson(DateTimeOffset createdDate)
+        public static JObject GetEmptyJson()
         {
             return new JObject
                 {
-                    { "created", new JValue(createdDate.GetDateString()) },
-                    { "lastEdited", new JValue(createdDate.GetDateString()) },
                     { "packages", new JObject() },
                     { "symbols", new JObject() }
                 };
