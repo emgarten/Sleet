@@ -26,7 +26,12 @@ namespace Sleet
             PackageIndex = new PackageIndexFile(context, SymbolsIndexUtility.PackageIndexPath);
         }
 
-        public async Task AddPackageAsync(PackageInput packageInput)
+        public Task AddPackageAsync(PackageInput packageInput)
+        {
+            return AddPackageAsync(packageInput, isSymbolsPackage: false);
+        }
+
+        private async Task AddPackageAsync(PackageInput packageInput, bool isSymbolsPackage)
         {
             // Read dll/pdb files from the package.
             var assemblies = await GetAssembliesAsync(packageInput);
@@ -36,13 +41,19 @@ namespace Sleet
                 var tasks = new List<Task>();
 
                 // Add the id/version to the package index.
-                tasks.Add(PackageIndex.AddPackageAsync(packageInput));
+                if (isSymbolsPackage)
+                {
+                    tasks.Add(PackageIndex.AddPackageAsync(packageInput));
+                }
 
                 // Add dll/pdb files to the feed.
                 tasks.AddRange(assemblies.Select(AddAssemblyAsync));
 
+                // Add assembly -> package reverse lookup
+                tasks.AddRange(assemblies.Select(e => AddAssemblyToPackageIndexAsync(packageInput, e, isSymbolsPackage: isSymbolsPackage)));
+
                 // Add index of all dll/pdb files added for the package.
-                tasks.Add(AddAssemblyIndexAsync(packageInput.Identity, assemblies, isSymbolsPackage: false));
+                tasks.AddRange(assemblies.Select(e => AddPackageToAssemblyIndexAsync(packageInput.Identity, assemblies, isSymbolsPackage: isSymbolsPackage)));
 
                 // Wait for everything to finish
                 await Task.WhenAll(tasks);
@@ -58,9 +69,9 @@ namespace Sleet
             return Task.FromResult<bool>(false);
         }
 
-        public async Task AddSymbolsPackageAsync(PackageInput packageInput)
+        public Task AddSymbolsPackageAsync(PackageInput packageInput)
         {
-            await PackageIndex.AddSymbolsPackageAsync(packageInput);
+            return AddPackageAsync(packageInput, isSymbolsPackage: true);
         }
 
         public Task RemoveSymbolsPackageAsync(PackageIdentity package)
@@ -99,20 +110,44 @@ namespace Sleet
             return _context.Source.Get($"/symbols/{symbolsPath}");
         }
 
-        private Task AddAssemblyIndexAsync(PackageIdentity package, List<PackageFile> assemblies, bool isSymbolsPackage)
+        /// <summary>
+        /// file/hash/index -> package
+        /// </summary>
+        private Task AddAssemblyToPackageIndexAsync(PackageInput package, PackageFile assembly, bool isSymbolsPackage)
         {
-            var path = SymbolsIndexUtility.GetAssemblyPackageIndexPath(package);
-            var file = _context.Source.Get(path);
+            var index = new PackageIndexFile(_context, assembly.IndexFile, persistWhenEmpty: false);
 
-            // TODO: implement
-            throw new NotImplementedException();
+            if (isSymbolsPackage)
+            {
+                return index.AddSymbolsPackageAsync(package);
+            }
+            else
+            {
+                return index.AddPackageAsync(package);
+            }
+        }
 
-            //return Task.FromResult(0);
+        private Task AddPackageToAssemblyIndexAsync(PackageIdentity package, List<PackageFile> assemblies, bool isSymbolsPackage)
+        {
+            var path = SymbolsIndexUtility.GetPackageToAssemblyIndexPath(package);
+            var index = new AssetIndexFile(_context, path, package);
+
+            var assets = assemblies.Select(e => new AssetIndexEntry(e.AssetFile.EntityUri, e.IndexFile.EntityUri));
+
+            if (isSymbolsPackage)
+            {
+                return index.AddSymbolsAssetsAsync(assets);
+            }
+            else
+            {
+                return index.AddAssetsAsync(assets);
+            }
         }
 
         private async Task<List<PackageFile>> GetAssembliesAsync(PackageInput packageInput)
         {
             var result = new List<PackageFile>();
+            var seen = new HashSet<ISleetFile>();
 
             var assemblyFiles = packageInput.Zip.Entries
                 .Where(e => e.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
@@ -157,23 +192,27 @@ namespace Sleet
                 {
                     // Add .dll
                     var fileInfo = new FileInfo(assembly.FullName);
-                    result.Add(new PackageFile()
+                    var dllFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyFilePath(fileInfo.Name, assemblyHash));
+                    var indexFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyToPackageIndexPath(fileInfo.Name, assemblyHash));
+
+                    // Avoid duplicates
+                    if (seen.Add(dllFile))
                     {
-                        FileName = fileInfo.Name,
-                        Hash = assemblyHash,
-                        ZipEntry = assembly
-                    });
+                        result.Add(new PackageFile(fileInfo.Name, assemblyHash, assembly, dllFile, indexFile));
+                    }
 
                     // Add .pdb
                     if (pdbEntry != null)
                     {
                         var pdbFileInfo = new FileInfo(pdbEntry.FullName);
-                        result.Add(new PackageFile()
+                        var pdbFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyFilePath(pdbFileInfo.Name, pdbHash));
+                        var pdbIndexFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyToPackageIndexPath(pdbFileInfo.Name, pdbHash));
+
+                        // Avoid duplicates
+                        if (seen.Add(dllFile))
                         {
-                            FileName = pdbFileInfo.Name,
-                            Hash = pdbHash,
-                            ZipEntry = pdbEntry
-                        });
+                            result.Add(new PackageFile(pdbFileInfo.Name, pdbHash, pdbEntry, pdbFile, ));
+                        }
                     }
                 }
             }
@@ -181,13 +220,29 @@ namespace Sleet
             return result;
         }
 
+        /// <summary>
+        /// dll or pdb file
+        /// </summary>
         private class PackageFile
         {
-            public string FileName { get; set; }
+            public string FileName { get; }
 
-            public string Hash { get; set; }
+            public string Hash { get; }
 
-            public ZipArchiveEntry ZipEntry { get; set; }
+            public ZipArchiveEntry ZipEntry { get; }
+
+            public ISleetFile AssetFile { get; }
+
+            public ISleetFile IndexFile { get; }
+
+            public PackageFile(string fileName, string hash, ZipArchiveEntry zipEntry, ISleetFile assetFile, ISleetFile indexFile)
+            {
+                AssetFile = assetFile;
+                FileName = FileName;
+                Hash = hash;
+                ZipEntry = zipEntry;
+                IndexFile = indexFile;
+            }
         }
     }
 }

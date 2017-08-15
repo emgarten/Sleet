@@ -13,33 +13,41 @@ namespace Sleet
     {
         public static readonly string PackageIndexPath = "symbols/packages/index.json";
 
-        public static string GetIndexRootFolderPath(PackageIdentity identity)
+        /// <summary>
+        /// Symbols/packages/id/version/
+        /// </summary>
+        public static string GetPackageDirectory(PackageIdentity identity)
         {
             return $"/symbols/packages/{identity.Id}/{identity.Version.ToNormalizedString()}/".ToLowerInvariant();
         }
 
-        public static string GetAssemblyPackageIndexPath(PackageIdentity identity)
+        /// <summary>
+        /// Symbols/packages/id/version/package.json
+        /// </summary>
+        public static string GetPackageToAssemblyIndexPath(PackageIdentity identity)
         {
-            return GetIndexRootFolderPath(identity) + "package.json";
+            return GetPackageDirectory(identity) + "index.json";
         }
 
+        /// <summary>
+        /// Symbols/packages/id/version/package.json
+        /// </summary>
         public static string GetSymbolsPackageDetailsPath(PackageIdentity identity)
         {
-            return GetIndexRootFolderPath(identity) + "package.json";
+            return GetPackageDirectory(identity) + "package.json";
         }
 
+        /// <summary>
+        /// Symbols/packages/index.json
+        /// </summary>
         public static string GetPackageIndexPath(PackageIdentity identity)
         {
             return $"/symbols/packages/index.json";
         }
 
-        public static PackageIndexFile GetPackageIndexFile(SleetContext context, PackageIdentity identity)
-        {
-            return new PackageIndexFile(context, GetPackageIndexPath(identity));
-        }
-
         /// <summary>
         /// Root path of dll or pdb
+        /// Symbols/file/hash/
         /// </summary>
         public static string GetAssemblyFileDirectory(string fileName, string hash)
         {
@@ -50,6 +58,7 @@ namespace Sleet
 
         /// <summary>
         /// Path to dll or pdb
+        /// Symbols/file/hash/file.dll
         /// </summary>
         public static string GetAssemblyFilePath(string fileName, string hash)
         {
@@ -60,8 +69,9 @@ namespace Sleet
 
         /// <summary>
         /// Package index for a dll or pdb.
+        /// Symbols/file/hash/packages.json
         /// </summary>
-        public static string GetAssemblyPackageIndex(string fileName, string hash)
+        public static string GetAssemblyToPackageIndexPath(string fileName, string hash)
         {
             var symbolsPath = SymbolsUtility.GetSymbolsServerDirectoryPath(fileName, hash);
 
