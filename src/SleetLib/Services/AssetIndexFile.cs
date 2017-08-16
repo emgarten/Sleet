@@ -90,10 +90,13 @@ namespace Sleet
         private async Task<PackageSets> GetAssetIndexEntriesAsync()
         {
             var result = new PackageSets();
-            var json = await GetJsonAsync();
 
-            result.Packages = GetAssets(json, "packages");
-            result.Symbols = GetAssets(json, "symbols");
+            if (await File.Exists(_context.Log, _context.Token))
+            {
+                var json = await GetJsonAsync();
+                result.Packages = GetAssets(json, "packages");
+                result.Symbols = GetAssets(json, "symbols");
+            }
 
             return result;
         }
