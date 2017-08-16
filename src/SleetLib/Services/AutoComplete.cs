@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -108,6 +108,11 @@ namespace Sleet
             }
 
             return ids;
+        }
+
+        public Task FetchAsync()
+        {
+            return RootIndexFile.FetchAsync(_context.Log, _context.Token);
         }
     }
 }

@@ -364,5 +364,11 @@ namespace Sleet
 
             return results;
         }
+
+        public Task FetchAsync()
+        {
+            // Nothing to do
+            return Task.FromResult(true);
+        }
     }
 }

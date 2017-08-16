@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -216,6 +216,11 @@ namespace Sleet
             var allPackages = await GetPackagesAsync();
 
             return new HashSet<PackageIdentity>(allPackages.Where(e => e.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        public Task FetchAsync()
+        {
+            return RootIndexFile.FetchAsync(_context.Log, _context.Token);
         }
     }
 }

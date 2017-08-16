@@ -65,5 +65,10 @@ namespace Sleet
             // No actions needed
             return Task.FromResult(true);
         }
+
+        public Task FetchAsync()
+        {
+            return RootIndexFile.FetchAsync(_context.Log, _context.Token);
+        }
     }
 }
