@@ -211,7 +211,7 @@ namespace Sleet
                         // Avoid duplicates
                         if (seen.Add(dllFile))
                         {
-                            result.Add(new PackageFile(pdbFileInfo.Name, pdbHash, pdbEntry, pdbFile, ));
+                            result.Add(new PackageFile(pdbFileInfo.Name, pdbHash, pdbEntry, pdbFile, pdbIndexFile));
                         }
                     }
                 }
@@ -238,7 +238,7 @@ namespace Sleet
             public PackageFile(string fileName, string hash, ZipArchiveEntry zipEntry, ISleetFile assetFile, ISleetFile indexFile)
             {
                 AssetFile = assetFile;
-                FileName = FileName;
+                FileName = fileName;
                 Hash = hash;
                 ZipEntry = zipEntry;
                 IndexFile = indexFile;
