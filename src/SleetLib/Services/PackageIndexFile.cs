@@ -12,29 +12,21 @@ namespace Sleet
     /// <summary>
     /// PackageIndexFile is a simple json index of all ids and versions contained in the feed.
     /// </summary>
-    public class PackageIndexFile : IAddRemovePackages, IPackagesLookup, ISymbolsAddRemovePackages, ISymbolsPackagesLookup
+    public class PackageIndexFile : IndexFileBase, IAddRemovePackages, IPackagesLookup, ISymbolsAddRemovePackages, ISymbolsPackagesLookup
     {
-        private readonly SleetContext _context;
-
-        private ISleetFile File { get; set; }
-
-        private readonly bool _persistWhenEmpty;
-
         public PackageIndexFile(SleetContext context, string path)
             : this(context, path, persistWhenEmpty: false)
         {
         }
 
         public PackageIndexFile(SleetContext context, string path, bool persistWhenEmpty)
-            : this(context, context.Source.Get(path), persistWhenEmpty)
+            : base(context, path, persistWhenEmpty)
         {
         }
 
         public PackageIndexFile(SleetContext context, ISleetFile file, bool persistWhenEmpty)
+            : base(context, file, persistWhenEmpty)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            File = file ?? throw new ArgumentNullException(nameof(file));
-            _persistWhenEmpty = persistWhenEmpty;
         }
 
         public async Task AddPackageAsync(PackageInput packageInput)
@@ -131,9 +123,9 @@ namespace Sleet
         {
             var index = new PackageSets();
 
-            if (await File.Exists(_context.Log, _context.Token))
+            if (await File.Exists(Context.Log, Context.Token))
             {
-                var json = await GetJson();
+                var json = await GetJsonOrTemplateAsync();
 
                 var packagesNode = json["packages"] as JObject;
 
@@ -217,32 +209,15 @@ namespace Sleet
         }
 
         /// <summary>
-        /// Create a new file.
-        /// </summary>
-        public Task Init()
-        {
-            var json = GetEmptyJson();
-
-            return File.Write(json, _context.Log, _context.Token);
-        }
-
-        /// <summary>
         /// Empty json file.
         /// </summary>
-        public static JObject GetEmptyJson()
+        protected override Task<JObject> GetJsonTemplateAsync()
         {
-            return new JObject
+            return Task.FromResult(new JObject
                 {
                     { "packages", new JObject() },
                     { "symbols", new JObject() }
-                };
-        }
-
-        private async Task<JObject> GetJson()
-        {
-            var file = File;
-
-            return await file.GetJson(_context.Log, _context.Token);
+                });
         }
 
         private static JObject CreateJson(PackageSets index)
@@ -276,6 +251,15 @@ namespace Sleet
             return json;
         }
 
+        private Task Save(PackageSets index)
+        {
+            // Create updated index
+            var json = CreateJson(index);
+            var isEmpty = index.Packages.Index.Count > 0;
+
+            return SaveAsync(json, isEmpty);
+        }
+
         private static SortedSet<PackageIdentity> GetSetForId(string packageId, IEnumerable<PackageIdentity> packages)
         {
             return new SortedSet<PackageIdentity>(packages.Where(e => StringComparer.OrdinalIgnoreCase.Equals(packageId, e.Id)));
@@ -286,15 +270,6 @@ namespace Sleet
             public PackageSet Packages { get; set; } = new PackageSet();
 
             public PackageSet Symbols { get; set; } = new PackageSet();
-        }
-
-        private async Task Save(PackageSets index)
-        {
-            // Create updated index
-            var json = CreateJson(index);
-            var file = File;
-
-            await file.Write(json, _context.Log, _context.Token);
         }
     }
 }

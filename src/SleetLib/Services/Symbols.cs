@@ -47,10 +47,10 @@ namespace Sleet
                 }
 
                 // Add dll/pdb files to the feed.
-                tasks.AddRange(assemblies.Select(AddAssemblyAsync));
+                tasks.AddRange(assemblies.Select(e => AddAssemblyAsync(e, packageInput)));
 
                 // Add assembly -> package reverse lookup
-                tasks.AddRange(assemblies.Select(e => AddAssemblyToPackageIndexAsync(packageInput, e, isSymbolsPackage: isSymbolsPackage)));
+                tasks.AddRange(assemblies.Select(e => AddAssemblyToPackageIndexAsync(packageInput, e.IndexFile, isSymbolsPackage: isSymbolsPackage)));
 
                 // Add index of all dll/pdb files added for the package.
                 tasks.AddRange(assemblies.Select(e => AddPackageToAssemblyIndexAsync(packageInput.Identity, assemblies, isSymbolsPackage: isSymbolsPackage)));
@@ -89,14 +89,17 @@ namespace Sleet
             throw new NotImplementedException();
         }
 
-        private async Task AddAssemblyAsync(PackageFile assembly)
+        private async Task AddAssemblyAsync(PackageFile assembly, PackageInput packageInput)
         {
             var file = _context.Source.Get(SymbolsIndexUtility.GetAssemblyFilePath(assembly.FileName, assembly.Hash));
 
             if (await file.Exists(_context.Log, _context.Token) == false)
             {
                 // Write assembly
-                using (var stream = await assembly.ZipEntry.Open().AsMemoryStreamAsync())
+                var stream = await packageInput.RunWithLockAsync(
+                    (p) => assembly.ZipEntry.Open().AsMemoryStreamAsync());
+
+                using (stream)
                 {
                     await file.Write(stream, _context.Log, _context.Token);
                 }
@@ -113,9 +116,9 @@ namespace Sleet
         /// <summary>
         /// file/hash/index -> package
         /// </summary>
-        private Task AddAssemblyToPackageIndexAsync(PackageInput package, PackageFile assembly, bool isSymbolsPackage)
+        private Task AddAssemblyToPackageIndexAsync(PackageInput package, ISleetFile indexFile, bool isSymbolsPackage)
         {
-            var index = new PackageIndexFile(_context, assembly.IndexFile, persistWhenEmpty: false);
+            var index = new PackageIndexFile(_context, indexFile, persistWhenEmpty: false);
 
             if (isSymbolsPackage)
             {
@@ -209,7 +212,7 @@ namespace Sleet
                         var pdbIndexFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyToPackageIndexPath(pdbFileInfo.Name, pdbHash));
 
                         // Avoid duplicates
-                        if (seen.Add(dllFile))
+                        if (seen.Add(pdbFile))
                         {
                             result.Add(new PackageFile(pdbFileInfo.Name, pdbHash, pdbEntry, pdbFile, pdbIndexFile));
                         }
