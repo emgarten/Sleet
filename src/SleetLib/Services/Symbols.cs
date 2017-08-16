@@ -12,7 +12,7 @@ using SleetLib;
 
 namespace Sleet
 {
-    public class Symbols : ISleetService, ISymbolsAddRemovePackages, ISymbolsPackagesLookup
+    public class Symbols : ISleetService, ISymbolsAddRemovePackages, ISymbolsPackagesLookup, IValidatableService, IPackagesLookup
     {
         private readonly SleetContext _context;
 
@@ -79,14 +79,24 @@ namespace Sleet
             throw new NotImplementedException();
         }
 
+        public Task<ISet<PackageIdentity>> GetPackagesAsync()
+        {
+            return PackageIndex.GetPackagesAsync();
+        }
+
+        public Task<ISet<PackageIdentity>> GetPackagesByIdAsync(string packageId)
+        {
+            return PackageIndex.GetPackagesByIdAsync(packageId);
+        }
+
         public Task<ISet<PackageIdentity>> GetSymbolsPackagesAsync()
         {
-            throw new NotImplementedException();
+            return PackageIndex.GetSymbolsPackagesAsync();
         }
 
         public Task<ISet<PackageIdentity>> GetSymbolsPackagesByIdAsync(string packageId)
         {
-            throw new NotImplementedException();
+            return PackageIndex.GetSymbolsPackagesByIdAsync(packageId);
         }
 
         private async Task AddAssemblyAsync(PackageFile assembly, PackageInput packageInput)
@@ -221,6 +231,43 @@ namespace Sleet
             }
 
             return result;
+        }
+
+        public async Task<IReadOnlyList<ILogMessage>> ValidateAsync()
+        {
+            var messages = new List<ILogMessage>();
+
+            var packages = await GetPackagesAsync();
+            var symbolsPackages = await GetSymbolsPackagesAsync();
+
+            // De-dupe index files between packages to avoid threading conflicts
+            var assetIndexFiles = new Dictionary<PackageIdentity, AssetIndexFile>();
+
+            foreach (var package in packages.Concat(symbolsPackages))
+            {
+                if (!assetIndexFiles.ContainsKey(package))
+                {
+                    assetIndexFiles.Add(package, GetAssetIndexFile(package));
+                }
+            }
+
+            // Retrieve all indexes in parallel
+            await Task.WhenAll(assetIndexFiles.Values.Select(e => e.File.FetchAsync(_context.Log, _context.Token)));
+
+            // Find all reverse lookup indexes for assembly files
+            var assemblyIndexFiles = new Dictionary<Uri, PackageIndexFile>();
+
+            // 1. Build a mapping for every assembly of the parents (symbols and non-symbols).
+            // 2. Verify that the assembly -> package index contains the same identities.
+            // 3. Verify no additional packages are mapped.
+
+            return messages;
+        }
+
+        private AssetIndexFile GetAssetIndexFile(PackageIdentity package)
+        {
+            var path = SymbolsIndexUtility.GetPackageToAssemblyIndexPath(package);
+            return new AssetIndexFile(_context, path, package);
         }
 
         /// <summary>
