@@ -84,5 +84,10 @@ namespace Sleet
                 await SaveAsync(json, isEmpty: false);
             }
         }
+
+        public Task FetchAsync()
+        {
+            return File.FetchAsync(Context.Log, Context.Token);
+        }
     }
 }

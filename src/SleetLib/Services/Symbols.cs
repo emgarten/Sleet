@@ -270,6 +270,11 @@ namespace Sleet
             return new AssetIndexFile(_context, path, package);
         }
 
+        public Task FetchAsync()
+        {
+            return PackageIndex.FetchAsync();
+        }
+
         /// <summary>
         /// dll or pdb file
         /// </summary>
