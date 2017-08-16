@@ -8,7 +8,7 @@ namespace Sleet
     {
         protected SleetContext Context { get; }
 
-        protected ISleetFile File { get; }
+        public ISleetFile File { get; }
 
         protected bool PersistWhenEmpty { get; }
 

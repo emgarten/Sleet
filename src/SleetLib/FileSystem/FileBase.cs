@@ -208,5 +208,10 @@ namespace Sleet
         {
             return EntityUri.AbsoluteUri;
         }
+
+        public Task FetchAsync(ILogger log, CancellationToken token)
+        {
+            return EnsureFile(log, token);
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,5 +50,10 @@ namespace Sleet
         Task<Stream> GetStream(ILogger log, CancellationToken token);
 
         Task<bool> CopyTo(string path, bool overwrite, ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// Fetch the file if it exists. This can be used to pre-load files in parallel without loading up the actual contents.
+        /// </summary>
+        Task FetchAsync(ILogger log, CancellationToken token);
     }
 }

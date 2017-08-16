@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -71,6 +71,10 @@ namespace Sleet
             var indexedPackages = await packageIndex.GetPackagesAsync();
             var allIndexIds = indexedPackages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
+            // Get symbols packages from index
+            var indexedSymbolsPackages = await packageIndex.GetSymbolsPackagesAsync();
+            var allIndexSymbolsIds = indexedSymbolsPackages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
             // Verify auto complete
             log.LogMinimal($"Validating {autoComplete.Name}");
             var autoCompleteIds = await autoComplete.GetPackageIds();
@@ -93,14 +97,32 @@ namespace Sleet
             {
                 log.LogMinimal($"Validating {service.Name}");
 
+                var validatableService = service as IValidatableService;
+                if (validatableService != null)
+                {
+                    // Run internal validations if the service supports it.
+                    var messages = await validatableService.ValidateAsync();
+                    success &= messages.Any(e => e.Level == LogLevel.Error);
+
+                    foreach (var message in messages)
+                    {
+                        await log.LogAsync(message);
+                    }
+                }
+
                 var allPackagesService = service as IPackagesLookup;
                 var byIdService = service as IPackageIdLookup;
 
-                var servicePackages = new HashSet<PackageIdentity>();
+                var allSymbolsPackagesService = service as ISymbolsPackagesLookup;
+                var symbolsByIdService = service as ISymbolsPackageIdLookup;
 
-                // Use get all if possible
+                var servicePackages = new HashSet<PackageIdentity>();
+                var serviceSymbolsPackages = new HashSet<PackageIdentity>();
+
+                // Non-Symbols packages
                 if (allPackagesService != null)
                 {
+                    // Use get all if possible
                     servicePackages.UnionWith(await allPackagesService.GetPackagesAsync());
                 }
                 else if (byIdService != null)
@@ -128,6 +150,38 @@ namespace Sleet
                 {
                     log.LogMinimal(diff.ToString());
                     log.LogMinimal($"{service.Name} packages valid");
+                }
+
+                // Symbols packages
+                if (allSymbolsPackagesService != null)
+                {
+                    // Use get all if possible
+                    serviceSymbolsPackages.UnionWith(await allSymbolsPackagesService.GetSymbolsPackagesAsync());
+                }
+                else if (symbolsByIdService != null)
+                {
+                    foreach (var id in allIndexSymbolsIds)
+                    {
+                        serviceSymbolsPackages.UnionWith(await symbolsByIdService.GetSymbolsPackagesByIdAsync(id));
+                    }
+                }
+                else
+                {
+                    log.LogError($"Unable to get symbols packages for {service.Name}");
+                    continue;
+                }
+
+                var symbolsDiff = new PackageDiff(indexedSymbolsPackages, serviceSymbolsPackages);
+
+                if (symbolsDiff.HasErrors)
+                {
+                    log.LogError(symbolsDiff.ToString());
+                    success = false;
+                }
+                else
+                {
+                    log.LogMinimal(symbolsDiff.ToString());
+                    log.LogMinimal($"{service.Name} symbols packages valid");
                 }
             }
 
