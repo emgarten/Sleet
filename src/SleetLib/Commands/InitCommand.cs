@@ -36,6 +36,16 @@ namespace Sleet
             var noChanges = true;
             var now = DateTimeOffset.UtcNow;
 
+            var context = new SleetContext()
+            {
+                LocalSettings = settings,
+                Source = source,
+                SourceSettings = feedSettings,
+                Log = log,
+                Token = token,
+                OperationStart = now
+            };
+
             log.LogMinimal($"Initializing {source.BaseURI.AbsoluteUri}");
 
             // Validate source
@@ -71,10 +81,7 @@ namespace Sleet
             noChanges &= !await CreateSearchAsync(source, log, token, now, serviceIndexJson);
 
             // Create package index
-            noChanges &= !await CreatePackageIndexAsync(source, log, token, now, serviceIndexJson);
-
-            // Create symbols
-            noChanges &= !await CreateSymbolsAsync(source, log, token, now, serviceIndexJson);
+            noChanges &= !await CreatePackageIndexAsync(context, serviceIndexJson);
 
             // Additional entries
             AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
@@ -202,47 +209,21 @@ namespace Sleet
             return result;
         }
 
-        private static async Task<bool> CreatePackageIndexAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
+        private static async Task<bool> CreatePackageIndexAsync(SleetContext context, JObject serviceIndexJson)
         {
-            var packageIndex = source.Get("sleet.packageindex.json");
+            var packageIndex = context.Source.Get("sleet.packageindex.json");
 
-            AddServiceIndexEntry(source.BaseURI, "sleet.packageindex.json", "http://schema.emgarten.com/sleet#PackageIndex/1.0.0", "Sleet package index.", serviceIndexJson);
+            AddServiceIndexEntry(context.Source.BaseURI, "sleet.packageindex.json", "http://schema.emgarten.com/sleet#PackageIndex/1.0.0", "Sleet package index.", serviceIndexJson);
 
-            if (!await packageIndex.Exists(log, token))
+            if (!await packageIndex.Exists(context.Log, context.Token))
             {
-                var json = PackageIndexFile.GetEmptyJson();
-                await packageIndex.Write(json, log, token);
+                var index = new PackageIndex(context);
+                await index.InitAsync();
 
                 return true;
             }
 
             return false;
-        }
-
-        private static async Task<bool> CreateSymbolsAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
-        {
-            var indexes = new[]
-            {
-                // .nupkg packages
-                source.Get(SymbolsIndexUtility.PackageIndexPath),
-            };
-
-            var result = true;
-
-            foreach (var index in indexes)
-            {
-                if (!await index.Exists(log, token))
-                {
-                    var json = PackageIndexFile.GetEmptyJson();
-                    await index.Write(json, log, token);
-                }
-                else
-                {
-                    result = false;
-                }
-            }
-
-            return result;
         }
     }
 }

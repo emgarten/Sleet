@@ -11,24 +11,14 @@ namespace Sleet
     /// Maps packages to external assets.
     /// An AssetIndexFile represents a single id/version. And both the symbols and non-symbols package types.
     /// </summary>
-    public class AssetIndexFile
+    public class AssetIndexFile : IndexFileBase
     {
-        private readonly SleetContext _context;
-
-        private ISleetFile File { get; set; }
-
         public PackageIdentity Package { get; }
 
         public AssetIndexFile(SleetContext context, string path, PackageIdentity package)
+            : base(context, path, persistWhenEmpty: false)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
             Package = package ?? throw new ArgumentNullException(nameof(package));
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            File = context.Source.Get(path);
         }
 
         public async Task AddAssetsAsync(IEnumerable<AssetIndexEntry> assets)
@@ -81,22 +71,13 @@ namespace Sleet
             await Save(assetIndex);
         }
 
-        private async Task<JObject> GetJsonAsync()
-        {
-            var file = File;
-            return await file.GetJson(_context.Log, _context.Token);
-        }
-
         private async Task<PackageSets> GetAssetIndexEntriesAsync()
         {
             var result = new PackageSets();
 
-            if (await File.Exists(_context.Log, _context.Token))
-            {
-                var json = await GetJsonAsync();
-                result.Packages = GetAssets(json, "packages");
-                result.Symbols = GetAssets(json, "symbols");
-            }
+            var json = await GetJsonOrTemplateAsync();
+            result.Packages = GetAssets(json, "packages");
+            result.Symbols = GetAssets(json, "symbols");
 
             return result;
         }
@@ -120,13 +101,13 @@ namespace Sleet
             return assets;
         }
 
-        private async Task Save(PackageSets index)
+        private Task Save(PackageSets index)
         {
             // Create updated index
             var json = CreateJson(index);
-            var file = File;
 
-            await file.Write(json, _context.Log, _context.Token);
+            var isEmpty = (index.Packages.Count > 0 || index.Symbols.Count > 0);
+            return SaveAsync(json, isEmpty);
         }
 
         private static JObject CreateJson(PackageSets index)

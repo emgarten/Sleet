@@ -35,13 +35,13 @@ namespace Sleet
         /// <summary>
         /// Run a non-thread safe action on the zip or package reader.
         /// </summary>
-        public async Task<T> RunWithLockAsync<T>(Func<PackageInput, T> action)
+        public async Task<T> RunWithLockAsync<T>(Func<PackageInput, Task<T>> action)
         {
             await _semaphore.WaitAsync();
 
             try
             {
-                return action(this);
+                return await action(this);
             }
             finally
             {
