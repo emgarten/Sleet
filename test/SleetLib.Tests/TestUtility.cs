@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Test.Helpers;
+using SleetLib.Tests;
 using Xunit;
 
 namespace Sleet.Test
@@ -86,6 +88,13 @@ namespace Sleet.Test
 
             // Ensure that the input was valid
             Assert.True(valid);
+        }
+
+        public static PackageInput GetPackageInput(string id, SleetTestContext testContext)
+        {
+            var testPackage = new TestNupkg(id, "1.0.0");
+            var zipFile = testPackage.Save(testContext.Packages);
+            return testContext.GetPackageInput(zipFile);
         }
     }
 }

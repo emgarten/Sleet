@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
+using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
@@ -74,7 +75,13 @@ namespace SleetLib.Tests
             };
 
             DisposeItems.Add(input);
+            DisposeItems.Add(reader);
             return input;
+        }
+
+        public Task Commit()
+        {
+            return SleetContext.Source.Commit(SleetContext.Log, SleetContext.Token);
         }
 
         public void Dispose()
