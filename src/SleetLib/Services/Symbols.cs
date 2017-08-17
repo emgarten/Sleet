@@ -241,6 +241,7 @@ namespace Sleet
             var symbolsPackages = await GetSymbolsPackagesAsync();
 
             // De-dupe index files between packages to avoid threading conflicts
+            // 1. Find all assemblies
             var assetIndexFiles = new Dictionary<PackageIdentity, AssetIndexFile>();
 
             foreach (var package in packages.Concat(symbolsPackages))
@@ -254,12 +255,44 @@ namespace Sleet
             // Retrieve all indexes in parallel
             await Task.WhenAll(assetIndexFiles.Values.Select(e => e.File.FetchAsync(_context.Log, _context.Token)));
 
-            // Find all reverse lookup indexes for assembly files
-            var assemblyIndexFiles = new Dictionary<Uri, PackageIndexFile>();
+            // 2. Build a mapping for every assembly of the parents (symbols and non-symbols).
+            var assemblyIndexFiles = new Dictionary<AssetIndexEntry, PackageIndexFile>();
 
-            // 1. Build a mapping for every assembly of the parents (symbols and non-symbols).
-            // 2. Verify that the assembly -> package index contains the same identities.
-            // 3. Verify no additional packages are mapped.
+            foreach (var package in packages)
+            {
+                var assetIndex = assetIndexFiles[package];
+                var assets = await assetIndex.GetAssetsAsync();
+
+                foreach (var asset in assets)
+                {
+                    if (!assemblyIndexFiles.ContainsKey(asset))
+                    {
+                        var packageIndex = GetPackageIndexFile(asset);
+                        assemblyIndexFiles.Add(asset, packageIndex);
+                    }
+                }
+            }
+
+            foreach (var package in symbolsPackages)
+            {
+                var assetIndex = assetIndexFiles[package];
+                var assets = await assetIndex.GetSymbolsAssetsAsync();
+
+                foreach (var asset in assets)
+                {
+                    if (!assemblyIndexFiles.ContainsKey(asset))
+                    {
+                        var packageIndex = GetPackageIndexFile(asset);
+                        assemblyIndexFiles.Add(asset, packageIndex);
+                    }
+                }
+            }
+
+            // Retrieve all indexes in parallel
+            await Task.WhenAll(assemblyIndexFiles.Values.Select(e => e.File.FetchAsync(_context.Log, _context.Token)));
+
+            // 3. Verify that the assembly -> package index contains the same identities.
+            // 4. Verify no additional packages are mapped.
 
             return messages;
         }
@@ -268,6 +301,12 @@ namespace Sleet
         {
             var path = SymbolsIndexUtility.GetPackageToAssemblyIndexPath(package);
             return new AssetIndexFile(_context, path, package);
+        }
+
+        private PackageIndexFile GetPackageIndexFile(AssetIndexEntry assetEntry)
+        {
+            var file = _context.Source.Get(assetEntry.PackageIndex);
+            return new PackageIndexFile(_context, file, persistWhenEmpty: false);
         }
 
         public Task FetchAsync()
