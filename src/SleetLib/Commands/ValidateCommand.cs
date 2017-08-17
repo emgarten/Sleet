@@ -108,7 +108,7 @@ namespace Sleet
                 {
                     // Run internal validations if the service supports it.
                     var messages = await validatableService.ValidateAsync();
-                    success &= messages.Any(e => e.Level == LogLevel.Error);
+                    success &= messages.All(e => e.Level != LogLevel.Error);
 
                     foreach (var message in messages)
                     {

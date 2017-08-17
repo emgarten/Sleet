@@ -43,7 +43,7 @@ namespace SleetLib.Tests
                 await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
                 var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
 
-                Assert.True(validateOutput);
+                validateOutput.Should().BeTrue();
             }
         }
 
