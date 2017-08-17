@@ -257,11 +257,16 @@ namespace Sleet
 
             // 2. Build a mapping for every assembly of the parents (symbols and non-symbols).
             var assemblyIndexFiles = new Dictionary<AssetIndexEntry, PackageIndexFile>();
+            var packageAssemblyFiles = new Dictionary<PackageIdentity, ISet<AssetIndexEntry>>();
+            var packageAssemblyFilesRev = new Dictionary<AssetIndexEntry, ISet<PackageIdentity>>();
+            var symbolsAssemblyFiles = new Dictionary<PackageIdentity, ISet<AssetIndexEntry>>();
+            var symbolsAssemblyFilesRev = new Dictionary<AssetIndexEntry, ISet<PackageIdentity>>();
 
             foreach (var package in packages)
             {
                 var assetIndex = assetIndexFiles[package];
                 var assets = await assetIndex.GetAssetsAsync();
+                packageAssemblyFiles.Add(package, assets);
 
                 foreach (var asset in assets)
                 {
@@ -270,6 +275,14 @@ namespace Sleet
                         var packageIndex = GetPackageIndexFile(asset);
                         assemblyIndexFiles.Add(asset, packageIndex);
                     }
+
+                    if (!packageAssemblyFilesRev.TryGetValue(asset, out var packageSet))
+                    {
+                        packageSet = new HashSet<PackageIdentity>();
+                        packageAssemblyFilesRev.Add(asset, packageSet);
+                    }
+
+                    packageSet.Add(package);
                 }
             }
 
@@ -277,6 +290,7 @@ namespace Sleet
             {
                 var assetIndex = assetIndexFiles[package];
                 var assets = await assetIndex.GetSymbolsAssetsAsync();
+                symbolsAssemblyFiles.Add(package, assets);
 
                 foreach (var asset in assets)
                 {
@@ -285,6 +299,14 @@ namespace Sleet
                         var packageIndex = GetPackageIndexFile(asset);
                         assemblyIndexFiles.Add(asset, packageIndex);
                     }
+
+                    if (!symbolsAssemblyFilesRev.TryGetValue(asset, out var packageSet))
+                    {
+                        packageSet = new HashSet<PackageIdentity>();
+                        symbolsAssemblyFilesRev.Add(asset, packageSet);
+                    }
+
+                    packageSet.Add(package);
                 }
             }
 
@@ -292,7 +314,55 @@ namespace Sleet
             await Task.WhenAll(assemblyIndexFiles.Values.Select(e => e.File.FetchAsync(_context.Log, _context.Token)));
 
             // 3. Verify that the assembly -> package index contains the same identities.
-            // 4. Verify no additional packages are mapped.
+            foreach (var asset in assemblyIndexFiles.Keys)
+            {
+                if (!packageAssemblyFilesRev.TryGetValue(asset, out var toAssembly))
+                {
+                    toAssembly = new HashSet<PackageIdentity>();
+                }
+
+                var fromAssembly = await assemblyIndexFiles[asset].GetPackagesAsync();
+
+                var diff = new PackageDiff(toAssembly, fromAssembly);
+
+                if (diff.HasErrors)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine($"Checking package indexes for {asset.Asset.AbsoluteUri}");
+                    sb.Append(diff.ToString());
+
+                    messages.Add(new LogMessage(LogLevel.Error, sb.ToString()));
+                }
+                else
+                {
+                    messages.Add(new LogMessage(LogLevel.Verbose, $"Package indexes for {asset.Asset.AbsoluteUri} are valid."));
+                }
+            }
+
+            foreach (var asset in assemblyIndexFiles.Keys)
+            {
+                if (!symbolsAssemblyFilesRev.TryGetValue(asset, out var toAssembly))
+                {
+                    toAssembly = new HashSet<PackageIdentity>();
+                }
+
+                var fromAssembly = await assemblyIndexFiles[asset].GetSymbolsPackagesAsync();
+
+                var diff = new PackageDiff(toAssembly, fromAssembly);
+
+                if (diff.HasErrors)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine($"Checking symbols package indexes for {asset.Asset.AbsoluteUri}");
+                    sb.Append(diff.ToString());
+
+                    messages.Add(new LogMessage(LogLevel.Error, sb.ToString()));
+                }
+                else
+                {
+                    messages.Add(new LogMessage(LogLevel.Verbose, $"Symbols package indexes for {asset.Asset.AbsoluteUri} are valid."));
+                }
+            }
 
             return messages;
         }
