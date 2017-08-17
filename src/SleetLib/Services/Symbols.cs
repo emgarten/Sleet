@@ -43,6 +43,10 @@ namespace Sleet
                 // Add the id/version to the package index.
                 if (isSymbolsPackage)
                 {
+                    tasks.Add(PackageIndex.AddSymbolsPackageAsync(packageInput));
+                }
+                else
+                {
                     tasks.Add(PackageIndex.AddPackageAsync(packageInput));
                 }
 

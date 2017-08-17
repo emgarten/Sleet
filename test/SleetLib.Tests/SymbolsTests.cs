@@ -40,7 +40,11 @@ namespace SleetLib.Tests
 
                 // run commands
                 await InitCommand.InitAsync(context);
+
+                // add package
                 await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
+
+                // validate
                 var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
 
                 validateOutput.Should().BeTrue();

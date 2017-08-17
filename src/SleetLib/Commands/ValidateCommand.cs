@@ -115,79 +115,81 @@ namespace Sleet
                         await log.LogAsync(message);
                     }
                 }
-
-                var allPackagesService = service as IPackagesLookup;
-                var byIdService = service as IPackageIdLookup;
-
-                var allSymbolsPackagesService = service as ISymbolsPackagesLookup;
-                var symbolsByIdService = service as ISymbolsPackageIdLookup;
-
-                var servicePackages = new HashSet<PackageIdentity>();
-                var serviceSymbolsPackages = new HashSet<PackageIdentity>();
-
-                // Non-Symbols packages
-                if (allPackagesService != null)
+                else
                 {
-                    // Use get all if possible
-                    servicePackages.UnionWith(await allPackagesService.GetPackagesAsync());
-                }
-                else if (byIdService != null)
-                {
-                    foreach (var id in allIndexIds)
+                    var allPackagesService = service as IPackagesLookup;
+                    var byIdService = service as IPackageIdLookup;
+
+                    var allSymbolsPackagesService = service as ISymbolsPackagesLookup;
+                    var symbolsByIdService = service as ISymbolsPackageIdLookup;
+
+                    var servicePackages = new HashSet<PackageIdentity>();
+                    var serviceSymbolsPackages = new HashSet<PackageIdentity>();
+
+                    // Non-Symbols packages
+                    if (allPackagesService != null)
                     {
-                        servicePackages.UnionWith(await byIdService.GetPackagesByIdAsync(id));
+                        // Use get all if possible
+                        servicePackages.UnionWith(await allPackagesService.GetPackagesAsync());
                     }
-                }
-                else
-                {
-                    log.LogError($"Unable to get packages for {service.Name}");
-                    continue;
-                }
-
-                var diff = new PackageDiff(indexedPackages, servicePackages);
-
-                if (diff.HasErrors)
-                {
-                    log.LogError(diff.ToString());
-
-                    success = false;
-                }
-                else
-                {
-                    log.LogMinimal(diff.ToString());
-                    log.LogMinimal($"{service.Name} packages valid");
-                }
-
-                // Symbols packages
-                if (allSymbolsPackagesService != null)
-                {
-                    // Use get all if possible
-                    serviceSymbolsPackages.UnionWith(await allSymbolsPackagesService.GetSymbolsPackagesAsync());
-                }
-                else if (symbolsByIdService != null)
-                {
-                    foreach (var id in allIndexSymbolsIds)
+                    else if (byIdService != null)
                     {
-                        serviceSymbolsPackages.UnionWith(await symbolsByIdService.GetSymbolsPackagesByIdAsync(id));
+                        foreach (var id in allIndexIds)
+                        {
+                            servicePackages.UnionWith(await byIdService.GetPackagesByIdAsync(id));
+                        }
                     }
-                }
-                else
-                {
-                    log.LogError($"Unable to get symbols packages for {service.Name}");
-                    continue;
-                }
+                    else
+                    {
+                        log.LogError($"Unable to get packages for {service.Name}");
+                        continue;
+                    }
 
-                var symbolsDiff = new PackageDiff(indexedSymbolsPackages, serviceSymbolsPackages);
+                    var diff = new PackageDiff(indexedPackages, servicePackages);
 
-                if (symbolsDiff.HasErrors)
-                {
-                    log.LogError(symbolsDiff.ToString());
-                    success = false;
-                }
-                else
-                {
-                    log.LogMinimal(symbolsDiff.ToString());
-                    log.LogMinimal($"{service.Name} symbols packages valid");
+                    if (diff.HasErrors)
+                    {
+                        log.LogError(diff.ToString());
+
+                        success = false;
+                    }
+                    else
+                    {
+                        log.LogMinimal(diff.ToString());
+                        log.LogMinimal($"{service.Name} packages valid");
+                    }
+
+                    // Symbols packages
+                    if (allSymbolsPackagesService != null)
+                    {
+                        // Use get all if possible
+                        serviceSymbolsPackages.UnionWith(await allSymbolsPackagesService.GetSymbolsPackagesAsync());
+                    }
+                    else if (symbolsByIdService != null)
+                    {
+                        foreach (var id in allIndexSymbolsIds)
+                        {
+                            serviceSymbolsPackages.UnionWith(await symbolsByIdService.GetSymbolsPackagesByIdAsync(id));
+                        }
+                    }
+                    else
+                    {
+                        log.LogError($"Unable to get symbols packages for {service.Name}");
+                        continue;
+                    }
+
+                    var symbolsDiff = new PackageDiff(indexedSymbolsPackages, serviceSymbolsPackages);
+
+                    if (symbolsDiff.HasErrors)
+                    {
+                        log.LogError(symbolsDiff.ToString());
+                        success = false;
+                    }
+                    else
+                    {
+                        log.LogMinimal(symbolsDiff.ToString());
+                        log.LogMinimal($"{service.Name} symbols packages valid");
+                    }
                 }
             }
 
