@@ -67,6 +67,12 @@ namespace Sleet
             services.Add(flatContainer);
             services.Add(search);
 
+            if (context.SourceSettings.SymbolsEnabled)
+            {
+                var symbols = new Symbols(context);
+                services.Add(symbols);
+            }
+
             // Verify against the package index
             var indexedPackages = await packageIndex.GetPackagesAsync();
             var allIndexIds = indexedPackages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
