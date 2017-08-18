@@ -57,7 +57,7 @@ namespace Sleet
                 tasks.AddRange(assemblies.Select(e => AddAssemblyToPackageIndexAsync(packageInput, e.IndexFile, isSymbolsPackage: isSymbolsPackage)));
 
                 // Add index of all dll/pdb files added for the package.
-                tasks.AddRange(assemblies.Select(e => AddPackageToAssemblyIndexAsync(packageInput.Identity, assemblies, isSymbolsPackage: isSymbolsPackage)));
+                tasks.Add(AddPackageToAssemblyIndexAsync(packageInput.Identity, assemblies, isSymbolsPackage: isSymbolsPackage));
 
                 // Wait for everything to finish
                 await Task.WhenAll(tasks);
@@ -240,9 +240,16 @@ namespace Sleet
         public async Task<IReadOnlyList<ILogMessage>> ValidateAsync()
         {
             var messages = new List<ILogMessage>();
+            var expectedFiles = new HashSet<ISleetFile>
+            {
+                PackageIndex.File
+            };
 
             var packages = await GetPackagesAsync();
             var symbolsPackages = await GetSymbolsPackagesAsync();
+
+            // Verify no additional packages exist in the index
+            messages.AddRange(await ValidateWithFeedIndexAsync(packages, symbolsPackages));
 
             // De-dupe index files between packages to avoid threading conflicts
             // 1. Find all assemblies
@@ -258,6 +265,7 @@ namespace Sleet
 
             // Retrieve all indexes in parallel
             await Task.WhenAll(assetIndexFiles.Values.Select(e => e.File.FetchAsync(_context.Log, _context.Token)));
+            expectedFiles.UnionWith(assetIndexFiles.Select(e => e.Value.File));
 
             // 2. Build a mapping for every assembly of the parents (symbols and non-symbols).
             var assemblyIndexFiles = new Dictionary<AssetIndexEntry, PackageIndexFile>();
@@ -317,6 +325,11 @@ namespace Sleet
             // Retrieve all indexes in parallel
             await Task.WhenAll(assemblyIndexFiles.Values.Select(e => e.File.FetchAsync(_context.Log, _context.Token)));
 
+            // Get all referenced files
+            expectedFiles.UnionWith(assemblyIndexFiles
+                .SelectMany(e => new[] { e.Key.Asset, e.Key.PackageIndex })
+                .Select(e => _context.Source.Get(e)));
+
             // 3. Verify that the assembly -> package index contains the same identities.
             foreach (var asset in assemblyIndexFiles.Keys)
             {
@@ -365,6 +378,61 @@ namespace Sleet
                 else
                 {
                     messages.Add(new LogMessage(LogLevel.Verbose, $"Symbols package indexes for {asset.Asset.AbsoluteUri} are valid."));
+                }
+            }
+
+            // Check that all expected files exist
+            var existsTasks = expectedFiles
+                .OrderBy(e => e.EntityUri.AbsoluteUri, StringComparer.Ordinal)
+                .Select(e => new KeyValuePair<ISleetFile, Task<bool>>(e, e.Exists(_context.Log, _context.Token)))
+                .ToList();
+
+            foreach (var existsTask in existsTasks)
+            {
+                if (await existsTask.Value)
+                {
+                    messages.Add(new LogMessage(LogLevel.Verbose, $"Found {existsTask.Key.EntityUri.AbsoluteUri}"));
+                }
+                else
+                {
+                    messages.Add(new LogMessage(LogLevel.Error, $"Unable to find {existsTask.Key.EntityUri.AbsoluteUri}"));
+                }
+            }
+
+            return messages;
+        }
+
+        private async Task<List<ILogMessage>> ValidateWithFeedIndexAsync(ISet<PackageIdentity> packages, ISet<PackageIdentity> symbolsPackages)
+        {
+            var messages = new List<ILogMessage>();
+
+            var feedIndex = new PackageIndex(_context);
+            if (await feedIndex.File.Exists(_context.Log, _context.Token))
+            {
+                var feedPackages = await feedIndex.GetPackagesAsync();
+                var feedSymbolsPackages = await feedIndex.GetSymbolsPackagesAsync();
+
+                var extraPackages = packages.Except(feedPackages);
+                var extraSymbolsPackages = symbolsPackages.Except(feedSymbolsPackages);
+
+                var feedDiff = new PackageDiff(Enumerable.Empty<PackageIdentity>(), extraPackages);
+
+                if (feedDiff.HasErrors)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine($"Checking packages in {PackageIndex.File.EntityUri.AbsoluteUri}");
+                    sb.Append(feedDiff.ToString());
+                    messages.Add(new LogMessage(LogLevel.Error, sb.ToString()));
+                }
+
+                var feedSymbolsDiff = new PackageDiff(Enumerable.Empty<PackageIdentity>(), extraSymbolsPackages);
+
+                if (feedSymbolsDiff.HasErrors)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine($"Checking symbols packages in {PackageIndex.File.EntityUri.AbsoluteUri}");
+                    sb.Append(feedSymbolsDiff.ToString());
+                    messages.Add(new LogMessage(LogLevel.Error, sb.ToString()));
                 }
             }
 
