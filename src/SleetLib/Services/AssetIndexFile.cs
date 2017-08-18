@@ -106,7 +106,7 @@ namespace Sleet
             // Create updated index
             var json = CreateJson(index);
 
-            var isEmpty = (index.Packages.Count > 0 || index.Symbols.Count > 0);
+            var isEmpty = (index.Packages.Count < 1 && index.Symbols.Count < 1);
             return SaveAsync(json, isEmpty);
         }
 
