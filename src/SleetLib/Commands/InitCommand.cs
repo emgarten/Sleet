@@ -88,6 +88,12 @@ namespace Sleet
             AddServiceIndexEntry(source.BaseURI, "", "ReportAbuseUriTemplate/3.0.0", "Report abuse template.", serviceIndexJson);
             AddServiceIndexEntry(source.BaseURI, "flatcontainer/", "PackageBaseAddress/3.0.0", "Packages used by project.json", serviceIndexJson);
 
+            // Add symbols feed if enabled
+            if (feedSettings.SymbolsEnabled)
+            {
+                await AddSymbolsFeedAsync(source, serviceIndexJson, context);
+            }
+
             // Check if services changed
             noChanges &= serviceIndexJsonBefore.Equals(serviceIndexJson);
 
@@ -112,6 +118,15 @@ namespace Sleet
             }
 
             return exitCode;
+        }
+
+        private static async Task AddSymbolsFeedAsync(ISleetFileSystem source, JObject serviceIndexJson, SleetContext context)
+        {
+            AddServiceIndexEntry(source.BaseURI, "symbols/packages/index.json", "http://schema.emgarten.com/sleet#SymbolsPackageIndex/1.0.0", "Packages indexed in the symbols feed.", serviceIndexJson);
+            AddServiceIndexEntry(source.BaseURI, "symbols/", "http://schema.emgarten.com/sleet#SymbolsServer/1.0.0", "Symbols server containing dll and pdb files.", serviceIndexJson);
+
+            var symbols = new Symbols(context);
+            await symbols.PackageIndex.InitAsync();
         }
 
         private static void AddServiceIndexEntry(Uri baseUri, string relativeFilePath, string type, string comment, JObject json)
