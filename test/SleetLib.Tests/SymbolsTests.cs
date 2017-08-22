@@ -376,6 +376,255 @@ namespace SleetLib.Tests
             }
         }
 
+        // Add package with no assemblies, verify not added to symbols index
+        // Add symbols package with no assemblies, verify not added to symbols index
+        [Theory]
+        [InlineData("true")]
+        [InlineData("false")]
+        public async Task Symbols_AddPackageWithSymbolsVerifyInIndex(string isSymbolsString)
+        {
+            var isSymbols = bool.Parse(isSymbolsString);
+
+            using (var testContext = new SleetTestContext())
+            {
+                var context = testContext.SleetContext;
+                context.SourceSettings.SymbolsEnabled = true;
+                var symbols = new Symbols(context);
+                var packageIndex = new PackageIndex(context);
+
+                // Create package
+                var pkgA = new TestNupkg("a", "1.0.0");
+                pkgA.Files.Clear();
+                pkgA.AddFile("lib/net45/a.dll", TestUtility.GetResource("SymbolsTestAdll").GetBytes());
+                pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
+                pkgA.Nuspec.IsSymbolPackage = isSymbols;
+                var zip = pkgA.Save(testContext.Packages);
+                var pkgInput = testContext.GetPackageInput(zip);
+
+                // Init
+                var success = await InitCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    enableCatalog: true,
+                    enableSymbols: true,
+                    log: testContext.SleetContext.Log,
+                    token: CancellationToken.None);
+
+                // Push
+                success &= await PushCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    new List<string>() { zip.FullName },
+                    force: false,
+                    skipExisting: false,
+                    log: testContext.SleetContext.Log);
+
+                // Validate
+                success &= await ValidateCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    testContext.SleetContext.Log);
+
+                var symbolsIndex = new HashSet<PackageIdentity>();
+                var packageIndexPkgs = new HashSet<PackageIdentity>();
+
+                if (isSymbols)
+                {
+                    symbolsIndex.UnionWith(await symbols.GetSymbolsPackagesAsync());
+                    packageIndexPkgs.UnionWith(await packageIndex.GetSymbolsPackagesAsync());
+                }
+                else
+                {
+                    symbolsIndex.UnionWith(await symbols.GetPackagesAsync());
+                    packageIndexPkgs.UnionWith(await packageIndex.GetPackagesAsync());
+                }
+
+                // Verify package does not show up in symbols index
+                symbolsIndex.Should().BeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
+                packageIndexPkgs.Should().BeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
+
+                // Validate
+                success.Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task Symbols_AddSymbolsPackageVerifyFeed()
+        {
+            using (var testContext = new SleetTestContext())
+            {
+                var context = testContext.SleetContext;
+                context.SourceSettings.SymbolsEnabled = true;
+                var symbols = new Symbols(context);
+                var packageIndex = new PackageIndex(context);
+                var catalog = new Catalog(context);
+                var autoComplete = new AutoComplete(context);
+                var flatContainer = new FlatContainer(context);
+                var registrations = new Registrations(context);
+                var search = new Search(context);
+
+                // Create package
+                var pkgA = new TestNupkg("a", "1.0.0");
+                pkgA.Files.Clear();
+                pkgA.AddFile("lib/net45/a.dll", TestUtility.GetResource("SymbolsTestAdll").GetBytes());
+                pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
+                pkgA.Nuspec.IsSymbolPackage = true;
+                var zip = pkgA.Save(testContext.Packages);
+                var pkgInput = testContext.GetPackageInput(zip);
+
+                // Init
+                var success = await InitCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    enableCatalog: true,
+                    enableSymbols: true,
+                    log: testContext.SleetContext.Log,
+                    token: CancellationToken.None);
+
+                // Push
+                success &= await PushCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    new List<string>() { zip.FullName },
+                    force: false,
+                    skipExisting: false,
+                    log: testContext.SleetContext.Log);
+
+                // Validate
+                success &= await ValidateCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    testContext.SleetContext.Log);
+
+                success.Should().BeTrue();
+
+                // Exists under symbols
+                (await symbols.GetSymbolsPackagesAsync()).Should().NotBeEmpty();
+                (await packageIndex.GetSymbolsPackagesAsync()).Should().NotBeEmpty();
+
+                // Does not exist in non-symbols
+                (await symbols.GetPackagesAsync()).Should().BeEmpty();
+                (await packageIndex.GetPackagesAsync()).Should().BeEmpty();
+
+                // Verify it does not appear in other services
+                (await catalog.GetPackagesAsync()).Should().BeEmpty();
+                (await autoComplete.GetPackageIds()).Should().BeEmpty();
+                (await flatContainer.GetPackagesByIdAsync("a")).Should().BeEmpty();
+                (await registrations.GetPackagesByIdAsync("a")).Should().BeEmpty();
+                (await search.GetPackagesAsync()).Should().BeEmpty();
+
+                // Verify nupkg exists
+                var nupkgPath = Path.Combine(testContext.Target, "symbols", "packages", "a", "1.0.0", "a.1.0.0.symbols.nupkg");
+                File.Exists(nupkgPath).Should().BeTrue();
+
+                // Verify package details
+                var detailsPath = Path.Combine(testContext.Target, "symbols", "packages", "a", "1.0.0", "package.json");
+                File.Exists(detailsPath).Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task Symbols_AddSymbolsPackageWithSymbolsOffVerifyFailure()
+        {
+            using (var testContext = new SleetTestContext())
+            {
+                var context = testContext.SleetContext;
+                context.SourceSettings.SymbolsEnabled = true;
+
+                // Create package
+                var pkgA = new TestNupkg("a", "1.0.0");
+                pkgA.Files.Clear();
+                pkgA.AddFile("lib/net45/a.dll", TestUtility.GetResource("SymbolsTestAdll").GetBytes());
+                pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
+                pkgA.Nuspec.IsSymbolPackage = true;
+                var zip = pkgA.Save(testContext.Packages);
+                var pkgInput = testContext.GetPackageInput(zip);
+
+                // Init
+                var success = await InitCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    enableCatalog: true,
+                    enableSymbols: false,
+                    log: testContext.SleetContext.Log,
+                    token: CancellationToken.None);
+
+                // Push
+                success &= await PushCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    new List<string>() { zip.FullName },
+                    force: false,
+                    skipExisting: false,
+                    log: testContext.SleetContext.Log);
+
+                success.Should().BeFalse();
+
+                var testLogger = (TestLogger)testContext.SleetContext.Log;
+                testLogger.GetMessages().Should().Contain("symbols");
+            }
+        }
+
+        // Add package with no assemblies, verify not added to symbols index
+        // Add symbols package with no assemblies, verify not added to symbols index
+        [Theory]
+        [InlineData("true")]
+        [InlineData("false")]
+        public async Task Symbols_AddPackageWithNoSymbolsVerifyNotInIndex(string isSymbolsString)
+        {
+            var isSymbols = bool.Parse(isSymbolsString);
+
+            using (var testContext = new SleetTestContext())
+            {
+                var context = testContext.SleetContext;
+                context.SourceSettings.SymbolsEnabled = true;
+
+                // Create package
+                var pkgA = new TestNupkg("a", "1.0.0");
+                pkgA.Files.Clear();
+                pkgA.Nuspec.IsSymbolPackage = isSymbols;
+                var zip = pkgA.Save(testContext.Packages);
+                var pkgInput = testContext.GetPackageInput(zip);
+
+                // Init
+                var success = await InitCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    enableCatalog: true,
+                    enableSymbols: true,
+                    log: testContext.SleetContext.Log,
+                    token: CancellationToken.None);
+
+                // Push
+                success &= await PushCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    new List<string>() { zip.FullName },
+                    force: false,
+                    skipExisting: false,
+                    log: testContext.SleetContext.Log);
+
+                // Validate
+                success &= await ValidateCommand.RunAsync(
+                    testContext.SleetContext.LocalSettings,
+                    testContext.SleetContext.Source,
+                    testContext.SleetContext.Log);
+
+                var service = new Symbols(context);
+                var packages = new HashSet<PackageIdentity>(await service.GetPackagesAsync());
+                packages.UnionWith(await service.GetSymbolsPackagesAsync());
+
+                // Verify package does not show up in symbols index
+                packages.Should().BeEmpty();
+
+                // Validate
+                success.Should().BeTrue();
+            }
+        }
+
+        // Add packages, remove package, verify validation
+        // Add packages, remove symbols package, verify validation
+
         private static async Task AddPackageAsync(bool isSymbols, SleetTestContext testContext, Symbols service)
         {
             var pkgA = new TestNupkg("a", "1.0.0");
@@ -419,10 +668,5 @@ namespace SleetLib.Tests
             await service.AddPackageAsync(pkgAInput);
             await service.AddSymbolsPackageAsync(symPkgAInput);
         }
-
-        // Add package with no assemblies, verify not added to symbols index
-        // Add symbols package with no assemblies, verify not added to symbols index
-        // Add packages, remove package, verify validation
-        // Add packages, remove symbols package, verify validation
     }
 }
