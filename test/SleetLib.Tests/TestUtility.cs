@@ -92,7 +92,13 @@ namespace Sleet.Test
 
         public static PackageInput GetPackageInput(string id, SleetTestContext testContext)
         {
+            return GetPackageInput(id, testContext, isSymbols: false);
+        }
+
+        public static PackageInput GetPackageInput(string id, SleetTestContext testContext, bool isSymbols)
+        {
             var testPackage = new TestNupkg(id, "1.0.0");
+            testPackage.Nuspec.IsSymbolPackage = isSymbols;
             var zipFile = testPackage.Save(testContext.Packages);
             return testContext.GetPackageInput(zipFile);
         }

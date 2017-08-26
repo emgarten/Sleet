@@ -59,12 +59,10 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput()
+                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
                     {
-                        Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")),
                         Zip = zip,
-                        Package = new PackageArchiveReader(zip),
-                        PackagePath = zipFile.FullName
+                        Package = new PackageArchiveReader(zip)
                     };
 
                     var catalog = new Catalog(context);

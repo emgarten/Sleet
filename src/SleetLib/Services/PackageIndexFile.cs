@@ -209,6 +209,36 @@ namespace Sleet
         }
 
         /// <summary>
+        /// True if the symbols package exists in the index.
+        /// </summary>
+        public async Task<bool> SymbolsExists(string packageId, NuGetVersion version)
+        {
+            if (packageId == null)
+            {
+                throw new ArgumentNullException(nameof(packageId));
+            }
+
+            if (version == null)
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            var byId = await GetSymbolsPackagesByIdAsync(packageId);
+
+            return byId.Contains(new PackageIdentity(packageId, version));
+        }
+
+        public Task<bool> SymbolsExists(PackageIdentity package)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            return SymbolsExists(package.Id, package.Version);
+        }
+
+        /// <summary>
         /// Empty json file.
         /// </summary>
         protected override Task<JObject> GetJsonTemplateAsync()

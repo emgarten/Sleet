@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 
 namespace Sleet
 {
@@ -60,11 +61,27 @@ namespace Sleet
                 {
                     var packageString = $"{package.Identity.Id} {package.Identity.Version.ToFullString()}";
 
+                    if (package.IsSymbolsPackage)
+                    {
+                        packageString += " Symbols";
+                    }
+
                     log.LogMinimal($"Pushing {packageString}");
 
                     log.LogInformation($"Checking if package exists.");
 
-                    if (await packageIndex.Exists(package.Identity))
+                    var exists = false;
+
+                    if (package.IsSymbolsPackage)
+                    {
+                        exists = await packageIndex.SymbolsExists(package.Identity);
+                    }
+                    else
+                    {
+                        exists = await packageIndex.Exists(package.Identity);
+                    }
+
+                    if (exists)
                     {
                         if (skipExisting)
                         {
@@ -117,101 +134,114 @@ namespace Sleet
         /// </summary>
         public static List<PackageInput> GetPackageInputs(List<string> inputs, DateTimeOffset now, ILogger log)
         {
-            var packages = new List<PackageInput>();
-
             // Check inputs
             if (inputs.Count < 1)
             {
                 throw new ArgumentException("No packages found.");
             }
 
-            var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            // Get package inputs
+            var packages = inputs.SelectMany(GetFiles)
+                .Distinct(PathUtility.GetStringComparerBasedOnOS())
+                .Select(e => GetPackageInput(e, log))
+                .OrderBy(e => e)
+                .ToList();
 
-            foreach (var input in inputs)
-            {
-                var inputFile = Path.GetFullPath(input);
-
-                if (File.Exists(inputFile))
-                {
-                    files.Add(inputFile);
-                }
-                else if (Directory.Exists(inputFile))
-                {
-                    var directoryFiles = Directory.GetFiles(inputFile, "*.nupkg", SearchOption.AllDirectories)
-                        .Where(file => file.IndexOf(".symbols.nupkg") < 0)
-                        .ToList();
-
-                    if (directoryFiles.Count < 1)
-                    {
-                        throw new FileNotFoundException($"Unable to find nupkgs in '{inputFile}'.");
-                    }
-
-                    files.UnionWith(directoryFiles);
-                }
-                else
-                {
-                    throw new FileNotFoundException($"Unable to find '{inputFile}'.");
-                }
-            }
-
-            foreach (var file in files)
-            {
-                // Validate package
-                PackageInput packageInput = null;
-
-                log.LogInformation($"Reading {file}");
-
-                try
-                {
-                    var zip = new ZipArchive(File.OpenRead(file), ZipArchiveMode.Read, leaveOpen: false);
-
-                    var package = new PackageArchiveReader(zip);
-
-                    packageInput = new PackageInput()
-                    {
-                        PackagePath = file,
-                        Identity = package.GetIdentity(),
-                        Package = package,
-                        Zip = zip,
-                        IsSymbolsPackage = SymbolsUtility.IsSymbolsPackage(zip, file)
-                    };
-                }
-                catch
-                {
-                    log.LogError($"Invalid package '{file}'.");
-                    throw;
-                }
-
-                // Display a message for non-normalized packages
-                if (packageInput.Identity.Version.ToString() != packageInput.Identity.Version.ToNormalizedString())
-                {
-                    var message = $"Package '{packageInput.PackagePath}' does not contain a normalized version. Normalized: '{packageInput.Identity.Version.ToNormalizedString()}' Nuspec version: '{packageInput.Identity.Version.ToString()}'. See https://semver.org/ for details.";
-                    log.LogVerbose(message);
-                }
-
-                // Check for correct nuspec name
-                var nuspecName = packageInput.Identity.Id + ".nuspec";
-                if (packageInput.Zip.GetEntry(nuspecName) == null)
-                {
-                    throw new InvalidDataException($"'{packageInput.PackagePath}' does not contain '{nuspecName}'.");
-                }
-
-                // Check for multiple nuspec files
-                if (packageInput.Zip.Entries.Where(entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)).Count() > 1)
-                {
-                    throw new InvalidDataException($"'{packageInput.PackagePath}' contains multiple nuspecs and cannot be consumed.");
-                }
-
-                // Check for duplicates
-                if (packages.Any(package => package.Identity.Equals(packageInput.Identity)))
-                {
-                    throw new InvalidOperationException($"Duplicate packages detected for '{packageInput.Identity}'.");
-                }
-
-                packages.Add(packageInput);
-            }
+            // Check for duplicates
+            CheckForDuplicates(packages);
 
             return packages;
+        }
+
+        private static void CheckForDuplicates(List<PackageInput> packages)
+        {
+            PackageInput lastPackage = null;
+            foreach (var package in packages)
+            {
+                if (package.Equals(lastPackage))
+                {
+                    throw new InvalidOperationException($"Duplicate packages detected for '{package.Identity}'.");
+                }
+
+                lastPackage = package;
+            }
+        }
+
+        private static PackageInput GetPackageInput(string file, ILogger log)
+        {
+            // Validate package
+            log.LogInformation($"Reading {file}");
+
+            PackageIdentity identity = null;
+            var isSymbolsPackage = false;
+
+            try
+            {
+                // Read basic info from the package and verify that it isn't broken.
+                using (var zip = new ZipArchive(File.OpenRead(file), ZipArchiveMode.Read, leaveOpen: false))
+                using (var package = new PackageArchiveReader(zip))
+                {
+                    identity = package.GetIdentity();
+                    isSymbolsPackage = SymbolsUtility.IsSymbolsPackage(zip, file);
+                }
+            }
+            catch
+            {
+                log.LogError($"Invalid package '{file}'.");
+                throw;
+            }
+
+            var packageInput = new PackageInput(file, identity, isSymbolsPackage);
+
+            // Display a message for non-normalized packages
+            if (packageInput.Identity.Version.ToString() != packageInput.Identity.Version.ToNormalizedString())
+            {
+                var message = $"Package '{packageInput.PackagePath}' does not contain a normalized version. Normalized: '{packageInput.Identity.Version.ToNormalizedString()}' Nuspec version: '{packageInput.Identity.Version.ToString()}'. See https://semver.org/ for details.";
+                log.LogVerbose(message);
+            }
+
+            // Check for correct nuspec name
+            var nuspecName = packageInput.Identity.Id + ".nuspec";
+            if (packageInput.Zip.GetEntry(nuspecName) == null)
+            {
+                throw new InvalidDataException($"'{packageInput.PackagePath}' does not contain '{nuspecName}'.");
+            }
+
+            // Check for multiple nuspec files
+            if (packageInput.Zip.Entries.Where(entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)).Count() > 1)
+            {
+                throw new InvalidDataException($"'{packageInput.PackagePath}' contains multiple nuspecs and cannot be consumed.");
+            }
+
+            return packageInput;
+        }
+
+        private static IEnumerable<string> GetFiles(string input)
+        {
+            var inputFile = Path.GetFullPath(input);
+
+            if (File.Exists(inputFile))
+            {
+                yield return inputFile;
+            }
+            else if (Directory.Exists(inputFile))
+            {
+                var directoryFiles = Directory.GetFiles(inputFile, "*.nupkg", SearchOption.AllDirectories);
+
+                if (directoryFiles.Length < 1)
+                {
+                    throw new FileNotFoundException($"Unable to find nupkgs in '{inputFile}'.");
+                }
+
+                foreach (var file in directoryFiles)
+                {
+                    yield return file;
+                }
+            }
+            else
+            {
+                throw new FileNotFoundException($"Unable to find '{inputFile}'.");
+            }
         }
     }
 }
