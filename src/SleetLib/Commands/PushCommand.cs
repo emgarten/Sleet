@@ -17,7 +17,7 @@ namespace Sleet
         {
             var token = CancellationToken.None;
 
-            log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
+            await log.LogAsync(LogLevel.Minimal, $"Reading feed {source.BaseURI.AbsoluteUri}");
 
             // Check if already initialized
             using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
@@ -37,74 +37,33 @@ namespace Sleet
 
             try
             {
+                // Get sleet.settings.json
+                var settingsTask = FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
+
                 // Get packages
                 packages.AddRange(GetPackageInputs(inputs, now, log));
-
-                // Get sleet.settings.json
-                var sourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
 
                 // Settings context used for all operations
                 var context = new SleetContext()
                 {
                     LocalSettings = settings,
-                    SourceSettings = sourceSettings,
+                    SourceSettings = await settingsTask,
                     Log = log,
                     Source = source,
                     Token = token
                 };
 
-                log.LogInformation("Reading existing package index");
+                await log.LogAsync(LogLevel.Information, "Reading existing package index");
 
                 var packageIndex = new PackageIndex(context);
 
                 foreach (var package in packages)
                 {
-                    var packageString = $"{package.Identity.Id} {package.Identity.Version.ToFullString()}";
-
-                    if (package.IsSymbolsPackage)
-                    {
-                        packageString += " Symbols";
-                    }
-
-                    log.LogMinimal($"Pushing {packageString}");
-
-                    log.LogInformation($"Checking if package exists.");
-
-                    var exists = false;
-
-                    if (package.IsSymbolsPackage)
-                    {
-                        exists = await packageIndex.SymbolsExists(package.Identity);
-                    }
-                    else
-                    {
-                        exists = await packageIndex.Exists(package.Identity);
-                    }
-
-                    if (exists)
-                    {
-                        if (skipExisting)
-                        {
-                            log.LogMinimal($"Package already exists, skipping {packageString}");
-                            continue;
-                        }
-                        else if (force)
-                        {
-                            log.LogInformation($"Package already exists, removing {packageString}");
-                            await SleetUtility.RemovePackage(context, package.Identity);
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException($"Package already exists: {packageString}.");
-                        }
-                    }
-
-                    log.LogInformation($"Adding {packageString}");
-                    await SleetUtility.AddPackage(context, package);
+                    await PushPackage(package, context, packageIndex, force, skipExisting, log);
                 }
 
                 // Save all
-                log.LogMinimal($"Committing changes to {source.BaseURI.AbsoluteUri}");
+                await log.LogAsync(LogLevel.Minimal, $"Committing changes to {source.BaseURI.AbsoluteUri}");
 
                 await source.Commit(log, token);
             }
@@ -119,14 +78,66 @@ namespace Sleet
 
             if (exitCode)
             {
-                log.LogMinimal("Successfully pushed packages.");
+                await log.LogAsync(LogLevel.Minimal, "Successfully pushed packages.");
             }
             else
             {
-                log.LogError("Failed to push packages.");
+                await log.LogAsync(LogLevel.Error, "Failed to push packages.");
             }
 
             return exitCode;
+        }
+
+        private static async Task PushPackage(PackageInput package, SleetContext context,PackageIndex packageIndex, bool force, bool skipExisting, ILogger log)
+        {
+            var packageString = $"{package.Identity.Id} {package.Identity.Version.ToFullString()}";
+
+            if (package.IsSymbolsPackage)
+            {
+                packageString += " Symbols";
+            }
+
+            await log.LogAsync(LogLevel.Minimal, $"Pushing {packageString}");
+            await log.LogAsync(LogLevel.Information, $"Checking if package exists.");
+
+            var exists = false;
+
+            if (package.IsSymbolsPackage)
+            {
+                exists = await packageIndex.SymbolsExists(package.Identity);
+            }
+            else
+            {
+                exists = await packageIndex.Exists(package.Identity);
+            }
+
+            if (exists)
+            {
+                if (skipExisting)
+                {
+                    await log.LogAsync(LogLevel.Minimal, $"Package already exists, skipping {packageString}");
+                    return;
+                }
+                else if (force)
+                {
+                    await log.LogAsync(LogLevel.Information, $"Package already exists, removing {packageString}");
+                    await SleetUtility.RemovePackage(context, package.Identity);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Package already exists: {packageString}.");
+                }
+            }
+
+            await log.LogAsync(LogLevel.Information, $"Adding {packageString}");
+
+            using (package)
+            {
+                package.Zip = new ZipArchive(File.OpenRead(package.PackagePath), ZipArchiveMode.Read, leaveOpen: false);
+                package.Package = new PackageArchiveReader(package.Zip);
+
+                await SleetUtility.AddPackage(context, package);
+            }
         }
 
         /// <summary>
@@ -174,6 +185,9 @@ namespace Sleet
 
             PackageIdentity identity = null;
             var isSymbolsPackage = false;
+            var hasNuspec = false;
+            var hasMultipleNuspecs = false;
+            var nuspecName = string.Empty;
 
             try
             {
@@ -183,6 +197,11 @@ namespace Sleet
                 {
                     identity = package.GetIdentity();
                     isSymbolsPackage = SymbolsUtility.IsSymbolsPackage(zip, file);
+
+                    // Check for correct nuspec name
+                    nuspecName = identity.Id + ".nuspec";
+                    hasNuspec = (zip.GetEntry(nuspecName) != null);
+                    hasMultipleNuspecs = zip.Entries.Where(entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)).Count() > 1;
                 }
             }
             catch
@@ -201,14 +220,13 @@ namespace Sleet
             }
 
             // Check for correct nuspec name
-            var nuspecName = packageInput.Identity.Id + ".nuspec";
-            if (packageInput.Zip.GetEntry(nuspecName) == null)
+            if (!hasNuspec)
             {
                 throw new InvalidDataException($"'{packageInput.PackagePath}' does not contain '{nuspecName}'.");
             }
 
             // Check for multiple nuspec files
-            if (packageInput.Zip.Entries.Where(entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)).Count() > 1)
+            if (hasMultipleNuspecs)
             {
                 throw new InvalidDataException($"'{packageInput.PackagePath}' contains multiple nuspecs and cannot be consumed.");
             }
