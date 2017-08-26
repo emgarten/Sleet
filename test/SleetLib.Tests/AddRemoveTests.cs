@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
@@ -43,12 +43,10 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput()
+                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
                     {
-                        Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")),
                         Zip = zip,
-                        Package = new PackageArchiveReader(zip),
-                        PackagePath = zipFile.FullName
+                        Package = new PackageArchiveReader(zip)
                     };
 
                     var catalog = new Catalog(context);
@@ -119,12 +117,10 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput()
+                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
                     {
-                        Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")),
                         Zip = zip,
-                        Package = new PackageArchiveReader(zip),
-                        PackagePath = zipFile.FullName
+                        Package = new PackageArchiveReader(zip)
                     };
 
                     var catalog = new Catalog(context);
@@ -195,12 +191,10 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput()
+                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
                     {
-                        Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")),
                         Zip = zip,
-                        Package = new PackageArchiveReader(zip),
-                        PackagePath = zipFile.FullName
+                        Package = new PackageArchiveReader(zip)
                     };
 
                     var catalog = new Catalog(context);
@@ -272,12 +266,10 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput()
+                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
                     {
-                        Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")),
                         Zip = zip,
-                        Package = new PackageArchiveReader(zip),
-                        PackagePath = zipFile.FullName
+                        Package = new PackageArchiveReader(zip)
                     };
 
                     var catalog = new Catalog(context);
@@ -499,20 +491,16 @@ namespace Sleet.Test
                 using (var zip1 = new ZipArchive(File.OpenRead(zipFile1.FullName), ZipArchiveMode.Read, false))
                 using (var zip2 = new ZipArchive(File.OpenRead(zipFile2.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input1 = new PackageInput()
+                    var input = new PackageInput(zipFile1.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
                     {
-                        Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")),
                         Zip = zip1,
-                        Package = new PackageArchiveReader(zip1),
-                        PackagePath = zipFile1.FullName
+                        Package = new PackageArchiveReader(zip1)
                     };
 
-                    var input2 = new PackageInput()
+                    var input2 = new PackageInput(zipFile2.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
                     {
-                        Identity = new PackageIdentity("packageA", NuGetVersion.Parse("2.0.0")),
                         Zip = zip2,
-                        Package = new PackageArchiveReader(zip2),
-                        PackagePath = zipFile2.FullName
+                        Package = new PackageArchiveReader(zip2)
                     };
 
                     var catalog = new Catalog(context);
@@ -581,20 +569,16 @@ namespace Sleet.Test
                 using (var zip1 = new ZipArchive(File.OpenRead(zipFile1.FullName), ZipArchiveMode.Read, false))
                 using (var zip2 = new ZipArchive(File.OpenRead(zipFile2.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input1 = new PackageInput()
+                    var input1 = new PackageInput(zipFile1.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
                     {
-                        Identity = new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")),
                         Zip = zip1,
-                        Package = new PackageArchiveReader(zip1),
-                        PackagePath = zipFile1.FullName
+                        Package = new PackageArchiveReader(zip1)
                     };
 
-                    var input2 = new PackageInput()
+                    var input2 = new PackageInput(zipFile2.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
                     {
-                        Identity = new PackageIdentity("packageB", NuGetVersion.Parse("1.0.0")),
                         Zip = zip2,
-                        Package = new PackageArchiveReader(zip2),
-                        PackagePath = zipFile2.FullName
+                        Package = new PackageArchiveReader(zip2)
                     };
 
                     var catalog = new Catalog(context);

@@ -119,8 +119,7 @@ namespace Sleet.Tests
         {
             using (var testContext = new SleetTestContext())
             {
-                var input = TestUtility.GetPackageInput("a", testContext);
-                input.IsSymbolsPackage = true;
+                var input = TestUtility.GetPackageInput("a", testContext, true);
 
                 var file = new PackageIndexFile(testContext.SleetContext, "test.json", persistWhenEmpty: true);
                 await file.AddSymbolsPackageAsync(input);
@@ -138,10 +137,8 @@ namespace Sleet.Tests
         {
             using (var testContext = new SleetTestContext())
             {
-                var inputA = TestUtility.GetPackageInput("a", testContext);
-                inputA.IsSymbolsPackage = true;
-                var inputB = TestUtility.GetPackageInput("b", testContext);
-                inputB.IsSymbolsPackage = true;
+                var inputA = TestUtility.GetPackageInput("a", testContext, true);
+                var inputB = TestUtility.GetPackageInput("b", testContext, true);
 
                 var file = new PackageIndexFile(testContext.SleetContext, "test.json", persistWhenEmpty: true);
                 await file.AddSymbolsPackageAsync(inputA);

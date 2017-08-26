@@ -63,15 +63,21 @@ namespace SleetLib.Tests
         /// </summary>
         public PackageInput GetPackageInput(FileInfo zipFile)
         {
+            return GetPackageInput(zipFile, isSymbols: false);
+        }
+
+        /// <summary>
+        /// Create a package input from a zip file and register it for disposal.
+        /// </summary>
+        public PackageInput GetPackageInput(FileInfo zipFile, bool isSymbols)
+        {
             var reader = new PackageArchiveReader(zipFile.FullName);
 
             var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false);
-            var input = new PackageInput()
+            var input = new PackageInput(zipFile.FullName, reader.GetIdentity(), isSymbols)
             {
-                Identity = reader.GetIdentity(),
                 Zip = zip,
-                Package = reader,
-                PackagePath = zipFile.FullName
+                Package = reader
             };
 
             DisposeItems.Add(input);
