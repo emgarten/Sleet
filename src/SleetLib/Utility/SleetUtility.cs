@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Packaging.Core;
 
@@ -15,7 +15,19 @@ namespace Sleet
 
             foreach (var service in services)
             {
-                await service.AddPackageAsync(package);
+                if (package.IsSymbolsPackage)
+                {
+                    var symbolsService = service as ISymbolsAddRemovePackages;
+
+                    if (symbolsService != null)
+                    {
+                        await symbolsService.AddSymbolsPackageAsync(package);
+                    }
+                }
+                else
+                {
+                    await service.AddPackageAsync(package);
+                }
             }
         }
 
@@ -25,10 +37,21 @@ namespace Sleet
         public static async Task RemovePackage(SleetContext context, PackageIdentity package)
         {
             var services = GetServices(context);
+            var symbolsEnabled = context.SourceSettings.SymbolsEnabled;
 
             foreach (var service in services)
             {
                 await service.RemovePackageAsync(package);
+
+                if (symbolsEnabled)
+                {
+                    var symbolsService = service as ISymbolsAddRemovePackages;
+
+                    if (symbolsService != null)
+                    {
+                        await symbolsService.RemoveSymbolsPackageAsync(package);
+                    }
+                }
             }
         }
 
