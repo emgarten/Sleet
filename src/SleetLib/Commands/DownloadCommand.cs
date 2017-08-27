@@ -1,9 +1,11 @@
-﻿using NuGet.Common;
+using NuGet.Common;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using NuGet.Packaging.Core;
+using System.Linq;
 
 namespace Sleet
 {
@@ -58,28 +60,36 @@ namespace Sleet
             // Find all packages
             var packageIndex = new PackageIndex(context);
             var flatContainer = new FlatContainer(context);
+            var symbols = new Symbols(context);
 
-            var indexedPackages = await packageIndex.GetPackagesAsync();
+            // Discover all packages
+            var packages = new List<KeyValuePair<PackageIdentity, ISleetFile>>();
+            packages.AddRange((await packageIndex.GetPackagesAsync()).Select(e =>
+                new KeyValuePair<PackageIdentity, ISleetFile>(e, context.Source.Get(flatContainer.GetNupkgPath(e)))));
+            packages.AddRange((await packageIndex.GetSymbolsPackagesAsync()).Select(e =>
+                new KeyValuePair<PackageIdentity, ISleetFile>(e, symbols.GetSymbolsNupkgFile(e))));
 
             var tasks = new List<Task<bool>>(MaxThreads);
             var downloadSuccess = true;
 
             log.LogMinimal($"Downloading nupkgs to {outputPath}");
 
-            foreach (var package in indexedPackages)
+            foreach (var pair in packages)
             {
                 if (tasks.Count >= MaxThreads)
                 {
                     downloadSuccess &= await CompleteTask(tasks);
                 }
 
-                var nupkgUri = flatContainer.GetNupkgPath(package);
-                var nupkgFile = source.Get(nupkgUri);
+                var package = pair.Key;
+                var nupkgFile = pair.Value;
 
-                // id/id.version.nupkg
+                var fileName = UriUtility.GetFileName(nupkgFile.EntityUri);
+
+                // id/id.version.nupkg or id/id.version.symbols.nupkg
                 var outputNupkgPath = Path.Combine(outputPath,
                     package.Id.ToLowerInvariant(),
-                    $"{package.Id}.{package.Version.ToNormalizedString()}.nupkg".ToLowerInvariant());
+                    fileName.ToLowerInvariant());
 
                 log.LogInformation($"Downloading {outputNupkgPath}");
 
@@ -93,14 +103,14 @@ namespace Sleet
 
             success &= downloadSuccess;
 
-            if (indexedPackages.Count < 1)
+            if (packages.Count < 1)
             {
                 log.LogWarning("The feed does not contain any packages.");
             }
 
             if (downloadSuccess)
             {
-                if (indexedPackages.Count > 0)
+                if (packages.Count > 0)
                 {
                     log.LogMinimal("Successfully downloaded packages.");
                 }

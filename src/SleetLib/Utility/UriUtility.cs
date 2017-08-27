@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -95,6 +95,23 @@ namespace Sleet
         {
             return (uri.AbsoluteUri.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
                 || uri.AbsoluteUri.StartsWith("https://", StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Returns the file name from a Uri or null if this is a directory.
+        /// </summary>
+        public static string GetFileName(Uri uri)
+        {
+            var absolute = uri.AbsoluteUri;
+
+            if (absolute.EndsWith("/"))
+            {
+                return null;
+            }
+            else
+            {
+                return uri.AbsoluteUri.Split('/').Last();
+            }
         }
     }
 }
