@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using NuGet.Packaging.Core;
 using SleetLib;
@@ -44,6 +45,8 @@ namespace Sleet
                 if (isSymbolsPackage)
                 {
                     tasks.Add(PackageIndex.AddSymbolsPackageAsync(packageInput));
+
+                    tasks.Add(AddSymbolsNupkgToFeed(packageInput));
                 }
                 else
                 {
@@ -68,9 +71,40 @@ namespace Sleet
             }
         }
 
-        public Task RemovePackageAsync(PackageIdentity package)
+        public async Task RemovePackageAsync(PackageIdentity package)
         {
-            return Task.FromResult<bool>(false);
+            if (await PackageIndex.Exists(package))
+            {
+                var toDelete = new List<ISleetFile>();
+
+                // Remove package->assembly index
+                // Indexes are auto removed when empty
+                var packageToAssemblyIndex = GetPackageToAssetIndex(package);
+                var assets = await packageToAssemblyIndex.GetAssetsAsync();
+
+                foreach (var asset in assets)
+                {
+                    // Remove package entry from assets
+                    var assetIndex = GetAssemblyToPackageIndex(asset.PackageIndex);
+                    await assetIndex.RemovePackageAsync(package);
+
+                    // Remove assemblies
+                    if (await assetIndex.IsEmpty())
+                    {
+                        // If the no other packages are referencing the file then remove the assembly.
+                        var assetFile = _context.Source.Get(asset.Asset);
+                        toDelete.Add(assetFile);
+                    }
+                }
+
+                // Remove from index
+                await PackageIndex.RemovePackageAsync(package);
+
+                foreach (var file in toDelete)
+                {
+                    file.Delete(_context.Log, _context.Token);
+                }
+            }
         }
 
         public Task AddSymbolsPackageAsync(PackageInput packageInput)
@@ -78,9 +112,48 @@ namespace Sleet
             return AddPackageAsync(packageInput, isSymbolsPackage: true);
         }
 
-        public Task RemoveSymbolsPackageAsync(PackageIdentity package)
+        public async Task RemoveSymbolsPackageAsync(PackageIdentity package)
         {
-            throw new NotImplementedException();
+            if (await PackageIndex.SymbolsExists(package))
+            {
+                var toDelete = new List<ISleetFile>();
+
+                // Remove nupkg
+                var packagePath = SymbolsIndexUtility.GetSymbolsNupkgPath(package);
+                toDelete.Add(_context.Source.Get(packagePath));
+
+                // Remove details page
+                var detailsPath = SymbolsIndexUtility.GetSymbolsPackageDetailsPath(package);
+                toDelete.Add(_context.Source.Get(detailsPath));
+
+                // Remove package->assembly index
+                // Indexes are auto removed when empty
+                var packageToAssemblyIndex = GetPackageToAssetIndex(package);
+                var assets = await packageToAssemblyIndex.GetSymbolsAssetsAsync();
+
+                foreach (var asset in assets)
+                {
+                    // Remove package entry from assets
+                    var assetIndex = GetAssemblyToPackageIndex(asset.PackageIndex);
+                    await assetIndex.RemoveSymbolsPackageAsync(package);
+
+                    // Remove assemblies
+                    if (await assetIndex.IsEmpty())
+                    {
+                        // If the no other packages are referencing the file then remove the assembly.
+                        var assetFile = _context.Source.Get(asset.Asset);
+                        toDelete.Add(assetFile);
+                    }
+                }
+
+                // Remove from index
+                await PackageIndex.RemoveSymbolsPackageAsync(package);
+
+                foreach (var file in toDelete)
+                {
+                    file.Delete(_context.Log, _context.Token);
+                }
+            }
         }
 
         public Task<ISet<PackageIdentity>> GetPackagesAsync()
@@ -120,6 +193,28 @@ namespace Sleet
             }
         }
 
+        // Copy the symbols nupkg to the symbols folder and create a catalog details page for it.
+        private async Task AddSymbolsNupkgToFeed(PackageInput package)
+        {
+            // Write .nupkg to feed
+            var packagePath = SymbolsIndexUtility.GetSymbolsNupkgPath(package.Identity);
+            var packageFile = _context.Source.Get(packagePath);
+            package.NupkgUri = packageFile.EntityUri;
+
+            await packageFile.Write(File.OpenRead(package.PackagePath), _context.Log, _context.Token);
+
+            // Write catalog entry to the symbols folder for the package
+            var detailsPath = SymbolsIndexUtility.GetSymbolsPackageDetailsPath(package.Identity);
+            var detailsFile = _context.Source.Get(detailsPath);
+
+            var commitId = Guid.NewGuid();
+
+            var detailsJson = await package.RunWithLockAsync((p)
+                => CatalogUtility.CreatePackageDetailsAsync(p, detailsFile.EntityUri, commitId));
+
+            await detailsFile.Write(detailsJson, _context.Log, _context.Token);
+        }
+
         private ISleetFile GetFile(string fileName, string hash)
         {
             var symbolsPath = SymbolsUtility.GetSymbolsServerPath(fileName, hash);
@@ -144,10 +239,18 @@ namespace Sleet
             }
         }
 
+        /// <summary>
+        /// Assembly asset -> Package index
+        /// </summary>
+        public PackageIndexFile GetAssemblyToPackageIndex(Uri packageIndexUri)
+        {
+            var file = _context.Source.Get(packageIndexUri);
+            return new PackageIndexFile(_context, file, persistWhenEmpty: false);
+        }
+
         private Task AddPackageToAssemblyIndexAsync(PackageIdentity package, List<PackageFile> assemblies, bool isSymbolsPackage)
         {
-            var path = SymbolsIndexUtility.GetPackageToAssemblyIndexPath(package);
-            var index = new AssetIndexFile(_context, path, package);
+            var index = GetPackageToAssetIndex(package);
 
             var assets = assemblies.Select(e => new AssetIndexEntry(e.AssetFile.EntityUri, e.IndexFile.EntityUri));
 
@@ -259,7 +362,7 @@ namespace Sleet
             {
                 if (!assetIndexFiles.ContainsKey(package))
                 {
-                    assetIndexFiles.Add(package, GetAssetIndexFile(package));
+                    assetIndexFiles.Add(package, GetPackageToAssetIndex(package));
                 }
             }
 
@@ -439,13 +542,13 @@ namespace Sleet
             return messages;
         }
 
-        private AssetIndexFile GetAssetIndexFile(PackageIdentity package)
+        public AssetIndexFile GetPackageToAssetIndex(PackageIdentity package)
         {
             var path = SymbolsIndexUtility.GetPackageToAssemblyIndexPath(package);
             return new AssetIndexFile(_context, path, package);
         }
 
-        private PackageIndexFile GetPackageIndexFile(AssetIndexEntry assetEntry)
+        public PackageIndexFile GetPackageIndexFile(AssetIndexEntry assetEntry)
         {
             var file = _context.Source.Get(assetEntry.PackageIndex);
             return new PackageIndexFile(_context, file, persistWhenEmpty: false);

@@ -38,6 +38,24 @@ namespace Sleet
         }
 
         /// <summary>
+        /// Symbols/packages/id/version/package.json
+        /// </summary>
+        public static string GetSymbolsNupkgPath(PackageIdentity identity)
+        {
+            var fileName = GetSymbolsNupkgFileName(identity);
+
+            return GetPackageDirectory(identity) + fileName;
+        }
+
+        /// <summary>
+        /// Symbols/packages/id/version/package.json
+        /// </summary>
+        public static string GetSymbolsNupkgFileName(PackageIdentity identity)
+        {
+            return $"{identity.Id}.{identity.Version.ToNormalizedString()}.symbols.nupkg".ToLowerInvariant();
+        }
+
+        /// <summary>
         /// Symbols/packages/index.json
         /// </summary>
         public static string GetPackageIndexPath(PackageIdentity identity)

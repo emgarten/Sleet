@@ -295,6 +295,12 @@ namespace Sleet
             return new SortedSet<PackageIdentity>(packages.Where(e => StringComparer.OrdinalIgnoreCase.Equals(packageId, e.Id)));
         }
 
+        public override async Task<bool> IsEmpty()
+        {
+            var sets = await GetPackageSetsAsync();
+            return sets.Packages.Index.Count == 0 && sets.Symbols.Index.Count == 0;
+        }
+
         private class PackageSets
         {
             public PackageSet Packages { get; set; } = new PackageSet();
