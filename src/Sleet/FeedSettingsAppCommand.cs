@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
@@ -32,10 +32,7 @@ namespace Sleet
             var getSetting = cmd.Option("--get", "Display a feed setting. May be specified multiple times.", CommandOptionType.MultipleValue);
             var getAll = cmd.Option("--get-all", "Diplay all feed settings.", CommandOptionType.NoValue);
 
-            var required = new List<CommandOption>()
-            {
-                sourceName
-            };
+            var required = new List<CommandOption>();
 
             cmd.OnExecute(async () =>
             {

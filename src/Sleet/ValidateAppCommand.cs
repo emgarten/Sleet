@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
@@ -26,10 +26,7 @@ namespace Sleet
 
             cmd.HelpOption(Constants.HelpOption);
 
-            var required = new List<CommandOption>()
-            {
-                sourceName
-            };
+            var required = new List<CommandOption>();
 
             cmd.OnExecute(async () =>
             {

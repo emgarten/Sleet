@@ -174,7 +174,7 @@ namespace Sleet
                     }
                     else
                     {
-                        log.LogError($"Unable to get symbols packages for {service.Name}");
+                        // Symbols are not supported by this service
                         continue;
                     }
 
