@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,7 +62,10 @@ namespace Sleet
 
                 foreach (var package in packages)
                 {
-                    if (!await packageIndex.Exists(package))
+                    var exists = await packageIndex.Exists(package);
+                    var symbolsExists = await packageIndex.SymbolsExists(package);
+
+                    if (!exists && !symbolsExists)
                     {
                         log.LogInformation($"{package.ToString()} does not exist.");
 
@@ -77,7 +80,19 @@ namespace Sleet
                         }
                     }
 
-                    log.LogInformation($"Removing {package.ToString()}");
+                    var message = $"Removing {package.ToString()}";
+
+                    if (exists && symbolsExists)
+                    {
+                        message = $"Removing {package.ToString()} and symbols package for {package.ToString()}";
+                    }
+                    else if (symbolsExists)
+                    {
+                        message = $"Removing symbols package {package.ToString()}";
+                    }
+
+                    await log.LogAsync(LogLevel.Information, message);
+
                     await SleetUtility.RemovePackage(context, package);
                 }
 
