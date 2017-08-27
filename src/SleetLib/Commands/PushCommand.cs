@@ -37,21 +37,25 @@ namespace Sleet
 
             try
             {
-                // Get sleet.settings.json
-                var settingsTask = FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
-
                 // Get packages
                 packages.AddRange(GetPackageInputs(inputs, now, log));
+
+                // Get sleet.settings.json
+                await log.LogAsync(LogLevel.Minimal, "Reading feed");
+                var sourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
 
                 // Settings context used for all operations
                 var context = new SleetContext()
                 {
                     LocalSettings = settings,
-                    SourceSettings = await settingsTask,
+                    SourceSettings = sourceSettings,
                     Log = log,
                     Source = source,
                     Token = token
                 };
+
+                // Fetch feed
+                await SleetUtility.FetchFeed(context);
 
                 await log.LogAsync(LogLevel.Information, "Reading existing package index");
 

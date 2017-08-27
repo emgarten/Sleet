@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Packaging.Core;
 
@@ -87,6 +88,14 @@ namespace Sleet
             }
 
             return services;
+        }
+
+        /// <summary>
+        /// Pre-load files in parallel
+        /// </summary>
+        public static Task FetchFeed(SleetContext context)
+        {
+            return Task.WhenAll(GetServices(context).Select(e => e.FetchAsync()));
         }
     }
 }
