@@ -542,6 +542,15 @@ namespace Sleet
             return messages;
         }
 
+        /// <summary>
+        /// Symbols symbols nupkg file.
+        /// </summary>
+        public ISleetFile GetSymbolsNupkgFile(PackageIdentity package)
+        {
+            var path = SymbolsIndexUtility.GetSymbolsNupkgPath(package);
+            return _context.Source.Get(path);
+        }
+
         public AssetIndexFile GetPackageToAssetIndex(PackageIdentity package)
         {
             var path = SymbolsIndexUtility.GetPackageToAssemblyIndexPath(package);
