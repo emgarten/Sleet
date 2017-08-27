@@ -89,5 +89,10 @@ namespace Sleet
         {
             return File.FetchAsync(Context.Log, Context.Token);
         }
+
+        /// <summary>
+        /// True if there are no items in the index.
+        /// </summary>
+        public abstract Task<bool> IsEmpty();
     }
 }

@@ -137,6 +137,13 @@ namespace Sleet
             return json;
         }
 
+        public override async Task<bool> IsEmpty()
+        {
+            var assets = await GetAssetIndexEntriesAsync();
+
+            return assets.Packages.Count == 0 && assets.Symbols.Count == 0;
+        }
+
         private class PackageSets
         {
             public SortedSet<AssetIndexEntry> Packages { get; set; } = new SortedSet<AssetIndexEntry>();
