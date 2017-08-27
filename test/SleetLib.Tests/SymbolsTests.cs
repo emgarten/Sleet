@@ -524,7 +524,7 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task Symbols_AddSymbolsPackageWithSymbolsOffVerifyFailure()
+        public async Task Symbols_AddSymbolsPackageWithSymbolsOffVerifySkipped()
         {
             using (var testContext = new SleetTestContext())
             {
@@ -558,10 +558,13 @@ namespace SleetLib.Tests
                     skipExisting: false,
                     log: testContext.SleetContext.Log);
 
-                success.Should().BeFalse();
+                success.Should().BeTrue();
+
+                var packageIndex = new PackageIndex(context);
+                (await packageIndex.IsEmpty()).Should().BeTrue();
 
                 var testLogger = (TestLogger)testContext.SleetContext.Log;
-                testLogger.GetMessages().Should().Contain("symbols");
+                testLogger.GetMessages().Should().Contain("to push symbols package enable the symbols server on this feed");
             }
         }
 
