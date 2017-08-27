@@ -131,7 +131,17 @@ namespace Sleet
                 else if (force)
                 {
                     await log.LogAsync(LogLevel.Information, $"Package already exists, removing {packageString}");
-                    await SleetUtility.RemovePackage(context, package.Identity);
+
+                    // Avoid removing both the symbols and non-symbols packages, this should only
+                    // remove the package we are going to replace.
+                    if (package.IsSymbolsPackage)
+                    {
+                        await SleetUtility.RemoveSymbolsPackage(context, package.Identity);
+                    }
+                    else
+                    {
+                        await SleetUtility.RemoveNonSymbolsPackage(context, package.Identity);
+                    }
                 }
                 else
                 {

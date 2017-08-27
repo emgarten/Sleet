@@ -33,25 +33,40 @@ namespace Sleet
         }
 
         /// <summary>
-        /// Remove a package from all services.
+        /// Remove both the symbols and non-symbols package from all services.
         /// </summary>
         public static async Task RemovePackage(SleetContext context, PackageIdentity package)
         {
+            await RemoveNonSymbolsPackage(context, package);
+            await RemoveSymbolsPackage(context, package);
+        }
+
+        /// <summary>
+        /// Remove a non-symbols package from all services.
+        /// </summary>
+        public static async Task RemoveNonSymbolsPackage(SleetContext context, PackageIdentity package)
+        {
             var services = GetServices(context);
-            var symbolsEnabled = context.SourceSettings.SymbolsEnabled;
 
             foreach (var service in services)
             {
                 await service.RemovePackageAsync(package);
+            }
+        }
 
-                if (symbolsEnabled)
+        /// <summary>
+        /// Remove a symbols package from all services.
+        /// </summary>
+        public static async Task RemoveSymbolsPackage(SleetContext context, PackageIdentity package)
+        {
+            var services = GetServices(context);
+            var symbolsEnabled = context.SourceSettings.SymbolsEnabled;
+
+            if (symbolsEnabled)
+            {
+                foreach (var symbolsService in services.Select(e => e as ISymbolsAddRemovePackages).Where(e => e != null))
                 {
-                    var symbolsService = service as ISymbolsAddRemovePackages;
-
-                    if (symbolsService != null)
-                    {
-                        await symbolsService.RemoveSymbolsPackageAsync(package);
-                    }
+                    await symbolsService.RemoveSymbolsPackageAsync(package);
                 }
             }
         }

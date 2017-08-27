@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -153,6 +153,47 @@ namespace SleetLib.Tests
                 {
                     log.GetMessages().Should().Contain(file);
                 }
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatTheFeedHasSymbolsPackagesVerifyDownloadCommandSucceeds()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            using (var outputFolder = new TestFolder())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: true, log: log, token: CancellationToken.None);
+
+                var packageA = new TestNupkg("a", "1.0.0");
+                var packageASymbols = new TestNupkg("a", "1.0.0");
+                packageASymbols.Nuspec.IsSymbolPackage = true;
+                packageA.Save(packagesFolder.Root);
+                packageASymbols.Save(packagesFolder.Root);
+
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder }, false, false, log);
+
+                success &= await DownloadCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
+
+                var fileNames = Directory.GetFiles(outputFolder, "*.nupkg", SearchOption.AllDirectories)
+                    .Select(e => Path.GetFileName(e))
+                    .OrderBy(e => e, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+
+                success.ShouldBeEquivalentTo(true, "the feed is valid");
+
+                fileNames.ShouldBeEquivalentTo(new[] { "a.1.0.0.nupkg", "a.1.0.0.symbols.nupkg" });
+
+                log.GetMessages().Should().NotContain("The feed does not contain any packages");
+                log.GetMessages().Should().Contain("a.1.0.0.nupkg");
+                log.GetMessages().Should().Contain("a.1.0.0.symbols.nupkg");
             }
         }
     }

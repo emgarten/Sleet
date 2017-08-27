@@ -24,7 +24,7 @@ namespace Sleet
         public Symbols(SleetContext context)
         {
             _context = context;
-            PackageIndex = new PackageIndexFile(context, SymbolsIndexUtility.PackageIndexPath);
+            PackageIndex = new PackageIndexFile(context, SymbolsIndexUtility.PackageIndexPath, persistWhenEmpty: true);
         }
 
         public Task AddPackageAsync(PackageInput packageInput)
@@ -34,19 +34,23 @@ namespace Sleet
 
         private async Task AddPackageAsync(PackageInput packageInput, bool isSymbolsPackage)
         {
+            var tasks = new List<Task>();
+
+            if (isSymbolsPackage)
+            {
+                // Add symbols packages to the feed regardless of assemblies
+                tasks.Add(AddSymbolsNupkgToFeed(packageInput));
+            }
+
             // Read dll/pdb files from the package.
             var assemblies = await GetAssembliesAsync(packageInput);
 
             if (assemblies.Count > 0)
             {
-                var tasks = new List<Task>();
-
                 // Add the id/version to the package index.
                 if (isSymbolsPackage)
                 {
                     tasks.Add(PackageIndex.AddSymbolsPackageAsync(packageInput));
-
-                    tasks.Add(AddSymbolsNupkgToFeed(packageInput));
                 }
                 else
                 {
@@ -61,14 +65,14 @@ namespace Sleet
 
                 // Add index of all dll/pdb files added for the package.
                 tasks.Add(AddPackageToAssemblyIndexAsync(packageInput.Identity, assemblies, isSymbolsPackage: isSymbolsPackage));
-
-                // Wait for everything to finish
-                await Task.WhenAll(tasks);
             }
             else
             {
                 await _context.Log.LogAsync(LogLevel.Verbose, $"No files found that could be added to the symbols feed. Skipping package {packageInput.Identity}");
             }
+
+            // Wait for everything to finish
+            await Task.WhenAll(tasks);
         }
 
         public async Task RemovePackageAsync(PackageIdentity package)
@@ -96,6 +100,9 @@ namespace Sleet
                         toDelete.Add(assetFile);
                     }
                 }
+
+                // Remove asset from parent index
+                await packageToAssemblyIndex.RemoveAssetsAsync(assets);
 
                 // Remove from index
                 await PackageIndex.RemovePackageAsync(package);
@@ -145,6 +152,9 @@ namespace Sleet
                         toDelete.Add(assetFile);
                     }
                 }
+
+                // Remove asset from parent index
+                await packageToAssemblyIndex.RemoveSymbolsAssetsAsync(assets);
 
                 // Remove from index
                 await PackageIndex.RemoveSymbolsPackageAsync(package);
