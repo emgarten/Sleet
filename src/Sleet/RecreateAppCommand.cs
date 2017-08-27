@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
 
@@ -29,10 +29,7 @@ namespace Sleet
 
             var force = cmd.Option("-f|--force", "Ignore errors when recreating the feed.", CommandOptionType.NoValue);
 
-            var required = new List<CommandOption>()
-            {
-                sourceName
-            };
+            var required = new List<CommandOption>();
 
             cmd.OnExecute(async () =>
             {

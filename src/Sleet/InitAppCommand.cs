@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.CommandLineUtils;
@@ -30,10 +30,7 @@ namespace Sleet
             var enableCatalogOption = cmd.Option(Constants.EnableCatalogOption, Constants.EnableCatalogDesc, CommandOptionType.NoValue);
             var enableSymbolsOption = cmd.Option(Constants.EnableSymbolsFeedOption, Constants.EnableSymbolsFeedDesc, CommandOptionType.NoValue);
 
-            var required = new List<CommandOption>()
-            {
-                sourceName
-            };
+            var required = new List<CommandOption>();
 
             cmd.OnExecute(async () =>
             {

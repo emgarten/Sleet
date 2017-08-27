@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
@@ -38,7 +38,6 @@ namespace Sleet
 
             var required = new List<CommandOption>()
             {
-                sourceName,
                 packageId
             };
 
