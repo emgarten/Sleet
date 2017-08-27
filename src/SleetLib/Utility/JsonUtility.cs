@@ -104,7 +104,7 @@ namespace Sleet
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 8192, leaveOpen: false))
+            using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 8192, leaveOpen: true))
             using (var jsonWriter = new JsonTextWriter(writer))
             {
                 jsonWriter.Formatting = Formatting.None;
