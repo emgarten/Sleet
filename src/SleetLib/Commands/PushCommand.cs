@@ -99,6 +99,12 @@ namespace Sleet
             if (package.IsSymbolsPackage)
             {
                 packageString += " Symbols";
+
+                if (!context.SourceSettings.SymbolsEnabled)
+                {
+                    await log.LogAsync(LogLevel.Warning, $"Skipping {packageString}, to push symbols package enable the symbols server on this feed.");
+                    return;
+                }
             }
 
             await log.LogAsync(LogLevel.Minimal, $"Pushing {packageString}");
