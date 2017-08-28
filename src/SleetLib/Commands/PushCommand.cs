@@ -102,7 +102,7 @@ namespace Sleet
 
                 if (!context.SourceSettings.SymbolsEnabled)
                 {
-                    await log.LogAsync(LogLevel.Warning, $"Skipping {packageString}, to push symbols package enable the symbols server on this feed.");
+                    await log.LogAsync(LogLevel.Warning, $"Skipping {packageString}, to push symbols packages enable the symbols server on this feed.");
                     return;
                 }
             }

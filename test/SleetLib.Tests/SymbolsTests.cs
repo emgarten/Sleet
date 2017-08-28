@@ -625,7 +625,7 @@ namespace SleetLib.Tests
                 (await packageIndex.IsEmpty()).Should().BeTrue();
 
                 var testLogger = (TestLogger)testContext.SleetContext.Log;
-                testLogger.GetMessages().Should().Contain("to push symbols package enable the symbols server on this feed");
+                testLogger.GetMessages().Should().Contain("to push symbols packages enable the symbols server on this feed");
             }
         }
 
