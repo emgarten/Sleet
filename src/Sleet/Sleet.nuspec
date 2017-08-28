@@ -12,6 +12,7 @@
     <tags>nuget nugetserver nugetfeed</tags>
     <repository type="git" url="https://github.com/emgarten/Sleet" />
     <developmentDependency>true</developmentDependency>
+    <iconUrl>https://emgartenstatic.blob.core.windows.net/nupkgs/icons/sleet.png</iconUrl>
     <packageTypes>
       <packageType name="DotnetCliTool" />
     </packageTypes>
