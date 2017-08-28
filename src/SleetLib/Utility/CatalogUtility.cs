@@ -72,18 +72,18 @@ namespace Sleet
         /// <summary>
         /// Create a PackageDetails page that contains all the package information.
         /// </summary>
-        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Guid commitId)
+        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Guid commitId, bool writeFileList)
         {
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
             var rootUri = UriUtility.GetPath(catalogBaseURI, $"data/{pageId}.json");
 
-            return CreatePackageDetailsWithExactUriAsync(packageInput, rootUri, commitId);
+            return CreatePackageDetailsWithExactUriAsync(packageInput, rootUri, commitId, writeFileList);
         }
 
         /// <summary>
         /// Create a PackageDetails page that contains all the package information and an exact uri.
         /// </summary>
-        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Guid commitId)
+        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Guid commitId, bool writeFileList)
         {
             var now = DateTimeOffset.UtcNow;
             var package = packageInput.Package;
@@ -234,20 +234,23 @@ namespace Sleet
 
             json.Add("packageContent", packageInput.NupkgUri.AbsoluteUri);
 
-            // add flatcontainer files
-            var packageEntriesArray = new JArray();
-            json.Add("packageEntries", packageEntriesArray);
-            var packageEntryIndex = 0;
-
-            foreach (var entry in packageInput.Zip.Entries.OrderBy(e => e.FullName, StringComparer.OrdinalIgnoreCase))
+            if (writeFileList)
             {
-                var fileEntry = JsonUtility.Create(detailsUri, $"packageEntry/{packageEntryIndex}", "packageEntry");
-                fileEntry.Add("fullName", entry.FullName);
-                fileEntry.Add("length", entry.Length);
-                fileEntry.Add("lastWriteTime", entry.LastWriteTime.GetDateString());
+                // Write out all files contained in the package
+                var packageEntriesArray = new JArray();
+                json.Add("packageEntries", packageEntriesArray);
+                var packageEntryIndex = 0;
 
-                packageEntriesArray.Add(fileEntry);
-                packageEntryIndex++;
+                foreach (var entry in packageInput.Zip.Entries.OrderBy(e => e.FullName, StringComparer.OrdinalIgnoreCase))
+                {
+                    var fileEntry = JsonUtility.Create(detailsUri, $"packageEntry/{packageEntryIndex}", "packageEntry");
+                    fileEntry.Add("fullName", entry.FullName);
+                    fileEntry.Add("length", entry.Length);
+                    fileEntry.Add("lastWriteTime", entry.LastWriteTime.GetDateString());
+
+                    packageEntriesArray.Add(fileEntry);
+                    packageEntryIndex++;
+                }
             }
 
             json.Add("sleet:toolVersion", AssemblyVersionHelper.GetVersion().ToFullVersionString());

@@ -61,7 +61,9 @@ namespace Sleet
         public async Task AddPackageAsync(PackageInput packageInput)
         {
             // Create package details page
-            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, _context.CommitId);
+            var addFileList = _context.SourceSettings.CatalogEnabled;
+
+            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, _context.CommitId, addFileList);
             var packageDetailsUri = JsonUtility.GetIdUri(packageDetails);
 
             // Add output to the package input for other services to use.

@@ -105,7 +105,7 @@ namespace Sleet.Test
                     };
 
                     // Act
-                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, context.CommitId);
+                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, context.CommitId, writeFileList: true);
 
                     var dependencyGroups = actual["dependencyGroups"] as JArray;
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;
@@ -190,7 +190,7 @@ namespace Sleet.Test
                     };
 
                     // Act
-                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, context.CommitId);
+                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, context.CommitId, writeFileList: true);
 
                     var dependencyGroups = actual["dependencyGroups"] as JArray;
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;
