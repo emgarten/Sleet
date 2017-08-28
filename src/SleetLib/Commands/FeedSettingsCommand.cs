@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +59,11 @@ namespace Sleet
             var getKeys = new SortedSet<string>(getSettings, StringComparer.OrdinalIgnoreCase);
             var setKeys = new SortedSet<string>(setSettings, StringComparer.OrdinalIgnoreCase);
             var unsetKeys = new SortedSet<string>(unsetSettings, StringComparer.OrdinalIgnoreCase);
+
+            if ((getKeys.Count + setKeys.Count + unsetKeys.Count) == 0 && !unsetAll && !getAll)
+            {
+                throw new ArgumentException("No arguments specified.");
+            }
 
             if (getAll)
             {
