@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xunit;
@@ -19,9 +19,9 @@ namespace SleetLib.Tests
             var settings = FeedSettingsUtility.LoadSettings(values);
 
             // Defaults
-            settings.CatalogEnabled.Should().BeTrue();
+            settings.CatalogEnabled.Should().BeFalse();
             settings.CatalogPageSize.Should().Be(1024);
-            settings.SymbolsEnabled.Should().BeTrue();
+            settings.SymbolsEnabled.Should().BeFalse();
         }
 
         [Fact]
@@ -54,9 +54,9 @@ namespace SleetLib.Tests
             var settings = FeedSettingsUtility.LoadSettings(values);
 
             // Defaults
-            settings.CatalogEnabled.Should().BeTrue();
+            settings.CatalogEnabled.Should().BeFalse();
             settings.CatalogPageSize.Should().Be(1024);
-            settings.SymbolsEnabled.Should().BeTrue();
+            settings.SymbolsEnabled.Should().BeFalse();
         }
 
         [Fact]
