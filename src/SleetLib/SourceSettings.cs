@@ -1,4 +1,4 @@
-﻿namespace Sleet
+namespace Sleet
 {
     public class FeedSettings
     {
@@ -10,11 +10,11 @@
         /// <summary>
         /// If false the catalog will not be written to the feed.
         /// </summary>
-        public bool CatalogEnabled { get; set; } = true;
+        public bool CatalogEnabled { get; set; } = false;
 
         /// <summary>
         /// If false the symbol feed will be disabled.
         /// </summary>
-        public bool SymbolsEnabled { get; set; } = true;
+        public bool SymbolsEnabled { get; set; } = false;
     }
 }

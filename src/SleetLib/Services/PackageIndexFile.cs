@@ -138,12 +138,11 @@ namespace Sleet
 
                 var symbolsNode = json["symbols"] as JObject;
 
-                if (symbolsNode == null)
+                // This node may not exist for older feeds
+                if (symbolsNode != null)
                 {
-                    throw new InvalidDataException("Symbols node missing from sleet.packageindex.json");
+                    index.Symbols = GetPackageSetFromJson(symbolsNode);
                 }
-
-                index.Symbols = GetPackageSetFromJson(symbolsNode);
             }
 
             return index;
