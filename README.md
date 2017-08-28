@@ -10,7 +10,6 @@ Sleet is a cross platform command line tool to generate NuGet v3 static feeds.
 
 ## Getting Sleet
 
-* [Github releases](https://github.com/emgarten/Sleet/releases/latest)
 * [NuGet.org packages](https://www.nuget.org/packages/Sleet)
 
 ## CI builds

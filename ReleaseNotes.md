@@ -1,5 +1,7 @@
 # Release Notes
 
+## 2.1.0
+
 ## 2.0.0
 * Improved console output progress display.
 * Performance improvements, files are committed to the feed in parallel which cuts push time in half for some scenarios.
