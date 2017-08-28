@@ -220,7 +220,7 @@ namespace Sleet
             var commitId = Guid.NewGuid();
 
             var detailsJson = await package.RunWithLockAsync((p)
-                => CatalogUtility.CreatePackageDetailsAsync(p, detailsFile.EntityUri, commitId));
+                => CatalogUtility.CreatePackageDetailsWithExactUriAsync(p, detailsFile.EntityUri, commitId));
 
             await detailsFile.Write(detailsJson, _context.Log, _context.Token);
         }

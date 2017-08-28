@@ -72,18 +72,25 @@ namespace Sleet
         /// <summary>
         /// Create a PackageDetails page that contains all the package information.
         /// </summary>
-        public static async Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Guid commitId)
+        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Guid commitId)
+        {
+            var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
+            var rootUri = UriUtility.GetPath(catalogBaseURI, $"data/{pageId}.json");
+
+            return CreatePackageDetailsWithExactUriAsync(packageInput, rootUri, commitId);
+        }
+
+        /// <summary>
+        /// Create a PackageDetails page that contains all the package information and an exact uri.
+        /// </summary>
+        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Guid commitId)
         {
             var now = DateTimeOffset.UtcNow;
             var package = packageInput.Package;
             var nuspec = XDocument.Load(package.GetNuspec());
             var nuspecReader = new NuspecReader(nuspec);
 
-            var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
-
-            var rootUri = UriUtility.GetPath(catalogBaseURI, $"data/{pageId}.json");
-
-            var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
+            var json = JsonUtility.Create(detailsUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
             json.Add("commitId", commitId.ToString().ToLowerInvariant());
             json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
             json.Add("sleet:operation", "add");
@@ -168,7 +175,7 @@ namespace Sleet
             foreach (var group in fwrGroups.OrderBy(e => e.TargetFramework.GetShortFolderName(), StringComparer.OrdinalIgnoreCase))
             {
                 var groupTFM = group.TargetFramework.GetShortFolderName().ToLowerInvariant();
-                var groupNode = JsonUtility.Create(rootUri, $"frameworkassemblygroup/{groupTFM}".ToLowerInvariant(), "FrameworkAssemblyGroup");
+                var groupNode = JsonUtility.Create(detailsUri, $"frameworkassemblygroup/{groupTFM}".ToLowerInvariant(), "FrameworkAssemblyGroup");
 
                 // Leave the framework property out for the 'any' group
                 if (!group.TargetFramework.IsAny)
@@ -199,7 +206,7 @@ namespace Sleet
             foreach (var group in dependencyGroups.OrderBy(e => e.TargetFramework.GetShortFolderName(), StringComparer.OrdinalIgnoreCase))
             {
                 var groupTFM = group.TargetFramework.GetShortFolderName().ToLowerInvariant();
-                var groupNode = JsonUtility.Create(rootUri, $"dependencygroup/{groupTFM}".ToLowerInvariant(), "PackageDependencyGroup");
+                var groupNode = JsonUtility.Create(detailsUri, $"dependencygroup/{groupTFM}".ToLowerInvariant(), "PackageDependencyGroup");
 
                 // Leave the framework property out for the 'any' group
                 if (!group.TargetFramework.IsAny)
@@ -216,7 +223,7 @@ namespace Sleet
 
                     foreach (var depPackage in group.Packages.Distinct().OrderBy(e => e.Id, StringComparer.OrdinalIgnoreCase))
                     {
-                        var packageNode = JsonUtility.Create(rootUri, $"dependencygroup/{groupTFM}/{depPackage.Id}".ToLowerInvariant(), "PackageDependency");
+                        var packageNode = JsonUtility.Create(detailsUri, $"dependencygroup/{groupTFM}/{depPackage.Id}".ToLowerInvariant(), "PackageDependency");
                         packageNode.Add("id", depPackage.Id);
                         packageNode.Add("range", depPackage.VersionRange.ToNormalizedString());
 
@@ -234,7 +241,7 @@ namespace Sleet
 
             foreach (var entry in packageInput.Zip.Entries.OrderBy(e => e.FullName, StringComparer.OrdinalIgnoreCase))
             {
-                var fileEntry = JsonUtility.Create(rootUri, $"packageEntry/{packageEntryIndex}", "packageEntry");
+                var fileEntry = JsonUtility.Create(detailsUri, $"packageEntry/{packageEntryIndex}", "packageEntry");
                 fileEntry.Add("fullName", entry.FullName);
                 fileEntry.Add("length", entry.Length);
                 fileEntry.Add("lastWriteTime", entry.LastWriteTime.GetDateString());
