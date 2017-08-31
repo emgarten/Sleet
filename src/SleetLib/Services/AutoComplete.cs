@@ -96,13 +96,10 @@ namespace Sleet
         public async Task<ISet<string>> GetPackageIds()
         {
             var ids = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            var json = await RootIndexFile.GetJsonOrNull(_context.Log, _context.Token);
 
-            var file = RootIndexFile;
-
-            if (await file.Exists(_context.Log, _context.Token))
+            if (json != null)
             {
-                var json = await file.GetJson(_context.Log, _context.Token);
-
                 var data = json["data"] as JArray;
                 ids.UnionWith(data.Select(e => e.ToObject<string>()).Where(s => !string.IsNullOrEmpty(s)));
             }

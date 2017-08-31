@@ -38,6 +38,8 @@ namespace Sleet
 
         Task<JObject> GetJson(ILogger log, CancellationToken token);
 
+        Task<JObject> GetJsonOrNull(ILogger log, CancellationToken token);
+
         Task Write(JObject json, ILogger log, CancellationToken token);
 
         void Delete(ILogger log, CancellationToken token);
@@ -55,5 +57,10 @@ namespace Sleet
         /// Fetch the file if it exists. This can be used to pre-load files in parallel without loading up the actual contents.
         /// </summary>
         Task FetchAsync(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// Fetch the file and then check if it exists.
+        /// </summary>
+        Task<bool> ExistsWithFetch(ILogger log, CancellationToken token);
     }
 }

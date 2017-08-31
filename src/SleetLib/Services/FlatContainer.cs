@@ -59,23 +59,14 @@ namespace Sleet
 
         public async Task RemovePackageAsync(PackageIdentity package)
         {
-            // Nupkg
+            // Delete nupkg
             var nupkgFile = _context.Source.Get(GetNupkgPath(package));
-
-            if (await nupkgFile.Exists(_context.Log, _context.Token))
-            {
-                // Delete nupkg
-                nupkgFile.Delete(_context.Log, _context.Token);
-            }
+            nupkgFile.Delete(_context.Log, _context.Token);
 
             // Nuspec
             var nuspecPath = $"{package.Id}.nuspec".ToLowerInvariant();
             var nuspecFile = _context.Source.Get(GetZipFileUri(package, nuspecPath));
-
-            if (await nuspecFile.Exists(_context.Log, _context.Token))
-            {
-                nuspecFile.Delete(_context.Log, _context.Token);
-            }
+            nuspecFile.Delete(_context.Log, _context.Token);
 
             // Update index
             var indexFile = _context.Source.Get(GetIndexUri(package.Id));
@@ -123,15 +114,11 @@ namespace Sleet
             var results = new SortedSet<NuGetVersion>();
 
             var file = _context.Source.Get(GetIndexUri(id));
+            var json = await file.GetJsonOrNull(_context.Log, _context.Token);
 
-            if (await file.Exists(_context.Log, _context.Token))
+            if (json?.Property("versions")?.Value is JArray versionArray)
             {
-                var json = await file.GetJson(_context.Log, _context.Token);
-
-                if (json?.Property("versions")?.Value is JArray versionArray)
-                {
-                    results.UnionWith(versionArray.Select(s => NuGetVersion.Parse(s.ToString())));
-                }
+                results.UnionWith(versionArray.Select(s => NuGetVersion.Parse(s.ToString())));
             }
 
             return results;

@@ -31,10 +31,10 @@ namespace Sleet
 
             var packages = new List<JObject>();
 
-            if (await rootFile.Exists(_context.Log, _context.Token))
-            {
-                var json = await rootFile.GetJson(_context.Log, _context.Token);
+            var json = await rootFile.GetJsonOrNull(_context.Log, _context.Token);
 
+            if (json != null)
+            {
                 // Get all entries
                 packages = await GetPackageDetails(json);
             }
@@ -75,11 +75,10 @@ namespace Sleet
             var rootFile = _context.Source.Get(rootUri);
 
             var packages = new List<JObject>();
+            var json = await rootFile.GetJsonOrNull(_context.Log, _context.Token);
 
-            if (await rootFile.Exists(_context.Log, _context.Token))
+            if (json != null)
             {
-                var json = await rootFile.GetJson(_context.Log, _context.Token);
-
                 // Get all entries
                 packages = await GetPackageDetails(json);
 
@@ -100,11 +99,7 @@ namespace Sleet
                 // Delete package page
                 var packageUri = GetPackageUri(package);
                 var packageFile = _context.Source.Get(packageUri);
-
-                if (await packageFile.Exists(_context.Log, _context.Token))
-                {
-                    packageFile.Delete(_context.Log, _context.Token);
-                }
+                packageFile.Delete(_context.Log, _context.Token);
 
                 if (packages.Count > 0)
                 {
@@ -240,11 +235,10 @@ namespace Sleet
             var uri = GetPackageUri(package);
 
             var file = _context.Source.Get(uri);
+            var json = await file.GetJsonOrNull(_context.Log, _context.Token);
 
-            if (await file.Exists(_context.Log, _context.Token))
+            if (json != null)
             {
-                var json = await file.GetJson(_context.Log, _context.Token);
-
                 return json["sleet:catalogEntry"] as JObject;
             }
 
@@ -341,24 +335,18 @@ namespace Sleet
             // Retrieve index
             var rootUri = GetIndexUri(_context.Source.BaseURI, packageId);
             var rootFile = _context.Source.Get(rootUri);
+            var json = await rootFile.GetJsonOrNull(_context.Log, _context.Token);
 
-            if (await rootFile.Exists(_context.Log, _context.Token))
+            if (json != null)
             {
-                var packages = new List<JObject>();
+                // Get all entries
+                var packages = await GetPackageDetails(json);
 
-                if (await rootFile.Exists(_context.Log, _context.Token))
+                var versions = packages.Select(GetPackageVersion);
+
+                foreach (var version in versions)
                 {
-                    var json = await rootFile.GetJson(_context.Log, _context.Token);
-
-                    // Get all entries
-                    packages = await GetPackageDetails(json);
-
-                    var versions = packages.Select(GetPackageVersion);
-
-                    foreach (var version in versions)
-                    {
-                        results.Add(new PackageIdentity(packageId, version));
-                    }
+                    results.Add(new PackageIdentity(packageId, version));
                 }
             }
 

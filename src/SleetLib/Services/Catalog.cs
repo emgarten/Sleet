@@ -141,10 +141,10 @@ namespace Sleet
         {
             var pageTasks = new List<Task<JObject>>();
 
-            if (await RootIndexFile.Exists(_context.Log, _context.Token))
-            {
-                var catalogIndexJson = await RootIndexFile.GetJson(_context.Log, _context.Token);
+            var catalogIndexJson = await RootIndexFile.GetJsonOrNull(_context.Log, _context.Token);
 
+            if (catalogIndexJson != null)
+            {
                 var items = (JArray)catalogIndexJson["items"];
 
                 foreach (var item in items)
@@ -314,10 +314,10 @@ namespace Sleet
 
             var pageCommits = new List<JObject>();
 
-            if (await currentPageFile.Exists(_context.Log, _context.Token))
-            {
-                var currentPageJson = await currentPageFile.GetJson(_context.Log, _context.Token);
+            var currentPageJson = await currentPageFile.GetJsonOrNull(_context.Log, _context.Token);
 
+            if (currentPageJson != null)
+            {
                 pageCommits = JsonUtility.GetItems(currentPageJson);
             }
             else

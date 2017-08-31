@@ -31,7 +31,7 @@ namespace Sleet
 
                 var indexPath = fileSystem.Get("index.json");
 
-                if (!await indexPath.Exists(log, token))
+                if (!await indexPath.ExistsWithFetch(log, token))
                 {
                     throw new InvalidOperationException($"{fileSystem.BaseURI} is missing sleet files. Use 'sleet.exe init' to create a new feed.");
                 }

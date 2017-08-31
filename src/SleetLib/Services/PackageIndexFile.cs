@@ -123,7 +123,7 @@ namespace Sleet
         {
             var index = new PackageSets();
 
-            if (await File.Exists(Context.Log, Context.Token))
+            if (await File.ExistsWithFetch(Context.Log, Context.Token))
             {
                 var json = await GetJsonOrTemplateAsync();
 

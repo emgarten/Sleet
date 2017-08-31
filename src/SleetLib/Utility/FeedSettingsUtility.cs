@@ -20,11 +20,11 @@ namespace Sleet
         {
             var file = GetSettingsFileFromFeed(fileSystem);
 
-            if (await file.Exists(log, token))
+            var json = await file.GetJsonOrNull(log, token);
+
+            if (json != null)
             {
                 log.LogDebug("Found settings");
-
-                var json = await file.GetJson(log, token);
 
                 return LoadSettings(GetSettings(json));
             }

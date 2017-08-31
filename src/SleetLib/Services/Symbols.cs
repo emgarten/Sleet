@@ -520,7 +520,7 @@ namespace Sleet
             var messages = new List<ILogMessage>();
 
             var feedIndex = new PackageIndex(_context);
-            if (await feedIndex.File.Exists(_context.Log, _context.Token))
+            if (await feedIndex.File.ExistsWithFetch(_context.Log, _context.Token))
             {
                 var feedPackages = await feedIndex.GetPackagesAsync();
                 var feedSymbolsPackages = await feedIndex.GetSymbolsPackagesAsync();

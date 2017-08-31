@@ -41,15 +41,14 @@ namespace Sleet
         protected virtual async Task<JObject> GetJsonOrTemplateAsync()
         {
             var file = File;
+            var json = await file.GetJsonOrNull(Context.Log, Context.Token);
 
-            if (await file.Exists(Context.Log, Context.Token))
+            if (json == null)
             {
-                return await file.GetJson(Context.Log, Context.Token);
+                json = await GetJsonTemplateAsync();
             }
-            else
-            {
-                return await GetJsonTemplateAsync();
-            }
+
+            return json;
         }
 
         /// <summary>
@@ -78,7 +77,7 @@ namespace Sleet
         /// </summary>
         public async Task InitAsync()
         {
-            if (await File.Exists(Context.Log, Context.Token) == false)
+            if (await File.ExistsWithFetch(Context.Log, Context.Token) == false)
             {
                 var json = await GetJsonOrTemplateAsync();
                 await SaveAsync(json, isEmpty: false);

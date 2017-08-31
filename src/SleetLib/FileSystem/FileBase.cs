@@ -92,6 +92,16 @@ namespace Sleet
             return RemoteExistsCacheValue.Value;
         }
 
+        /// <summary>
+        /// Fetch a file then check if it exists. This is optimized for scenarios
+        /// where it is known that the file will be used if it exists.
+        /// </summary>
+        public async Task<bool> ExistsWithFetch(ILogger log, CancellationToken token)
+        {
+            await FetchAsync(log, token);
+            return await Exists(log, token);
+        }
+
         public async Task Push(ILogger log, CancellationToken token)
         {
             if (HasChanges)
@@ -128,6 +138,21 @@ namespace Sleet
             await EnsureFileOrThrow(log, token);
 
             return await JsonUtility.LoadJsonAsync(LocalCacheFile);
+        }
+
+        /// <summary>
+        /// Retrieve json file if it exists.
+        /// </summary>
+        public async Task<JObject> GetJsonOrNull(ILogger log, CancellationToken token)
+        {
+            JObject json = null;
+
+            if (await ExistsWithFetch(log, token))
+            {
+                json = await JsonUtility.LoadJsonAsync(LocalCacheFile);
+            }
+
+            return json;
         }
 
         /// <summary>
