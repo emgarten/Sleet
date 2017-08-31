@@ -79,6 +79,13 @@ namespace Sleet
             {
                 // Check the remote source
                 RemoteExistsCacheValue = await RemoteExists(log, token);
+
+                // If the file doesn't exist then it can be marked as downloaded
+                // to avoid an extra request later if Fetch is called.
+                if (!RemoteExistsCacheValue.Value)
+                {
+                    IsDownloaded = true;
+                }
             }
 
             // Use the existing check.
@@ -97,6 +104,9 @@ namespace Sleet
                     {
                         // Upload to remote source.
                         await CopyToSource(log, token);
+
+                        // The file no longer has changes.
+                        HasChanges = false;
 
                         break;
                     }
