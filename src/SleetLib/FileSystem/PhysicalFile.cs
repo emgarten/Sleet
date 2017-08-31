@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -73,6 +73,11 @@ namespace Sleet
             }
 
             return Task.FromResult(true);
+        }
+
+        protected override Task<bool> RemoteExists(ILogger log, CancellationToken token)
+        {
+            return Task.FromResult(File.Exists(_sourceFile.FullName));
         }
     }
 }

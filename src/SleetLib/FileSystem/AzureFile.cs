@@ -115,5 +115,10 @@ namespace Sleet
                 log.LogInformation($"Skipping {_blob.Uri.AbsoluteUri}");
             }
         }
+
+        protected override Task<bool> RemoteExists(ILogger log, CancellationToken token)
+        {
+            return _blob.ExistsAsync();
+        }
     }
 }

@@ -7,47 +7,91 @@ using NuGet.Common;
 
 namespace Sleet
 {
+    /// <summary>
+    /// Common file operations.
+    /// </summary>
     public abstract class FileBase : ISleetFile
     {
-        private bool _downloaded = false;
-        private bool _hasChanges = false;
+        /// <summary>
+        /// File system tracking the file.
+        /// </summary>
+        public ISleetFileSystem FileSystem { get; }
+
+        /// <summary>
+        /// Root path.
+        /// </summary>
+        public Uri RootPath { get; }
+
+        /// <summary>
+        /// Remote feed URI.
+        /// </summary>
+        public Uri EntityUri { get; }
+
+        /// <summary>
+        /// True if the file has been modified.
+        /// </summary>
+        public bool HasChanges { get; private set; }
+
+        /// <summary>
+        /// True if the file was downloaded at some point.
+        /// This will be true even if the file was deleted.
+        /// </summary>
+        protected bool IsDownloaded { get; private set; }
+
+        /// <summary>
+        /// True if the file exists. This is for internally
+        /// tracking if the remote source contains the file
+        /// before it is downloaded.
+        /// </summary>
+        protected bool? RemoteExistsCacheValue { get; private set; }
+
+        /// <summary>
+        /// Temp file on disk representing the remote file.
+        /// </summary>
+        protected FileInfo LocalCacheFile { get; }
+
+        /// <summary>
+        /// Retry count for failures.
+        /// </summary>
+        protected int RetryCount { get; set; } = 5;
 
         protected FileBase(ISleetFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile)
         {
-            FileSystem = fileSystem;
-            RootPath = rootPath;
-            EntityUri = displayPath;
-            LocalCacheFile = localCacheFile;
+            FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            RootPath = rootPath ?? throw new ArgumentNullException(nameof(rootPath));
+            EntityUri = displayPath ?? throw new ArgumentNullException(nameof(displayPath));
+            LocalCacheFile = localCacheFile ?? throw new ArgumentNullException(nameof(localCacheFile));
         }
 
-        public ISleetFileSystem FileSystem { get; }
-
-        public Uri RootPath { get; }
-
-        protected FileInfo LocalCacheFile { get; }
-
-        public bool HasChanges
-        {
-            get
-            {
-                return _hasChanges;
-            }
-        }
-
-        public Uri EntityUri { get; }
-
+        /// <summary>
+        /// True if the file exists.
+        /// </summary>
         public async Task<bool> Exists(ILogger log, CancellationToken token)
         {
-            await EnsureFile(log, token);
+            // If the file was aleady downloaded then the local disk is the authority.
+            if (IsDownloaded)
+            {
+                return File.Exists(LocalCacheFile.FullName);
+            }
 
-            return File.Exists(LocalCacheFile.FullName);
+            // If the file was not downloaded check the remote source if needed.
+            if (!RemoteExistsCacheValue.HasValue)
+            {
+                // Check the remote source
+                RemoteExistsCacheValue = await RemoteExists(log, token);
+            }
+
+            // Use the existing check.
+            return RemoteExistsCacheValue.Value;
         }
 
         public async Task Push(ILogger log, CancellationToken token)
         {
             if (HasChanges)
             {
-                for (var i = 0; i < 5; i++)
+                var retry = Math.Max(RetryCount, 1);
+
+                for (var i = 0; i < retry; i++)
                 {
                     try
                     {
@@ -56,68 +100,60 @@ namespace Sleet
 
                         break;
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) when (i < (retry - 1))
                     {
-                        if (i == 4)
-                        {
-                            throw;
-                        }
-
-                        log.LogVerbose(ex.ToString());
-                        log.LogWarning($"Failed to upload '{RootPath}'. Retrying.");
-
-                        await Task.Delay(10000);
+                        await log.LogAsync(LogLevel.Debug, ex.ToString());
+                        await log.LogAsync(LogLevel.Warning, $"Failed to upload '{RootPath}'. Retrying.");
+                        await Task.Delay(TimeSpan.FromSeconds(10));
                     }
                 }
             }
         }
 
-        public async Task Write(Stream stream, ILogger log, CancellationToken token)
-        {
-            _downloaded = true;
-            _hasChanges = true;
-
-            using (stream)
-            {
-                if (File.Exists(LocalCacheFile.FullName))
-                {
-                    LocalCacheFile.Delete();
-                }
-
-                using (var writeStream = File.OpenWrite(LocalCacheFile.FullName))
-                {
-                    await stream.CopyToAsync(writeStream);
-                    writeStream.Seek(0, SeekOrigin.Begin);
-                }
-            }
-        }
-
+        /// <summary>
+        /// Retrieve json file.
+        /// </summary>
         public async Task<JObject> GetJson(ILogger log, CancellationToken token)
         {
-            if (await Exists(log, token) == false)
-            {
-                throw new FileNotFoundException($"File does not exist. Remote: {EntityUri.AbsoluteUri} Local: {LocalCacheFile.FullName}");
-            }
+            await EnsureFileOrThrow(log, token);
 
             return await JsonUtility.LoadJsonAsync(LocalCacheFile);
         }
 
+        /// <summary>
+        /// Write json to the file.
+        /// </summary>
         public Task Write(JObject json, ILogger log, CancellationToken token)
         {
-            _downloaded = true;
-            _hasChanges = true;
+            // Remove the file if it exists
+            Delete(log, token);
 
-            if (File.Exists(LocalCacheFile.FullName))
-            {
-                LocalCacheFile.Delete();
-            }
-
+            // Write out json to the file.
             return JsonUtility.SaveJsonAsync(LocalCacheFile, json);
         }
 
+        /// <summary>
+        /// Write a stream to the file.
+        /// </summary>
+        public async Task Write(Stream stream, ILogger log, CancellationToken token)
+        {
+            // Remove the file if it exists
+            Delete(log, token);
+
+            using (stream)
+            using (var writeStream = File.OpenWrite(LocalCacheFile.FullName))
+            {
+                await stream.CopyToAsync(writeStream);
+            }
+        }
+
+        /// <summary>
+        /// Delete a file from the feed.
+        /// </summary>
         public void Delete(ILogger log, CancellationToken token)
         {
-            _hasChanges = true;
+            IsDownloaded = true;
+            HasChanges = true;
 
             if (File.Exists(LocalCacheFile.FullName))
             {
@@ -125,11 +161,16 @@ namespace Sleet
             }
         }
 
+        /// <summary>
+        /// Ensure that the file exists on disk if it exists.
+        /// </summary>
         protected async Task EnsureFile(ILogger log, CancellationToken token)
         {
-            if (!_downloaded)
+            if (!IsDownloaded)
             {
-                for (var i = 0; !_downloaded && i < 5; i++)
+                var retry = Math.Max(RetryCount, 1);
+
+                for (var i = 0; !IsDownloaded && i < retry; i++)
                 {
                     try
                     {
@@ -141,40 +182,39 @@ namespace Sleet
                         // Download from the remote source.
                         await CopyFromSource(log, token);
 
-                        _downloaded = true;
+                        IsDownloaded = true;
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) when (i < (retry - 1))
                     {
-                        if (i == 4)
-                        {
-                            throw;
-                        }
-
-                        log.LogWarning($"Failed to sync '{RootPath}'. Retrying.");
-                        log.LogDebug(ex.ToString());
-
-                        await Task.Delay(5000);
+                        await log.LogAsync(LogLevel.Debug, ex.ToString());
+                        await log.LogAsync(LogLevel.Warning, $"Failed to sync '{RootPath}'. Retrying.");
+                        await Task.Delay(TimeSpan.FromSeconds(5));
                     }
                 }
             }
         }
 
-        protected abstract Task CopyFromSource(ILogger log, CancellationToken token);
-
-        protected abstract Task CopyToSource(ILogger log, CancellationToken token);
-
-        public async Task<Stream> GetStream(ILogger log, CancellationToken token)
+        /// <summary>
+        /// Ensure that the file is downloaded to disk. If it does not exist throw.
+        /// </summary>
+        protected async Task EnsureFileOrThrow(ILogger log, CancellationToken token)
         {
             await EnsureFile(log, token);
 
-            if (LocalCacheFile.Exists)
+            if (!File.Exists(LocalCacheFile.FullName))
             {
-                return LocalCacheFile.OpenRead();
+                throw new FileNotFoundException($"File does not exist. Remote: {EntityUri.AbsoluteUri} Local: {LocalCacheFile.FullName}");
             }
-            else
-            {
-                return null;
-            }
+        }
+
+        /// <summary>
+        /// Returns the stream the file exists. Otherwise throws.
+        /// </summary>
+        public async Task<Stream> GetStream(ILogger log, CancellationToken token)
+        {
+            await EnsureFileOrThrow(log, token);
+
+            return File.OpenRead(LocalCacheFile.FullName);
         }
 
         /// <summary>
@@ -190,7 +230,11 @@ namespace Sleet
                 return false;
             }
 
-            if (await Exists(log, token))
+            // Download the file if needed.
+            await EnsureFile(log, token);
+
+            // Check if the local copy exists
+            if (File.Exists(LocalCacheFile.FullName))
             {
                 // Create the parent dir
                 pathInfo.Directory.Create();
@@ -209,9 +253,27 @@ namespace Sleet
             return EntityUri.AbsoluteUri;
         }
 
+        /// <summary>
+        /// Ensure that the file has been downloaded to disk if it exists.
+        /// </summary>
         public Task FetchAsync(ILogger log, CancellationToken token)
         {
             return EnsureFile(log, token);
         }
+
+        /// <summary>
+        /// Download a file to disk.
+        /// </summary>
+        protected abstract Task CopyFromSource(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// Upload a file.
+        /// </summary>
+        protected abstract Task CopyToSource(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// True if the file exists in the source.
+        /// </summary>
+        protected abstract Task<bool> RemoteExists(ILogger log, CancellationToken token);
     }
 }
