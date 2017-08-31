@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -10,85 +8,27 @@ using NuGet.Common;
 
 namespace Sleet
 {
-    public class PhysicalFileSystem : ISleetFileSystem
+    public class PhysicalFileSystem : FileSystemBase
     {
-        private readonly Uri _baseUri;
-        private readonly Uri _root;
-        private readonly LocalCache _cache;
-        private readonly ConcurrentDictionary<Uri, ISleetFile> _files;
+        /// <summary>
+        /// Local root with trailing slash
+        /// </summary>
+        public string LocalRoot => Path.GetFullPath(Root.LocalPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
 
         public PhysicalFileSystem(LocalCache cache, Uri root)
-            : this(cache, root, root)
+            : base(cache, root)
         {
         }
 
         public PhysicalFileSystem(LocalCache cache, Uri root, Uri baseUri)
+            : base(cache, root, baseUri)
         {
-            _baseUri = UriUtility.EnsureTrailingSlash(baseUri);
-            _root = UriUtility.EnsureTrailingSlash(root);
-            _cache = cache;
-            _files = new ConcurrentDictionary<Uri, ISleetFile>();
         }
 
-        public ConcurrentDictionary<Uri, ISleetFile> Files
-        {
-            get
-            {
-                return _files;
-            }
-        }
-
-        public LocalCache LocalCache
-        {
-            get
-            {
-                return _cache;
-            }
-        }
-
-        /// <summary>
-        /// Base uri written for @id
-        /// </summary>
-        public Uri BaseURI
-        {
-            get
-            {
-                return _baseUri;
-            }
-        }
-
-        /// <summary>
-        /// Actual root path
-        /// </summary>
-        public Uri Root
-        {
-            get
-            {
-                return _root;
-            }
-        }
-
-        /// <summary>
-        /// Local root with trailing slash
-        /// </summary>
-        public string LocalRoot
-        {
-            get
-            {
-                return Path.GetFullPath(Root.LocalPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            }
-        }
-
-        public ISleetFile Get(string relativePath)
-        {
-            return Get(GetPath(relativePath));
-        }
-
-        public ISleetFile Get(Uri path)
+        public override ISleetFile Get(Uri path)
         {
             if (path == null)
             {
-                Debug.Fail("bad path");
                 throw new ArgumentNullException(nameof(path));
             }
 
@@ -123,28 +63,7 @@ namespace Sleet
             return file;
         }
 
-        public Uri GetPath(string relativePath)
-        {
-            if (relativePath == null)
-            {
-                Debug.Fail("bad path");
-                throw new ArgumentNullException(nameof(relativePath));
-            }
-
-            return UriUtility.GetPath(BaseURI, relativePath);
-        }
-
-        public async Task<bool> Commit(ILogger log, CancellationToken token)
-        {
-            foreach (var file in Files.Values)
-            {
-                await file.Push(log, token);
-            }
-
-            return true;
-        }
-
-        public Task<bool> Validate(ILogger log, CancellationToken token)
+        public override Task<bool> Validate(ILogger log, CancellationToken token)
         {
             var dir = new DirectoryInfo(Root.LocalPath);
 
@@ -158,12 +77,12 @@ namespace Sleet
             return Task.FromResult(true);
         }
 
-        public ISleetFileSystemLock CreateLock(ILogger log)
+        public override ISleetFileSystemLock CreateLock(ILogger log)
         {
             return new PhysicalFileSystemLock(Root.LocalPath, log);
         }
 
-        public async Task<bool> Destroy(ILogger log, CancellationToken token)
+        public override async Task<bool> Destroy(ILogger log, CancellationToken token)
         {
             var success = true;
 
@@ -199,7 +118,7 @@ namespace Sleet
             return success;
         }
 
-        public Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
+        public override Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
         {
             // Return all files except .lock
             return Task.FromResult<IReadOnlyList<ISleetFile>>(

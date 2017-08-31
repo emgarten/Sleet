@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,16 +9,11 @@ using NuGet.Common;
 
 namespace Sleet
 {
-    public class AzureFileSystem : ISleetFileSystem
+    public class AzureFileSystem : FileSystemBase
     {
-        private readonly Uri _root;
-        private readonly Uri _baseUri;
-        private readonly LocalCache _cache;
-        private readonly ConcurrentDictionary<Uri, ISleetFile> _files;
         private readonly CloudStorageAccount _azureAccount;
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
-        private const int MaxThreads = 4;
 
         public AzureFileSystem(LocalCache cache, Uri root, CloudStorageAccount azureAccount, string container)
             : this(cache, root, root, azureAccount, container)
@@ -27,47 +21,14 @@ namespace Sleet
         }
 
         public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, CloudStorageAccount azureAccount, string container)
+            : base(cache, root, baseUri)
         {
-            _baseUri = UriUtility.EnsureTrailingSlash(baseUri);
-            _root = UriUtility.EnsureTrailingSlash(root);
-            _cache = cache;
-            _files = new ConcurrentDictionary<Uri, ISleetFile>();
-
             _azureAccount = azureAccount;
             _client = _azureAccount.CreateCloudBlobClient();
             _container = _client.GetContainerReference(container);
         }
 
-        public ConcurrentDictionary<Uri, ISleetFile> Files
-        {
-            get
-            {
-                return _files;
-            }
-        }
-
-        public LocalCache LocalCache
-        {
-            get
-            {
-                return _cache;
-            }
-        }
-
-        public Uri BaseURI
-        {
-            get
-            {
-                return _root;
-            }
-        }
-
-        public ISleetFile Get(string relativePath)
-        {
-            return Get(GetPath(relativePath));
-        }
-
-        public ISleetFile Get(Uri path)
+        public override ISleetFile Get(Uri path)
         {
             var relativePath = GetRelativePath(path);
 
@@ -75,7 +36,7 @@ namespace Sleet
 
             var file = Files.GetOrAdd(path, (uri) =>
                 {
-                    var rootUri = UriUtility.ChangeRoot(_baseUri, _root, uri);
+                    var rootUri = UriUtility.ChangeRoot(BaseURI, Root, uri);
 
                     return new AzureFile(
                         this,
@@ -88,47 +49,7 @@ namespace Sleet
             return file;
         }
 
-        public Uri GetPath(string relativePath)
-        {
-            return UriUtility.GetPath(BaseURI, relativePath);
-        }
-
-        public async Task<bool> Commit(ILogger log, CancellationToken token)
-        {
-            // Push in parallel
-            var tasks = new List<Task>();
-
-            foreach (var file in Files.Values)
-            {
-                if (tasks.Count >= MaxThreads)
-                {
-                    await CompleteTask(tasks);
-                }
-
-                tasks.Add(file.Push(log, token));
-            }
-
-            while (tasks.Count > 0)
-            {
-                await CompleteTask(tasks);
-            }
-
-            return true;
-        }
-
-        private static async Task CompleteTask(List<Task> tasks)
-        {
-            var task = await Task.WhenAny(tasks);
-            tasks.Remove(task);
-            await task;
-        }
-
-        public string GetRelativePath(Uri uri)
-        {
-            return uri.AbsoluteUri.Replace(_root.AbsoluteUri, string.Empty);
-        }
-
-        public async Task<bool> Validate(ILogger log, CancellationToken token)
+        public override async Task<bool> Validate(ILogger log, CancellationToken token)
         {
             log.LogInformation($"Verifying {_container.Uri.AbsoluteUri} exists.");
 
@@ -145,35 +66,12 @@ namespace Sleet
             return true;
         }
 
-        public ISleetFileSystemLock CreateLock(ILogger log)
+        public override ISleetFileSystemLock CreateLock(ILogger log)
         {
             return new AzureFileSystemLock(_container, log);
         }
 
-        public async Task<bool> Destroy(ILogger log, CancellationToken token)
-        {
-            var success = true;
-
-            var files = await GetFiles(log, token);
-
-            foreach (var file in Files.Values)
-            {
-                try
-                {
-                    log.LogInformation($"Deleting {file.EntityUri.AbsoluteUri}");
-                    file.Delete(log, token);
-                }
-                catch
-                {
-                    log.LogError($"Unable to delete {file.EntityUri.AbsoluteUri}");
-                    success = false;
-                }
-            }
-
-            return success;
-        }
-
-        public async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
+        public override async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
         {
             BlobContinuationToken continuationToken = null;
             string prefix = null;
@@ -194,6 +92,11 @@ namespace Sleet
             return blobs.Where(e => !e.Uri.AbsoluteUri.EndsWith($"/{AzureFileSystemLock.LockFile}"))
                  .Select(e => Get(e.Uri))
                  .ToList();
+        }
+
+        private string GetRelativePath(Uri uri)
+        {
+            return uri.AbsoluteUri.Replace(Root.AbsoluteUri, string.Empty);
         }
     }
 }
