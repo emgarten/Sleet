@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Common;
@@ -47,6 +48,8 @@ namespace Sleet
             app.HelpOption(Constants.HelpOption);
             app.VersionOption("--version", AssemblyVersionHelper.GetVersion().ToFullVersionString());
 
+            Configure();
+
             InitAppCommand.Register(app, log);
             PushAppCommand.Register(app, log);
             DeleteAppCommand.Register(app, log);
@@ -89,6 +92,26 @@ namespace Sleet
             }
 
             return Task.FromResult(exitCode);
+        }
+
+        private static void Configure()
+        {
+            // Set connection limit
+            if (!RuntimeEnvironmentHelper.IsMono)
+            {
+                ServicePointManager.DefaultConnectionLimit = 64;
+            }
+            else
+            {
+                // Keep mono limited to a single download to avoid issues.
+                ServicePointManager.DefaultConnectionLimit = 1;
+            }
+
+            // Limit SSL
+            ServicePointManager.SecurityProtocol =
+                SecurityProtocolType.Tls |
+                SecurityProtocolType.Tls11 |
+                SecurityProtocolType.Tls12;
         }
     }
 }
