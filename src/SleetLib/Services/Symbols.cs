@@ -6,10 +6,8 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using NuGet.Packaging.Core;
-using SleetLib;
 
 namespace Sleet
 {
@@ -193,10 +191,7 @@ namespace Sleet
             if (await file.Exists(_context.Log, _context.Token) == false)
             {
                 // Write assembly
-                var stream = await packageInput.RunWithLockAsync(
-                    (p) => assembly.ZipEntry.Open().AsMemoryStreamAsync());
-
-                using (stream)
+                using (var stream = await packageInput.GetEntryStreamWithLockAsync(assembly.ZipEntry))
                 {
                     await file.Write(stream, _context.Log, _context.Token);
                 }
@@ -295,7 +290,7 @@ namespace Sleet
 
                 try
                 {
-                    using (var stream = await assembly.Open().AsMemoryStreamAsync())
+                    using (var stream = await packageInput.GetEntryStreamWithLockAsync(assembly))
                     using (var reader = new PEReader(stream))
                     {
                         assemblyHash = SymbolsUtility.GetSymbolHashFromAssembly(reader);

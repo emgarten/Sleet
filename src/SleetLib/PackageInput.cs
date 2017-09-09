@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,6 +59,14 @@ namespace Sleet
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Read a zip entry into a memory stream safely.
+        /// </summary>
+        public Task<MemoryStream> GetEntryStreamWithLockAsync(ZipArchiveEntry entry)
+        {
+            return RunWithLockAsync(async p => await entry.Open().AsMemoryStreamAsync());
         }
 
         public override string ToString()
