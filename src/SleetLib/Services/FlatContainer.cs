@@ -30,17 +30,21 @@ namespace Sleet
             // Add nuspec
             var nuspecPath = $"{packageInput.Identity.Id}.nuspec".ToLowerInvariant();
 
-            var nuspecEntry = packageInput.Zip.Entries
+            var nuspecEntry = await packageInput.RunWithLockAsync((p) => Task.FromResult(p.Zip.Entries
                 .Where(entry => nuspecPath.Equals(nuspecPath, StringComparison.OrdinalIgnoreCase))
-                .FirstOrDefault();
+                .FirstOrDefault()));
 
             if (nuspecEntry == null)
             {
                 throw new InvalidDataException($"Unable to find '{nuspecPath}'. Path: '{packageInput.PackagePath}'.");
             }
 
-            var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, nuspecPath));
-            await entryFile.Write(nuspecEntry.Open(), _context.Log, _context.Token);
+            var nuspecStream = await packageInput.RunWithLockAsync(async p => await nuspecEntry.Open().AsMemoryStreamAsync());
+            using (nuspecStream)
+            {
+                var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, nuspecPath));
+                await entryFile.Write(nuspecStream, _context.Log, _context.Token);
+            }
 
             // Update index
             var indexFile = _context.Source.Get(GetIndexUri(packageInput.Identity.Id));

@@ -46,14 +46,18 @@ namespace Sleet
         {
             await _semaphore.WaitAsync();
 
+            var result = default(T);
+
             try
             {
-                return await action(this);
+                result = await action(this);
             }
             finally
             {
                 _semaphore.Release();
             }
+
+            return result;
         }
 
         public override string ToString()

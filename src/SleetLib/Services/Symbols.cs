@@ -219,8 +219,7 @@ namespace Sleet
 
             var commitId = Guid.NewGuid();
 
-            var detailsJson = await package.RunWithLockAsync((p)
-                => CatalogUtility.CreatePackageDetailsWithExactUriAsync(p, detailsFile.EntityUri, commitId, writeFileList: false));
+            var detailsJson = await CatalogUtility.CreatePackageDetailsWithExactUriAsync(package, detailsFile.EntityUri, commitId, writeFileList: false);
 
             await detailsFile.Write(detailsJson, _context.Log, _context.Token);
         }
@@ -279,13 +278,13 @@ namespace Sleet
             var result = new List<PackageFile>();
             var seen = new HashSet<ISleetFile>();
 
-            var assemblyFiles = packageInput.Zip.Entries
+            var assemblyFiles = await packageInput.RunWithLockAsync(p => Task.FromResult(p.Zip.Entries
                 .Where(e => e.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                .ToList();
+                .ToList()));
 
-            var pdbFiles = packageInput.Zip.Entries
+            var pdbFiles = await packageInput.RunWithLockAsync(p => Task.FromResult(p.Zip.Entries
                 .Where(e => e.FullName.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
-                .ToList();
+                .ToList()));
 
             foreach (var assembly in assemblyFiles)
             {

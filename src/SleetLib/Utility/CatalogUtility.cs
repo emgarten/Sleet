@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
@@ -86,9 +87,7 @@ namespace Sleet
         public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Guid commitId, bool writeFileList)
         {
             var now = DateTimeOffset.UtcNow;
-            var package = packageInput.Package;
-            var nuspec = XDocument.Load(package.GetNuspec());
-            var nuspecReader = new NuspecReader(nuspec);
+            var nuspecReader = await packageInput.RunWithLockAsync(async (p) => await p.Package.GetNuspecReaderAsync(CancellationToken.None));
 
             var json = JsonUtility.Create(detailsUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
             json.Add("commitId", commitId.ToString().ToLowerInvariant());
@@ -239,23 +238,33 @@ namespace Sleet
                 // Write out all files contained in the package
                 var packageEntriesArray = new JArray();
                 json.Add("packageEntries", packageEntriesArray);
-                var packageEntryIndex = 0;
 
-                foreach (var entry in packageInput.Zip.Entries.OrderBy(e => e.FullName, StringComparer.OrdinalIgnoreCase))
-                {
-                    var fileEntry = JsonUtility.Create(detailsUri, $"packageEntry/{packageEntryIndex}", "packageEntry");
-                    fileEntry.Add("fullName", entry.FullName);
-                    fileEntry.Add("length", entry.Length);
-                    fileEntry.Add("lastWriteTime", entry.LastWriteTime.GetDateString());
-
-                    packageEntriesArray.Add(fileEntry);
-                    packageEntryIndex++;
-                }
+                await packageInput.RunWithLockAsync(p => AddZipEntry(p, detailsUri, packageEntriesArray));
             }
 
             json.Add("sleet:toolVersion", AssemblyVersionHelper.GetVersion().ToFullVersionString());
 
             return JsonLDTokenComparer.Format(json);
+        }
+
+        private static Task<bool> AddZipEntry(PackageInput packageInput, Uri detailsUri, JArray packageEntriesArray)
+        {
+            var packageEntryIndex = 0;
+
+            // This method is called from RunWithLockAsync
+            foreach (var entry in packageInput.Zip.Entries.OrderBy(e => e.FullName, StringComparer.OrdinalIgnoreCase))
+            {
+                var fileEntry = JsonUtility.Create(detailsUri, $"packageEntry/{packageEntryIndex}", "packageEntry");
+                fileEntry.Add("fullName", entry.FullName);
+                fileEntry.Add("length", entry.Length);
+                fileEntry.Add("lastWriteTime", entry.LastWriteTime.GetDateString());
+
+                packageEntriesArray.Add(fileEntry);
+                packageEntryIndex++;
+            }
+
+            // Result is not used
+            return Task.FromResult(true);
         }
 
         /// <summary>
