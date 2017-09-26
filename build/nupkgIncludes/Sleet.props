@@ -2,6 +2,6 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <!-- Allow finding the path to Sleet.exe through msbuild. -->
-    <Sleet>$(MSBuildThisFileDirectory)..\tools\Sleet.exe</Sleet>
+    <Sleet>$(MSBuildThisFileDirectory)..\..\tools\Sleet.exe</Sleet>
   </PropertyGroup>
 </Project>
