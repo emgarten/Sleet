@@ -1,6 +1,9 @@
 # Release Notes
 
 ## 2.1.0
+* Fix for race condition when reading symbols files
+* Props path fix
+* Improved exists check performance
 
 ## 2.0.0
 * Improved console output progress display.
