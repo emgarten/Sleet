@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Microsoft.Extensions.CommandLineUtils;
+using McMaster.Extensions.CommandLineUtils;
 using NuGet.Common;
 
 namespace Sleet
@@ -34,7 +34,7 @@ namespace Sleet
             cmd.OnExecute(async () =>
             {
                 // Validate parameters
-                Util.ValidateRequiredOptions(required);
+                CmdUtils.VerifyRequiredOptions(required.ToArray());
 
                 // Init logger
                 Util.SetVerbosity(log, verbose.HasValue());

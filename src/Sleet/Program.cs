@@ -1,9 +1,7 @@
 using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Extensions.CommandLineUtils;
+using McMaster.Extensions.CommandLineUtils;
 using NuGet.Common;
 
 namespace Sleet
@@ -14,7 +12,7 @@ namespace Sleet
         {
             var logLevel = LogLevel.Information;
 
-            if (Environment.GetEnvironmentVariable("SLEET_DEBUG") == "1")
+            if (CmdUtils.IsDebugModeEnabled())
             {
                 logLevel = LogLevel.Debug;
             }
@@ -28,17 +26,7 @@ namespace Sleet
 
         public static Task<int> MainCore(string[] args, ILogger log)
         {
-#if DEBUG
-            if (args.Contains("--debug"))
-            {
-                args = args.Skip(1).ToArray();
-                while (!Debugger.IsAttached)
-                {
-                }
-
-                Debugger.Break();
-            }
-#endif
+            CmdUtils.LaunchDebuggerIfSet(ref args, log);
 
             var app = new CommandLineApplication()
             {

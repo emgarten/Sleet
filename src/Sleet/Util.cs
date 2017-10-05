@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Microsoft.Extensions.CommandLineUtils;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 
@@ -74,18 +71,6 @@ namespace Sleet
             }
 
             return results;
-        }
-
-        internal static void ValidateRequiredOptions(IEnumerable<CommandOption> required)
-        {
-            // Validate parameters
-            foreach (var requiredOption in required)
-            {
-                if (!requiredOption.HasValue())
-                {
-                    throw new ArgumentException($"Missing required parameter --{requiredOption.LongName}.");
-                }
-            }
         }
 
         internal static void SetVerbosity(ILogger log, bool verbose)

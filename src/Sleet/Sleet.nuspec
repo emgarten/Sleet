@@ -19,9 +19,9 @@
     <dependencies>
       <group targetFramework=".NETCoreApp2.0">
         <dependency id="Microsoft.NETCore.App" version="2.0.0" />
-        <dependency id="Microsoft.Extensions.CommandLineUtils" version="1.1.0" />
+        <dependency id="McMaster.Extensions.CommandLineUtils" version="2.0.0" />
         <dependency id="NuGet.Packaging" version="4.3.0" />
-        <dependency id="WindowsAzure.Storage" version="8.3.0" />
+        <dependency id="WindowsAzure.Storage" version="8.4.0" />
         <dependency id="Newtonsoft.Json" version="10.0.3" />
         <dependency id="SleetLib" version="$version$" />
       </group>

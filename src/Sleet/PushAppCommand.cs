@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.CommandLineUtils;
+using McMaster.Extensions.CommandLineUtils;
 using NuGet.Common;
 using NuGet.Packaging;
 
@@ -47,7 +47,7 @@ namespace Sleet
             cmd.OnExecute(async () =>
             {
                 // Validate parameters
-                Util.ValidateRequiredOptions(required);
+                CmdUtils.VerifyRequiredOptions(required.ToArray());
 
                 // Init logger
                 Util.SetVerbosity(log, verbose.HasValue());
