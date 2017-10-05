@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
+
+  <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
+    <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackProject>false</PackProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+    <Reference Include="System.IO.Compression" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SleetLib\SleetLib.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(BuildCommonDirectory)\common.targets" />
+</Project>

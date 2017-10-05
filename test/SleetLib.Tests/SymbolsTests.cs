@@ -25,8 +25,6 @@ namespace SleetLib.Tests
         {
             using (var testContext = new SleetTestContext())
             {
-                testContext.Root.CleanUp = false;
-
                 var context = testContext.SleetContext;
                 context.SourceSettings.SymbolsEnabled = true;
 
