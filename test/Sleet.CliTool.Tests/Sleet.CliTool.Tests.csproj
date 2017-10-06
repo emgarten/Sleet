@@ -2,18 +2,13 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\test.props" />
 
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
-    <TargetFrameworks>netcoreapp2.0;net46</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
     <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Net.Http" />
-  </ItemGroup>
-  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TestProject>true</TestProject>
@@ -21,10 +16,12 @@
 
   <ItemGroup>
     <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
+    <PackageReference Include="NuGet.Protocol" Version="$(NuGetPackageVersion)" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SleetLib\SleetLib.csproj" />
+    <ProjectReference Include="..\..\src\Sleet\Sleet.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Sleet.Test.Common\Sleet.Test.Common.csproj" />
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />
