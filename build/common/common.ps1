@@ -72,7 +72,7 @@ Function Install-NuGetExe {
         $nugetDir = Split-Path $nugetExe
         New-Item -ItemType Directory -Force -Path $nugetDir
 
-        wget https://dist.nuget.org/win-x86-commandline/v4.0.0/NuGet.exe -OutFile $nugetExe
+        wget https://dist.nuget.org/win-x86-commandline/v4.4.0-preview3/nuget.exe -OutFile $nugetExe
     }
 }
 
