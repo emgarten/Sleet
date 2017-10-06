@@ -19,8 +19,10 @@ namespace Sleet.CliTool.Tests
         /// Add a DotNetCliToolReference to sleet
         /// Restore the project
         /// Run dotnet sleet to verify the tool is working
+        /// Currently the sleet nupkg is only produced on Windows,
+        /// for that reason this test only runs on windows.
         /// </summary>
-        [Fact]
+        [WindowsFact]
         public async Task RunToolWithCreateConfigVerifySuccess()
         {
             using (var testContext = new SleetTestContext())
