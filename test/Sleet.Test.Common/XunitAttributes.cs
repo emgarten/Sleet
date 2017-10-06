@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using NuGet.Common;
 using Xunit;
 
@@ -17,18 +16,16 @@ namespace Sleet.Test.Common
         public override string Skip => RuntimeEnvironmentHelper.IsWindows ? null : "Windows only test";
     }
 
-    public sealed class FileExistsAttribute
+    public sealed class EnvVarExistsAttribute
         : FactAttribute
     {
-        private readonly string _path;
-        private readonly string _envVarToPath;
+        private readonly string _envVar;
 
-        public FileExistsAttribute(string envVarToPath)
+        public EnvVarExistsAttribute(string envVar)
         {
-            _path = Environment.GetEnvironmentVariable(envVarToPath);
-            _envVarToPath = envVarToPath;
+            _envVar = envVar;
         }
 
-        public override string Skip => (!string.IsNullOrEmpty(_path) && File.Exists(_path)) ? null : $"Set EnvVar: {_envVarToPath} to a valid path to run this test.";
+        public override string Skip => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(_envVar)) ? null : $"Set env var: {_envVar} to run this test.";
     }
 }
