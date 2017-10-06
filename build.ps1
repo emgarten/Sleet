@@ -15,10 +15,10 @@ pushd $RepoRoot
 . "$PSScriptRoot\build\common\common.ps1"
 
 # Set test account if available
-if ($SleetTestAccount)
+if ($StorageTestAccount)
 {
   Write-Host "SLEET_TEST_ACCOUNT set"
-  $env:SLEET_TEST_ACCOUNT=$SleetTestAccount
+  $env:SLEET_TEST_ACCOUNT=$StorageTestAccount
 }
 
 if ($UseDevStorage)
