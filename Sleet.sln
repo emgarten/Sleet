@@ -21,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.CmdExe.Tests", "test\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.CliTool.Tests", "test\Sleet.CliTool.Tests\Sleet.CliTool.Tests.csproj", "{6F8415C0-BCB5-4622-BC72-D5B3A8B0F57A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sleet.Test.Common", "test\Sleet.Test.Common\Sleet.Test.Common.csproj", "{6C64D862-C3B1-4B67-B61F-324232CE0BD2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.Test.Common", "test\Sleet.Test.Common\Sleet.Test.Common.csproj", "{6C64D862-C3B1-4B67-B61F-324232CE0BD2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sleet.Azure.Tests", "test\Sleet.Azure.Tests\Sleet.Azure.Tests.csproj", "{09C24DAF-1671-4396-AADB-800651B3544D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -117,6 +119,18 @@ Global
 		{6C64D862-C3B1-4B67-B61F-324232CE0BD2}.Release|x64.Build.0 = Release|Any CPU
 		{6C64D862-C3B1-4B67-B61F-324232CE0BD2}.Release|x86.ActiveCfg = Release|Any CPU
 		{6C64D862-C3B1-4B67-B61F-324232CE0BD2}.Release|x86.Build.0 = Release|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Debug|x64.Build.0 = Debug|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Debug|x86.Build.0 = Debug|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Release|x64.ActiveCfg = Release|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Release|x64.Build.0 = Release|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Release|x86.ActiveCfg = Release|Any CPU
+		{09C24DAF-1671-4396-AADB-800651B3544D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,6 +143,7 @@ Global
 		{0C10CC07-4B17-4D86-B0C6-6D556E81AF31} = {FD8B1865-858C-4D7E-BA9A-135900B6E28B}
 		{6F8415C0-BCB5-4622-BC72-D5B3A8B0F57A} = {FD8B1865-858C-4D7E-BA9A-135900B6E28B}
 		{6C64D862-C3B1-4B67-B61F-324232CE0BD2} = {FD8B1865-858C-4D7E-BA9A-135900B6E28B}
+		{09C24DAF-1671-4396-AADB-800651B3544D} = {FD8B1865-858C-4D7E-BA9A-135900B6E28B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0F59D5B-E540-4B38-8F4B-34D9D4C62909}

@@ -16,16 +16,16 @@ namespace Sleet.Test.Common
         public override string Skip => RuntimeEnvironmentHelper.IsWindows ? null : "Windows only test";
     }
 
-    public sealed class EnvVarExistsAttribute
+    public sealed class EnvVarExistsFactAttribute
         : FactAttribute
     {
         private readonly string _envVar;
 
-        public EnvVarExistsAttribute(string envVar)
+        public EnvVarExistsFactAttribute(string envVar)
         {
             _envVar = envVar;
         }
 
-        public override string Skip => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(_envVar)) ? null : $"Set env var: {_envVar} to run this test.";
+        public override string Skip => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(_envVar)) ? null : $"Set env var: {_envVar} to run this test. This can be ignored for non CI scenarios.";
     }
 }
