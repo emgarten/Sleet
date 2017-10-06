@@ -2,7 +2,9 @@ param (
     [switch]$SkipTests,
     [switch]$SkipPack,
     [ValidateSet("Debug", "Release")]
-    [string]$Configuration = "Release"
+    [string]$Configuration = "Release",
+    [string]$StorageTestAccount,
+    [switch]$UseDevStorage
 )
 
 $RepoName = "Sleet"
@@ -11,6 +13,19 @@ pushd $RepoRoot
 
 # Load common build script helper methods
 . "$PSScriptRoot\build\common\common.ps1"
+
+# Set test account if available
+if ($SleetTestAccount)
+{
+  Write-Host "SLEET_TEST_ACCOUNT set"
+  $env:SLEET_TEST_ACCOUNT=$SleetTestAccount
+}
+
+if ($UseDevStorage)
+{
+  Write-Host "SLEET_TEST_ACCOUNT set to dev storage"
+  $env:SLEET_TEST_ACCOUNT="UseDevelopmentStorage=true"
+}
 
 # Download tools
 Install-DotnetCLI $RepoRoot
