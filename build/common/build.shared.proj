@@ -73,7 +73,7 @@
     Test all projects in the solution.
     ============================================================
   -->
-  <Target Name="Test" Condition=" '$(SkipTest)' != 'true' ">
+  <Target Name="Test" Condition=" '$(SkipTest)' != 'true' " DependsOnTargets="Pack">
     <!-- Test inputs -->
     <PropertyGroup>
       <TestProjectPaths>@(SolutionProjects)</TestProjectPaths>

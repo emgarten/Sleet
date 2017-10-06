@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,6 +14,30 @@ namespace Sleet.Test.Common
     /// </summary>
     public static class CmdRunner
     {
+        /// <summary>
+        /// Search the current directory and up for a path.
+        /// </summary>
+        /// <remarks>throws if not found</remarks>
+        public static string GetPath(string relativePath)
+        {
+            relativePath = relativePath.Replace('/', Path.DirectorySeparatorChar);
+            var root = new DirectoryInfo(Directory.GetCurrentDirectory());
+
+            while (root != null)
+            {
+                var path = Path.Combine(root.FullName, relativePath);
+
+                if (File.Exists(path))
+                {
+                    return path;
+                }
+
+                root = root.Parent;
+            }
+
+            throw new FileNotFoundException($"Unable to find {relativePath}, try running these tests from build.ps1");
+        }
+
         /// <summary>
         /// Run an external process.
         /// </summary>

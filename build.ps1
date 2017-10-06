@@ -26,14 +26,14 @@ Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Restore", "/p:Configurat
 # Run main build
 $buildTargets = "Build"
 
-if (-not $SkipTests)
-{
-    $buildTargets += ";Test"
-}
-
 if (-not $SkipPack)
 {
     $buildTargets += ";Pack"
+}
+
+if (-not $SkipTests)
+{
+    $buildTargets += ";Test"
 }
 
 # Run build.proj
