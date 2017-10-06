@@ -10,7 +10,7 @@
     <TestSDKVersion>15.0.0</TestSDKVersion>
     <FluentAssertionsVersion>4.19.0</FluentAssertionsVersion>
     <SourceLinkVersion>2.1.2</SourceLinkVersion>
-    <XunitVersion>2.2.0</XunitVersion>
+    <XunitVersion>2.3.0-rc3-build3818</XunitVersion>
     <XunitRunnerVisualStudioVersion>2.2.0</XunitRunnerVisualStudioVersion>
     <XunitAnalyzersVersion>0.6.0</XunitAnalyzersVersion>
     <PortablePdbVersion>1.2.0</PortablePdbVersion>

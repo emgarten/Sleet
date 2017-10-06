@@ -11,7 +11,7 @@ namespace Sleet.CmdExe.Tests
 {
     public class BasicTests
     {
-        [Theory]
+        [WindowsTheory]
         [InlineData("foo")]
         [InlineData("init --foo")]
         [InlineData("init")]
@@ -25,7 +25,7 @@ namespace Sleet.CmdExe.Tests
             }
         }
 
-        [Fact]
+        [WindowsFact]
         public async Task RunCreateConfigVerifySuccess()
         {
             using (var testContext = new SleetTestContext())
