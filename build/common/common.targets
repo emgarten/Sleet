@@ -70,12 +70,15 @@
     <Compile Include="$(BuildCommonDirectory)TestShared\*.cs" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">$(XunitVersion)</XunitRunnerVisualStudioVersion>
+  </PropertyGroup>
+
   <ItemGroup Condition=" '$(TestProject)' == 'true' ">
     <PackageReference Include="FluentAssertions" Version="$(FluentAssertionsVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSDKVersion)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitRunnerVisualStudioVersion)" />
     <PackageReference Include="xunit" Version="$(XunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(XunitAnalyzersVersion)" />
   </ItemGroup>
   
   <!-- Sign -->
