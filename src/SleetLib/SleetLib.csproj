@@ -25,6 +25,8 @@
     <PackageReference Include="WindowsAzure.Storage" Version="$(WindowsAzureStorageVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
+    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+    <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
