@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26929.2
+VisualStudioVersion = 15.0.27004.2000
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{98ECD2D1-744F-4DFA-A16A-E13EE596F10C}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6B69DC16-3BBF-4F94-892F-69C0E044AB3F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{FD8B1865-858C-4D7E-BA9A-135900B6E28B}"
 EndProject
@@ -23,7 +21,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.CliTool.Tests", "test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.Test.Common", "test\Sleet.Test.Common\Sleet.Test.Common.csproj", "{6C64D862-C3B1-4B67-B61F-324232CE0BD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sleet.Azure.Tests", "test\Sleet.Azure.Tests\Sleet.Azure.Tests.csproj", "{09C24DAF-1671-4396-AADB-800651B3544D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.Azure.Tests", "test\Sleet.Azure.Tests\Sleet.Azure.Tests.csproj", "{09C24DAF-1671-4396-AADB-800651B3544D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{0CE0BE4C-4714-4909-9888-3F573F2311D8}"
+	ProjectSection(SolutionItems) = preProject
+		build\config.props = build\config.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
