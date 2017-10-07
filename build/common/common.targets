@@ -33,8 +33,8 @@
     <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">4.19.4</FluentAssertionsVersion>
     <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.5.0</ToStringWithoutOverrideAnalyzerVersion>
     <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">15.0.0</TestSDKVersion>
-    <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">2.3.0-rc3-build3818</XunitRunnerVisualStudioVersion>
-    <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.3.0-rc3-build3818</XunitVersion>
+    <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.3.0</XunitVersion>
+    <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">$(XunitVersion)</XunitRunnerVisualStudioVersion>
     <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">2.2.1</SourceLinkVersion>
   </PropertyGroup>
   

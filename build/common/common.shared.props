@@ -19,7 +19,7 @@
     <PackagesConfigDirectory>$(RepositoryRootDirectory).nuget\packages\</PackagesConfigDirectory>
     <CIRootDirectory>$(RepositoryRootDirectory).ci\</CIRootDirectory>
     <MSBuildArtifactsDirectory>$(RepositoryRootDirectory)artifacts\msbuild\</MSBuildArtifactsDirectory>
-    <XunitConsoleExePath>$(PackagesConfigDirectory)xunit.runner.console.2.2.0\tools\xunit.console.exe</XunitConsoleExePath>
+    <XunitConsoleExePath>$(PackagesConfigDirectory)xunit.runner.console.2.3.0\tools\net452\xunit.console.exe</XunitConsoleExePath>
     <NupkgOutputDirectory>$(ArtifactsDirectory)nupkgs\</NupkgOutputDirectory>
     <PublishOutputDirectory>$(ArtifactsDirectory)publish\</PublishOutputDirectory>
     <LogOutputDirectory>$(ArtifactsDirectory)logs\</LogOutputDirectory>

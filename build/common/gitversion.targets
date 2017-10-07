@@ -1,0 +1,126 @@
+<Project ToolsVersion="15.0" DefaultTargets="Run">
+  <!--
+    ============================================================
+    WriteGitInfo
+    Run external git commands to find the current tag info.
+    ============================================================
+  -->
+  <Target Name="WriteGitInfo" Condition=" '$(SkipWriteGitInfo)' != 'true' ">
+    <!-- Find the last tag -->
+    <Exec Command="git describe --tags --abbrev=0"
+          ConsoleToMSBuild="true"
+          StandardOutputImportance="low"
+          ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitTagLabel" />
+      <Output TaskParameter="ExitCode" PropertyName="GitTagLabelExitCode"/>
+    </Exec>
+
+    <!-- Find the number of commits since the last tag -->
+    <Exec Command="git rev-list $(GitTagLabel)..HEAD --count"
+      ConsoleToMSBuild="true"
+      StandardOutputImportance="low"
+      ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="CommitsSinceLastTag" />
+      <Output TaskParameter="ExitCode" PropertyName="CommitsSinceLastTagExitCode"/>
+    </Exec>
+
+    <!-- Find the current commit hash -->
+    <Exec Command="git rev-parse HEAD"
+      ConsoleToMSBuild="true"
+      StandardOutputImportance="low"
+      ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+      <Output TaskParameter="ExitCode" PropertyName="GitCommitHashExitCode"/>
+    </Exec>
+
+    <!-- Find the current short commit hash -->
+    <Exec Command="git rev-parse --short HEAD"
+      ConsoleToMSBuild="true"
+      StandardOutputImportance="low"
+      ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitShortHash" />
+      <Output TaskParameter="ExitCode" PropertyName="GitCommitShortHashExitCode"/>
+    </Exec>
+
+    <!-- Find the current branch -->
+    <Exec Command="git rev-parse --abbrev-ref HEAD"
+      ConsoleToMSBuild="true"
+      StandardOutputImportance="low"
+      ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
+      <Output TaskParameter="ExitCode" PropertyName="GitBranchExitCode"/>
+    </Exec>
+
+    <!-- Check exit codes -->
+    <PropertyGroup Condition=" '$(GitTagLabelExitCode)' == '0' AND '$(GitCommitHashExitCode)' == '0' AND '$(GitCommitHashExitCode)' == '0' AND '$(GitBranchExitCode)' == '0' AND '$(GitCommitShortHashExitCode)' == '0' ">
+      <GitVersionSuccess>true</GitVersionSuccess>
+    </PropertyGroup>
+
+    <!-- Defaults -->
+    <PropertyGroup Condition=" '$(GitVersionSuccess)' != 'true' ">
+      <GitVersionSuccess>false</GitVersionSuccess>
+      <GitVersion>0.1.0-alpha</GitVersion>
+      <GitBranch>unknown</GitBranch>
+      <GitCommitHash></GitCommitHash>
+      <GitCommitShortHash></GitCommitShortHash>
+    </PropertyGroup>
+
+    <!-- Parse git data -->
+    <PropertyGroup Condition=" '$(GitVersionSuccess)' == 'true' ">
+      <GitVersionSuccess>true</GitVersionSuccess>
+      <GitVersion>$(GitTagLabel.Trim())</GitVersion>
+      <GitVersion>$(GitVersion.TrimStart('release/'))</GitVersion>
+      <GitVersion>$(GitVersion.TrimStart('v'))</GitVersion>
+      <GitVersionIsVersion Condition="$(GitVersion.IndexOf('.')) != $(GitVersion.LastIndexOf('.'))">true</GitVersionIsVersion>
+      <GitVersionHasMetadata Condition="$(GitVersion.Contains('+'))">true</GitVersionHasMetadata>
+      <GitVersionIsPreRelease Condition="$(GitVersion.Contains('-'))">true</GitVersionIsPreRelease>
+      <GitVersionEndsWithZero Condition="$(GitVersion.EndsWith('.0'))">true</GitVersionEndsWithZero>
+      <GitCommitsSinceLastTag>$(CommitsSinceLastTag.Trim())</GitCommitsSinceLastTag>
+      <GitCommitHash>$(GitCommitHash.Trim())</GitCommitHash>
+      <GitCommitShortHash>$(GitCommitShortHash.Trim())</GitCommitShortHash>
+      <GitBranch>$(GitBranch.Trim())</GitBranch>
+    </PropertyGroup>
+
+    <!-- Validation -->
+    <Error Text="Git version label does not contain a valid version $(GitTagLabel)" Condition=" '$(GitVersionIsVersion)' != 'true' " />
+    <Error Text="Git version label may not contain build metadata $(GitTagLabel)" Condition=" '$(GitVersionHasMetadata)' == 'true' " />
+    <Error Text="Unable to increment git version label $(GitTagLabel)" Condition=" '$(GitVersionIsPreRelease)' != 'true' AND '$(GitCommitsSinceLastTag)' != '0' AND '$(GitVersionEndsWithZero)' != 'true' " />
+
+    <!-- Only increment the version if there have been commits since the last tag -->
+    <PropertyGroup Condition=" '$(GitVersionSuccess)' == 'true' AND '$(GitCommitsSinceLastTag)' != '0' ">
+      <!-- For stable versions remove the trailing .0 -->
+      <GitVersion Condition=" '$(GitVersionEndsWithZero)' == 'true' ">$(GitVersion.SubString(0, $(GitVersion.LastIndexOf('.'))))</GitVersion>
+      <!-- Append .CommitNumber, this will be used for both stable and pre-release -->
+      <GitVersion>$(GitVersion).$(GitCommitsSinceLastTag)</GitVersion>
+    </PropertyGroup>
+
+    <!-- Append build metadata -->
+    <PropertyGroup Condition=" '$(GitVersionSuccess)' == 'true' ">
+      <GitVersion>$(GitVersion)+git.$(GitCommitShortHash)</GitVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <GitInfoOutputPath>$(MSBuildArtifactsDirectory)git.props</GitInfoOutputPath>
+    </PropertyGroup>
+
+    <!-- Display version -->
+    <Message Text="Version: $(GitVersion)" Importance="low" />
+
+    <!-- Write props to disk for build and restore to consume -->
+    <ItemGroup>
+      <LineToWrite Include="&lt;Project&gt;" />
+      <LineToWrite Include="&lt;PropertyGroup&gt;" />
+      <LineToWrite Include="&lt;MSBuildAllProjects&gt;%24(MSBuildAllProjects)%3B%24(MSBuildThisFileFullPath)&lt;/MSBuildAllProjects&gt;" />
+      <LineToWrite Include="&lt;GitVersion&gt;$(GitVersion)&lt;/GitVersion&gt;" />
+      <LineToWrite Include="&lt;GitCommitHash&gt;$(GitCommitHash)&lt;/GitCommitHash&gt;" />
+      <LineToWrite Include="&lt;GitCommitShortHash&gt;$(GitCommitShortHash)&lt;/GitCommitShortHash&gt;" />
+      <LineToWrite Include="&lt;GitBranch&gt;$(GitBranch)&lt;/GitBranch&gt;" />
+      <LineToWrite Include="&lt;GitVersionIsPreRelease&gt;$(GitVersionIsPreRelease)&lt;/GitVersionIsPreRelease&gt;" />
+      <LineToWrite Include="&lt;/PropertyGroup&gt;" />
+      <LineToWrite Include="&lt;/Project&gt;" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(MSBuildArtifactsDirectory)" />
+    <WriteLinesToFile File="$(GitInfoOutputPath)" Overwrite="true" Lines="@(LineToWrite)" />
+  </Target>
+</Project>
