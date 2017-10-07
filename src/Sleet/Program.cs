@@ -65,18 +65,9 @@ namespace Sleet
             {
                 ex.Command.ShowHelp();
             }
-            catch (AggregateException ex)
-            {
-                foreach (var inner in ex.InnerExceptions)
-                {
-                    log.LogError(inner.Message);
-                    log.LogDebug(inner.ToString());
-                }
-            }
             catch (Exception ex)
             {
-                log.LogError(ex.Message);
-                log.LogDebug(ex.ToString());
+                ExceptionUtils.LogException(ex, log);
             }
 
             return Task.FromResult(exitCode);
