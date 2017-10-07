@@ -82,9 +82,9 @@
     </PropertyGroup>
 
     <!-- Validation -->
-    <Error Text="Git version label does not contain a valid version $(GitTagLabel)" Condition=" '$(GitVersionIsVersion)' != 'true' " />
-    <Error Text="Git version label may not contain build metadata $(GitTagLabel)" Condition=" '$(GitVersionHasMetadata)' == 'true' " />
-    <Error Text="Unable to increment git version label $(GitTagLabel)" Condition=" '$(GitVersionIsPreRelease)' != 'true' AND '$(GitCommitsSinceLastTag)' != '0' AND '$(GitVersionEndsWithZero)' != 'true' " />
+    <Error Text="Git version label does not contain a valid version $(GitTagLabel)" Condition=" '$(GitVersionSuccess)' == 'true' AND '$(GitVersionIsVersion)' != 'true' " />
+    <Error Text="Git version label may not contain build metadata $(GitTagLabel)" Condition=" '$(GitVersionSuccess)' == 'true' AND '$(GitVersionHasMetadata)' == 'true' " />
+    <Error Text="Unable to increment git version label $(GitTagLabel)" Condition=" '$(GitVersionSuccess)' == 'true' AND '$(GitVersionIsPreRelease)' != 'true' AND '$(GitCommitsSinceLastTag)' != '0' AND '$(GitVersionEndsWithZero)' != 'true' " />
 
     <!-- Only increment the version if there have been commits since the last tag -->
     <PropertyGroup Condition=" '$(GitVersionSuccess)' == 'true' AND '$(GitCommitsSinceLastTag)' != '0' ">
