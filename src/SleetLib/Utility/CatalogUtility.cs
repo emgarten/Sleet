@@ -304,7 +304,7 @@ namespace Sleet
             var currentPageUri = JsonUtility.GetIdUri(currentPageJson);
             var pageCommits = JsonUtility.GetItems(currentPageJson);
 
-            var pageEntry = pages.Where(e => currentPageUri.Equals(currentPageUri)).Single();
+            var pageEntry = pages.Where(e => JsonUtility.GetIdUri(e).Equals(currentPageUri)).Single();
             pageEntry["commitId"] = commitId.ToString().ToLowerInvariant();
             pageEntry["commitTimeStamp"] = DateTimeOffset.UtcNow.GetDateString();
             pageEntry["count"] = pageCommits.Count;

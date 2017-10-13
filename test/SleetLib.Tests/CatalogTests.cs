@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -214,6 +215,79 @@ namespace Sleet.Test
                     Assert.Empty(dependencyGroups);
                     Assert.Empty(frameworkAssemblyGroups);
                     Assert.Empty(tags);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task CatalogTest_AddPackageAsync_SupportsWritingMultiplePages()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true,
+                        CatalogPageSize = 1,
+                    }
+                };
+
+                var catalog = new Catalog(context);
+                var catalogIndex = TemplateUtility.LoadTemplate(
+                    "CatalogIndex",
+                    DateTimeOffset.UtcNow,
+                    fileSystem.BaseURI);
+                await fileSystem.Get("catalog/index.json").Write(
+                    JObject.Parse(catalogIndex),
+                    log,
+                    context.Token);
+
+                var testPackageA = new TestNupkg("packageA", "1.0.0");
+                var testPackageB = new TestNupkg("packageB", "1.0.0");
+
+                var zipFileA = testPackageA.Save(packagesFolder.Root);
+                var zipFileB = testPackageB.Save(packagesFolder.Root);
+                using (var zipA = new ZipArchive(File.OpenRead(zipFileA.FullName), ZipArchiveMode.Read, false))
+                using (var zipB = new ZipArchive(File.OpenRead(zipFileB.FullName), ZipArchiveMode.Read, false))
+                {
+                    var inputA = new PackageInput(zipFileA.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
+                    {
+                        NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg"),
+                        Zip = zipA,
+                        Package = new PackageArchiveReader(zipA)
+                    };
+
+                    var inputB = new PackageInput(zipFileB.FullName, new PackageIdentity("packageB", NuGetVersion.Parse("1.0.0")), false)
+                    {
+                        NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageB/1.0.0/packageB.1.0.0.nupkg"),
+                        Zip = zipB,
+                        Package = new PackageArchiveReader(zipB)
+                    };
+
+                    // Act
+                    await catalog.AddPackageAsync(inputA);
+                    await catalog.AddPackageAsync(inputB);
+                    await fileSystem.Commit(context.Log, context.Token);
+
+                    // Assert
+                    Assert.True(
+                        await fileSystem.Get("catalog/page.0.json").Exists(context.Log, context.Token),
+                        "The first catalog page should exist.");
+                    Assert.True(
+                        await fileSystem.Get("catalog/page.1.json").Exists(context.Log, context.Token),
+                        "The second catalog page should exist.");
                 }
             }
         }
