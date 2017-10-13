@@ -1,6 +1,8 @@
 # Release Notes
 
 ## 2.2.0
+* Fix for multiple catalog pages
+* Sleet versions of the same semantic version patch will no longer require upgrading the feed to work together.
 
 ## 2.1.0
 * Fix for race condition when reading symbols files

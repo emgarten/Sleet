@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -50,18 +50,43 @@ namespace Sleet
         {
             var sourceVersion = await GetSleetVersionAsync(fileSystem, log, token);
 
-            var assemblyVersion = AssemblyVersionHelper.GetVersion();
+            var originalVersion = AssemblyVersionHelper.GetVersion();
+            var assemblyVersion = new NuGetVersion(originalVersion.Major, originalVersion.Minor, originalVersion.Patch);
 
-            if (!allowNewer && sourceVersion < assemblyVersion)
+            // Allow all X.Y.* versions to be used, patches should only contain bug fixes
+            // no breaking changes or new features.
+            var allowedRange = GetAllowedRange(sourceVersion, allowNewer);
+
+            if (!allowedRange.Satisfies(assemblyVersion))
             {
-                throw new InvalidOperationException($"{fileSystem.BaseURI} uses an older version of Sleet: {sourceVersion}. Upgrade the feed to {assemblyVersion} by running 'Sleet recreate' against this feed.");
-            }
-            else if (sourceVersion > assemblyVersion)
-            {
-                throw new InvalidOperationException($"{fileSystem.BaseURI} was created using a newer version of Sleet: {sourceVersion}. Use the same or higher version to make changes.");
+                if (sourceVersion < assemblyVersion)
+                {
+                    throw new InvalidOperationException($"{fileSystem.BaseURI} uses an older version of Sleet: {sourceVersion}. Upgrade the feed to {assemblyVersion} by running 'Sleet recreate' against this feed.");
+                }
+                else if (sourceVersion > assemblyVersion)
+                {
+                    throw new InvalidOperationException($"{fileSystem.BaseURI} was created using a newer version of Sleet: {sourceVersion}. Use the same or higher version to make changes.");
+                }
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Get the range of tool versions that can work with the source.
+        /// </summary>
+        public static VersionRange GetAllowedRange(SemanticVersion sourceVersion, bool allowNewer)
+        {
+            var minVersion = new NuGetVersion(sourceVersion.Major, sourceVersion.Minor, 0);
+            var maxVersion = allowNewer ? null : new NuGetVersion(sourceVersion.Major, sourceVersion.Minor + 1, 0);
+
+            // Create a range that allows any patch version to be used.
+            // If allowNewer is set then allow an open range.
+            return new VersionRange(
+                minVersion: minVersion,
+                includeMinVersion: true,
+                maxVersion: maxVersion,
+                includeMaxVersion: false);
         }
     }
 }
