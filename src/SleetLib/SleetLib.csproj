@@ -2,7 +2,7 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
 
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
-    <TargetFrameworks>netstandard2.0;netstandard1.3;net46</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard1.3;net46;net45</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
     <TargetFrameworks>netstandard2.0;netstandard1.3</TargetFrameworks>
@@ -19,18 +19,21 @@
   <ItemGroup>
     <EmbeddedResource Include="compiler\resources\**\*" />
   </ItemGroup>
-
+  
+  <ItemGroup Condition=" '$(IsDesktop)' == 'true' ">
+    <Reference Include="System.IO.Compression" />
+  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
     <PackageReference Include="WindowsAzure.Storage" Version="$(WindowsAzureStorageVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
+  </ItemGroup>
+  
+  <ItemGroup Condition=" '$(IsCore)' == 'true' ">
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <Reference Include="System.IO.Compression" />
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />
