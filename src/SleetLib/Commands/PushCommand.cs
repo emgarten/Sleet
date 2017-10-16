@@ -220,8 +220,10 @@ namespace Sleet
 
                     // Check for correct nuspec name
                     nuspecName = identity.Id + ".nuspec";
-                    hasNuspec = (zip.GetEntry(nuspecName) != null);
-                    hasMultipleNuspecs = zip.Entries.Where(entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)).Count() > 1;
+                    var nuspecs = zip.Entries.Where(entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)).ToList();
+
+                    hasNuspec = nuspecs.Count == 1;
+                    hasMultipleNuspecs = nuspecs.Count > 1;
                 }
             }
             catch
