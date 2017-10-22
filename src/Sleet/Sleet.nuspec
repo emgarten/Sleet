@@ -7,6 +7,7 @@
     <owners>emgarten</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <licenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</licenseUrl>
+    <projectUrl>https://github.com/emgarten/Sleet/</projectUrl>
     <description>Sleet is a command line tool that generates NuGet v3 static feeds.</description>
     <copyright>Copyright © 2017 Justin Emgarten</copyright>
     <tags>nuget nugetserver nugetfeed</tags>
