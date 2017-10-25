@@ -33,7 +33,7 @@ namespace Sleet
 
                         var path = sourceEntry["path"]?.ToObject<string>();
                         var baseURI = sourceEntry["baseURI"]?.ToObject<string>() ?? path;
-                        var relativePath = sourceEntry["relativePath"]?.ToObject<string>();
+                        var feedSubPath = sourceEntry["feedSubPath"]?.ToObject<string>();
                         var type = sourceEntry["type"]?.ToObject<string>().ToLowerInvariant();
 
                         if (type == "local")
@@ -57,7 +57,7 @@ namespace Sleet
 
                             var azureAccount = CloudStorageAccount.Parse(connectionString);
 
-                            result = new AzureFileSystem(cache, UriUtility.CreateUri(path), UriUtility.CreateUri(baseURI), azureAccount, container, relativePath);
+                            result = new AzureFileSystem(cache, UriUtility.CreateUri(path), UriUtility.CreateUri(baseURI), azureAccount, container, feedSubPath);
                         }
                     }
                 }
