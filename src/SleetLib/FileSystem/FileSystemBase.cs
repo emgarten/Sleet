@@ -26,16 +26,19 @@ namespace Sleet
 
         public ConcurrentDictionary<Uri, ISleetFile> Files { get; private set; } = new ConcurrentDictionary<Uri, ISleetFile>();
 
+        public string FeedSubPath { get; private set; }
+
         protected FileSystemBase(LocalCache cache, Uri root)
             : this(cache, root, root)
         {
         }
 
-        protected FileSystemBase(LocalCache cache, Uri root, Uri baseUri)
+        protected FileSystemBase(LocalCache cache, Uri root, Uri baseUri, string feedSubPath = null)
         {
             BaseURI = baseUri ?? throw new ArgumentNullException(nameof(baseUri));
             LocalCache = cache ?? throw new ArgumentNullException(nameof(cache));
             Root = root ?? throw new ArgumentNullException(nameof(root));
+            FeedSubPath = feedSubPath;
         }
 
         public abstract ISleetFileSystemLock CreateLock(ILogger log);

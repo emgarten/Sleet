@@ -20,8 +20,8 @@ namespace Sleet
         {
         }
 
-        public PhysicalFileSystem(LocalCache cache, Uri root, Uri baseUri)
-            : base(cache, root, baseUri)
+        public PhysicalFileSystem(LocalCache cache, Uri root, Uri baseUri, string feedSubPath = null)
+            : base(cache, root, baseUri, feedSubPath)
         {
         }
 

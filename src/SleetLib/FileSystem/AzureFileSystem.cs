@@ -14,29 +14,27 @@ namespace Sleet
         private readonly CloudStorageAccount _azureAccount;
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
-        private string _relativePath;
 
         public AzureFileSystem(LocalCache cache, Uri root, CloudStorageAccount azureAccount, string container)
             : this(cache, root, root, azureAccount, container)
         {
         }
 
-        public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, CloudStorageAccount azureAccount, string container, string relativePath = null)
-            : base(cache, root, baseUri)
+        public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, CloudStorageAccount azureAccount, string container, string feedSubPath = null)
+            : base(cache, root, baseUri, feedSubPath)
         {
             _azureAccount = azureAccount;
             _client = _azureAccount.CreateCloudBlobClient();
             _container = _client.GetContainerReference(container);
-            _relativePath = relativePath;
         }
 
         public override ISleetFile Get(Uri path)
         {
             var relativePath = GetRelativePath(path);
 
-            if (!string.IsNullOrEmpty(_relativePath))
+            if (!string.IsNullOrEmpty(FeedSubPath))
             {
-                relativePath = $"{_relativePath}{relativePath}";
+                relativePath = $"{FeedSubPath}{relativePath}";
             }
 
             var blob = _container.GetBlockBlobReference(relativePath);
