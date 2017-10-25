@@ -26,15 +26,12 @@ The list of packages on this feed is [here](https://nuget.blob.core.windows.net/
 * Azure storage support - Feeds can work directly with an azure storage account.
 * Local folder support - Feeds can be written to disk and hosted with a web server to support authentication. 
 
-## Supported clients
-* [NuGet 3.4.0+](https://www.nuget.org/downloads)
-* [.NET Core tools](https://www.microsoft.com/net/core)
-
-## Coding
-This solution uses .NET Core, get the tools [here](http://dot.net/).
-
 ### License
 [MIT License](https://github.com/emgarten/Sleet/blob/master/LICENSE.md)
+
+### Related projects
+
+* [Sleet.Azure](https://github.com/kzu/Sleet.Azure) provides MSBuild props/targets for running Sleet.
 
 # Quick start
 
