@@ -17,11 +17,7 @@ namespace Sleet
         /// <summary>
         /// Create PackageDetails for a delete
         /// </summary>
-#if NET45 || NETSTANDARD1_3
-        public static JObject CreateDeleteDetails(PackageIdentity package, string reason, Uri catalogBaseURI, Guid commitId)
-#else
         public static async Task<JObject> CreateDeleteDetailsAsync(PackageIdentity package, string reason, Uri catalogBaseURI, Guid commitId)
-#endif
         {
             var now = DateTimeOffset.UtcNow;
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
@@ -33,11 +29,7 @@ namespace Sleet
             json.Add("commitTimeStamp", now.GetDateString());
             json.Add("sleet:operation", "remove");
 
-#if NET45 || NETSTANDARD1_3
-            var context = JsonUtility.GetContext("Catalog");
-#else
             var context = await JsonUtility.GetContextAsync("Catalog");
-#endif
             json.Add("@context", context);
 
             json.Add("id", package.Id);
@@ -54,11 +46,7 @@ namespace Sleet
         /// <summary>
         /// Catalog index page.
         /// </summary>
-#if NET45 || NETSTANDARD1_3
-        public static JObject CreateCatalogPage(Uri indexUri, Uri rootUri, List<JObject> packageDetails, Guid commitId)
-#else
         public static async Task<JObject> CreateCatalogPageAsync(Uri indexUri, Uri rootUri, List<JObject> packageDetails, Guid commitId)
-#endif
         {
             var json = JsonUtility.Create(rootUri, "CatalogPage");
             json.Add("commitId", commitId.ToString().ToLowerInvariant());
@@ -76,11 +64,7 @@ namespace Sleet
                 itemArray.Add(entry);
             }
 
-#if NET45 || NETSTANDARD1_3
-            var context = JsonUtility.GetContext("CatalogPage");
-#else
             var context = await JsonUtility.GetContextAsync("CatalogPage");
-#endif
             json.Add("@context", context);
 
             return JsonLDTokenComparer.Format(json);
@@ -110,11 +94,7 @@ namespace Sleet
             json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
             json.Add("sleet:operation", "add");
 
-#if NET45 || NETSTANDARD1_3
-            var context = JsonUtility.GetContext("Catalog");
-#else
             var context = await JsonUtility.GetContextAsync("Catalog");
-#endif
             json.Add("@context", context);
 
             json.Add("id", packageInput.Identity.Id);

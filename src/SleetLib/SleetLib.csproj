@@ -16,12 +16,8 @@
     <PackProject>true</PackProject>
   </PropertyGroup>
   
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net46' Or '$(TargetFramework)' == 'netstandard2.0'">
-    <DefineConstants>NET46;NETSTANDARD2_0</DefineConstants>
-  </PropertyGroup>
-  
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard1.3'">
-    <DefineConstants>NET45;NETSTANDARD1_3</DefineConstants>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard1.3'">
+    <DefineConstants>USEJSONNET901</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
