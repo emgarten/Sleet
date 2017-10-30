@@ -70,11 +70,8 @@ namespace Sleet
                 input.Position = 0;
             }
 
-#if NET45 || NETSTANDARD1_3
-            var json = LoadJson(input);
-#else
             var json = await LoadJsonAsync(input);
-#endif
+
             using (var zipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
             {
                 await WriteJsonAsync(json, zipStream);
@@ -111,13 +108,13 @@ namespace Sleet
             using (var jsonWriter = new JsonTextWriter(writer))
             {
                 jsonWriter.Formatting = Formatting.None;
-#if NET45 || NETSTANDARD1_3
+#if USEJSONNET901
                 json.WriteTo(jsonWriter);
 #else
                 await json.WriteToAsync(jsonWriter);
 #endif
                 await writer.FlushAsync();
-#if NET45 || NETSTANDARD1_3
+#if USEJSONNET901
                 jsonWriter.Flush();
 #else
                 await jsonWriter.FlushAsync();
@@ -134,19 +131,11 @@ namespace Sleet
         /// <summary>
         /// True if the file can be loaded as a JObject.
         /// </summary>
-#if NET45 || NETSTANDARD1_3
-        public static bool IsJson(string path)
-#else
         public static async Task<bool> IsJsonAsync(string path)
-#endif
         {
             try
             {
-#if NET45 || NETSTANDARD1_3
-        var json = LoadJson(path);
-#else
                 var json = await LoadJsonAsync(path);
-#endif
                 return true;
             }
             catch
@@ -155,25 +144,12 @@ namespace Sleet
             }
         }
 
-
-#if NET45 || NETSTANDARD1_3
-        public static JObject LoadJson(FileInfo file)
-        {
-            return LoadJson(file.FullName);
-        }
-#else
         public static Task<JObject> LoadJsonAsync(FileInfo file)
         {
             return LoadJsonAsync(file.FullName);
         }
-#endif
 
-
-#if NET45 || NETSTANDARD1_3
-        public static JObject LoadJson(string path)
-#else
         public static async Task<JObject> LoadJsonAsync(string path)
-#endif
         {
             Debug.Assert(File.Exists(path), "File must exist");
 
@@ -181,21 +157,13 @@ namespace Sleet
 
             using (var stream = File.OpenRead(path))
             {
-#if NET45 || NETSTANDARD1_3
-                json = LoadJson(stream);
-#else
                 json = await LoadJsonAsync(stream);
-#endif
             }
 
             return json;
         }
 
-#if NET45 || NETSTANDARD1_3
-        public static JObject LoadJson(Stream stream)
-#else
         public static async Task<JObject> LoadJsonAsync(Stream stream)
-#endif
         {
             if (stream == null)
             {
@@ -207,8 +175,8 @@ namespace Sleet
             {
                 jsonReader.DateParseHandling = DateParseHandling.None;
 
-#if NET45 || NETSTANDARD1_3
-                var json = JObject.Load(jsonReader);
+#if USEJSONNET901
+                var json = await Task.FromResult(JObject.Load(jsonReader));
 #else
                 var json = await JObject.LoadAsync(jsonReader);
 #endif
@@ -216,20 +184,12 @@ namespace Sleet
             }
         }
 
-
-#if NET45 || NETSTANDARD1_3
-        public static JObject GetContext(string name)
-        {
-            var json = LoadJson(TemplateUtility.GetResource($"context{name}.json"));
-            return (JObject)json["@context"];
-        }
-#else
         public static async Task<JObject> GetContextAsync(string name)
         {
             var json = await LoadJsonAsync(TemplateUtility.GetResource($"context{name}.json"));
             return (JObject)json["@context"];
         }
-#endif
+
         /// <summary>
         /// Copy properties from one JObject to another.
         /// </summary>

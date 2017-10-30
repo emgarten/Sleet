@@ -136,11 +136,7 @@ namespace Sleet
         public async Task<JObject> GetJson(ILogger log, CancellationToken token)
         {
             await EnsureFileOrThrow(log, token);
-#if NET45 || NETSTANDARD1_3
-            return JsonUtility.LoadJson(LocalCacheFile);
-#else
             return await JsonUtility.LoadJsonAsync(LocalCacheFile);
-#endif
         }
 
         /// <summary>
@@ -152,11 +148,7 @@ namespace Sleet
 
             if (await ExistsWithFetch(log, token))
             {
-#if NET45 || NETSTANDARD1_3
-                json = JsonUtility.LoadJson(LocalCacheFile);
-#else
                 json = await JsonUtility.LoadJsonAsync(LocalCacheFile);
-#endif
             }
 
             return json;

@@ -51,23 +51,16 @@ namespace Sleet
             packages.Add(newEntry);
 
             // Create index
-#if NET45 || NETSTANDARD1_3
-            var newIndexJson = CreateIndex(rootUri, packages);
-#else
             var newIndexJson = await CreateIndexAsync(rootUri, packages);
-#endif
+
             // Write
             await rootFile.Write(newIndexJson, _context.Log, _context.Token);
 
             // Create package page
             var packageUri = GetPackageUri(package.Identity);
             var packageFile = _context.Source.Get(packageUri);
-
-#if NET45 || NETSTANDARD1_3
-            var packageJson = CreatePackageBlob(package);
-#else
             var packageJson = await CreatePackageBlobAsync(package);
-#endif
+
             // Write package page
             await packageFile.Write(packageJson, _context.Log, _context.Token);
         }
@@ -110,11 +103,7 @@ namespace Sleet
                 if (packages.Count > 0)
                 {
                     // Create index
-#if NET45 || NETSTANDARD1_3
-                    var newIndexJson = CreateIndex(rootUri, packages);
-#else
                     var newIndexJson = await CreateIndexAsync(rootUri, packages);
-#endif
 
                     // Write
                     await rootFile.Write(newIndexJson, _context.Log, _context.Token);
@@ -136,11 +125,7 @@ namespace Sleet
             return Task.FromResult(pages.SelectMany(GetItems).ToList());
         }
 
-#if NET45 || NETSTANDARD1_3
-        public JObject CreateIndex(Uri indexUri, List<JObject> packageDetails)
-#else
         public async Task<JObject> CreateIndexAsync(Uri indexUri, List<JObject> packageDetails)
-#endif
         {
             var json = JsonUtility.Create(indexUri,
                 new string[] {
@@ -160,11 +145,7 @@ namespace Sleet
             var pageJson = CreatePage(indexUri, packageDetails);
             itemsArray.Add(pageJson);
 
-#if NET45 || NETSTANDARD1_3
-            var context = JsonUtility.GetContext("Registration");
-#else
             var context = await JsonUtility.GetContextAsync("Registration");
-#endif
             json.Add("@context", context);
 
             return JsonLDTokenComparer.Format(json);
@@ -263,11 +244,7 @@ namespace Sleet
             return null;
         }
 
-#if NET45 || NETSTANDARD1_3
-        public JObject CreatePackageBlob(PackageInput packageInput)
-#else
         public async Task<JObject> CreatePackageBlobAsync(PackageInput packageInput)
-#endif
         {
             var rootUri = GetPackageUri(packageInput.Identity);
 
@@ -295,11 +272,7 @@ namespace Sleet
 
             json.Add("sleet:catalogEntry", catalogEntry);
 
-#if NET45 || NETSTANDARD1_3
-            var context = JsonUtility.GetContext("Package");
-#else
             var context = await JsonUtility.GetContextAsync("Package");
-#endif
             json.Add("@context", context);
 
             return JsonLDTokenComparer.Format(json);

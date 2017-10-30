@@ -86,11 +86,7 @@ namespace Sleet
         public async Task RemovePackageAsync(PackageIdentity package)
         {
             // Create package details page for the delete
-#if NET45 || NETSTANDARD1_3
-            var packageDetails = CatalogUtility.CreateDeleteDetails(package, string.Empty, CatalogBaseURI, _context.CommitId);
-#else
             var packageDetails = await CatalogUtility.CreateDeleteDetailsAsync(package, string.Empty, CatalogBaseURI, _context.CommitId);
-#endif
             var packageDetailsFile = _context.Source.Get(packageDetails.GetEntityId());
 
             await packageDetailsFile.Write(packageDetails, _context.Log, _context.Token);
@@ -338,12 +334,7 @@ namespace Sleet
             pageCommits.Add(pageCommit);
 
             // Write catalog page
-#if NET45 || NETSTANDARD1_3
-            var pageJson = CatalogUtility.CreateCatalogPage(RootIndexFile.EntityUri, currentPageUri, pageCommits, _context.CommitId);
-#else
             var pageJson = await CatalogUtility.CreateCatalogPageAsync(RootIndexFile.EntityUri, currentPageUri, pageCommits, _context.CommitId);
-#endif
-
             await currentPageFile.Write(pageJson, _context.Log, _context.Token);
 
             // Update index

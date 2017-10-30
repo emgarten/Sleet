@@ -74,13 +74,7 @@ namespace Sleet
                         _blob.Properties.ContentType = "application/xml";
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal)
-                            ||
-#if NET45 || NETSTANDARD1_3
-                            JsonUtility.IsJson(LocalCacheFile.FullName)
-#else
-                            await JsonUtility.IsJsonAsync(LocalCacheFile.FullName)
-#endif
-                            )
+                            || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                     {
                         _blob.Properties.ContentType = "application/json";
                         _blob.Properties.ContentEncoding = "gzip";
@@ -89,7 +83,7 @@ namespace Sleet
                         log.LogInformation($"Compressing {_blob.Uri.AbsoluteUri}");
                         writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
                     }
-                    else if(_blob.Uri.AbsoluteUri.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
+                    else if (_blob.Uri.AbsoluteUri.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
                         || _blob.Uri.AbsoluteUri.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
                     {
                         _blob.Properties.ContentType = "application/octet-stream";
