@@ -65,14 +65,21 @@ namespace Sleet.Test
             }
         }
 
+#if NET45 || NETSTANDARD1_3
+        public static void WalkJson(string root, Action<FileInfo, JObject, string> walker)
+#else
         public static async Task WalkJsonAsync(string root, Action<FileInfo, JObject, string> walker)
+#endif
         {
             var valid = false;
 
             foreach (var file in GetJsonFiles(root))
             {
+#if NET45 || NETSTANDARD1_3
+                var json = JsonUtility.LoadJson(file);
+#else
                 var json = await JsonUtility.LoadJsonAsync(file);
-
+#endif
                 var tokens = json.Descendants().ToArray();
 
                 foreach (var token in tokens)

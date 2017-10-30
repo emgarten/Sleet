@@ -74,7 +74,13 @@ namespace Sleet
                         _blob.Properties.ContentType = "application/xml";
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal)
-                            || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
+                            ||
+#if NET45 || NETSTANDARD1_3
+                            JsonUtility.IsJson(LocalCacheFile.FullName)
+#else
+                            await JsonUtility.IsJsonAsync(LocalCacheFile.FullName)
+#endif
+                            )
                     {
                         _blob.Properties.ContentType = "application/json";
                         _blob.Properties.ContentEncoding = "gzip";
