@@ -15,6 +15,14 @@
     <Description>Access Sleet.exe commands through the Sleet API.</Description>
     <PackProject>true</PackProject>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net46' Or '$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NET46;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+  
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard1.3'">
+    <DefineConstants>NET45;NETSTANDARD1_3</DefineConstants>
+  </PropertyGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="compiler\resources\**\*" />
@@ -27,7 +35,8 @@
   <ItemGroup>
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
     <PackageReference Include="WindowsAzure.Storage" Version="$(WindowsAzureStorageVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" Condition="'$(TargetFramework)' == 'net46' Or '$(TargetFramework)' == 'netstandard2.0'"/>
+    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard1.3'"/>
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
   </ItemGroup>
   
