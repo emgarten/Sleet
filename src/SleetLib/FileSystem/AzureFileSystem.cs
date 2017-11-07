@@ -11,6 +11,10 @@ namespace Sleet
 {
     public class AzureFileSystem : FileSystemBase
     {
+
+
+        public static readonly string AzureEmptyConnectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint=";
+
         private readonly CloudStorageAccount _azureAccount;
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
