@@ -46,11 +46,9 @@ namespace Sleet.Test
 
                 foreach (var file in files)
                 {
-#if NET45 || NETSTANDARD1_3
-                    var fileJson = JsonUtility.LoadJson(new FileInfo(file));
-#else
+
                     var fileJson = await JsonUtility.LoadJsonAsync(new FileInfo(file));
-#endif
+
                     foreach (var entityId in GetEntityIds(fileJson))
                     {
                         Assert.True(entityId.StartsWith(baseUri.AbsoluteUri), $"{entityId} in {file}");

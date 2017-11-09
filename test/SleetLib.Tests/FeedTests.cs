@@ -97,11 +97,7 @@ namespace Sleet.Test
                     Assert.Equal(1, autoCompletePackages.Count);
 
                     // Walk json to check for bad urls
-#if NET45 || NETSTANDARD1_3
-                    TestUtility.WalkJson(target.Root, (file, json, toCheck) =>
-#else
                     await TestUtility.WalkJsonAsync(target.Root, (file, json, toCheck) =>
-#endif
                     {
                         // Check only URLs found
                         if (toCheck.IndexOf("://") > -1)

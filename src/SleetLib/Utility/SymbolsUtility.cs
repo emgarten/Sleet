@@ -95,16 +95,10 @@ namespace Sleet
         /// <summary>
         /// True if the package is a symbols package.
         /// </summary>
-        public static bool IsSymbolsPackage(ZipArchive zip, string fullPath, bool explorePackageContents = true)
+        public static bool IsSymbolsPackage(ZipArchive zip, string fullPath)
         {
             // check the path, this is the easiest way to check the type
             if (fullPath.EndsWith(".symbols.nupkg", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            // Check for the src folder, this is added to symbol packages.
-            if (explorePackageContents && zip.Entries.Any(s => s.FullName.StartsWith("src/", StringComparison.OrdinalIgnoreCase)))
             {
                 return true;
             }
