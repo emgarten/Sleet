@@ -103,12 +103,6 @@ namespace Sleet
                 return true;
             }
 
-            // Check for the src folder, this is added to symbol packages.
-            if (zip.Entries.Any(s => s.FullName.StartsWith("src/", StringComparison.OrdinalIgnoreCase)))
-            {
-                return true;
-            }
-
             return false;
         }
     }
