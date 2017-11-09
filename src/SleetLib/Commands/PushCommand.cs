@@ -13,9 +13,13 @@ namespace Sleet
 {
     public static class PushCommand
     {
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, bool skipExisting, ILogger log)
+        private static bool _explorePackageContents;
+
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, bool skipExisting, ILogger log, bool explorePackageContents = true)
         {
             var token = CancellationToken.None;
+
+            _explorePackageContents = explorePackageContents;
 
             await log.LogAsync(LogLevel.Minimal, $"Reading feed {source.BaseURI.AbsoluteUri}");
 
@@ -216,7 +220,7 @@ namespace Sleet
                 using (var package = new PackageArchiveReader(zip))
                 {
                     identity = package.GetIdentity();
-                    isSymbolsPackage = SymbolsUtility.IsSymbolsPackage(zip, file);
+                    isSymbolsPackage = SymbolsUtility.IsSymbolsPackage(zip, file, _explorePackageContents);
 
                     // Check for correct nuspec name
                     nuspecName = identity.Id + ".nuspec";
