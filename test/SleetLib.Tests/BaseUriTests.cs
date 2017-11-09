@@ -46,7 +46,6 @@ namespace Sleet.Test
 
                 foreach (var file in files)
                 {
-
                     var fileJson = await JsonUtility.LoadJsonAsync(new FileInfo(file));
 
                     foreach (var entityId in GetEntityIds(fileJson))
