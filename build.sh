@@ -11,11 +11,12 @@ DOTNET="$(pwd)/.cli/dotnet"
 if [ ! -f $DOTNET ]; then
     echo "Installing dotnet"
     mkdir -p .cli
-    curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/cli/c497bf498fd4e964b00e2ee44bd840f2a269ea6c/scripts/obtain/dotnet-install.sh
+    curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/cli/4bd9bb92cc3636421cd01baedbd8ef3e41aa1e22/scripts/obtain/dotnet-install.sh
 
     # Run install.sh
     chmod +x .cli/dotnet-install.sh
-    .cli/dotnet-install.sh -i .cli -c 2.0 -v 2.0.0
+    .cli/dotnet-install.sh -i .cli -c 2.0 -v 2.0.2
+    .cli/dotnet-install.sh -i .cli -c preview -v 1.0.4
 fi
 
 # Display info
