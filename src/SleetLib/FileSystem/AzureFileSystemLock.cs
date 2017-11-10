@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -18,11 +18,10 @@ namespace Sleet
         private Task _keepLockTask;
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
-        public AzureFileSystemLock(CloudBlobContainer container, ILogger log)
+        public AzureFileSystemLock(CloudBlockBlob blob, ILogger log)
         {
             _log = log;
-
-            _blob = container.GetBlockBlobReference(LockFile);
+            _blob = blob;
             _lease = new AzureBlobLease(_blob);
         }
 

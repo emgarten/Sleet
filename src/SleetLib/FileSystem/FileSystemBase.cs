@@ -107,7 +107,14 @@ namespace Sleet
                 throw new ArgumentNullException(nameof(relativePath));
             }
 
-            return UriUtility.GetPath(BaseURI, relativePath);
+            if (string.IsNullOrEmpty(FeedSubPath))
+            {
+                return UriUtility.GetPath(BaseURI, relativePath);
+            }
+            else
+            {
+                return UriUtility.GetPath(BaseURI, FeedSubPath, relativePath);
+            }
         }
 
         private static async Task CompleteTask(List<Task> tasks)

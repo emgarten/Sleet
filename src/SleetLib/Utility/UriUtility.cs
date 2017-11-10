@@ -8,6 +8,8 @@ namespace Sleet
 {
     public static class UriUtility
     {
+        private static readonly char[] _dirChars = new char[] { '\\', '/' };
+
         /// <summary>
         /// Check if the URI has the expected root
         /// </summary>
@@ -29,17 +31,29 @@ namespace Sleet
         /// <summary>
         /// Combine a root and relative path
         /// </summary>
-        public static Uri GetPath(Uri root, string relativePath)
+        public static Uri GetPath(Uri root, params string[] relativePaths)
         {
-            if (relativePath == null)
+            if (relativePaths.Length < 1)
             {
                 Debug.Fail("bad path");
-                throw new ArgumentNullException(nameof(relativePath));
+                throw new ArgumentNullException(nameof(relativePaths));
             }
 
-            relativePath = relativePath.TrimStart(new char[] { '\\', '/' });
+            var parts = new List<string>(relativePaths.Length);
 
-            var combined = new Uri(EnsureTrailingSlash(root), relativePath);
+            for (var i=0; i < relativePaths.Length; i++)
+            {
+                if ((i+1) == relativePaths.Length)
+                {
+                    // Leaving trailing slashes on the final piece
+                    parts.Add(relativePaths[i].TrimStart(_dirChars));
+                }
+                else
+                {
+                    parts.Add(relativePaths[i].Trim(_dirChars));
+                }
+            }
+            var combined = new Uri(EnsureTrailingSlash(root), string.Join("/", parts));
             return combined;
         }
 
