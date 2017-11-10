@@ -30,7 +30,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
+    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" Condition=" '$(UseJsonNet901)' != 'true' " />
+    <PackageReference Include="NuGet.Packaging" Version="4.3.0" Condition=" '$(UseJsonNet901)' == 'true' " />
     <PackageReference Include="WindowsAzure.Storage" Version="$(WindowsAzureStorageVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" Condition=" '$(UseJsonNet901)' != 'true' " />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" Condition=" '$(UseJsonNet901)' == 'true' " />
