@@ -20,7 +20,7 @@ namespace Sleet
             await log.LogAsync(LogLevel.Minimal, $"Reading feed {source.BaseURI.AbsoluteUri}");
 
             // Check if already initialized
-            using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
+            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
             {
                 // Validate source
                 await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);

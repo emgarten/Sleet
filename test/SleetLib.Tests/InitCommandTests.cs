@@ -34,6 +34,7 @@ namespace Sleet.Test
                 var rootJson = await rootFile.GetJson(log, CancellationToken.None);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                                    settings,
                                     fileSystem,
                                     unsetAll: false,
                                     getAll: true,
@@ -89,6 +90,7 @@ namespace Sleet.Test
                 var rootJson = await rootFile.GetJson(log, CancellationToken.None);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: true,
@@ -144,6 +146,7 @@ namespace Sleet.Test
                 var rootJson = await rootFile.GetJson(log, CancellationToken.None);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: true,
@@ -199,6 +202,7 @@ namespace Sleet.Test
                 var rootJson = await rootFile.GetJson(log, CancellationToken.None);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: true,

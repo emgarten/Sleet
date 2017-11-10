@@ -16,6 +16,7 @@ namespace Sleet
     public static class FeedSettingsCommand
     {
         public static async Task<bool> RunAsync(
+            LocalSettings settings,
             ISleetFileSystem source,
             bool unsetAll,
             bool getAll,
@@ -28,7 +29,7 @@ namespace Sleet
             log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
 
             // Check if already initialized
-            using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
+            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
             {
                 // Validate source
                 var success = await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);

@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
 using Sleet;
@@ -14,7 +14,7 @@ namespace Sleet
         {
             var token = CancellationToken.None;
 
-            using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
+            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
             {
                 return await Destroy(settings, source, log, token);
             }

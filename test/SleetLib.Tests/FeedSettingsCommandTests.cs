@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -36,6 +36,7 @@ namespace SleetLib.Tests
                 };
 
                 Func<Task> action = async () => await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: true,
@@ -71,6 +72,7 @@ namespace SleetLib.Tests
                 };
 
                 Func<Task> action = async () => await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: true,
                     getAll: true,
@@ -108,6 +110,7 @@ namespace SleetLib.Tests
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 Func<Task> action = async () => await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: false,
@@ -145,6 +148,7 @@ namespace SleetLib.Tests
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: true,
@@ -184,6 +188,7 @@ namespace SleetLib.Tests
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: false,
@@ -194,6 +199,7 @@ namespace SleetLib.Tests
                     token: context.Token);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem2,
                     unsetAll: false,
                     getAll: true,
@@ -235,6 +241,7 @@ namespace SleetLib.Tests
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 Func<Task> action = async () => await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: true,
                     getAll: true,
@@ -274,6 +281,7 @@ namespace SleetLib.Tests
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: false,
@@ -284,6 +292,7 @@ namespace SleetLib.Tests
                     token: context.Token);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem2,
                     unsetAll: false,
                     getAll: false,
@@ -325,6 +334,7 @@ namespace SleetLib.Tests
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: false,
@@ -335,6 +345,7 @@ namespace SleetLib.Tests
                     token: context.Token);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem2,
                     unsetAll: false,
                     getAll: false,
@@ -375,6 +386,7 @@ namespace SleetLib.Tests
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: false,
@@ -385,6 +397,7 @@ namespace SleetLib.Tests
                     token: context.Token);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: false,
@@ -395,6 +408,7 @@ namespace SleetLib.Tests
                     token: context.Token);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem2,
                     unsetAll: false,
                     getAll: true,
@@ -436,6 +450,7 @@ namespace SleetLib.Tests
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: false,
@@ -446,6 +461,7 @@ namespace SleetLib.Tests
                     token: context.Token);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: true,
                     getAll: false,
@@ -456,6 +472,7 @@ namespace SleetLib.Tests
                     token: context.Token);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem2,
                     unsetAll: false,
                     getAll: true,
@@ -497,6 +514,7 @@ namespace SleetLib.Tests
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: false,
@@ -507,6 +525,7 @@ namespace SleetLib.Tests
                     token: context.Token);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem,
                     unsetAll: false,
                     getAll: false,
@@ -517,6 +536,7 @@ namespace SleetLib.Tests
                     token: context.Token);
 
                 success &= await FeedSettingsCommand.RunAsync(
+                    settings,
                     fileSystem2,
                     unsetAll: false,
                     getAll: true,
