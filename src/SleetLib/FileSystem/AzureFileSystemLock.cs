@@ -51,6 +51,7 @@ namespace Sleet
                 timer.Start();
 
                 var lastNotify = TimeSpan.Zero;
+                var firstLoop = true;
 
                 do
                 {
@@ -60,11 +61,12 @@ namespace Sleet
                     {
                         var diff = timer.Elapsed.Subtract(lastNotify);
 
-                        if (diff.TotalSeconds > 60)
+                        if (diff.TotalSeconds > 60 || firstLoop)
                         {
                             _log.LogMinimal($"Waiting to obtain an exclusive lock on the feed.");
                         }
 
+                        firstLoop = false;
                         await Task.Delay(100);
                     }
                 }

@@ -9,13 +9,13 @@ namespace Sleet
         /// <summary>
         /// Entire sleet.json file.
         /// </summary>
-        public JObject Json { get; set; }
+        public JObject Json { get; set; } = new JObject();
 
         /// <summary>
         /// Feed lock wait time.
         /// config/feedLockTimeoutMinutes
         /// </summary>
-        public TimeSpan FeedLockTimeout { get; set; }
+        public TimeSpan FeedLockTimeout { get; set; } = TimeSpan.MaxValue;
 
         public static LocalSettings Load(JObject json)
         {
