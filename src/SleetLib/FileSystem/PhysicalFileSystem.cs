@@ -93,7 +93,8 @@ namespace Sleet
 
         public override ISleetFileSystemLock CreateLock(ILogger log)
         {
-            return new PhysicalFileSystemLock(Root.LocalPath, log);
+            var path = Path.Combine(LocalRoot, PhysicalFileSystemLock.LockFile);
+            return new PhysicalFileSystemLock(path, log);
         }
 
         public override async Task<bool> Destroy(ILogger log, CancellationToken token)
