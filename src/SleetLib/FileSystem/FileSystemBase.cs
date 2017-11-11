@@ -55,6 +55,7 @@ namespace Sleet
             // Push in parallel
             await TaskUtils.RunAsync(
                 tasks: Files.Values.Select(e => GetCommitFileFunc(e, log, token)),
+                useTaskRun: true,
                 token: token);
 
             return true;
@@ -108,13 +109,6 @@ namespace Sleet
             {
                 return UriUtility.GetPath(BaseURI, FeedSubPath, relativePath);
             }
-        }
-
-        private static async Task CompleteTask(List<Task> tasks)
-        {
-            var task = await Task.WhenAny(tasks);
-            tasks.Remove(task);
-            await task;
         }
     }
 }

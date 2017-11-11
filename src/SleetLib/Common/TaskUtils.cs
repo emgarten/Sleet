@@ -28,29 +28,29 @@ namespace Sleet
         {
             return RunAsync(
                 tasks: tasks.Select(GetFuncWithReturnValue),
-                runType: TaskRunType.TaskLongRunning,
+                useTaskRun: false,
                 token: token);
         }
 
         /// <summary>
         /// Run tasks in parallel.
         /// </summary>
-        public static Task RunAsync(IEnumerable<Func<Task>> tasks, TaskRunType runType, CancellationToken token)
+        public static Task RunAsync(IEnumerable<Func<Task>> tasks, bool useTaskRun, CancellationToken token)
         {
             return RunAsync(
                 tasks: tasks.Select(GetFuncWithReturnValue),
-                runType: runType,
+                useTaskRun: false,
                 token: token);
         }
 
         /// <summary>
         /// Run tasks in parallel.
         /// </summary>
-        public static Task RunAsync(IEnumerable<Func<Task>> tasks, TaskRunType runType, int maxThreads, CancellationToken token)
+        public static Task RunAsync(IEnumerable<Func<Task>> tasks, bool useTaskRun, int maxThreads, CancellationToken token)
         {
             return RunAsync(
                 tasks: tasks.Select(GetFuncWithReturnValue),
-                runType: runType,
+                useTaskRun: false,
                 maxThreads: maxThreads,
                 token: token);
         }
@@ -69,23 +69,31 @@ namespace Sleet
         /// </summary>
         public static Task<T[]> RunAsync<T>(IEnumerable<Func<Task<T>>> tasks, CancellationToken token)
         {
-            return RunAsync(tasks, TaskRunType.TaskLongRunning, token);
+            return RunAsync(tasks, useTaskRun: false, token: token);
         }
 
         /// <summary>
         /// Run tasks in parallel and returns the results in the original order.
         /// </summary>
-        public static Task<T[]> RunAsync<T>(IEnumerable<Func<Task<T>>> tasks, TaskRunType runType, CancellationToken token)
+        public static Task<T[]> RunAsync<T>(IEnumerable<Func<Task<T>>> tasks, bool useTaskRun, CancellationToken token)
         {
             var maxThreads = Environment.ProcessorCount * 2;
 
-            return RunAsync(tasks, runType, maxThreads, token);
+            return RunAsync(tasks, useTaskRun, maxThreads, token);
         }
 
         /// <summary>
         /// Run tasks in parallel and returns the results in the original order.
         /// </summary>
-        public async static Task<T[]> RunAsync<T>(IEnumerable<Func<Task<T>>> tasks, TaskRunType runType, int maxThreads, CancellationToken token)
+        public static Task<T[]> RunAsync<T>(IEnumerable<Func<Task<T>>> tasks, bool useTaskRun, int maxThreads, CancellationToken token)
+        {
+            return RunAsync(tasks, useTaskRun, maxThreads, DefaultProcess, token);
+        }
+
+        /// <summary>
+        /// Run tasks in parallel and returns the results in the original order.
+        /// </summary>
+        public async static Task<R[]> RunAsync<T, R>(IEnumerable<Func<Task<T>>> tasks, bool useTaskRun, int maxThreads, Func<Task<T>, Task<R>> process, CancellationToken token)
         {
             var toRun = new ConcurrentQueue<WorkItem<T>>();
 
@@ -97,11 +105,13 @@ namespace Sleet
                 index++;
             }
 
+            var totalCount = index;
+
             // Create an array for the results, at this point index is the count.
-            var results = new T[index];
+            var results = new R[totalCount];
 
             List<Task> threads = null;
-            var taskCount = GetAdditionalThreadCount(maxThreads, index);
+            var taskCount = GetAdditionalThreadCount(maxThreads, totalCount);
 
             if (taskCount > 0)
             {
@@ -112,22 +122,15 @@ namespace Sleet
                 {
                     Task task = null;
 
-                    if (runType == TaskRunType.TaskLongRunning || runType == TaskRunType.TaskRun)
+                    if (useTaskRun)
                     {
-                        var options = (runType == TaskRunType.TaskLongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None);
-
                         // Start a new task
-                        task = Task.Factory.StartNew(async _ =>
-                        {
-                            await RunTaskAsync(toRun, results, token);
-                        },
-                        options,
-                        CancellationToken.None);
+                        task = Task.Run(() => RunTaskAsync(toRun, results, process, token));
                     }
                     else
                     {
                         // Run directly
-                        task = RunTaskAsync(toRun, results, token);
+                        task = RunTaskAsync(toRun, results, process, token);
                     }
 
                     threads.Add(task);
@@ -136,7 +139,7 @@ namespace Sleet
 
             // Run tasks on the current thread
             // This is used both for parallel and non-parallel.
-            await RunTaskAsync(toRun, results, token);
+            await RunTaskAsync(toRun, results, process, token);
 
             // After all work completes on this thread, wait for the rest.
             if (threads != null)
@@ -164,18 +167,27 @@ namespace Sleet
         /// <summary>
         /// Run tasks on a single thread.
         /// </summary>
-        private static async Task RunTaskAsync<T>(ConcurrentQueue<WorkItem<T>> toRun, T[] results, CancellationToken token)
+        private static async Task RunTaskAsync<T, R>(ConcurrentQueue<WorkItem<T>> toRun, R[] results, Func<Task<T>, Task<R>> process, CancellationToken token)
         {
             // Run until cancelled or we are out of work.
             while (!token.IsCancellationRequested && toRun.TryDequeue(out var item))
             {
-                results[item.Index] = await item.Item();
+                var result = await process(item.Item());
+                results[item.Index] = result;
             }
+        }
+
+        private static Task<T> DefaultProcess<T>(Task<T> result)
+        {
+            return result;
         }
 
         private static Func<Task<bool>> GetFuncWithReturnValue(Func<Task> task)
         {
-            return new Func<Task<bool>>(() => RunWithReturnValue(task));
+            return new Func<Task<bool>>(() =>
+            {
+                return RunWithReturnValue(task);
+            });
         }
 
         private static async Task<bool> RunWithReturnValue(Func<Task> task)
@@ -198,24 +210,6 @@ namespace Sleet
                 Item = item;
                 Index = index;
             }
-        }
-
-        internal enum TaskRunType
-        {
-            /// <summary>
-            /// Without TaskRun
-            /// </summary>
-            Default = 0,
-
-            /// <summary>
-            /// Use Task.Run
-            /// </summary>
-            TaskRun = 1,
-
-            /// <summary>
-            /// Use Task.Run with LongRunning
-            /// </summary>
-            TaskLongRunning = 2,
         }
     }
 }
