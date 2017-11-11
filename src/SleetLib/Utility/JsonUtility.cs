@@ -13,6 +13,12 @@ namespace Sleet
 {
     public static class JsonUtility
     {
+        private static readonly JsonLoadSettings _jsonLoadSettings = new JsonLoadSettings()
+        {
+            LineInfoHandling = LineInfoHandling.Ignore,
+            CommentHandling = CommentHandling.Ignore,
+        };
+
         public static JObject Create(Uri rootId, string subId, string type)
         {
             return Create(rootId, subId, new List<string>() { type });
@@ -176,9 +182,9 @@ namespace Sleet
                 jsonReader.DateParseHandling = DateParseHandling.None;
 
 #if USEJSONNET901
-                var json = await Task.FromResult(JObject.Load(jsonReader));
+                var json = await Task.FromResult(JObject.Load(jsonReader, _jsonLoadSettings));
 #else
-                var json = await JObject.LoadAsync(jsonReader);
+                var json = await JObject.LoadAsync(jsonReader, _jsonLoadSettings);
 #endif
                 return json;
             }
