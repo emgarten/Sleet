@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -10,8 +10,6 @@ namespace Sleet
 {
     public abstract class FileSystemBase : ISleetFileSystem
     {
-        private const int MaxThreads = 4;
-
         /// <summary>
         /// URI written to files.
         /// </summary>
@@ -55,24 +53,16 @@ namespace Sleet
         public async Task<bool> Commit(ILogger log, CancellationToken token)
         {
             // Push in parallel
-            var tasks = new List<Task>();
-
-            foreach (var file in Files.Values)
-            {
-                if (tasks.Count >= MaxThreads)
-                {
-                    await CompleteTask(tasks);
-                }
-
-                tasks.Add(file.Push(log, token));
-            }
-
-            while (tasks.Count > 0)
-            {
-                await CompleteTask(tasks);
-            }
+            await TaskUtils.RunAsync(
+                tasks: Files.Values.Select(e => GetCommitFileFunc(e, log, token)),
+                token: token);
 
             return true;
+        }
+
+        private static Func<Task> GetCommitFileFunc(ISleetFile file, ILogger log, CancellationToken token)
+        {
+            return new Func<Task>(() => file.Push(log, token));
         }
 
         public virtual async Task<bool> Destroy(ILogger log, CancellationToken token)
