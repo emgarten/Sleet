@@ -24,7 +24,7 @@ namespace SleetLib.Tests
                 var root = UriUtility.CreateUri(target.Root);
                 var fileSystem = new PhysicalFileSystem(cache, root, root, feedSubPath: "feedA");
 
-                fileSystem.Root.Should().Be(root);
+                fileSystem.Root.Should().Be(UriUtility.EnsureTrailingSlash(root));
                 fileSystem.LocalRoot.Should().StartWith(Path.Combine(root.LocalPath, "feedA"));
 
                 fileSystem.Get("index.json").EntityUri.AbsoluteUri.Should().EndWith("/feedA/index.json");

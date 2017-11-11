@@ -39,6 +39,9 @@ namespace Sleet
             LocalCache = cache ?? throw new ArgumentNullException(nameof(cache));
             Root = root ?? throw new ArgumentNullException(nameof(root));
             FeedSubPath = feedSubPath;
+
+            BaseURI = UriUtility.EnsureTrailingSlash(BaseURI);
+            Root = UriUtility.EnsureTrailingSlash(Root);
         }
 
         public abstract ISleetFileSystemLock CreateLock(ILogger log);
