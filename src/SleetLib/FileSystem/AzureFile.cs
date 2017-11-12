@@ -20,7 +20,13 @@ namespace Sleet
             _blob = blob;
         }
 
-        protected override async Task CopyFromSource(ILogger log, CancellationToken token)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="log"></param>
+        /// <param name="token"></param>
+        /// <returns>true for success, false if does not exists (and retry does not make sense), Exception in any other case</returns>
+        protected override async Task<bool> CopyFromSource(ILogger log, CancellationToken token)
         {
             if (await _blob.ExistsAsync())
             {
@@ -51,6 +57,11 @@ namespace Sleet
                         await zipStream.CopyToAsync(destination);
                     }
                 }
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 

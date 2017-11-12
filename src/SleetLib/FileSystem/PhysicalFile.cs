@@ -17,15 +17,25 @@ namespace Sleet
             _sourceFile = sourceFile;
         }
 
-        protected override Task CopyFromSource(ILogger log, CancellationToken token)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="log"></param>
+        /// <param name="token"></param>
+        /// <returns>true for success, false if does not exists (and retry does not make sense), Exception in any other case</returns>
+        protected override Task<bool> CopyFromSource(ILogger log, CancellationToken token)
         {
             if (File.Exists(_sourceFile.FullName))
             {
                 log.LogInformation($"GET {_sourceFile.FullName}");
                 _sourceFile.CopyTo(LocalCacheFile.FullName);
+                return Task.FromResult(true);
+            }
+            else
+            {
+                return Task.FromResult(false);
             }
 
-            return Task.FromResult(true);
         }
 
         protected override Task CopyToSource(ILogger log, CancellationToken token)
