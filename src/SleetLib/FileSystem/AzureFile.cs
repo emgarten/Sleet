@@ -21,11 +21,10 @@ namespace Sleet
         }
 
         /// <summary>
-        /// 
+        /// Copy/Download file from remote to local. Overwrite a older local version if it exists
+        /// NO retry needed/allowed inside here because handled by the caller!
         /// </summary>
-        /// <param name="log"></param>
-        /// <param name="token"></param>
-        /// <returns>true for success, false if does not exists (and retry does not make sense), Exception in any other case</returns>
+        /// <returns>true for success, false if the file does not exists on the source side (and retry does not make sense), Exception in any other case</returns>
         protected override async Task<bool> CopyFromSource(ILogger log, CancellationToken token)
         {
             if (await _blob.ExistsAsync())
