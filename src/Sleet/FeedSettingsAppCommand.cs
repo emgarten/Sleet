@@ -50,6 +50,7 @@ namespace Sleet
                     var fileSystem = Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
                     var success = await FeedSettingsCommand.RunAsync(
+                        settings,
                         fileSystem,
                         unsetAll.HasValue(),
                         getAll.HasValue(),

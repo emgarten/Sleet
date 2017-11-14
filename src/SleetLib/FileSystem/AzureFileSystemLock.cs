@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -18,11 +18,10 @@ namespace Sleet
         private Task _keepLockTask;
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
-        public AzureFileSystemLock(CloudBlobContainer container, ILogger log)
+        public AzureFileSystemLock(CloudBlockBlob blob, ILogger log)
         {
             _log = log;
-
-            _blob = container.GetBlockBlobReference(LockFile);
+            _blob = blob;
             _lease = new AzureBlobLease(_blob);
         }
 
@@ -52,6 +51,7 @@ namespace Sleet
                 timer.Start();
 
                 var lastNotify = TimeSpan.Zero;
+                var firstLoop = true;
 
                 do
                 {
@@ -61,11 +61,12 @@ namespace Sleet
                     {
                         var diff = timer.Elapsed.Subtract(lastNotify);
 
-                        if (diff.TotalSeconds > 60)
+                        if (diff.TotalSeconds > 60 || firstLoop)
                         {
                             _log.LogMinimal($"Waiting to obtain an exclusive lock on the feed.");
                         }
 
+                        firstLoop = false;
                         await Task.Delay(100);
                     }
                 }

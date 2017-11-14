@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -30,7 +30,7 @@ namespace Sleet
 
             log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
 
-            using (var feedLock = await SourceUtility.VerifyInitAndLock(source, log, token))
+            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
             {
                 if (!force)
                 {

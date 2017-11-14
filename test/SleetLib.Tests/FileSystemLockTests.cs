@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -89,7 +89,7 @@ namespace Sleet.Test
                 var data = new ConcurrentDictionary<string, object>();
 
                 // Act
-                for (int i = 0; i < 100; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     tasks.Add(Task.Run(async () => await ThreadWork(data, target.Root)));
                 }

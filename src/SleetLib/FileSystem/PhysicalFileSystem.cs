@@ -13,7 +13,21 @@ namespace Sleet
         /// <summary>
         /// Local root with trailing slash
         /// </summary>
-        public string LocalRoot => Path.GetFullPath(Root.LocalPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        public string LocalRoot
+        {
+            get
+            {
+                var path = Root.LocalPath;
+
+                // Append sub path if it exists
+                if (!string.IsNullOrEmpty(FeedSubPath))
+                {
+                    path = Path.Combine(path, FeedSubPath);
+                }
+
+                return Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            }
+        }
 
         public PhysicalFileSystem(LocalCache cache, Uri root)
             : base(cache, root)
@@ -79,7 +93,8 @@ namespace Sleet
 
         public override ISleetFileSystemLock CreateLock(ILogger log)
         {
-            return new PhysicalFileSystemLock(Root.LocalPath, log);
+            var path = Path.Combine(LocalRoot, PhysicalFileSystemLock.LockFile);
+            return new PhysicalFileSystemLock(path, log);
         }
 
         public override async Task<bool> Destroy(ILogger log, CancellationToken token)

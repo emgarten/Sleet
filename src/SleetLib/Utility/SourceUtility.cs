@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -7,7 +7,7 @@ namespace Sleet
 {
     public static class SourceUtility
     {
-        public static async Task<ISleetFileSystemLock> VerifyInitAndLock(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
+        public static async Task<ISleetFileSystemLock> VerifyInitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
         {
             ISleetFileSystemLock feedLock = null;
 
@@ -22,7 +22,7 @@ namespace Sleet
                 }
 
                 feedLock = fileSystem.CreateLock(log);
-                var isLocked = await feedLock.GetLock(TimeSpan.Zero, token);
+                var isLocked = await feedLock.GetLock(settings.FeedLockTimeout, token);
 
                 if (!isLocked)
                 {

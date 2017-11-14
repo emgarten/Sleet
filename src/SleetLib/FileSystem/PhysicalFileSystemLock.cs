@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -13,10 +13,10 @@ namespace Sleet
         private volatile bool _isLocked;
         public const string LockFile = ".lock";
 
-        public PhysicalFileSystemLock(string root, ILogger log)
+        public PhysicalFileSystemLock(string path, ILogger log)
         {
             _log = log;
-            LockPath = Path.Combine(root, LockFile);
+            LockPath = path;
         }
 
         public bool IsLocked

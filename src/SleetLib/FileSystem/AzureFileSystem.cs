@@ -11,6 +11,8 @@ namespace Sleet
 {
     public class AzureFileSystem : FileSystemBase
     {
+        public static readonly string AzureEmptyConnectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint=";
+
         private readonly CloudStorageAccount _azureAccount;
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
@@ -31,11 +33,6 @@ namespace Sleet
         public override ISleetFile Get(Uri path)
         {
             var relativePath = GetRelativePath(path);
-
-            if (!string.IsNullOrEmpty(FeedSubPath))
-            {
-                relativePath = $"{FeedSubPath}{relativePath}";
-            }
 
             var blob = _container.GetBlockBlobReference(relativePath);
 
@@ -73,7 +70,9 @@ namespace Sleet
 
         public override ISleetFileSystemLock CreateLock(ILogger log)
         {
-            return new AzureFileSystemLock(_container, log);
+            var relativePath = GetRelativePath(GetPath(AzureFileSystemLock.LockFile));
+            var blob = _container.GetBlockBlobReference(relativePath);
+            return new AzureFileSystemLock(blob, log);
         }
 
         public override async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
@@ -94,7 +93,9 @@ namespace Sleet
             }
             while (continuationToken != null);
 
+            // Skip the feed lock, and limit this to the current sub feed.
             return blobs.Where(e => !e.Uri.AbsoluteUri.EndsWith($"/{AzureFileSystemLock.LockFile}"))
+                 .Where(e => string.IsNullOrEmpty(FeedSubPath) || e.Uri.AbsoluteUri.StartsWith(UriUtility.GetPath(_container.Uri, FeedSubPath).AbsoluteUri, StringComparison.Ordinal))
                  .Select(e => Get(e.Uri))
                  .ToList();
         }

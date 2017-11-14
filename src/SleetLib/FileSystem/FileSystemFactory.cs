@@ -50,6 +50,11 @@ namespace Sleet
                                 throw new ArgumentException("Missing connectionString for azure account.");
                             }
 
+                            if (connectionString.Equals(AzureFileSystem.AzureEmptyConnectionString, StringComparison.OrdinalIgnoreCase))
+                            {
+                                throw new ArgumentException("Invalid connectionString for azure account.");
+                            }
+
                             if (string.IsNullOrEmpty(container))
                             {
                                 throw new ArgumentException("Missing container for azure account.");

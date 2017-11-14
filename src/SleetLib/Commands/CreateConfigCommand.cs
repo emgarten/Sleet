@@ -65,7 +65,7 @@ namespace Sleet
                     { "type", "azure" },
                     { "path", "https://yourStorageAccount.blob.core.windows.net/myFeed/" },
                     { "container", "myFeed" },
-                    { "connectionString", "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint=" }
+                    { "connectionString", AzureFileSystem.AzureEmptyConnectionString }
                 };
                 sourcesArray.Add(azureJson);
             }
