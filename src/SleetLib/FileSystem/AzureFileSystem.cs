@@ -16,6 +16,7 @@ namespace Sleet
         private readonly CloudStorageAccount _azureAccount;
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
+        private readonly string _containerRoot;
 
         public AzureFileSystem(LocalCache cache, Uri root, CloudStorageAccount azureAccount, string container)
             : this(cache, root, root, azureAccount, container)
@@ -28,11 +29,12 @@ namespace Sleet
             _azureAccount = azureAccount;
             _client = _azureAccount.CreateCloudBlobClient();
             _container = _client.GetContainerReference(container);
+            _containerRoot = UriUtility.EnsureTrailingSlash(_container.Uri).AbsoluteUri;
         }
 
         public override ISleetFile Get(Uri path)
         {
-            var relativePath = GetRelativePath(path);
+            var relativePath = GetPathRelativeToContainer(path);
 
             var blob = _container.GetBlockBlobReference(relativePath);
 
@@ -70,7 +72,7 @@ namespace Sleet
 
         public override ISleetFileSystemLock CreateLock(ILogger log)
         {
-            var relativePath = GetRelativePath(GetPath(AzureFileSystemLock.LockFile));
+            var relativePath = GetPathRelativeToContainer(GetPath(AzureFileSystemLock.LockFile));
             var blob = _container.GetBlockBlobReference(relativePath);
             return new AzureFileSystemLock(blob, log);
         }
@@ -95,14 +97,29 @@ namespace Sleet
 
             // Skip the feed lock, and limit this to the current sub feed.
             return blobs.Where(e => !e.Uri.AbsoluteUri.EndsWith($"/{AzureFileSystemLock.LockFile}"))
-                 .Where(e => string.IsNullOrEmpty(FeedSubPath) || e.Uri.AbsoluteUri.StartsWith(UriUtility.GetPath(_container.Uri, FeedSubPath).AbsoluteUri, StringComparison.Ordinal))
+                 .Where(e => string.IsNullOrEmpty(FeedSubPath) || e.Uri.AbsoluteUri.StartsWith(UriUtility.EnsureTrailingSlash(BaseURI).AbsoluteUri, StringComparison.Ordinal))
                  .Select(e => Get(e.Uri))
                  .ToList();
         }
 
-        private string GetRelativePath(Uri uri)
+        /// <summary>
+        /// Get the path without the container root URI.
+        /// </summary>
+        private string GetPathRelativeToContainer(Uri uri)
         {
-            return uri.AbsoluteUri.Replace(Root.AbsoluteUri, string.Empty);
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            var path = uri.AbsoluteUri;
+
+            if (!path.StartsWith(_containerRoot, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"Unable to make '{uri.AbsoluteUri}' relative to '{_containerRoot}'");
+            }
+
+            return path.Replace(_containerRoot, string.Empty);
         }
     }
 }

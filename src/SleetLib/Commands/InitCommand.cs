@@ -32,6 +32,8 @@ namespace Sleet
 
         public static async Task<bool> InitAsync(LocalSettings settings, ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token)
         {
+            SourceUtility.ValidateFileSystem(source);
+
             var exitCode = true;
             var noChanges = true;
             var now = DateTimeOffset.UtcNow;

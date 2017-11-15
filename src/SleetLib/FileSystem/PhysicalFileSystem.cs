@@ -17,15 +17,8 @@ namespace Sleet
         {
             get
             {
-                var path = Root.LocalPath;
-
-                // Append sub path if it exists
-                if (!string.IsNullOrEmpty(FeedSubPath))
-                {
-                    path = Path.Combine(path, FeedSubPath);
-                }
-
-                return Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                // no action needed for feed sub paths, it is part of the BaseURI.
+                return Path.GetFullPath(Root.LocalPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
             }
         }
 

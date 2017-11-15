@@ -11,7 +11,7 @@ namespace Sleet.Azure.Tests
     {
         public LocalSettings LocalSettings { get; }
 
-        public AzureFileSystem FileSystem { get; }
+        public AzureFileSystem FileSystem { get; set; }
 
         public string ContainerName { get; }
 
