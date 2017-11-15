@@ -84,7 +84,7 @@ namespace Sleet
                 return root;
             }
 
-            return GetPath(root, paths);
+            return GetPath(root, paths.Skip(1).ToArray());
         }
 
         /// <summary>
