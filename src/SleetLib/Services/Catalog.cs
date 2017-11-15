@@ -52,7 +52,10 @@ namespace Sleet
         public Catalog(SleetContext context, Uri catalogBaseURI)
         {
             _context = context;
-            CatalogBaseURI = catalogBaseURI;
+
+            var fileSystemBase = (FileSystemBase)context.Source;
+
+            CatalogBaseURI = fileSystemBase.FeedSubPath == null ? catalogBaseURI : UriUtility.GetPath(context.Source.BaseURI, fileSystemBase.FeedSubPath, "catalog/");
         }
 
         /// <summary>

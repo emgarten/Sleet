@@ -84,9 +84,9 @@ namespace Sleet
             noChanges &= !await CreatePackageIndexAsync(context, serviceIndexJson);
 
             // Additional entries
-            AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
-            AddServiceIndexEntry(source.BaseURI, "", "ReportAbuseUriTemplate/3.0.0", "Report abuse template.", serviceIndexJson);
-            AddServiceIndexEntry(source.BaseURI, "flatcontainer/", "PackageBaseAddress/3.0.0", "Packages used by project.json", serviceIndexJson);
+            AddServiceIndexEntry(source, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
+            AddServiceIndexEntry(source, "", "ReportAbuseUriTemplate/3.0.0", "Report abuse template.", serviceIndexJson);
+            AddServiceIndexEntry(source, "flatcontainer/", "PackageBaseAddress/3.0.0", "Packages used by project.json", serviceIndexJson);
 
             // Add symbols feed if enabled
             if (feedSettings.SymbolsEnabled)
@@ -122,22 +122,26 @@ namespace Sleet
 
         private static async Task AddSymbolsFeedAsync(ISleetFileSystem source, JObject serviceIndexJson, SleetContext context)
         {
-            AddServiceIndexEntry(source.BaseURI, "symbols/packages/index.json", "http://schema.emgarten.com/sleet#SymbolsPackageIndex/1.0.0", "Packages indexed in the symbols feed.", serviceIndexJson);
-            AddServiceIndexEntry(source.BaseURI, "symbols/", "http://schema.emgarten.com/sleet#SymbolsServer/1.0.0", "Symbols server containing dll and pdb files.", serviceIndexJson);
+            AddServiceIndexEntry(source, "symbols/packages/index.json", "http://schema.emgarten.com/sleet#SymbolsPackageIndex/1.0.0", "Packages indexed in the symbols feed.", serviceIndexJson);
+            AddServiceIndexEntry(source, "symbols/", "http://schema.emgarten.com/sleet#SymbolsServer/1.0.0", "Symbols server containing dll and pdb files.", serviceIndexJson);
 
             var symbols = new Symbols(context);
             await symbols.PackageIndex.InitAsync();
         }
 
-        private static void AddServiceIndexEntry(Uri baseUri, string relativeFilePath, string type, string comment, JObject json)
+        private static void AddServiceIndexEntry(ISleetFileSystem source, string relativeFilePath, string type, string comment, JObject json)
         {
-            var id = UriUtility.GetPath(baseUri, relativeFilePath);
+            var fileSystemBase = (FileSystemBase)source;
+
+            relativeFilePath = fileSystemBase == null ? relativeFilePath : $"{fileSystemBase.FeedSubPath}{relativeFilePath}";
+
+            var id = UriUtility.GetPath(source.BaseURI, relativeFilePath);
 
             RemoveServiceIndexEntry(id, json);
 
             var array = (JArray)json["resources"];
 
-            array.Add(GetServiceIndexEntry(baseUri, relativeFilePath, type, comment));
+            array.Add(GetServiceIndexEntry(source.BaseURI, relativeFilePath, type, comment));
         }
 
         private static JObject GetServiceIndexEntry(Uri baseUri, string relativeFilePath, string type, string comment)
@@ -187,21 +191,21 @@ namespace Sleet
 
         private static async Task<bool> CreateCatalogAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
         {
-            AddServiceIndexEntry(source.BaseURI, "catalog/index.json", "Catalog/3.0.0", "Catalog service.", serviceIndexJson);
+            AddServiceIndexEntry(source, "catalog/index.json", "Catalog/3.0.0", "Catalog service.", serviceIndexJson);
 
             return await CreateFromTemplateAsync(source, log, now, "CatalogIndex", "catalog/index.json", token);
         }
 
         private static async Task<bool> CreateAutoCompleteAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
         {
-            AddServiceIndexEntry(source.BaseURI, "autocomplete/query", "SearchAutocompleteService/3.0.0-beta", "Powershell autocomplete.", serviceIndexJson);
+            AddServiceIndexEntry(source, "autocomplete/query", "SearchAutocompleteService/3.0.0-beta", "Powershell autocomplete.", serviceIndexJson);
 
             return await CreateFromTemplateAsync(source, log, now, "AutoComplete", "autocomplete/query", token);
         }
 
         private static async Task<bool> CreateSearchAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
         {
-            AddServiceIndexEntry(source.BaseURI, "search/query", "SearchQueryService/3.0.0-beta", "Static package list in search result form.", serviceIndexJson);
+            AddServiceIndexEntry(source, "search/query", "SearchQueryService/3.0.0-beta", "Static package list in search result form.", serviceIndexJson);
 
             return await CreateFromTemplateAsync(source, log, now, "Search", "search/query", token);
         }
@@ -213,7 +217,7 @@ namespace Sleet
 
         private static async Task<bool> CreateSettingsAsync(ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
         {
-            AddServiceIndexEntry(source.BaseURI, "sleet.settings.json", "http://schema.emgarten.com/sleet#SettingsFile/1.0.0", "Sleet feed settings.", serviceIndexJson);
+            AddServiceIndexEntry(source, "sleet.settings.json", "http://schema.emgarten.com/sleet#SettingsFile/1.0.0", "Sleet feed settings.", serviceIndexJson);
 
             // Create new file.
             var result = await CreateFromTemplateAsync(source, log, now, "Settings", "sleet.settings.json", token);
@@ -228,7 +232,7 @@ namespace Sleet
         {
             var packageIndex = context.Source.Get("sleet.packageindex.json");
 
-            AddServiceIndexEntry(context.Source.BaseURI, "sleet.packageindex.json", "http://schema.emgarten.com/sleet#PackageIndex/1.0.0", "Sleet package index.", serviceIndexJson);
+            AddServiceIndexEntry(context.Source, "sleet.packageindex.json", "http://schema.emgarten.com/sleet#PackageIndex/1.0.0", "Sleet package index.", serviceIndexJson);
 
             if (!await packageIndex.Exists(context.Log, context.Token))
             {

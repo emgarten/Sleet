@@ -107,6 +107,11 @@ namespace Sleet
             }
             else
             {
+                if (relativePath.Contains(FeedSubPath))
+                {
+                    relativePath = relativePath.Substring(FeedSubPath.Length);
+                }
+
                 return UriUtility.GetPath(BaseURI, FeedSubPath, relativePath);
             }
         }
