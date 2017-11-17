@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -43,5 +43,10 @@ namespace Sleet
         /// Delete all files.
         /// </summary>
         Task<bool> Destroy(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// Optional sub path for the feed.
+        /// </summary>
+        string FeedSubPath { get;  }
     }
 }

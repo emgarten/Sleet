@@ -70,6 +70,26 @@ namespace Sleet
         /// <summary>
         /// Create a URI in a safe manner that works for UNIX file paths.
         /// </summary>
+        public static Uri CreateUri(params string[] paths)
+        {
+            if (paths.Length == 0)
+            {
+                throw new ArgumentException(nameof(paths));
+            }
+
+            var root = CreateUri(paths[0]);
+
+            if (paths.Length < 1)
+            {
+                return root;
+            }
+
+            return GetPath(root, paths.Skip(1).ToArray());
+        }
+
+        /// <summary>
+        /// Create a URI in a safe manner that works for UNIX file paths.
+        /// </summary>
         public static Uri CreateUri(string path)
         {
             if (Path.DirectorySeparatorChar == '/' && !string.IsNullOrEmpty(path) && path[0] == '/')

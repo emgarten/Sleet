@@ -101,19 +101,7 @@ namespace Sleet
                 throw new ArgumentNullException(nameof(relativePath));
             }
 
-            if (string.IsNullOrEmpty(FeedSubPath))
-            {
-                return UriUtility.GetPath(BaseURI, relativePath);
-            }
-            else
-            {
-                if (relativePath.Contains(FeedSubPath))
-                {
-                    relativePath = relativePath.Substring(FeedSubPath.Length);
-                }
-
-                return UriUtility.GetPath(BaseURI, FeedSubPath, relativePath);
-            }
+            return UriUtility.GetPath(BaseURI, relativePath);
         }
     }
 }

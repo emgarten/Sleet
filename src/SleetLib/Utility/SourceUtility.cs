@@ -11,6 +11,8 @@ namespace Sleet
         {
             ISleetFileSystemLock feedLock = null;
 
+            ValidateFileSystem(fileSystem);
+
             try
             {
                 // Validate source
@@ -47,6 +49,15 @@ namespace Sleet
             }
 
             return feedLock;
+        }
+
+        public static void ValidateFileSystem(ISleetFileSystem fileSystem)
+        {
+            if (!string.IsNullOrEmpty(fileSystem.FeedSubPath)
+                && !fileSystem.BaseURI.AbsoluteUri.EndsWith($"/{fileSystem.FeedSubPath.TrimEnd(new char[] { '/', '\\' })}/"))
+            {
+                throw new ArgumentException("When using FeedSubPath the Path property must end with the sub path.");
+            }
         }
     }
 }

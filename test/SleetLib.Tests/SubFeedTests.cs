@@ -16,7 +16,7 @@ namespace SleetLib.Tests
     public class SubFeedTests
     {
         [Fact]
-        public void SubFeed_VerifySubFeedPath()
+        public void SubFeed_VerifySubFeedPathMustBeOnPath()
         {
             using (var target = new TestFolder())
             using (var cache = new LocalCache())
@@ -24,10 +24,23 @@ namespace SleetLib.Tests
                 var root = UriUtility.CreateUri(target.Root);
                 var fileSystem = new PhysicalFileSystem(cache, root, root, feedSubPath: "feedA");
 
-                fileSystem.Root.Should().Be(UriUtility.EnsureTrailingSlash(root));
-                fileSystem.LocalRoot.Should().StartWith(Path.Combine(root.LocalPath, "feedA"));
+                Assert.Throws<ArgumentException>(() => SourceUtility.ValidateFileSystem(fileSystem));
+            }
+        }
 
-                fileSystem.Get("index.json").EntityUri.AbsoluteUri.Should().EndWith("/feedA/index.json");
+        [Fact]
+        public void SubFeed_VerifySubFeedPath()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var root = UriUtility.CreateUri(target.Root, "feedA");
+                var fileSystem = new PhysicalFileSystem(cache, root, root, feedSubPath: "feedA");
+
+                fileSystem.Root.Should().Be(UriUtility.EnsureTrailingSlash(root));
+                fileSystem.LocalRoot.Should().StartWith(Path.Combine(target.Root, "feedA"));
+
+                fileSystem.Get("index.json").EntityUri.Should().Be(UriUtility.GetPath(root, "index.json"));
             }
         }
 
@@ -41,9 +54,10 @@ namespace SleetLib.Tests
                 var log = new TestLogger();
                 var settings = new LocalSettings();
                 var feedSettings = new FeedSettings();
-                var root = UriUtility.CreateUri(target.Root);
-                var fileSystem = new PhysicalFileSystem(cache, root, root, feedSubPath: "feedA");
-                var fileSystem2 = new PhysicalFileSystem(cache2, root, root, feedSubPath: "feedB");
+                var rootFeedA = UriUtility.CreateUri(target.Root, "feedA");
+                var rootFeedB = UriUtility.CreateUri(target.Root, "feedB");
+                var fileSystem = new PhysicalFileSystem(cache, rootFeedA, rootFeedA, feedSubPath: "feedA");
+                var fileSystem2 = new PhysicalFileSystem(cache2, rootFeedB, rootFeedB, feedSubPath: "feedB");
 
                 // Init feeds
                 var success = await InitCommand.InitAsync(settings, fileSystem, feedSettings, log, CancellationToken.None);
@@ -65,9 +79,10 @@ namespace SleetLib.Tests
                 var log = new TestLogger();
                 var settings = new LocalSettings();
                 var feedSettings = new FeedSettings();
-                var root = UriUtility.CreateUri(target.Root);
-                var fileSystem = new PhysicalFileSystem(cache, root, root, feedSubPath: "feedA");
-                var fileSystem2 = new PhysicalFileSystem(cache2, root, root, feedSubPath: "feedB");
+                var rootFeedA = UriUtility.CreateUri(target.Root, "feedA");
+                var rootFeedB = UriUtility.CreateUri(target.Root, "feedB");
+                var fileSystem = new PhysicalFileSystem(cache, rootFeedA, rootFeedA, feedSubPath: "feedA");
+                var fileSystem2 = new PhysicalFileSystem(cache2, rootFeedB, rootFeedB, feedSubPath: "feedB");
 
                 // Init feeds
                 var success = await InitCommand.InitAsync(settings, fileSystem, feedSettings, log, CancellationToken.None);
