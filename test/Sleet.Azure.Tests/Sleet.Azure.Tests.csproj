@@ -10,7 +10,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TestProject>true</TestProject>
   </PropertyGroup>
 
