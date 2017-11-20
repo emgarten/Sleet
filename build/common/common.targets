@@ -32,7 +32,7 @@
   <PropertyGroup>
     <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">4.19.4</FluentAssertionsVersion>
     <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.5.0</ToStringWithoutOverrideAnalyzerVersion>
-    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">15.0.0</TestSDKVersion>
+    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">15.5.0</TestSDKVersion>
     <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.3.1</XunitVersion>
     <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">$(XunitVersion)</XunitRunnerVisualStudioVersion>
     <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">2.5.0</SourceLinkVersion>
@@ -68,7 +68,6 @@
   <PropertyGroup Condition=" '$(TestProject)' == 'true' ">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TestProject)' == 'true' ">
@@ -149,8 +148,9 @@
           Returns="@(TestAssemblyPath)">
 
     <PropertyGroup>
-      <TestAssemblyRelativePath Condition=" '$(IsDesktop)' == 'true' ">$(OutputPath)$(AssemblyName).exe</TestAssemblyRelativePath>
-      <TestAssemblyRelativePath Condition=" '$(IsDesktop)' != 'true' ">$(OutputPath)$(AssemblyName).dll</TestAssemblyRelativePath>
+      <TestAssemblyRelativePath>$(OutputPath)$(AssemblyName).dll</TestAssemblyRelativePath>
+      <!-- If the tests are built as an .exe use that file. -->
+      <TestAssemblyRelativePath Condition="Exists('$(OutputPath)$(AssemblyName).exe')">$(OutputPath)$(AssemblyName).exe</TestAssemblyRelativePath>
     </PropertyGroup>
 
     <ConvertToAbsolutePath Paths="$(TestAssemblyRelativePath)">
