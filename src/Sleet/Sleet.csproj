@@ -1,5 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+﻿<Project ToolsVersion="15.0">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
     <TargetFrameworks>netcoreapp2.0;net46</TargetFrameworks>
@@ -73,5 +74,5 @@
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Condition=" '$(IsXPlat)' != 'true' " Properties="Configuration=$(Configuration);&#xD;&#xA;                         PackageOutputPath=$(NupkgOutputDirectory);&#xD;&#xA;                         NoPackageAnalysis=true;&#xD;&#xA;                         IncludeSymbols=false;&#xD;&#xA;                         IsTool=true;&#xD;&#xA;                         NuspecFile=Sleet.nuspec;&#xD;&#xA;                         NuspecProperties=$(NuspecProperties)">
     </MSBuild>
   </Target>
-
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

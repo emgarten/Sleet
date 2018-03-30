@@ -1,6 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+<Project ToolsVersion="15.0">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
-
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
     <TargetFrameworks>netstandard2.0;net46;netstandard1.3</TargetFrameworks>
   </PropertyGroup>
@@ -30,4 +30,5 @@
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

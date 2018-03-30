@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+﻿<Project ToolsVersion="15.0">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
-
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
     <TargetFrameworks>netstandard2.0;netstandard1.3;net46;net45</TargetFrameworks>
   </PropertyGroup>
@@ -15,7 +15,7 @@
     <Description>Access Sleet.exe commands through the Sleet API.</Description>
     <PackProject>true</PackProject>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard1.3'">
     <DefineConstants>USEJSONNET901</DefineConstants>
     <UseJsonNet901>true</UseJsonNet901>
@@ -24,11 +24,11 @@
   <ItemGroup>
     <EmbeddedResource Include="compiler\resources\**\*" />
   </ItemGroup>
-  
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' OR '$(TargetFramework)' == 'net45' ">
     <Reference Include="System.IO.Compression" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" Condition=" '$(UseJsonNet901)' != 'true' " />
     <PackageReference Include="NuGet.Packaging" Version="4.3.0" Condition=" '$(UseJsonNet901)' == 'true' " />
@@ -37,11 +37,12 @@
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" Condition=" '$(UseJsonNet901)' == 'true' " />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
   </ItemGroup>
-  
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'netstandard1.3' ">
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
