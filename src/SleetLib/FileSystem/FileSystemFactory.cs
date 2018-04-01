@@ -1,4 +1,5 @@
 using System;
+using Amazon.S3;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 
@@ -63,6 +64,28 @@ namespace Sleet
                             var azureAccount = CloudStorageAccount.Parse(connectionString);
 
                             result = new AzureFileSystem(cache, UriUtility.CreateUri(path), UriUtility.CreateUri(baseURI), azureAccount, container, feedSubPath);
+                        }
+                        else if (type == "s3")
+                        {
+                            string accessKeyId = sourceEntry["accessKeyId"]?.ToObject<string>();
+                            string secretAccessKey = sourceEntry["secretAccessKey"]?.ToObject<string>();
+                            string bucketName = sourceEntry["bucketName"]?.ToObject<string>();
+
+                            if (string.IsNullOrEmpty(accessKeyId))
+                                throw new ArgumentException("Missing accessKeyId for Amazon S3 account.");
+                            if (string.IsNullOrEmpty(secretAccessKey))
+                                throw new ArgumentException("Missing secretAccessKey for Amazon S3 account.");
+                            if (string.IsNullOrEmpty(bucketName))
+                                throw new ArgumentException("Missing bucketName for Amazon S3 account.");
+
+                            var amazonS3Client = new AmazonS3Client(accessKeyId, secretAccessKey);
+                            result = new AmazonS3FileSystem(
+                                cache,
+                                UriUtility.CreateUri(path),
+                                UriUtility.CreateUri(baseURI),
+                                amazonS3Client,
+                                bucketName,
+                                feedSubPath);
                         }
                     }
                 }
