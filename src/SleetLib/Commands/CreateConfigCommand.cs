@@ -8,7 +8,7 @@ namespace Sleet
 {
     public static class CreateConfigCommand
     {
-        public static async Task<bool> RunAsync(bool isAzure, bool isLocal, string output, ILogger log)
+        public static async Task<bool> RunAsync(FileSystemStorageType storageType, string output, ILogger log)
         {
             var outputPath = Directory.GetCurrentDirectory();
 
@@ -46,29 +46,42 @@ namespace Sleet
             var sourcesArray = new JArray();
             json.Add("sources", sourcesArray);
 
-            if (isLocal)
+            JObject storageTemplateJson = null;
+            switch (storageType)
             {
-                var folderJson = new JObject
-                {
-                    { "name", "myLocalFeed" },
-                    { "type", "local" },
-                    { "path", Path.Combine(Directory.GetCurrentDirectory(), "myFeed") }
-                };
-                sourcesArray.Add(folderJson);
+                case FileSystemStorageType.Local:
+                    storageTemplateJson = new JObject
+                    {
+                        { "name", "myLocalFeed" },
+                        { "type", "local" },
+                        { "path", Path.Combine(Directory.GetCurrentDirectory(), "myFeed") }
+                    };
+                    break;
+                case FileSystemStorageType.Azure:
+                    storageTemplateJson = new JObject
+                    {
+                        { "name", "myAzureFeed" },
+                        { "type", "azure" },
+                        { "path", "https://yourStorageAccount.blob.core.windows.net/myFeed/" },
+                        { "container", "myFeed" },
+                        { "connectionString", AzureFileSystem.AzureEmptyConnectionString }
+                    };
+                    break;
+                case FileSystemStorageType.AmazonS3:
+                    storageTemplateJson = new JObject
+                    {
+                        { "name", "myAmazonS3Feed" },
+                        { "type", "s3" },
+                        { "path", "https://s3.amazonaws.com/bucketname/" },
+                        { "bucketName", "bucketname" },
+                        { "accessKeyId", "" },
+                        { "secretAccessKey", "" }
+                    };
+                    break;
             }
 
-            if (isAzure)
-            {
-                var azureJson = new JObject
-                {
-                    { "name", "myAzureFeed" },
-                    { "type", "azure" },
-                    { "path", "https://yourStorageAccount.blob.core.windows.net/myFeed/" },
-                    { "container", "myFeed" },
-                    { "connectionString", AzureFileSystem.AzureEmptyConnectionString }
-                };
-                sourcesArray.Add(azureJson);
-            }
+            if (storageTemplateJson != null)
+                sourcesArray.Add(storageTemplateJson);
 
             await JsonUtility.SaveJsonAsync(new FileInfo(outputPath), json);
 
