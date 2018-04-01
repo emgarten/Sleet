@@ -74,6 +74,7 @@ namespace Sleet
                         { "type", "s3" },
                         { "path", "https://s3.amazonaws.com/bucketname/" },
                         { "bucketName", "bucketname" },
+                        { "region", "us-east-1" },
                         { "accessKeyId", "" },
                         { "secretAccessKey", "" }
                     };

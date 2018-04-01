@@ -1,4 +1,5 @@
 using System;
+using Amazon;
 using Amazon.S3;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
@@ -70,6 +71,7 @@ namespace Sleet
                             string accessKeyId = sourceEntry["accessKeyId"]?.ToObject<string>();
                             string secretAccessKey = sourceEntry["secretAccessKey"]?.ToObject<string>();
                             string bucketName = sourceEntry["bucketName"]?.ToObject<string>();
+                            string region = sourceEntry["region"]?.ToObject<string>();
 
                             if (string.IsNullOrEmpty(accessKeyId))
                                 throw new ArgumentException("Missing accessKeyId for Amazon S3 account.");
@@ -77,8 +79,11 @@ namespace Sleet
                                 throw new ArgumentException("Missing secretAccessKey for Amazon S3 account.");
                             if (string.IsNullOrEmpty(bucketName))
                                 throw new ArgumentException("Missing bucketName for Amazon S3 account.");
+                            if (string.IsNullOrEmpty(region))
+                                throw new ArgumentException("Missing region for Amazon S3 account.");
 
-                            var amazonS3Client = new AmazonS3Client(accessKeyId, secretAccessKey);
+                            var amazonS3Client = new AmazonS3Client(
+                                accessKeyId, secretAccessKey, RegionEndpoint.GetBySystemName(region));
                             result = new AmazonS3FileSystem(
                                 cache,
                                 UriUtility.CreateUri(path),
