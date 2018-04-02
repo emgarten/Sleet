@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ namespace Sleet
     public static class AmazonS3FileSystemAbstraction
     {
         public const int DefaultCopyBufferSize = 81920;
+        private const int MaximumNumberOfObjectsToFetch = 100;
 
         public static Task CreateFileAsync(
             IAmazonS3 client,
@@ -66,9 +68,53 @@ namespace Sleet
                 .Any(x => x.Key.Equals(key, StringComparison.Ordinal));
         }
 
+        public static async Task<List<S3Object>> GetFilesAsync(
+            IAmazonS3 client,
+            string bucketName,
+            CancellationToken token)
+        {
+            List<S3Object> s3Objects = null;
+            var listObjectsRequest = new ListObjectsV2Request
+            {
+                BucketName = bucketName,
+                MaxKeys = MaximumNumberOfObjectsToFetch,
+            };
+
+            ListObjectsV2Response listObjectsResponse;
+            do
+            {
+                listObjectsResponse = await client.ListObjectsV2Async(listObjectsRequest, token).ConfigureAwait(false);
+                listObjectsRequest.ContinuationToken = listObjectsResponse.NextContinuationToken;
+
+                if (s3Objects == null)
+                    s3Objects = listObjectsResponse.S3Objects;
+                else
+                    s3Objects.AddRange(listObjectsResponse.S3Objects);
+            } while (listObjectsResponse.IsTruncated);
+
+            return s3Objects;
+        }
+
         public static Task RemoveFileAsync(IAmazonS3 client, string bucketName, string key, CancellationToken token)
         {
             return client.DeleteObjectAsync(bucketName, key, token);
+        }
+
+        public static Task RemoveMultipleFilesAsync(
+            IAmazonS3 client,
+            string bucketName,
+            IEnumerable<KeyVersion> objects,
+            CancellationToken token)
+        {
+            var request = new DeleteObjectsRequest
+            {
+                BucketName = bucketName,
+                Objects = objects.ToList(),
+            };
+
+            return request.Objects.Count == 0
+                ? TaskUtils.CompletedTask
+                : client.DeleteObjectsAsync(request, token);
         }
 
         public static async Task UploadFileAsync(
