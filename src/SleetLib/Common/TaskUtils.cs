@@ -11,6 +11,22 @@ namespace Sleet
 {
     internal class TaskUtils
     {
+#if NET45
+        private static readonly Task InternalCompletedTask = Task.FromResult<object>(null);
+#endif
+
+        public static Task CompletedTask
+        {
+            get
+            {
+#if !NET45
+                return Task.CompletedTask;
+#else
+                return InternalCompletedTask;
+#endif
+            }
+        }
+
         /// <summary>
         /// Run tasks in parallel.
         /// </summary>

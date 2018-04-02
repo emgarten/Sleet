@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
-using Amazon.S3.Model;
 using NuGet.Common;
+using static Sleet.AmazonS3FileSystemAbstraction;
 
 namespace Sleet
 {
@@ -59,26 +59,8 @@ namespace Sleet
 
         public override async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
         {
-            List<S3Object> s3Objects = null;
-            var listObjectsRequest = new ListObjectsV2Request
-            {
-                BucketName = bucketName,
-                MaxKeys = 100,
-            };
-
-            ListObjectsV2Response listObjectsResponse;
-            do
-            {
-                listObjectsResponse = await client.ListObjectsV2Async(listObjectsRequest, token).ConfigureAwait(false);
-                listObjectsRequest.ContinuationToken = listObjectsResponse.NextContinuationToken;
-
-                if (s3Objects == null)
-                    s3Objects = listObjectsResponse.S3Objects;
-                else
-                    s3Objects.AddRange(listObjectsResponse.S3Objects);
-            } while (listObjectsResponse.IsTruncated);
-
-            return s3Objects.Where(x => !x.Key.Equals(AmazonS3FileSystemLock.LockFile))
+            return (await GetFilesAsync(client, bucketName, token))
+                .Where(x => !x.Key.Equals(AmazonS3FileSystemLock.LockFile))
                 .Select(x => Get(GetPath(x.Key)))
                 .ToList();
         }
@@ -101,7 +83,15 @@ namespace Sleet
             if (!path.StartsWith(baseUri, StringComparison.Ordinal))
                 throw new InvalidOperationException($"Unable to make '{uri.AbsoluteUri}' relative to '{baseUri}'");
 
-            return path.Replace(baseUri, string.Empty);
+            string key = path.Replace(baseUri, string.Empty);
+            if (!string.IsNullOrEmpty(FeedSubPath))
+            {
+                key = FeedSubPath[FeedSubPath.Length - 1] == '/'
+                    ? FeedSubPath + key
+                    : FeedSubPath + "/" + key;
+            }
+
+            return key;
         }
     }
 }
