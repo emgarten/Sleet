@@ -27,7 +27,7 @@
 
     <!-- Build command -->
     <PropertyGroup>
-      <MergeExeCommand>$(ILRepackExePath) $(MergeMainAssembly) $(MergeDirectory)Sleet*.dll $(MergeDirectory)*.Extensions.*.dll $(MergeDirectory)Microsoft.*.dll $(MergeDirectory)Newtonsoft.Json.dll $(MergeDirectory)NuGet.*.dll /lib:$(MergeDirectory) /lib:$(MergeJsonNetDir) /out:$(MergeOutputPath) /log:$(MergeLogPath) /parallel /wildcards /internalize</MergeExeCommand>
+      <MergeExeCommand>$(ILRepackExePath) $(MergeMainAssembly) $(MergeDirectory)Sleet*.dll $(MergeDirectory)*.Extensions.*.dll $(MergeDirectory)Microsoft.*.dll $(MergeDirectory)AWSSDK.*.dll $(MergeDirectory)Newtonsoft.Json.dll $(MergeDirectory)NuGet.*.dll /lib:$(MergeDirectory) /lib:$(MergeJsonNetDir) /out:$(MergeOutputPath) /log:$(MergeLogPath) /parallel /wildcards /internalize</MergeExeCommand>
       <MergeExeCommand Condition=" '$(SignKeyPath)' != '' ">$(MergeExeCommand) /keyfile:$(SignKeyPath)</MergeExeCommand>
     </PropertyGroup>
 
