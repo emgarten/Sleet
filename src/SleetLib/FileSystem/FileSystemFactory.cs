@@ -1,6 +1,8 @@
 using System;
+#if !SLEETLEGACY
 using Amazon;
 using Amazon.S3;
+#endif
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 
@@ -66,6 +68,7 @@ namespace Sleet
 
                             result = new AzureFileSystem(cache, UriUtility.CreateUri(path), UriUtility.CreateUri(baseURI), azureAccount, container, feedSubPath);
                         }
+#if !SLEETLEGACY
                         else if (type == "s3")
                         {
                             string accessKeyId = sourceEntry["accessKeyId"]?.ToObject<string>();
@@ -92,6 +95,7 @@ namespace Sleet
                                 bucketName,
                                 feedSubPath);
                         }
+#endif
                     }
                 }
             }
