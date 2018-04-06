@@ -2,6 +2,7 @@
 
 ## 2.3.0
 * Added Amazon S3 support (skarllot)
+* Fix for createconfig json formatting
 
 ## 2.2.0
 * Fix for multiple catalog pages
