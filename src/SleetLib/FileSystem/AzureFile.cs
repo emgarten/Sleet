@@ -20,7 +20,12 @@ namespace Sleet
             _blob = blob;
         }
 
-        protected override async Task CopyFromSource(ILogger log, CancellationToken token)
+        /// <summary>
+        /// Copy/Download file from remote to local. Overwrite a older local version if it exists
+        /// NO retry needed/allowed inside here because handled by the caller!
+        /// </summary>
+        /// <returns>true for success, false if the file does not exists on the source side (and retry does not make sense), Exception in any other case</returns>
+        protected override async Task<bool> CopyFromSource(ILogger log, CancellationToken token)
         {
             if (await _blob.ExistsAsync())
             {
@@ -51,6 +56,11 @@ namespace Sleet
                         await zipStream.CopyToAsync(destination);
                     }
                 }
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 

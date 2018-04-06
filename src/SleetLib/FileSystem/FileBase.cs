@@ -51,9 +51,9 @@ namespace Sleet
         protected FileInfo LocalCacheFile { get; }
 
         /// <summary>
-        /// Retry count for failures.
+        /// Max Retry count for failures.
         /// </summary>
-        protected int RetryCount { get; set; } = 5;
+        protected int MaxRetryCount { get; set; } = 5;
 
         protected FileBase(ISleetFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile)
         {
@@ -106,7 +106,7 @@ namespace Sleet
         {
             if (HasChanges)
             {
-                var retry = Math.Max(RetryCount, 1);
+                var retry = Math.Max(MaxRetryCount, 1);
 
                 for (var i = 0; i < retry; i++)
                 {
@@ -202,9 +202,9 @@ namespace Sleet
         {
             if (!IsDownloaded)
             {
-                var retry = Math.Max(RetryCount, 1);
-
-                for (var i = 0; !IsDownloaded && i < retry; i++)
+                var maxRetry = Math.Max(MaxRetryCount, 1);
+                var retryAllowed = true;
+                for (var retryCounter = 0;  retryAllowed && !IsDownloaded && retryCounter < maxRetry; retryCounter++)
                 {
                     try
                     {
@@ -214,11 +214,18 @@ namespace Sleet
                         }
 
                         // Download from the remote source.
-                        await CopyFromSource(log, token);
+                        var foundOnSource = await CopyFromSource(log, token);
 
-                        IsDownloaded = true;
+                        IsDownloaded = foundOnSource;
+                        retryAllowed = foundOnSource; //if there is no exception but not found means retry does not make sense here, we exit from the Loop! Exception ?
                     }
-                    catch (Exception ex) when (i < (retry - 1))
+                    catch (TaskCanceledException ex)
+                    {
+                        await log.LogAsync(LogLevel.Debug, ex.ToString());
+                        await log.LogAsync(LogLevel.Warning, $"Failed to sync '{RootPath}'. Task canceled.");
+                        throw;
+                    }
+                    catch (Exception ex) when (retryCounter < (maxRetry - 1))
                     {
                         await log.LogAsync(LogLevel.Debug, ex.ToString());
                         await log.LogAsync(LogLevel.Warning, $"Failed to sync '{RootPath}'. Retrying.");
@@ -296,9 +303,11 @@ namespace Sleet
         }
 
         /// <summary>
-        /// Download a file to disk.
+        /// Copy/Download file from remote to local. Overwrite a older local version if it exists
+        /// NO retry needed/allowed inside here because handled by the caller!
         /// </summary>
-        protected abstract Task CopyFromSource(ILogger log, CancellationToken token);
+        /// <returns>true for success, false if the file does not exists on the source side (and retry does not make sense), Exception in any other case</returns>
+        protected abstract Task<bool> CopyFromSource(ILogger log, CancellationToken token);
 
         /// <summary>
         /// Upload a file.
