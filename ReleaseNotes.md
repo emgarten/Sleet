@@ -1,5 +1,8 @@
 # Release Notes
 
+## 2.3.0
+* Added Amazon S3 support (skarllot)
+
 ## 2.2.0
 * Fix for multiple catalog pages
 * Sleet versions of the same semantic version patch will no longer require upgrading the feed to work together.
