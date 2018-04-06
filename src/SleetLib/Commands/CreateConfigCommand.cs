@@ -84,11 +84,10 @@ namespace Sleet
             if (storageTemplateJson != null)
                 sourcesArray.Add(storageTemplateJson);
 
-            await JsonUtility.SaveJsonAsync(new FileInfo(outputPath), json);
+            await log.LogAsync(LogLevel.Minimal, $"Writing config template to {outputPath}");
+            File.WriteAllText(outputPath, json.ToString());
 
-            log.LogMinimal($"Writing config template to {outputPath}");
-
-            log.LogMinimal("Modify this template by changing the name and path for your own feed.");
+            await log.LogAsync(LogLevel.Minimal, "Modify this template by changing the name and path for your own feed.");
 
             return true;
         }
