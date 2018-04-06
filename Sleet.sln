@@ -7,9 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{98ECD2D1-744
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{FD8B1865-858C-4D7E-BA9A-135900B6E28B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SleetLib", "src\SleetLib\SleetLib.csproj", "{7718CBF2-4F50-4D95-87E2-4C2803973E94}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet", "src\Sleet\Sleet.csproj", "{DB59751A-661A-48BD-ABA7-A5E948A29B59}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SleetLib", "src\SleetLib\SleetLib.csproj", "{7718CBF2-4F50-4D95-87E2-4C2803973E94}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.Integration.Tests", "test\Sleet.Integration.Tests\Sleet.Integration.Tests.csproj", "{69693467-9840-4F59-9DBA-7D8D5944990D}"
 EndProject
