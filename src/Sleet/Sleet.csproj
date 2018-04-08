@@ -1,10 +1,9 @@
-﻿<Project ToolsVersion="15.0">
+<Project ToolsVersion="15.0">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
     <TargetFrameworks>netcoreapp2.0;net46</TargetFrameworks>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
     <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
@@ -12,10 +11,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <Description>Sleet is a cross platform command line tool to generate NuGet v3 static feeds.</Description>
+    <Description>Sleet is a static NuGet package feed generator.</Description>
     <AssemblyName>Sleet</AssemblyName>
     <PackProject>true</PackProject>
+    <PublishProject>true</PublishProject>
     <SkipDocs>true</SkipDocs>
+    <ToolCommandName>sleet</ToolCommandName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,31 +35,7 @@
 
   <!--
     ============================================================
-    Copy dotnet-sleet assemblies, these are used by the nuspec later
-    ============================================================
-  -->
-  <Target Name="PublishToolFolder" BeforeTargets="PackProjects" DependsOnTargets="Build">
-
-    <PropertyGroup>
-      <PublishToolDirectory>$(ArtifactsDirectory)dotnettoolassemblies\$(AssemblyName)\</PublishToolDirectory>
-      <PublishToolInputDirectory>$(ArtifactsDirectory)proj\$(AssemblyName)\bin\$(Configuration)\netcoreapp2.0\</PublishToolInputDirectory>
-      <PublishToolInputDirectory Condition=" '$(IsXPlat)' != 'true' ">$(PublishToolInputDirectory)win7-x64\</PublishToolInputDirectory>
-    </PropertyGroup>
-
-    <MakeDir Directories="$(PublishToolDirectory)" />
-
-    <ItemGroup>
-      <PublishFiles Include="$(PublishToolInputDirectory)$(AssemblyName).dll" />
-      <PublishFiles Include="$(PublishToolInputDirectory)$(AssemblyName).runtimeconfig.json" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(PublishFiles)" DestinationFolder="$(PublishToolDirectory)" />
-
-  </Target>
-
-  <!--
-    ============================================================
-    Create Sleet and SleetDotnetTool
+    Create Sleet package
     ============================================================
   -->
   <Target Name="PackProjects">

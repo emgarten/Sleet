@@ -27,7 +27,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  
+
   <!-- Default package versions -->
   <PropertyGroup>
     <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">4.19.4</FluentAssertionsVersion>
@@ -37,7 +37,7 @@
     <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">$(XunitVersion)</XunitRunnerVisualStudioVersion>
     <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">2.5.0</SourceLinkVersion>
   </PropertyGroup>
-  
+
   <!-- Verify that the framework was identified above -->
   <Target Name="VerifyTargetFrameworkPlatform" BeforeTargets="Build;Rebuild" Condition=" '$(IsFrameworkInvalid)' == 'true' ">
     <Error Message="Unknown target framework: $(TargetFramework), update build scripts." />
@@ -85,11 +85,11 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitRunnerVisualStudioVersion)" />
     <PackageReference Include="xunit" Version="$(XunitVersion)" />
   </ItemGroup>
-  
+
   <ItemGroup Condition=" '$(TestProject)' != 'true' ">
     <PackageReference Include="ToStringWithoutOverrideAnalyzer" Version="$(ToStringWithoutOverrideAnalyzerVersion)" PrivateAssets="all" />
   </ItemGroup>
-  
+
   <!-- Sign -->
   <PropertyGroup Condition=" '$(SignKeyPath)' != '' AND '$(TestProject)' != 'true' AND '$(IsXPlat)' != 'true' AND Exists($(SignKeyPath)) ">
     <SignAssembly>true</SignAssembly>
@@ -114,6 +114,22 @@
                   NoPackageAnalysis=true;
                   IncludeSymbols=true;
                   IsPackable=true;">
+    </MSBuild>
+  </Target>
+
+  <!--
+    ============================================================
+    PublishProjects
+    ============================================================
+  -->
+  <Target Name="PublishProjects" Condition=" '$(PublishProject)' == 'true' ">
+    <Message Text="Publishing $(ProjectName)" Importance="high" />
+
+    <!-- Run publish on the project -->
+    <MSBuild
+      Projects="$(MSBuildProjectFullPath)"
+      Targets="PublishPortableApp"
+      Properties="Configuration=release;">
     </MSBuild>
   </Target>
 
@@ -175,5 +191,101 @@
     <ItemGroup>
       <ProjectTargetFrameworkEntries Include="$(TargetFramework);$(TargetFrameworks)" />
     </ItemGroup>
+  </Target>
+
+  <!--
+    ============================================================
+    Publish as a portable app
+    ============================================================
+  -->
+  <Target Name="PublishPortableApp" DependsOnTargets="GetTargetFrameworkSet">
+
+    <MakeDir Directories="$(PublishOutputDirectory)" />
+
+    <!-- Run publish -->
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="PublishPortableAppInner;WriteToolSettingsInner"
+             Properties="TargetFramework=%(ProjectTargetFrameworkEntries.Identity);
+                         PublishOutputDirectory=$(PublishOutputDirectory);
+                         PublishProjectFilePath=$(MSBuildProjectFullPath);
+                         DotnetExePath=$(DotnetExePath);" />
+  </Target>
+
+  <!--
+    ============================================================
+    Publish the project as a portable app
+    ============================================================
+  -->
+  <Target Name="PublishPortableAppInner">
+
+    <PropertyGroup>
+      <PublishSpecificFrameworkOutput Condition=" '$(PublishSpecificFrameworkOutput)' == '' ">$(PublishOutputDirectory)$(TargetFramework)\</PublishSpecificFrameworkOutput>
+    </PropertyGroup>
+
+    <!-- Publish -->
+    <Exec Command="$(DotnetExePath) publish $(PublishProjectFilePath) -f $(TargetFramework) -o $(PublishSpecificFrameworkOutput) -c release" />
+  </Target>
+
+  <!--
+    ============================================================
+     Write DotnetToolSettings.xml for framework
+    ============================================================
+  -->
+  <Target Name="WriteToolSettingsInner">
+
+    <PropertyGroup>
+      <ToolEntryPoint Condition=" '$(ToolEntryPoint)' == '' AND $(PublishFramework.StartsWith('net4')) == 'true' ">$(AssemblyName).exe</ToolEntryPoint>
+      <ToolEntryPoint Condition=" '$(ToolEntryPoint)' == '' ">$(AssemblyName).dll</ToolEntryPoint>
+      <ToolOutputPath>$(PublishOutputDirectory)$(TargetFramework)\DotnetToolSettings.xml</ToolOutputPath>
+    </PropertyGroup>
+    
+    <!-- Run publish -->
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="WriteToolSettingsFile"
+             Properties="ToolCommandName=$(ToolCommandName);
+                         ToolEntryPoint=$(ToolEntryPoint);
+                         ToolOutputPath=$(ToolOutputPath);" />
+  </Target>
+
+  <!--
+    ============================================================
+    Write DotnetToolSettings.xml
+
+    ToolCommandName, ToolEntryPoint, ToolOutputPath
+    ============================================================
+  -->
+  <Target Name="WriteToolSettingsFile">
+    <Error Text="ToolCommandName missing" Condition=" '$(ToolCommandName)' == '' " />
+    <Error Text="ToolEntryPoint missing" Condition=" '$(ToolEntryPoint)' == '' " />
+    <Error Text="ToolOutputPath missing" Condition=" '$(ToolOutputPath)' == '' " />
+
+    <ItemGroup>
+      <Line Include="line01">
+        <Text>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</Text>
+      </Line>
+      <Line Include="line02">
+        <Text>&lt;DotNetCliTool Version=&quot;1&quot;&gt;</Text>
+      </Line>
+      <Line Include="line03">
+        <Text>  &lt;Commands&gt;</Text>
+      </Line>
+      <Line Include="line04">
+        <Text>    &lt;Command Name=&quot;$(ToolCommandName)&quot; EntryPoint=&quot;$(ToolEntryPoint)&quot; Runner=&quot;dotnet&quot; /&gt;</Text>
+      </Line>
+      <Line Include="line05">
+        <Text>  &lt;/Commands&gt;</Text>
+      </Line>
+      <Line Include="line06">
+        <Text>&lt;/DotNetCliTool&gt;</Text>
+      </Line>
+      <LineText Include="%(Line.Text)" />
+    </ItemGroup>
+
+    <!-- -Write file -->
+    <WriteLinesToFile
+       File="$(ToolOutputPath)"
+       Lines="@(LineText)"
+       Overwrite="true"
+     />
   </Target>
 </Project>
