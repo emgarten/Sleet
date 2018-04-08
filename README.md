@@ -1,16 +1,25 @@
-# Sleet
+# What is Sleet?
 
-Sleet is a cross platform command line tool to generate NuGet v3 static feeds.
+Sleet is a static NuGet package feed generator.
 
-## Build Status
-
-| AppVeyor | Travis |
-| --- | --- |
-| [![AppVeyor](https://ci.appveyor.com/api/projects/status/cuhdeq60c3ogy7pa?svg=true)](https://ci.appveyor.com/project/emgarten/sleet) | [![Travis](https://travis-ci.org/emgarten/Sleet.svg?branch=master)](https://travis-ci.org/emgarten/Sleet) |
+* **Serverless**. Create static feeds directly on *Azure Storage* or *Amazon S3*. No compute required.
+* **Cross platform**. Sleet is built in .NET, it can run on *.NET Framework*, *Mono*, or [dotnet CLI](https://github.com/dotnet/cli)
+* **Fast.** Static feeds are created using the [NuGet v3 feed format](https://docs.microsoft.com/en-us/nuget/api/overview).
+* **Symbol server.** Assemblies and pdb files from packages are automatically indexed and provided as a [symbol server](https://msdn.microsoft.com/en-us/library/windows/desktop/ms680693.aspx).
+* **Simple.** Sleet is a simple command line tool that can add, remove, and update packages.
+* **Flexible.** Feeds can be written to disk and hosted with a web server to support authentication. Use the command line tool or a library to run Sleet programmatically.
 
 ## Getting Sleet
 
-* [NuGet.org packages](https://www.nuget.org/packages/Sleet)
+### Manually getting sleet.exe
+1. Download the latest nupkg from [NuGet.org](https://www.nuget.org/packages/Sleet)
+1. Extract *tools/Sleet.exe* to a local folder and run it.
+
+## Build Status
+
+| AppVeyor | Travis | Visual Studio Online |
+| --- | --- | --- |
+| [![AppVeyor](https://ci.appveyor.com/api/projects/status/cuhdeq60c3ogy7pa?svg=true)](https://ci.appveyor.com/project/emgarten/sleet) | [![Travis](https://travis-ci.org/emgarten/Sleet.svg?branch=master)](https://travis-ci.org/emgarten/Sleet) | [![VSO](https://hackamore.visualstudio.com/_apis/public/build/definitions/abbff132-0981-4267-a80d-a6e7682a75a9/2/badge)](https://github.com/emgarten/sleet) |
 
 ## CI builds
 
@@ -20,22 +29,7 @@ CI builds are located on the following NuGet feed:
 
 The list of packages on this feed is [here](https://nuget.blob.core.windows.net/packages/sleet.packageindex.json).
 
-## Features
-* Add and remove packages from a feed.
-* Fast and stable - Sleet uses compressed static files.
-* Azure storage support - Feeds can work directly with an azure storage account.
-* Local folder support - Feeds can be written to disk and hosted with a web server to support authentication. 
-
-### License
-[MIT License](https://github.com/emgarten/Sleet/blob/master/LICENSE.md)
-
-### Related projects
-
-* [Sleet.Azure](https://github.com/kzu/Sleet.Azure) provides MSBuild props/targets for running Sleet.
-
 # Quick start
-
-Download the latest release from [github](https://github.com/emgarten/Sleet/releases/latest).
 
 #### Windows
 On Windows use *Sleet.exe*
@@ -97,7 +91,7 @@ Create a `sleet.json` config file to define a new package feed hosted on azure s
 
 ``sleet createconfig --s3``
 
-Edit `sleet.json` using your editor of choice to set the url of your storage account and the connection string.
+Edit `sleet.json` using your editor of choice to set the url of your s3 bucket and access key.
 
 ``notepad sleet.json``
 
@@ -222,9 +216,14 @@ In `Internet Information Services Manager` open your website, right click and ch
 
 Add the feed as a source to your NuGet.Config file. In the example above the package source URL is ``https://example.com/feed/index.json``
 
-
 ### Full guide
 
 Check out the full getting started guide [here](http://emgarten.com/2016/04/25/how-to-host-a-nuget-v3-feed-on-azure-storage/).
 
+### Related projects
 
+* [Sleet.Azure](https://github.com/kzu/Sleet.Azure) provides MSBuild props/targets for running Sleet.
+
+### License
+
+[MIT License](https://github.com/emgarten/Sleet/blob/master/LICENSE.md)
