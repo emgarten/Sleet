@@ -40,12 +40,6 @@ The list of packages on this feed is [here](https://nuget.blob.core.windows.net/
 
 # Quick start
 
-#### Windows
-On Windows use *Sleet.exe*
-
-#### Cross platform
-OSX, Linux, and other OSes download and extract *Sleet.tar.gz*. To use Sleet run ``dotnet Sleet.dll``
-
 ## Creating an azure feed
 
 This guide is used to setup a new feed hosted on azure storage.
