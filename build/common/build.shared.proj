@@ -105,6 +105,20 @@
 
   <!--
     ============================================================
+    Publish projects
+    ============================================================
+  -->
+  <Target Name="Publish">
+    <Message Text="Publishing projects" Importance="high" />
+
+    <MSBuild BuildInParallel="true"
+             Projects="@(SolutionProjects)"
+             Targets="PublishProjects"
+             Properties="$(CommonMSBuildProperties);" />
+  </Target>
+
+  <!--
+    ============================================================
     Run tests on all test projects
     ============================================================
   -->

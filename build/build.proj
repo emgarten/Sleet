@@ -11,13 +11,13 @@
   -->
   <Target Name="PublishArtifacts"
           Condition=" '$(SkipPublishArtifacts)' != 'true' AND '$(IsXPlat)' != 'true' "
-          DependsOnTargets="Build"
+          DependsOnTargets="Build;Publish"
           BeforeTargets="Pack">
 
     <PropertyGroup>
       <MergeFile>Sleet.exe</MergeFile>
       <ILRepackExePath>$(PackagesConfigDirectory)ILRepack.2.0.12\tools\ILRepack.exe</ILRepackExePath>
-      <MergeDirectory>$(ArtifactsDirectory)proj\Sleet\bin\$(Configuration)\net46\win7-x64\</MergeDirectory>
+      <MergeDirectory>$(PublishOutputDirectory)net46\</MergeDirectory>
       <MergeMainAssembly>$(MergeDirectory)$(MergeFile)</MergeMainAssembly>
       <MergeOutputPath>$(PublishOutputDirectory)$(MergeFile)</MergeOutputPath>
       <MergeJsonNetDir>$(PackagesConfigDirectory)Newtonsoft.Json.6.0.8\lib\net45</MergeJsonNetDir>
@@ -27,7 +27,7 @@
 
     <!-- Build command -->
     <PropertyGroup>
-      <MergeExeCommand>$(ILRepackExePath) $(MergeMainAssembly) $(MergeDirectory)Sleet*.dll $(MergeDirectory)*.Extensions.*.dll $(MergeDirectory)Microsoft.*.dll $(MergeDirectory)AWSSDK.*.dll $(MergeDirectory)Newtonsoft.Json.dll $(MergeDirectory)NuGet.*.dll $(MergeDirectory)System.*.dll /lib:$(MergeDirectory) /lib:$(MergeJsonNetDir) /out:$(MergeOutputPath) /log:$(MergeLogPath) /parallel /wildcards /internalize</MergeExeCommand>
+      <MergeExeCommand>$(ILRepackExePath) $(MergeMainAssembly) $(MergeDirectory)*.dll /lib:$(MergeDirectory) /lib:$(MergeJsonNetDir) /out:$(MergeOutputPath) /log:$(MergeLogPath) /parallel /wildcards /internalize</MergeExeCommand>
       <MergeExeCommand Condition=" '$(SignKeyPath)' != '' ">$(MergeExeCommand) /keyfile:$(SignKeyPath)</MergeExeCommand>
     </PropertyGroup>
 
