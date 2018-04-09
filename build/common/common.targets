@@ -7,6 +7,11 @@
     <Version Condition=" '$(Version)' == '' ">$(GitVersion)</Version>
   </PropertyGroup>
 
+  <!-- Defaults -->
+  <PropertyGroup>
+    <SkipSourceLink>true</SkipSourceLink>
+  </PropertyGroup>
+
   <!-- Compiler flags -->
   <Choose>
     <When Condition="$(TargetFramework.Contains('net4'))">
