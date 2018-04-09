@@ -22,7 +22,7 @@ namespace Sleet.CliTool.Tests
         /// Currently the sleet nupkg is only produced on Windows,
         /// for that reason this test only runs on windows.
         /// </summary>
-        [WindowsFact]
+        [Fact]
         public async Task InstallToolVerifySuccess()
         {
             using (var testContext = new SleetTestContext())
@@ -50,8 +50,14 @@ namespace Sleet.CliTool.Tests
                 var result = await CmdRunner.RunAsync(dotnetExe, testContext.Root, $"tool install sleet --version {sleetVersion} --source-feed {nupkgsFolder} --tool-path {dir}");
                 result.Success.Should().BeTrue(result.AllOutput);
 
+                var sleetDllPath = Path.Combine(dir, ".store", "sleet", sleetVersion, "sleet", sleetVersion, "tools", "netcoreapp2.0", "any", "Sleet.dll");
+
+                if (!File.Exists(sleetDllPath))
+                {
+                    throw new Exception("Tool did not install to the expected location: " + sleetDllPath);
+                }
+
                 // Run the tool
-                var sleetDllPath = Path.Combine(dir, ".store", "sleet", sleetVersion, "sleet", sleetVersion, "tools", "netcoreapp2.0", "any", "sleet.dll");
 
                 result = await CmdRunner.RunAsync(dotnetExe, dir, $"{sleetDllPath} createconfig");
                 result.Success.Should().BeTrue(result.AllOutput);

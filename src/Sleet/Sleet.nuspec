@@ -19,7 +19,7 @@
     </packageTypes>
   </metadata>
   <files>
-    <file src="..\..\artifacts\publish\Sleet.exe" target="tools\" />
+    <file src="..\..\artifacts\publish\*.exe" target="tools\" />
     <file src="..\..\artifacts\publish\netcoreapp2.0\*.dll" target="tools\netcoreapp2.0\any\" />
     <file src="..\..\artifacts\publish\netcoreapp2.0\DotnetToolSettings.xml" target="tools\netcoreapp2.0\any\" />
     <file src="..\..\artifacts\publish\netcoreapp2.0\Sleet.runtimeconfig.json" target="tools\netcoreapp2.0\any\" />
