@@ -35,7 +35,7 @@
     <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">15.5.0</TestSDKVersion>
     <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.3.1</XunitVersion>
     <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">$(XunitVersion)</XunitRunnerVisualStudioVersion>
-    <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">2.5.0</SourceLinkVersion>
+    <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">2.8.0</SourceLinkVersion>
   </PropertyGroup>
 
   <!-- Verify that the framework was identified above -->

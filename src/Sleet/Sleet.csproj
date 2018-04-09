@@ -48,7 +48,7 @@
     <Error Condition=" '$(IsXPlat)' != 'true' AND '$(MergedExePathExists)' != 'true' " Text="Missing $(MergedExePath)" />
 
     <!-- Pack Sleet -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Properties="Configuration=$(Configuration);&#xD;&#xA;                         PackageOutputPath=$(NupkgOutputDirectory);&#xD;&#xA;                         NoPackageAnalysis=true;&#xD;&#xA;                         IncludeSymbols=false;&#xD;&#xA;                         IsTool=true;&#xD;&#xA;                         NuspecFile=Sleet.nuspec;&#xD;&#xA;                         NuspecProperties=$(NuspecProperties)">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Properties="Configuration=$(Configuration);&#xD;&#xA;                         PackageOutputPath=$(NupkgOutputDirectory);&#xD;&#xA;                         NoPackageAnalysis=true;&#xD;&#xA;                         IncludeSymbols=false;&#xD;&#xA;                         IsTool=true;&#xD;&#xA;                         NuspecFile=Sleet.nuspec;&#xD;&#xA;                         NuspecProperties=$(NuspecProperties);&#xD;&#xA;   Branch=$(RepositoryBranch);&#xD;&#xA; Commit=$(RepositoryCommit);">
     </MSBuild>
   </Target>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
