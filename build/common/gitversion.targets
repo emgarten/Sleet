@@ -116,6 +116,9 @@
       <LineToWrite Include="&lt;GitCommitShortHash&gt;$(GitCommitShortHash)&lt;/GitCommitShortHash&gt;" />
       <LineToWrite Include="&lt;GitBranch&gt;$(GitBranch)&lt;/GitBranch&gt;" />
       <LineToWrite Include="&lt;GitVersionIsPreRelease&gt;$(GitVersionIsPreRelease)&lt;/GitVersionIsPreRelease&gt;" />
+      <LineToWrite Include="&lt;RepositoryBranch&gt;$(GitBranch)&lt;/RepositoryBranch&gt;" />
+      <LineToWrite Include="&lt;RepositoryCommit&gt;$(GitCommitHash)&lt;/RepositoryCommit&gt;" />
+      <LineToWrite Include="&lt;RepositoryType&gt;git&lt;/RepositoryType&gt;" />
       <LineToWrite Include="&lt;/PropertyGroup&gt;" />
       <LineToWrite Include="&lt;/Project&gt;" />
     </ItemGroup>
