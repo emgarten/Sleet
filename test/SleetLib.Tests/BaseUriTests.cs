@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
+using Sleet.Test.Common;
 using Xunit;
 
 namespace Sleet.Test
@@ -38,56 +39,14 @@ namespace Sleet.Test
                 var initSuccess = await InitCommand.RunAsync(settings, fileSystem, log);
                 var pushSuccess = await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, false, false, log);
 
-                var files = Directory.GetFiles(outputRoot, "*.json", SearchOption.AllDirectories);
 
                 // Assert
                 Assert.True(initSuccess, log.ToString());
                 Assert.True(pushSuccess, log.ToString());
 
-                foreach (var file in files)
-                {
-                    var fileJson = await JsonUtility.LoadJsonAsync(new FileInfo(file));
-
-                    foreach (var entityId in GetEntityIds(fileJson))
-                    {
-                        Assert.True(entityId.StartsWith(baseUri.AbsoluteUri), $"{entityId} in {file}");
-                    }
-                }
+                var files = Directory.GetFiles(outputRoot, "*.json", SearchOption.AllDirectories);
+                await BaseURITestUtil.VerifyBaseUris(files, baseUri);
             }
-        }
-
-        /// <summary>
-        /// Get all instance of @id outside of the context
-        /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        private static IEnumerable<string> GetEntityIds(JObject json)
-        {
-            foreach (var node in json.Children())
-            {
-                if (node.Type == JTokenType.Property)
-                {
-                    var prop = (JProperty)node;
-
-                    if (prop.Name != "@context")
-                    {
-                        if (prop.Value is JObject jObj)
-                        {
-                            foreach (var desc in jObj.DescendantsAndSelf())
-                            {
-                                var descProp = (JProperty)node;
-
-                                if (descProp.Name == "@id")
-                                {
-                                    yield return descProp.Value.ToObject<string>();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            yield break;
         }
     }
 }

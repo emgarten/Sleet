@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -106,6 +108,48 @@ namespace Sleet.AmazonS3.Tests
                     testContext.Logger);
 
                 result.Should().BeTrue();
+
+                await testContext.CleanupAsync();
+            }
+        }
+
+        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        public async Task GivenAStorageAccountVerifyPushAndSucceedWithBaseURI()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var testContext = new AmazonS3TestContext())
+            {
+                var baseUri = new Uri("http://tempuri.org/abc/");
+                var fileSystem = new AmazonS3FileSystem(testContext.LocalCache, testContext.Uri, baseUri, testContext.Client, testContext.BucketName);
+                testContext.FileSystem = fileSystem;
+
+                await testContext.InitAsync();
+
+                var testPackage = new TestNupkg("packageA", "1.0.0");
+                var zipFile = testPackage.Save(packagesFolder.Root);
+
+                var result = await InitCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    enableCatalog: true,
+                    enableSymbols: true,
+                    log: testContext.Logger,
+                    token: CancellationToken.None);
+
+                result &= await PushCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    new List<string>() { zipFile.FullName },
+                    force: false,
+                    skipExisting: false,
+                    log: testContext.Logger);
+
+                result &= await ValidateCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    testContext.Logger);
+
+                result.Should().BeTrue();
+
+                // Check baseURIs
+                await BaseURITestUtil.VerifyBaseUris(testContext.FileSystem.Files.Values, baseUri);
 
                 await testContext.CleanupAsync();
             }

@@ -13,9 +13,11 @@ namespace Sleet
         /// <summary>
         /// Check if the URI has the expected root
         /// </summary>
-        public static bool HasRoot(Uri expectedRoot, Uri fullPath)
+        public static bool HasRoot(Uri expectedRoot, Uri fullPath, bool caseSensitive)
         {
-            return fullPath.AbsoluteUri.StartsWith(expectedRoot.AbsoluteUri);
+            var compare = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+            return fullPath.AbsoluteUri.StartsWith(expectedRoot.AbsoluteUri, compare);
         }
 
         /// <summary>
@@ -64,7 +66,7 @@ namespace Sleet
                 return path.AbsoluteUri.Substring(basePath.AbsoluteUri.Length);
             }
 
-            throw new ArgumentException("Uri is not rooted in the basePath");
+            throw new ArgumentException($"Uri {path} is not rooted in the basePath: {basePath}");
         }
 
         /// <summary>

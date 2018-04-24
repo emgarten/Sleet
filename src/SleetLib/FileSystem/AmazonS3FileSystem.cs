@@ -27,17 +27,22 @@ namespace Sleet
             IAmazonS3 client,
             string bucketName,
             string feedSubPath = null)
-            : base(cache, root, baseUri, feedSubPath)
+            : base(cache, root, baseUri)
         {
             this.client = client;
             this.bucketName = bucketName;
+
+            if (!string.IsNullOrEmpty(feedSubPath))
+            {
+                FeedSubPath = feedSubPath.Trim('/') + '/';
+            }
         }
 
         public override async Task<bool> Validate(ILogger log, CancellationToken token)
         {
             log.LogInformation($"Verifying {bucketName} exists.");
 
-            bool isBucketFound = await client.DoesS3BucketExistAsync(bucketName).ConfigureAwait(false);
+            var isBucketFound = await client.DoesS3BucketExistAsync(bucketName).ConfigureAwait(false);
             if (!isBucketFound)
             {
                 log.LogError(
@@ -55,7 +60,9 @@ namespace Sleet
 
         public override ISleetFile Get(Uri path)
         {
-            return Files.GetOrAdd(path, CreateAmazonS3File);
+            return GetOrAddFile(path,
+                caseSensitive: true,
+                createFile: (pair) => CreateAmazonS3File(pair));
         }
 
         public override async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
@@ -66,33 +73,22 @@ namespace Sleet
                 .ToList();
         }
 
-        private ISleetFile CreateAmazonS3File(Uri uri)
+        private ISleetFile CreateAmazonS3File(SleetUriPair pair)
         {
-            Uri rootUri = UriUtility.ChangeRoot(BaseURI, Root, uri);
-            string key = GetPathRelativeToBucket(uri);
-            return new AmazonS3File(this, rootUri, uri, LocalCache.GetNewTempPath(), client, bucketName, key);
+            var key = GetRelativePath(pair.Root);
+            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), client, bucketName, key);
         }
 
-        private string GetPathRelativeToBucket(Uri uri)
+        public override string GetRelativePath(Uri uri)
         {
-            if (uri == null)
-                throw new ArgumentNullException(nameof(uri));
+            var relativePath = base.GetRelativePath(uri);
 
-            string baseUri = BaseURI.ToString();
-            string path = uri.AbsoluteUri;
-
-            if (!path.StartsWith(baseUri, StringComparison.Ordinal))
-                throw new InvalidOperationException($"Unable to make '{uri.AbsoluteUri}' relative to '{baseUri}'");
-
-            string key = path.Replace(baseUri, string.Empty);
             if (!string.IsNullOrEmpty(FeedSubPath))
             {
-                key = FeedSubPath[FeedSubPath.Length - 1] == '/'
-                    ? FeedSubPath + key
-                    : FeedSubPath + "/" + key;
+                relativePath = FeedSubPath + relativePath;
             }
 
-            return key;
+            return relativePath;
         }
     }
 }
