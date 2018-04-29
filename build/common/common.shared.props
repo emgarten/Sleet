@@ -38,7 +38,7 @@
   </PropertyGroup>
 
   <!-- output paths -->
-  <PropertyGroup Condition=" '$(TestProject)' != 'true'  AND '$(DisableArtifactsOutputPath)' != 'true' ">
+  <PropertyGroup Condition=" '$(DisableArtifactsOutputPath)' != 'true' ">
     <BaseIntermediateOutputPath>$(ArtifactsDirectory)proj\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
     <BaseOutputPath>$(ArtifactsDirectory)proj\$(MSBuildProjectName)\bin\</BaseOutputPath>

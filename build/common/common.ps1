@@ -22,7 +22,7 @@ Function Install-DotnetCLI {
 
         wget https://raw.githubusercontent.com/dotnet/cli/62ce305f06c502a2fae459fc906c982b943c6128/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
 
-        & $installDotnet -i $CLIRoot -Version 2.1.300-preview2-008523
+        & $installDotnet -i $CLIRoot -Version 2.1.300-rc1-008673
         & $installDotnet -Channel 2.0 -i $CLIRoot -Version 2.0.3
         & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.4
 
