@@ -74,7 +74,7 @@ Function Install-NuGetExe {
         $nugetDir = Split-Path $nugetExe
         New-Item -ItemType Directory -Force -Path $nugetDir
 
-        wget https://dist.nuget.org/win-x86-commandline/v4.4.0-preview3/nuget.exe -OutFile $nugetExe
+        wget https://dist.nuget.org/win-x86-commandline/v4.6.2/nuget.exe -OutFile $nugetExe
     }
 }
 
@@ -123,6 +123,7 @@ Function Invoke-DotnetMSBuild {
     $buildArgs = , "msbuild"
     $buildArgs += "/nologo"
     $buildArgs += "/v:m"
+    $buildArgs += "/nr:false"
     $buildArgs += $Arguments
 
     Invoke-DotnetExe $RepoRoot $buildArgs
