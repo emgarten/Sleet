@@ -22,7 +22,7 @@ Sleet is a static NuGet package feed generator.
 ### Manually run sleet.dll (dotnet CLI cross platform)
 1. Download the latest nupkg from [NuGet.org](https://www.nuget.org/packages/Sleet)
 1. Extract the nupkg to a local folder
-1. `dotnet <PathToNupkg>/tools/netcoreapp2.0/any/Sleet.dll`
+1. `dotnet <PathToNupkg>/tools/netcoreapp2.1/any/Sleet.dll`
 
 ## Build Status
 

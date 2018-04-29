@@ -20,9 +20,9 @@
   </metadata>
   <files>
     <file src="..\..\artifacts\publish\*.exe" target="tools\" />
-    <file src="..\..\artifacts\publish\netcoreapp2.0\*.dll" target="tools\netcoreapp2.0\any\" />
-    <file src="..\..\artifacts\publish\netcoreapp2.0\DotnetToolSettings.xml" target="tools\netcoreapp2.0\any\" />
-    <file src="..\..\artifacts\publish\netcoreapp2.0\Sleet.runtimeconfig.json" target="tools\netcoreapp2.0\any\" />
+    <file src="..\..\artifacts\publish\netcoreapp2.1\*.dll" target="tools\netcoreapp2.1\any\" />
+    <file src="..\..\artifacts\publish\netcoreapp2.1\DotnetToolSettings.xml" target="tools\netcoreapp2.1\any\" />
+    <file src="..\..\artifacts\publish\netcoreapp2.1\Sleet.runtimeconfig.json" target="tools\netcoreapp2.1\any\" />
     <file src="..\..\build\nupkgIncludes\Sleet.props" target="build\net46\Sleet.props" />
   </files>
 </package>
