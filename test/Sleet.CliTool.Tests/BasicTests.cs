@@ -47,7 +47,7 @@ namespace Sleet.CliTool.Tests
 
                 var sleetVersion = sleetNupkg.Nuspec.GetVersion().ToNormalizedString();
 
-                var result = await CmdRunner.RunAsync(dotnetExe, testContext.Root, $"tool install sleet --version {sleetVersion} --source-feed {nupkgsFolder} --tool-path {dir}");
+                var result = await CmdRunner.RunAsync(dotnetExe, testContext.Root, $"tool install sleet --version {sleetVersion} --add-source {nupkgsFolder} --tool-path {dir}");
                 result.Success.Should().BeTrue(result.AllOutput);
 
                 var sleetDllPath = Path.Combine(dir, ".store", "sleet", sleetVersion, "sleet", sleetVersion, "tools", "netcoreapp2.1", "any", "Sleet.dll");
