@@ -31,7 +31,7 @@ namespace Sleet
             var nuspecPath = $"{packageInput.Identity.Id}.nuspec".ToLowerInvariant();
 
             var nuspecEntry = await packageInput.RunWithLockAsync((p) => Task.FromResult(p.Zip.Entries
-                .Where(entry => nuspecPath.Equals(nuspecPath, StringComparison.OrdinalIgnoreCase))
+                .Where(entry => entry.FullName.Equals(nuspecPath, StringComparison.OrdinalIgnoreCase))
                 .FirstOrDefault()));
 
             if (nuspecEntry == null)
