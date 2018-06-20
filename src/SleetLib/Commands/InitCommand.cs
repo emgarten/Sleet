@@ -86,7 +86,7 @@ namespace Sleet
             noChanges &= !await CreatePackageIndexAsync(context, serviceIndexJson);
 
             // Additional entries
-            AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
+            AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.6.0", "Package registrations used for search and packages.config.", serviceIndexJson);
             AddServiceIndexEntry(source.BaseURI, "", "ReportAbuseUriTemplate/3.0.0", "Report abuse template.", serviceIndexJson);
             AddServiceIndexEntry(source.BaseURI, "flatcontainer/", "PackageBaseAddress/3.0.0", "Packages used by project.json", serviceIndexJson);
 
