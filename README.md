@@ -15,7 +15,7 @@ Sleet is a static NuGet package feed generator.
 1. Download the latest nupkg from [NuGet.org](https://www.nuget.org/packages/Sleet)
 1. Extract *tools/Sleet.exe* to a local folder and run it.
 
-### Install global tool (dotnet CLI >= 2.1.300-preview2)
+### Install global tool (dotnet CLI >= 2.1.300)
 1. `dotnet tool install -g sleet`
 1. `sleet` should now be on your *PATH*
 
