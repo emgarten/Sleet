@@ -30,19 +30,21 @@ namespace Sleet
                 {
                     if (source.Equals(sourceEntry["name"]?.ToObject<string>(), StringComparison.OrdinalIgnoreCase))
                     {
-                        if (string.IsNullOrEmpty(sourceEntry["path"]?.ToString()))
-                        {
-                            throw new ArgumentException("Missing path for account.");
-                        }
-
                         var path = sourceEntry["path"]?.ToObject<string>();
-                        var baseURI = sourceEntry["baseURI"]?.ToObject<string>() ?? path;
+                        var baseURIString = sourceEntry["baseURI"]?.ToObject<string>();
                         var feedSubPath = sourceEntry["feedSubPath"]?.ToObject<string>();
                         var type = sourceEntry["type"]?.ToObject<string>().ToLowerInvariant();
+                        var pathUri = path != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(path)) : null;
+                        var baseUri = baseURIString != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(baseURIString)) : pathUri;
 
                         if (type == "local")
                         {
-                            result = new PhysicalFileSystem(cache, UriUtility.CreateUri(path), UriUtility.CreateUri(baseURI));
+                            if (pathUri == null)
+                            {
+                                throw new ArgumentException("Missing path for account.");
+                            }
+
+                            result = new PhysicalFileSystem(cache, pathUri, baseUri);
                         }
                         else if (type == "azure")
                         {
@@ -66,15 +68,26 @@ namespace Sleet
 
                             var azureAccount = CloudStorageAccount.Parse(connectionString);
 
-                            result = new AzureFileSystem(cache, UriUtility.CreateUri(path), UriUtility.CreateUri(baseURI), azureAccount, container, feedSubPath);
+                            if (pathUri == null)
+                            {
+                                // Get the default url from the container
+                                pathUri = AzureUtility.GetContainerPath(azureAccount, container);
+                            }
+
+                            if (baseUri == null)
+                            {
+                                baseUri = pathUri;
+                            }
+
+                            result = new AzureFileSystem(cache, pathUri, baseUri, azureAccount, container, feedSubPath);
                         }
 #if !SLEETLEGACY
                         else if (type == "s3")
                         {
-                            string accessKeyId = sourceEntry["accessKeyId"]?.ToObject<string>();
-                            string secretAccessKey = sourceEntry["secretAccessKey"]?.ToObject<string>();
-                            string bucketName = sourceEntry["bucketName"]?.ToObject<string>();
-                            string region = sourceEntry["region"]?.ToObject<string>();
+                            var accessKeyId = sourceEntry["accessKeyId"]?.ToObject<string>();
+                            var secretAccessKey = sourceEntry["secretAccessKey"]?.ToObject<string>();
+                            var bucketName = sourceEntry["bucketName"]?.ToObject<string>();
+                            var region = sourceEntry["region"]?.ToObject<string>();
 
                             if (string.IsNullOrEmpty(accessKeyId))
                                 throw new ArgumentException("Missing accessKeyId for Amazon S3 account.");
@@ -85,12 +98,26 @@ namespace Sleet
                             if (string.IsNullOrEmpty(region))
                                 throw new ArgumentException("Missing region for Amazon S3 account.");
 
+                            var regionSystemName = RegionEndpoint.GetBySystemName(region);
+
+                            if (pathUri == null)
+                            {
+                                // Find the default path
+                                pathUri = AmazonS3Utility.GetBucketPath(bucketName, regionSystemName.SystemName);
+                            }
+
+                            if (baseUri == null)
+                            {
+                                baseUri = pathUri;
+                            }
+
                             var amazonS3Client = new AmazonS3Client(
-                                accessKeyId, secretAccessKey, RegionEndpoint.GetBySystemName(region));
+                                accessKeyId, secretAccessKey, regionSystemName);
+
                             result = new AmazonS3FileSystem(
                                 cache,
-                                UriUtility.CreateUri(path),
-                                UriUtility.CreateUri(baseURI),
+                                pathUri,
+                                baseUri,
                                 amazonS3Client,
                                 bucketName,
                                 feedSubPath);

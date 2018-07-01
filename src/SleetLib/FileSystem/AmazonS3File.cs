@@ -33,7 +33,7 @@ namespace Sleet
 
         protected override async Task CopyFromSource(ILogger log, CancellationToken token)
         {
-            Uri absoluteUri = UriUtility.GetPath(RootPath, key);
+            var absoluteUri = UriUtility.GetPath(RootPath, key);
             if (!await FileExistsAsync(client, bucketName, key, token).ConfigureAwait(false))
                 return;
 
@@ -43,7 +43,7 @@ namespace Sleet
                 LocalCacheFile.Delete();
 
             string contentEncoding;
-            using (FileStream cache = File.OpenWrite(LocalCacheFile.FullName))
+            using (var cache = File.OpenWrite(LocalCacheFile.FullName))
             {
                 contentEncoding = await DownloadFileAsync(client, bucketName, key, cache, token).ConfigureAwait(false);
             }
@@ -52,7 +52,7 @@ namespace Sleet
             {
                 log.LogInformation($"Decompressing {absoluteUri}");
 
-                string gzipFile = LocalCacheFile.FullName + ".gz";
+                var gzipFile = LocalCacheFile.FullName + ".gz";
                 File.Move(LocalCacheFile.FullName, gzipFile);
 
                 using (Stream destination = File.Create(LocalCacheFile.FullName))
@@ -66,7 +66,7 @@ namespace Sleet
 
         protected override async Task CopyToSource(ILogger log, CancellationToken token)
         {
-            Uri absoluteUri = UriUtility.GetPath(RootPath, key);
+            var absoluteUri = UriUtility.GetPath(RootPath, key);
             if (!File.Exists(LocalCacheFile.FullName))
             {
                 if (await FileExistsAsync(client, bucketName, key, token).ConfigureAwait(false))
@@ -84,7 +84,7 @@ namespace Sleet
 
             log.LogInformation($"Pushing {absoluteUri}");
 
-            using (FileStream cache = LocalCacheFile.OpenRead())
+            using (var cache = LocalCacheFile.OpenRead())
             {
                 Stream writeStream = cache;
                 string contentType = null, contentEncoding = null;

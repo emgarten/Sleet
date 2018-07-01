@@ -40,10 +40,10 @@ namespace Sleet
             Stream writer,
             CancellationToken token)
         {
-            using (GetObjectResponse response = await client
+            using (var response = await client
                 .GetObjectAsync(bucketName, key, token)
                 .ConfigureAwait(false))
-            using (Stream responseStream = response.ResponseStream)
+            using (var responseStream = response.ResponseStream)
             {
                 await responseStream.CopyToAsync(writer, DefaultCopyBufferSize, token).ConfigureAwait(false);
                 return response.Headers.ContentEncoding;
@@ -61,7 +61,7 @@ namespace Sleet
                 BucketName = bucketName,
                 Prefix = key,
             };
-            ListObjectsV2Response listObjectsResponse = await client
+            var listObjectsResponse = await client
                 .ListObjectsV2Async(listObjectsRequest, token)
                 .ConfigureAwait(false);
 

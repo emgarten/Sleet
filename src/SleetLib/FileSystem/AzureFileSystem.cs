@@ -29,10 +29,19 @@ namespace Sleet
             _client = _azureAccount.CreateCloudBlobClient();
             _container = _client.GetContainerReference(container);
 
+            var containerUri = UriUtility.EnsureTrailingSlash(_container.Uri);
+            var expectedPath = UriUtility.EnsureTrailingSlash(root);
+
+            // Verify that the provided path is sane.
+            if (!expectedPath.AbsoluteUri.StartsWith(expectedPath.AbsoluteUri, StringComparison.Ordinal))
+            {
+                throw new ArgumentException($"Invalid feed path. Azure container {container} resolved to {containerUri.AbsoluteUri} which does not match the provided URI of {expectedPath}  Update path in sleet.json or remove the path property to auto resolve the value.");
+            }
+
             // Compute sub path, ignore the given sub path
             var subPath = UriUtility.GetRelativePath(
-                UriUtility.EnsureTrailingSlash(_container.Uri),
-                UriUtility.EnsureTrailingSlash(root));
+                containerUri,
+                expectedPath);
 
             if (!string.IsNullOrEmpty(subPath))
             {

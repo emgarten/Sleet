@@ -119,12 +119,34 @@ namespace Sleet
 
         public static Uri EnsureTrailingSlash(Uri uri)
         {
-            return new Uri(uri.AbsoluteUri.TrimEnd('/') + "/");
+            var s = uri.AbsoluteUri;
+
+            if (s.EndsWith("//", StringComparison.OrdinalIgnoreCase))
+            {
+                // Trim if needed
+                s = s.TrimEnd('/');
+            }
+
+            if (s.EndsWith("/", StringComparison.Ordinal))
+            {
+                // noop
+                return uri;
+            }
+
+            return new Uri(s + "/");
         }
 
         public static Uri RemoveTrailingSlash(Uri uri)
         {
-            return new Uri(uri.AbsoluteUri.TrimEnd('/'));
+            var s = uri.AbsoluteUri;
+
+            if (!s.EndsWith("/", StringComparison.Ordinal))
+            {
+                // noop
+                return uri;
+            }
+
+            return new Uri(s.TrimEnd('/'));
         }
 
         public static bool IsHttp(Uri uri)

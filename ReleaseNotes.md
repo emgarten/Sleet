@@ -1,5 +1,8 @@
 # Release Notes
 
+## 2.3.x
+* Path property in sleet.json is now optional for azure and s3 feeds. If not provided it will be resolved from the container/bucket.
+
 ## 2.3.0
 * Added Amazon S3 support (skarllot)
 * Fix for createconfig json formatting
