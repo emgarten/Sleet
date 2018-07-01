@@ -287,5 +287,20 @@ namespace Sleet
 
             return result;
         }
+
+        public static string GetValueCaseInsensitive(JObject obj, string name)
+        {
+            if (obj != null)
+            {
+                var val = obj.GetValue(name, StringComparison.OrdinalIgnoreCase);
+
+                if (val != null)
+                {
+                    return val.ToObject<string>();
+                }
+            }
+
+            return null;
+        }
     }
 }

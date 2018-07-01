@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 #if !SLEETLEGACY
 using Amazon;
 using Amazon.S3;
@@ -26,14 +27,17 @@ namespace Sleet
 
             if (sources != null)
             {
-                foreach (var sourceEntry in sources)
+                foreach (var sourceEntry in sources.Select(e => (JObject)e))
                 {
-                    if (source.Equals(sourceEntry["name"]?.ToObject<string>(), StringComparison.OrdinalIgnoreCase))
+                    var sourceName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "name");
+
+                    if (source.Equals(sourceName, StringComparison.OrdinalIgnoreCase))
                     {
-                        var path = sourceEntry["path"]?.ToObject<string>();
-                        var baseURIString = sourceEntry["baseURI"]?.ToObject<string>();
-                        var feedSubPath = sourceEntry["feedSubPath"]?.ToObject<string>();
-                        var type = sourceEntry["type"]?.ToObject<string>().ToLowerInvariant();
+                        var path = JsonUtility.GetValueCaseInsensitive(sourceEntry, "path");
+                        var baseURIString = JsonUtility.GetValueCaseInsensitive(sourceEntry, "baseURI");
+                        var feedSubPath = JsonUtility.GetValueCaseInsensitive(sourceEntry, "feedSubPath");
+                        var type = JsonUtility.GetValueCaseInsensitive(sourceEntry, "type")?.ToLowerInvariant();
+
                         var pathUri = path != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(path)) : null;
                         var baseUri = baseURIString != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(baseURIString)) : pathUri;
 
@@ -48,8 +52,8 @@ namespace Sleet
                         }
                         else if (type == "azure")
                         {
-                            var connectionString = sourceEntry["connectionString"]?.ToObject<string>();
-                            var container = sourceEntry["container"]?.ToObject<string>();
+                            var connectionString = JsonUtility.GetValueCaseInsensitive(sourceEntry, "connectionString");
+                            var container = JsonUtility.GetValueCaseInsensitive(sourceEntry, "container");
 
                             if (string.IsNullOrEmpty(connectionString))
                             {
@@ -84,10 +88,10 @@ namespace Sleet
 #if !SLEETLEGACY
                         else if (type == "s3")
                         {
-                            var accessKeyId = sourceEntry["accessKeyId"]?.ToObject<string>();
-                            var secretAccessKey = sourceEntry["secretAccessKey"]?.ToObject<string>();
-                            var bucketName = sourceEntry["bucketName"]?.ToObject<string>();
-                            var region = sourceEntry["region"]?.ToObject<string>();
+                            var accessKeyId = JsonUtility.GetValueCaseInsensitive(sourceEntry, "accessKeyId");
+                            var secretAccessKey = JsonUtility.GetValueCaseInsensitive(sourceEntry, "secretAccessKey");
+                            var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
+                            var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
 
                             if (string.IsNullOrEmpty(accessKeyId))
                                 throw new ArgumentException("Missing accessKeyId for Amazon S3 account.");

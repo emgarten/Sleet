@@ -32,6 +32,7 @@ namespace Sleet
             var force = cmd.Option("-f|--force", "Ignore missing packages.", CommandOptionType.NoValue);
 
             var verbose = cmd.Option(Constants.VerboseOption, Constants.VerboseDesc, CommandOptionType.NoValue);
+            var propertyOptions = cmd.Option(Constants.PropertyOption, Constants.PropertyDescription, CommandOptionType.MultipleValue);
 
             cmd.HelpOption(Constants.HelpOption);
 
@@ -52,7 +53,7 @@ namespace Sleet
                 using (var cache = new LocalCache())
                 {
                     // Load settings and file system.
-                    var settings = LocalSettings.Load(optionConfigFile.Value());
+                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values));
                     var fileSystem = Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
                     var success = await DeleteCommand.RunAsync(settings, fileSystem, packageId.Value(), version.Value(), reason.Value(), force.HasValue(), log);

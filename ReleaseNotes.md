@@ -1,7 +1,10 @@
 # Release Notes
 
-## 2.3.x
+## 2.3.31
 * Path property in sleet.json is now optional for azure and s3 feeds. If not provided it will be resolved from the container/bucket.
+* Added support for tokenized sleet.json files
+* Added --property support for passing in setting values
+* Added SLEET_FEED_ env var support
 
 ## 2.3.0
 * Added Amazon S3 support (skarllot)

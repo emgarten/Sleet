@@ -37,7 +37,7 @@ namespace Sleet
 
                 var outputPath = output.HasValue() ? output.Value() : null;
 
-                FileSystemStorageType storageType = awss3.HasValue() ? FileSystemStorageType.AmazonS3 :
+                var storageType = awss3.HasValue() ? FileSystemStorageType.AmazonS3 :
                     azure.HasValue() ? FileSystemStorageType.Azure :
                     folder.HasValue() ? FileSystemStorageType.Local :
                     FileSystemStorageType.Unspecified;
