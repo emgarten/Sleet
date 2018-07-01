@@ -24,6 +24,11 @@ Sleet is a static NuGet package feed generator.
 1. Extract the nupkg to a local folder
 1. `dotnet <PathToNupkg>/tools/netcoreapp2.1/any/Sleet.dll`
 
+## Read the guide
+
+Documentation can be found in the repo under [doc](doc/index.md)
+
+
 ## Build Status
 
 | AppVeyor | Travis | Visual Studio Online |
