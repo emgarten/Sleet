@@ -62,7 +62,6 @@ namespace Sleet
                     {
                         { "name", "myAzureFeed" },
                         { "type", "azure" },
-                        { "path", "https://yourStorageAccount.blob.core.windows.net/myFeed/" },
                         { "container", "myFeed" },
                         { "connectionString", AzureFileSystem.AzureEmptyConnectionString }
                     };
@@ -72,7 +71,6 @@ namespace Sleet
                     {
                         { "name", "myAmazonS3Feed" },
                         { "type", "s3" },
-                        { "path", "https://s3.amazonaws.com/bucketname/" },
                         { "bucketName", "bucketname" },
                         { "region", "us-east-1" },
                         { "accessKeyId", "" },
