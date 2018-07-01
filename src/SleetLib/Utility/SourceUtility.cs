@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -58,6 +60,48 @@ namespace Sleet
             {
                 throw new ArgumentException("When using FeedSubPath the Path property must end with the sub path.");
             }
+        }
+
+        /// <summary>
+        /// Read index.json to find the BaseURI the feed was initialized with.
+        /// </summary>
+        public static async Task<Uri> GetBaseUriFromFeed(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
+        {
+            var settingsFileName = "sleet.settings.json";
+
+            var indexPath = fileSystem.Get("index.json");
+            var json = await indexPath.GetJson(log, token);
+            var settingsUrl = json.GetJObjectArray("resources").Select(e => e.GetString("@id"))
+                .First(e => e != null && e.EndsWith(settingsFileName, StringComparison.Ordinal));
+
+            // Get the base url
+            settingsUrl = settingsUrl.Substring(0, settingsUrl.Length - settingsFileName.Length);
+
+            return new Uri(settingsUrl);
+        }
+
+        /// <summary>
+        /// Throw if index.json contains a different baseURI than the local settings.
+        /// </summary>
+        public static async Task EnsureBaseUriMatchesFeed(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
+        {
+            var expected = await GetBaseUriFromFeed(fileSystem, log, token);
+            var actual = UriUtility.GetPathWithoutFile(fileSystem.Get("sleet.settings.json").EntityUri);
+
+            // Feeds will typically be case sensitive, but this is only checking for obvious mismatches to notify the user of problems.
+            if (!StringComparer.OrdinalIgnoreCase.Equals(actual.AbsoluteUri, expected.AbsoluteUri))
+            {
+                throw new InvalidDataException($"The path or baseURI set in sleet.json does not match the URIs found in index.json. To fix this update sleet.json with the correct settings, or recreate the feed to apply the new settings. Local settings: {actual.AbsoluteUri} Feed settings: {expected.AbsoluteUri}");
+            }
+        }
+
+        /// <summary>
+        /// Verify the feed works with the current client and settings.
+        /// </summary>
+        public static async Task ValidateFeedForClient(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
+        {
+            await UpgradeUtility.EnsureFeedVersionMatchesTool(fileSystem, log, token);
+            await EnsureBaseUriMatchesFeed(fileSystem, log, token);
         }
     }
 }

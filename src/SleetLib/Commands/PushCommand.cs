@@ -23,7 +23,7 @@ namespace Sleet
             using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
             {
                 // Validate source
-                await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);
+                await SourceUtility.ValidateFeedForClient(source, log, token);
 
                 return await PushPackages(settings, source, inputs, force, skipExisting, log, token);
             }

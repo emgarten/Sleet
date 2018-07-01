@@ -23,7 +23,7 @@ namespace Sleet
             using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
             {
                 // Validate source
-                await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);
+                await SourceUtility.ValidateFeedForClient(source, log, token);
 
                 // Get sleet.settings.json
                 var sourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);

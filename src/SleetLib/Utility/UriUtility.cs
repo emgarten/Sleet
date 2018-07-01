@@ -171,5 +171,20 @@ namespace Sleet
                 return uri.AbsoluteUri.Split('/').Last();
             }
         }
+
+        /// <summary>
+        /// Returns the path without the file name or the same path if this is a directory.
+        /// </summary>
+        public static Uri GetPathWithoutFile(Uri uri)
+        {
+            var file = GetFileName(uri);
+
+            if (file != null)
+            {
+                return new Uri(uri.AbsoluteUri.Substring(0, uri.AbsoluteUri.Length - file.Length));
+            }
+
+            return uri;
+        }
     }
 }
