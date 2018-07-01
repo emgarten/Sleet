@@ -31,6 +31,7 @@ namespace Sleet
             var setSetting = cmd.Option("--set", "Add a feed setting. Value must be in the form {key}:{value}  May be specified multiple times.", CommandOptionType.MultipleValue);
             var getSetting = cmd.Option("--get", "Display a feed setting. May be specified multiple times.", CommandOptionType.MultipleValue);
             var getAll = cmd.Option("--get-all", "Diplay all feed settings.", CommandOptionType.NoValue);
+            var propertyOptions = cmd.Option(Constants.PropertyOption, Constants.PropertyDescription, CommandOptionType.MultipleValue);
 
             var required = new List<CommandOption>();
 
@@ -46,7 +47,7 @@ namespace Sleet
                 using (var cache = new LocalCache())
                 {
                     // Load settings and file system.
-                    var settings = LocalSettings.Load(optionConfigFile.Value());
+                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values));
                     var fileSystem = Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
                     var success = await FeedSettingsCommand.RunAsync(

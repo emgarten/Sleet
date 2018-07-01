@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json.Linq;
 
@@ -26,21 +27,46 @@ namespace Sleet
             };
         }
 
+        public static LocalSettings Load(string path, Dictionary<string, string> mappings)
+        {
+            JObject json = null;
+
+            // Look up the file or search parent directories
+            // None is a special keyword to skip config resolution
+            var skipConfig = StringComparer.OrdinalIgnoreCase.Equals(path, "none");
+
+            if (!skipConfig)
+            {
+                json = SettingsUtility.GetSleetJsonOrNull(path);
+
+                if (json != null)
+                {
+                    // Resolve tokens in the json
+                    SettingsUtility.ResolveTokensInSettingsJson(json, mappings);
+
+                    return Load(json);
+                }
+                else if (!string.IsNullOrEmpty(path))
+                {
+                    // A path was given but was not found, throw
+                    throw new FileNotFoundException($"Unable to find source settings. File not found '{path}'.");
+                }
+            }
+
+            // Read from env vars
+            json = SettingsUtility.GetConfigFromEnv(mappings);
+
+            if (json != null)
+            {
+                return Load(json);
+            }
+
+            throw new InvalidOperationException($"Unable to find source settings. Specify the path to a sleet.json settings file.");
+        }
+
         public static LocalSettings Load(string path)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                path = FindFileInParents(Directory.GetCurrentDirectory(), "sleet.json");
-            }
-
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
-            {
-                throw new FileNotFoundException($"Unable to find source settings. File not found '{path}'.");
-            }
-
-            var json = JObject.Parse(File.ReadAllText(path));
-
-            return Load(json);
+            return Load(path, mappings: null);
         }
 
         internal static TimeSpan GetFeedLockTimeout(JObject json)
@@ -84,26 +110,6 @@ namespace Sleet
             return new JObject();
         }
 
-        /// <summary>
-        /// Search a dir and all parents for a file.
-        /// </summary>
-        private static string FindFileInParents(string root, string fileName)
-        {
-            var dir = new DirectoryInfo(root);
 
-            while (dir != null)
-            {
-                var file = Path.Combine(dir.FullName, fileName);
-
-                if (File.Exists(file))
-                {
-                    return file;
-                }
-
-                dir = dir.Parent;
-            }
-
-            return null;
-        }
     }
 }

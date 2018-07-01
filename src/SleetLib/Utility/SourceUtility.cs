@@ -103,5 +103,15 @@ namespace Sleet
             await UpgradeUtility.EnsureFeedVersionMatchesTool(fileSystem, log, token);
             await EnsureBaseUriMatchesFeed(fileSystem, log, token);
         }
+
+        public static FileSystemStorageType GetFeedType(string s)
+        {
+            if (Enum.TryParse<FileSystemStorageType>(s, ignoreCase: true, result: out var value))
+            {
+                return value;
+            }
+
+            return FileSystemStorageType.Unspecified;
+        }
     }
 }

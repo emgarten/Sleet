@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -70,15 +71,19 @@ namespace Sleet
                         return false;
                     }
 
-                    var pushSuccess = await PushCommand.PushPackages(settings, source, new List<string>() { localCache.Root.FullName }, force: true, skipExisting: true, log: log, token: token);
-
-                    if (!pushSuccess)
+                    // Skip pushing for empty feeds
+                    if (Directory.GetFiles(localCache.Root.FullName, "*.*", SearchOption.AllDirectories).Length > 0)
                     {
-                        cleanNupkgs = false;
+                        var pushSuccess = await PushCommand.PushPackages(settings, source, new List<string>() { localCache.Root.FullName }, force: true, skipExisting: true, log: log, token: token);
 
-                        log.LogError("Unable to push packages to the new feed. Try pushing the nupkgs again manually.");
-                        success = false;
-                        return false;
+                        if (!pushSuccess)
+                        {
+                            cleanNupkgs = false;
+
+                            log.LogError("Unable to push packages to the new feed. Try pushing the nupkgs again manually.");
+                            success = false;
+                            return false;
+                        }
                     }
 
                     var validateSuccess = await ValidateCommand.Validate(settings, source, log, token);
