@@ -145,7 +145,6 @@ Create a `sleet.json` config file to define a new package feed hosted on IIS.
 
 ``sleet createconfig --local``
 
-
 Open `sleet.json` using your editor of choice, the file will look like similar to this
 
 ``notepad sleet.json``
@@ -158,19 +157,16 @@ Open `sleet.json` using your editor of choice, the file will look like similar t
     {
       "name": "myLocalFeed",
       "type": "local",
-      "path": "C:\\myFeed"
+      "path": "C:\\myFeed",
+      "baseURI": "https://example.com/feed/"
     }
   ]
 }
 ```
 
-Edit the file so that `path` contains the address of your webserver and the URI users will map to use the feed.
+Set `path` to the local directory on disk where the feed json files will be written.
 
-For example, if you want the mapped feed address to be `https://example.com/feed/index.json` change `path` to:
-
-```json
-    "path": "https://example.com/feed"
-```
+Change `baseURI` to the URI the http server will use to serve the feed.
 
 ### Initialize the feed
 
@@ -180,9 +176,6 @@ Now initialize the feed, this creates the basic files needed to get started.
 * the `source` value here corresponds to the `name` property used in `sleet.json`
 
 ``sleet init --config C:\sleet.json --source myLocalFeed``
-
-Sleet will create files for the feed in a new directory corresponding to the URI set in *path*, so if you changed *path* to `https://example.com/feed`,
-the files will be created in a directory named feed on you `C:\` drive.
 
 ### Adding packages
 
@@ -211,14 +204,14 @@ In the projects' `web.config` file add the following lines:
 
 Publish your ASP.NET website to your IIS server.
 
-Copy the entire `C:\feed` directory to a path on your IIS server (including all subfolders).
+Copy the entire local feed output folder to a path on your IIS server (including all subfolders).
 
 ### Exposing the feed with IIS
 
 In `Internet Information Services Manager` open your website, right click and choose `Add Virtual Directory`
 
 * In `Alias` enter the URI you want to expose - in our example it's `feed`
-* In `Physical Path` enter the path on the server you copied your `C:\feed` directory to.
+* In `Physical Path` enter the path on the server you copied your `path` output directory to.
 
 ### Using the feed
 

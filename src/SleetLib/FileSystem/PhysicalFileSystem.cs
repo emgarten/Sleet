@@ -25,11 +25,21 @@ namespace Sleet
         public PhysicalFileSystem(LocalCache cache, Uri root)
             : base(cache, root)
         {
+            EnsureLocalRoot(root);
         }
 
         public PhysicalFileSystem(LocalCache cache, Uri root, Uri baseUri, string feedSubPath = null)
             : base(cache, root, baseUri, feedSubPath)
         {
+            EnsureLocalRoot(root);
+        }
+
+        private static void EnsureLocalRoot(Uri uri)
+        {
+            if (uri != null && UriUtility.IsHttp(uri))
+            {
+                throw new ArgumentException("Local feed path cannot be an http URI, use baseURI instead.");
+            }
         }
 
         public override ISleetFile Get(Uri path)
