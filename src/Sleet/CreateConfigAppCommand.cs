@@ -14,6 +14,9 @@ namespace Sleet
         {
             cmd.Description = "Create a new sleet.json config file.";
 
+            var awss3 = cmd.Option("--s3", "Add a template entry for an Amazon S3 storage feed.",
+                CommandOptionType.NoValue);
+
             var azure = cmd.Option("--azure", "Add a template entry for an azure storage feed.",
                 CommandOptionType.NoValue);
 
@@ -34,7 +37,11 @@ namespace Sleet
 
                 var outputPath = output.HasValue() ? output.Value() : null;
 
-                var success = await CreateConfigCommand.RunAsync(azure.HasValue(), folder.HasValue(), outputPath, log);
+                var storageType = awss3.HasValue() ? FileSystemStorageType.AmazonS3 :
+                    azure.HasValue() ? FileSystemStorageType.Azure :
+                    folder.HasValue() ? FileSystemStorageType.Local :
+                    FileSystemStorageType.Unspecified;
+                var success = await CreateConfigCommand.RunAsync(storageType, outputPath, log);
 
                 return success ? 0 : 1;
             });

@@ -4,7 +4,10 @@ param (
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
     [string]$StorageTestAccount,
-    [switch]$UseDevStorage
+    [switch]$UseDevStorage,
+    [string]$AWSAccessKeyId,
+    [string]$AWSSecretAccessKey,
+    [string]$AWSDefaultRegion
 )
 
 $RepoName = "Sleet"
@@ -25,6 +28,22 @@ if ($UseDevStorage)
 {
   Write-Host "SLEET_TEST_ACCOUNT set to dev storage"
   $env:SLEET_TEST_ACCOUNT="UseDevelopmentStorage=true"
+}
+
+# Set AWS S3 storage test values
+if ($AWSAccessKeyId) {
+    Write-Host "Setting AWS_ACCESS_KEY_ID"
+    $env:AWS_ACCESS_KEY_ID=$AWSAccessKeyId
+}
+
+if ($AWSSecretAccessKey) {
+    Write-Host "Setting AWS_SECRET_ACCESS_KEY"
+    $env:AWS_SECRET_ACCESS_KEY=$AWSSecretAccessKey
+}
+
+if ($AWSDefaultRegion) {
+    Write-Host "Setting AWS_DEFAULT_REGION"
+    $env:AWS_DEFAULT_REGION=$AWSDefaultRegion
 }
 
 # Download tools

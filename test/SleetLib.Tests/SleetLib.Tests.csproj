@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+﻿<Project ToolsVersion="15.0">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\test.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
-    <TargetFrameworks>netcoreapp2.0;net46;netcoreapp1.0</TargetFrameworks>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <TargetFrameworks>netcoreapp2.1;net46;netcoreapp1.0</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
-    <TargetFrameworks>netcoreapp2.0;netcoreapp1.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp1.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
@@ -15,7 +15,6 @@
   </ItemGroup>
   
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TestProject>true</TestProject>
   </PropertyGroup>
 
@@ -32,4 +31,5 @@
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

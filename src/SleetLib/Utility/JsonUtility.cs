@@ -13,6 +13,10 @@ namespace Sleet
 {
     public static class JsonUtility
     {
+        // json files MUST NOT have a BOM
+        // https://tools.ietf.org/html/rfc7159#section-8.1
+        private static readonly UTF8Encoding JsonEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
         private static readonly JsonLoadSettings _jsonLoadSettings = new JsonLoadSettings()
         {
             LineInfoHandling = LineInfoHandling.Ignore,
@@ -110,7 +114,7 @@ namespace Sleet
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 8192, leaveOpen: true))
+            using (var writer = new StreamWriter(stream, JsonEncoding, bufferSize: 8192, leaveOpen: true))
             using (var jsonWriter = new JsonTextWriter(writer))
             {
                 jsonWriter.Formatting = Formatting.None;
@@ -282,6 +286,21 @@ namespace Sleet
             }
 
             return result;
+        }
+
+        public static string GetValueCaseInsensitive(JObject obj, string name)
+        {
+            if (obj != null)
+            {
+                var val = obj.GetValue(name, StringComparison.OrdinalIgnoreCase);
+
+                if (val != null)
+                {
+                    return val.ToObject<string>();
+                }
+            }
+
+            return null;
         }
     }
 }

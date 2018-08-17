@@ -16,7 +16,6 @@ namespace Sleet
         private readonly CloudStorageAccount _azureAccount;
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
-        private readonly string _containerRoot;
 
         public AzureFileSystem(LocalCache cache, Uri root, CloudStorageAccount azureAccount, string container)
             : this(cache, root, root, azureAccount, container)
@@ -29,28 +28,42 @@ namespace Sleet
             _azureAccount = azureAccount;
             _client = _azureAccount.CreateCloudBlobClient();
             _container = _client.GetContainerReference(container);
-            _containerRoot = UriUtility.EnsureTrailingSlash(_container.Uri).AbsoluteUri;
+
+            var containerUri = UriUtility.EnsureTrailingSlash(_container.Uri);
+            var expectedPath = UriUtility.EnsureTrailingSlash(root);
+
+            // Verify that the provided path is sane.
+            if (!expectedPath.AbsoluteUri.StartsWith(expectedPath.AbsoluteUri, StringComparison.Ordinal))
+            {
+                throw new ArgumentException($"Invalid feed path. Azure container {container} resolved to {containerUri.AbsoluteUri} which does not match the provided URI of {expectedPath}  Update path in sleet.json or remove the path property to auto resolve the value.");
+            }
+
+            // Compute sub path, ignore the given sub path
+            var subPath = UriUtility.GetRelativePath(
+                containerUri,
+                expectedPath);
+
+            if (!string.IsNullOrEmpty(subPath))
+            {
+                // Override the given sub path
+                FeedSubPath = subPath;
+            }
+
+            if (!string.IsNullOrEmpty(FeedSubPath))
+            {
+                FeedSubPath = FeedSubPath.Trim('/') + '/';
+            }
         }
 
         public override ISleetFile Get(Uri path)
         {
-            var relativePath = GetPathRelativeToContainer(path);
-
-            var blob = _container.GetBlockBlobReference(relativePath);
-
-            var file = Files.GetOrAdd(path, (uri) =>
-                {
-                    var rootUri = UriUtility.ChangeRoot(BaseURI, Root, uri);
-
-                    return new AzureFile(
-                        this,
-                        rootUri,
-                        uri,
-                        LocalCache.GetNewTempPath(),
-                        blob);
-                });
-
-            return file;
+            return GetOrAddFile(path, caseSensitive: true,
+                createFile: (pair) => new AzureFile(
+                    this,
+                    pair.Root,
+                    pair.BaseURI,
+                    LocalCache.GetNewTempPath(),
+                    _container.GetBlockBlobReference(GetRelativePath(path))));
         }
 
         public override async Task<bool> Validate(ILogger log, CancellationToken token)
@@ -72,7 +85,11 @@ namespace Sleet
 
         public override ISleetFileSystemLock CreateLock(ILogger log)
         {
-            var relativePath = GetPathRelativeToContainer(GetPath(AzureFileSystemLock.LockFile));
+            // Find display URI
+            var path = GetPath(AzureFileSystemLock.LockFile);
+            var relativePath = GetRelativePath(path);
+
+            // Create blob
             var blob = _container.GetBlockBlobReference(relativePath);
             return new AzureFileSystemLock(blob, log);
         }
@@ -102,24 +119,16 @@ namespace Sleet
                  .ToList();
         }
 
-        /// <summary>
-        /// Get the path without the container root URI.
-        /// </summary>
-        private string GetPathRelativeToContainer(Uri uri)
+        public override string GetRelativePath(Uri uri)
         {
-            if (uri == null)
+            var relativePath = base.GetRelativePath(uri);
+
+            if (!string.IsNullOrEmpty(FeedSubPath))
             {
-                throw new ArgumentNullException(nameof(uri));
+                relativePath = FeedSubPath + relativePath;
             }
 
-            var path = uri.AbsoluteUri;
-
-            if (!path.StartsWith(_containerRoot, StringComparison.Ordinal))
-            {
-                throw new InvalidOperationException($"Unable to make '{uri.AbsoluteUri}' relative to '{_containerRoot}'");
-            }
-
-            return path.Replace(_containerRoot, string.Empty);
+            return relativePath;
         }
     }
 }

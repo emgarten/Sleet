@@ -8,28 +8,21 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <licenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</licenseUrl>
     <projectUrl>https://github.com/emgarten/Sleet/</projectUrl>
-    <description>Sleet is a command line tool that generates NuGet v3 static feeds.</description>
+    <description>Sleet is a static feed generator for NuGet package feeds.</description>
     <copyright>Copyright © 2017 Justin Emgarten</copyright>
     <tags>nuget nugetserver nugetfeed</tags>
-    <repository type="git" url="https://github.com/emgarten/Sleet" />
+    <repository type="git" url="https://github.com/emgarten/Sleet" branch="$branch$" commit="$commit$" />
     <developmentDependency>true</developmentDependency>
     <iconUrl>https://emgartenstatic.blob.core.windows.net/nupkgs/icons/sleet.png</iconUrl>
     <packageTypes>
-      <packageType name="DotnetCliTool" />
+      <packageType name="DotnetTool" />
     </packageTypes>
-    <dependencies>
-      <group targetFramework=".NETCoreApp2.0">
-        <dependency id="Microsoft.NETCore.App" version="2.0.0" />
-        <dependency id="McMaster.Extensions.CommandLineUtils" version="2.0.0" />
-        <dependency id="SleetLib" version="$version$" />
-      </group>
-    </dependencies>
   </metadata>
   <files>
-    <file src="..\..\artifacts\publish\Sleet.exe" target="tools\" />
-    <file src="..\..\artifacts\dotnettoolassemblies\Sleet\Sleet.dll" target="lib\netcoreapp2.0\dotnet-sleet.dll" />
-    <file src="..\..\build\nupkgIncludes\runtimeconfig.json" target="lib\netcoreapp2.0\dotnet-sleet.runtimeconfig.json" />
-    <file src="..\..\build\nupkgIncludes\prefercliruntime" target="prefercliruntime" />
+    <file src="..\..\artifacts\publish\*.exe" target="tools\" />
+    <file src="..\..\artifacts\publish\netcoreapp2.1\*.dll" target="tools\netcoreapp2.1\any\" />
+    <file src="..\..\artifacts\publish\netcoreapp2.1\DotnetToolSettings.xml" target="tools\netcoreapp2.1\any\" />
+    <file src="..\..\artifacts\publish\netcoreapp2.1\Sleet.runtimeconfig.json" target="tools\netcoreapp2.1\any\" />
     <file src="..\..\build\nupkgIncludes\Sleet.props" target="build\net46\Sleet.props" />
   </files>
 </package>

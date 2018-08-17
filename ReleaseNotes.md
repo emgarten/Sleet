@@ -1,5 +1,19 @@
 # Release Notes
 
+## 2.3.33
+* Local feeds will contian baseURI by default when using createconfig.
+* Local feeds will fail if path contains an http URI. baseURI should be used instead.
+
+## 2.3.31
+* Path property in sleet.json is now optional for azure and s3 feeds. If not provided it will be resolved from the container/bucket.
+* Added support for tokenized sleet.json files
+* Added --property support for passing in setting values
+* Added SLEET_FEED_ env var support
+
+## 2.3.0
+* Added Amazon S3 support (skarllot)
+* Fix for createconfig json formatting
+
 ## 2.2.0
 * Fix for multiple catalog pages
 * Sleet versions of the same semantic version patch will no longer require upgrading the feed to work together.

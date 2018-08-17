@@ -24,7 +24,9 @@ namespace Sleet
 
         public ConcurrentDictionary<Uri, ISleetFile> Files { get; private set; } = new ConcurrentDictionary<Uri, ISleetFile>();
 
-        public string FeedSubPath { get; private set; }
+        public string FeedSubPath { get; protected set; }
+
+        private readonly string[] _roots;
 
         protected FileSystemBase(LocalCache cache, Uri root)
             : this(cache, root, root)
@@ -40,6 +42,13 @@ namespace Sleet
 
             BaseURI = UriUtility.EnsureTrailingSlash(BaseURI);
             Root = UriUtility.EnsureTrailingSlash(Root);
+
+            // Ensure the longest root is first to avoid conflicts in StartsWith
+            _roots = (new[] { BaseURI.AbsoluteUri, Root.AbsoluteUri })
+                .Distinct(StringComparer.Ordinal)
+                .OrderByDescending(e => e.Length)
+                .ThenBy(e => e, StringComparer.Ordinal)
+                .ToArray();
         }
 
         public abstract ISleetFileSystemLock CreateLock(ILogger log);
@@ -102,6 +111,83 @@ namespace Sleet
             }
 
             return UriUtility.GetPath(BaseURI, relativePath);
+        }
+
+        public virtual string GetRelativePath(Uri uri)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            var path = uri.AbsoluteUri;
+
+            // The root can be either the display root (BaseURI) or the actual root.
+            foreach (var prefix in _roots)
+            {
+                // This must have a trailing slash already.
+                if (path.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    return path.Replace(prefix, string.Empty);
+                }
+            }
+
+            throw new InvalidOperationException($"Unable to make '{uri.AbsoluteUri}' relative to '{BaseURI}'.");
+        }
+
+        /// <summary>
+        /// Create a file and add it to Files
+        /// </summary>
+        protected ISleetFile GetOrAddFile(Uri path, bool caseSensitive, Func<SleetUriPair, ISleetFile> createFile)
+        {
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            var file = Files.GetOrAdd(path, (uri) =>
+            {
+                return createFile(GetUriPair(path, caseSensitive));
+            });
+
+            return file;
+        }
+
+        /// <summary>
+        /// Inspect a URI and determine the correct root and display URIs
+        /// </summary>
+        protected SleetUriPair GetUriPair(Uri path, bool caseSensitive)
+        {
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            var isRoot = UriUtility.HasRoot(Root, path, caseSensitive);
+            var isDisplay = UriUtility.HasRoot(BaseURI, path, caseSensitive);
+
+            if (!isRoot && !isDisplay)
+            {
+                throw new InvalidOperationException($"URI does not match the feed root or baseURI: {path.AbsoluteUri}");
+            }
+
+            var pair = new SleetUriPair()
+            {
+                BaseURI = path,
+                Root = path
+            };
+
+            if (!isRoot)
+            {
+                pair.Root = UriUtility.ChangeRoot(BaseURI, Root, path);
+            }
+
+            if (!isDisplay)
+            {
+                pair.BaseURI = UriUtility.ChangeRoot(Root, BaseURI, path);
+            }
+
+            return pair;
         }
     }
 }

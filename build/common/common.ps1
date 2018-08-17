@@ -20,9 +20,10 @@ Function Install-DotnetCLI {
 
         Write-Host "Fetching $installDotnet"
 
-        wget https://raw.githubusercontent.com/dotnet/cli/4bd9bb92cc3636421cd01baedbd8ef3e41aa1e22/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
+        wget https://raw.githubusercontent.com/dotnet/cli/62ce305f06c502a2fae459fc906c982b943c6128/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
 
-        & $installDotnet -Channel 2.0 -i $CLIRoot -Version 2.0.2
+        & $installDotnet -i $CLIRoot -Version 2.1.300
+        & $installDotnet -Channel 2.0 -i $CLIRoot -Version 2.0.3
         & $installDotnet -Channel preview -i $CLIRoot -Version 1.0.4
 
         if (-not (Test-Path $DotnetExe)) {
@@ -73,7 +74,7 @@ Function Install-NuGetExe {
         $nugetDir = Split-Path $nugetExe
         New-Item -ItemType Directory -Force -Path $nugetDir
 
-        wget https://dist.nuget.org/win-x86-commandline/v4.4.0-preview3/nuget.exe -OutFile $nugetExe
+        wget https://dist.nuget.org/win-x86-commandline/v4.6.2/nuget.exe -OutFile $nugetExe
     }
 }
 
@@ -122,6 +123,7 @@ Function Invoke-DotnetMSBuild {
     $buildArgs = , "msbuild"
     $buildArgs += "/nologo"
     $buildArgs += "/v:m"
+    $buildArgs += "/nr:false"
     $buildArgs += $Arguments
 
     Invoke-DotnetExe $RepoRoot $buildArgs

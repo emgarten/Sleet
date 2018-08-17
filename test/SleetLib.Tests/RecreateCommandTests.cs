@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -81,6 +81,32 @@ namespace SleetLib.Tests
                 Directory.Exists(outputFolder).Should().BeFalse();
 
                 finalPackages.ShouldBeEquivalentTo(new string[] { "a.1.0.0.nupkg", "b.2.0.0-beta.nupkg" });
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatTheFeedHasNoPackagesVerifyRecreateSucceeds()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            using (var cache3 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
+
+                success.Should().BeTrue();
             }
         }
 

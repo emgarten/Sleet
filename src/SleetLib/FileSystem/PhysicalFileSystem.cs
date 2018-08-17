@@ -25,49 +25,32 @@ namespace Sleet
         public PhysicalFileSystem(LocalCache cache, Uri root)
             : base(cache, root)
         {
+            EnsureLocalRoot(root);
         }
 
         public PhysicalFileSystem(LocalCache cache, Uri root, Uri baseUri, string feedSubPath = null)
             : base(cache, root, baseUri, feedSubPath)
         {
+            EnsureLocalRoot(root);
+        }
+
+        private static void EnsureLocalRoot(Uri uri)
+        {
+            if (uri != null && UriUtility.IsHttp(uri))
+            {
+                throw new ArgumentException("Local feed path cannot be an http URI, use baseURI instead.");
+            }
         }
 
         public override ISleetFile Get(Uri path)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            if (!path.AbsoluteUri.StartsWith(BaseURI.AbsoluteUri))
-            {
-                throw new ArgumentException(string.Format("Base uri does not match the file system. Url: {0}, Expecting: {1}", path.AbsoluteUri, BaseURI.AbsoluteUri));
-            }
-
-            var file = Files.GetOrAdd(path, (uri) =>
-            {
-                var rootUri = uri;
-                var displayUri = uri;
-
-                if (!UriUtility.HasRoot(Root, rootUri))
-                {
-                    rootUri = UriUtility.ChangeRoot(BaseURI, Root, uri);
-                }
-
-                if (!UriUtility.HasRoot(BaseURI, displayUri))
-                {
-                    displayUri = UriUtility.ChangeRoot(Root, BaseURI, uri);
-                }
-
-                return new PhysicalFile(
+            return GetOrAddFile(path, caseSensitive: false,
+                createFile: (pair) => new PhysicalFile(
                     this,
-                    rootUri,
-                    displayUri,
+                    pair.Root,
+                    pair.BaseURI,
                     LocalCache.GetNewTempPath(),
-                    new FileInfo(rootUri.LocalPath));
-            });
-
-            return file;
+                    new FileInfo(pair.Root.LocalPath)));
         }
 
         public override Task<bool> Validate(ILogger log, CancellationToken token)

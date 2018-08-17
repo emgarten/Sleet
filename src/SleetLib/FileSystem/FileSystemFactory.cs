@@ -1,4 +1,9 @@
 using System;
+using System.Linq;
+#if !SLEETLEGACY
+using Amazon;
+using Amazon.S3;
+#endif
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 
@@ -22,28 +27,33 @@ namespace Sleet
 
             if (sources != null)
             {
-                foreach (var sourceEntry in sources)
+                foreach (var sourceEntry in sources.Select(e => (JObject)e))
                 {
-                    if (source.Equals(sourceEntry["name"]?.ToObject<string>(), StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (string.IsNullOrEmpty(sourceEntry["path"]?.ToString()))
-                        {
-                            throw new ArgumentException("Missing path for account.");
-                        }
+                    var sourceName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "name");
 
-                        var path = sourceEntry["path"]?.ToObject<string>();
-                        var baseURI = sourceEntry["baseURI"]?.ToObject<string>() ?? path;
-                        var feedSubPath = sourceEntry["feedSubPath"]?.ToObject<string>();
-                        var type = sourceEntry["type"]?.ToObject<string>().ToLowerInvariant();
+                    if (source.Equals(sourceName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var path = JsonUtility.GetValueCaseInsensitive(sourceEntry, "path");
+                        var baseURIString = JsonUtility.GetValueCaseInsensitive(sourceEntry, "baseURI");
+                        var feedSubPath = JsonUtility.GetValueCaseInsensitive(sourceEntry, "feedSubPath");
+                        var type = JsonUtility.GetValueCaseInsensitive(sourceEntry, "type")?.ToLowerInvariant();
+
+                        var pathUri = path != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(path)) : null;
+                        var baseUri = baseURIString != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(baseURIString)) : pathUri;
 
                         if (type == "local")
                         {
-                            result = new PhysicalFileSystem(cache, UriUtility.CreateUri(path), UriUtility.CreateUri(baseURI));
+                            if (pathUri == null)
+                            {
+                                throw new ArgumentException("Missing path for account.");
+                            }
+
+                            result = new PhysicalFileSystem(cache, pathUri, baseUri);
                         }
                         else if (type == "azure")
                         {
-                            var connectionString = sourceEntry["connectionString"]?.ToObject<string>();
-                            var container = sourceEntry["container"]?.ToObject<string>();
+                            var connectionString = JsonUtility.GetValueCaseInsensitive(sourceEntry, "connectionString");
+                            var container = JsonUtility.GetValueCaseInsensitive(sourceEntry, "container");
 
                             if (string.IsNullOrEmpty(connectionString))
                             {
@@ -62,8 +72,61 @@ namespace Sleet
 
                             var azureAccount = CloudStorageAccount.Parse(connectionString);
 
-                            result = new AzureFileSystem(cache, UriUtility.CreateUri(path), UriUtility.CreateUri(baseURI), azureAccount, container, feedSubPath);
+                            if (pathUri == null)
+                            {
+                                // Get the default url from the container
+                                pathUri = AzureUtility.GetContainerPath(azureAccount, container);
+                            }
+
+                            if (baseUri == null)
+                            {
+                                baseUri = pathUri;
+                            }
+
+                            result = new AzureFileSystem(cache, pathUri, baseUri, azureAccount, container, feedSubPath);
                         }
+#if !SLEETLEGACY
+                        else if (type == "s3")
+                        {
+                            var accessKeyId = JsonUtility.GetValueCaseInsensitive(sourceEntry, "accessKeyId");
+                            var secretAccessKey = JsonUtility.GetValueCaseInsensitive(sourceEntry, "secretAccessKey");
+                            var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
+                            var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
+
+                            if (string.IsNullOrEmpty(accessKeyId))
+                                throw new ArgumentException("Missing accessKeyId for Amazon S3 account.");
+                            if (string.IsNullOrEmpty(secretAccessKey))
+                                throw new ArgumentException("Missing secretAccessKey for Amazon S3 account.");
+                            if (string.IsNullOrEmpty(bucketName))
+                                throw new ArgumentException("Missing bucketName for Amazon S3 account.");
+                            if (string.IsNullOrEmpty(region))
+                                throw new ArgumentException("Missing region for Amazon S3 account.");
+
+                            var regionSystemName = RegionEndpoint.GetBySystemName(region);
+
+                            if (pathUri == null)
+                            {
+                                // Find the default path
+                                pathUri = AmazonS3Utility.GetBucketPath(bucketName, regionSystemName.SystemName);
+                            }
+
+                            if (baseUri == null)
+                            {
+                                baseUri = pathUri;
+                            }
+
+                            var amazonS3Client = new AmazonS3Client(
+                                accessKeyId, secretAccessKey, regionSystemName);
+
+                            result = new AmazonS3FileSystem(
+                                cache,
+                                pathUri,
+                                baseUri,
+                                amazonS3Client,
+                                bucketName,
+                                feedSubPath);
+                        }
+#endif
                     }
                 }
             }

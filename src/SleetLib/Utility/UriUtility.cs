@@ -13,9 +13,11 @@ namespace Sleet
         /// <summary>
         /// Check if the URI has the expected root
         /// </summary>
-        public static bool HasRoot(Uri expectedRoot, Uri fullPath)
+        public static bool HasRoot(Uri expectedRoot, Uri fullPath, bool caseSensitive)
         {
-            return fullPath.AbsoluteUri.StartsWith(expectedRoot.AbsoluteUri);
+            var compare = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+            return fullPath.AbsoluteUri.StartsWith(expectedRoot.AbsoluteUri, compare);
         }
 
         /// <summary>
@@ -64,7 +66,7 @@ namespace Sleet
                 return path.AbsoluteUri.Substring(basePath.AbsoluteUri.Length);
             }
 
-            throw new ArgumentException("Uri is not rooted in the basePath");
+            throw new ArgumentException($"Uri {path} is not rooted in the basePath: {basePath}");
         }
 
         /// <summary>
@@ -117,12 +119,34 @@ namespace Sleet
 
         public static Uri EnsureTrailingSlash(Uri uri)
         {
-            return new Uri(uri.AbsoluteUri.TrimEnd('/') + "/");
+            var s = uri.AbsoluteUri;
+
+            if (s.EndsWith("//", StringComparison.OrdinalIgnoreCase))
+            {
+                // Trim if needed
+                s = s.TrimEnd('/');
+            }
+
+            if (s.EndsWith("/", StringComparison.Ordinal))
+            {
+                // noop
+                return uri;
+            }
+
+            return new Uri(s + "/");
         }
 
         public static Uri RemoveTrailingSlash(Uri uri)
         {
-            return new Uri(uri.AbsoluteUri.TrimEnd('/'));
+            var s = uri.AbsoluteUri;
+
+            if (!s.EndsWith("/", StringComparison.Ordinal))
+            {
+                // noop
+                return uri;
+            }
+
+            return new Uri(s.TrimEnd('/'));
         }
 
         public static bool IsHttp(Uri uri)
@@ -146,6 +170,21 @@ namespace Sleet
             {
                 return uri.AbsoluteUri.Split('/').Last();
             }
+        }
+
+        /// <summary>
+        /// Returns the path without the file name or the same path if this is a directory.
+        /// </summary>
+        public static Uri GetPathWithoutFile(Uri uri)
+        {
+            var file = GetFileName(uri);
+
+            if (file != null)
+            {
+                return new Uri(uri.AbsoluteUri.Substring(0, uri.AbsoluteUri.Length - file.Length));
+            }
+
+            return uri;
         }
     }
 }

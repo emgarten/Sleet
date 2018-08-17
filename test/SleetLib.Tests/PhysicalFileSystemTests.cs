@@ -303,5 +303,26 @@ namespace SleetLib.Tests
                 results.Select(e => Path.GetFileName(e.EntityUri.LocalPath)).ShouldBeEquivalentTo(new[] { "a.txt" });
             }
         }
+
+        [Fact]
+        public void GivenAnHttpPathVerifyThrows()
+        {
+            using (var cache = new LocalCache())
+            {
+                Exception ex = null;
+
+                try
+                {
+                    var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri("https://example.com/feed/"));
+                }
+                catch (Exception e)
+                {
+                    ex = e;
+                }
+
+                ex.Should().NotBeNull();
+                ex.Message.Should().Be("Local feed path cannot be an http URI, use baseURI instead.");
+            }
+        }
     }
 }
