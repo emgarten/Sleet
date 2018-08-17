@@ -9,14 +9,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>SleetLib</PackageId>
+    <PackageId>DotNet.SleetLib</PackageId>
     <RootNamespace>SleetLib</RootNamespace>
     <AssemblyName>SleetLib</AssemblyName>
     <Description>Access Sleet.exe commands through the Sleet API.</Description>
     <PackProject>true</PackProject>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard1.3'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard1.3' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netstandard2.1'">
     <DefineConstants>USEJSONNET901;SLEETLEGACY</DefineConstants>
     <UseJsonNet901>true</UseJsonNet901>
   </PropertyGroup>
