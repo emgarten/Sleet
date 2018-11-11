@@ -11,11 +11,11 @@ run_standard_tests()
   if [ ! -f $DOTNET ]; then
     echo "Installing dotnet"
     mkdir -p .cli
-    curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/cli/485638376d20426a382705b9c546b47bea0da206/scripts/obtain/dotnet-install.sh
+    curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/cli/99ff2dbb524679a14e74ba22e42210b2b009ee80/scripts/obtain/dotnet-install.sh
 
     # Run install.sh
     chmod +x .cli/dotnet-install.sh
-    .cli/dotnet-install.sh -i .cli -v 2.1.300
+    .cli/dotnet-install.sh -i .cli -c 2.1 -v 2.1.403
     .cli/dotnet-install.sh -i .cli -c 2.0 -v 2.0.3
     .cli/dotnet-install.sh -i .cli -c preview -v 1.0.4
   fi
