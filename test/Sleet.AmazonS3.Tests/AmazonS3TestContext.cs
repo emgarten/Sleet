@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,11 +24,12 @@ namespace Sleet.AmazonS3.Tests
             LocalCache = new LocalCache();
             LocalSettings = new LocalSettings();
 
-            string accessKeyId = Environment.GetEnvironmentVariable(EnvAccessKeyId);
-            string secretAccessKey = Environment.GetEnvironmentVariable(EnvSecretAccessKey);
-            string region = Environment.GetEnvironmentVariable(EnvDefaultRegion) ?? "us-east-1";
+            var accessKeyId = Environment.GetEnvironmentVariable(EnvAccessKeyId);
+            var secretAccessKey = Environment.GetEnvironmentVariable(EnvSecretAccessKey);
+            var region = Environment.GetEnvironmentVariable(EnvDefaultRegion) ?? "us-east-1";
             Client = new AmazonS3Client(accessKeyId, secretAccessKey, RegionEndpoint.GetBySystemName(region));
 
+            Uri = new Uri($"https://{BucketName}.s3.{region}.amazonaws.com/");
             FileSystem = new AmazonS3FileSystem(LocalCache, Uri, Client, BucketName);
             Logger = new TestLogger();
         }
@@ -43,7 +44,7 @@ namespace Sleet.AmazonS3.Tests
 
         public LocalCache LocalCache { get; }
 
-        public Uri Uri => new Uri($"https://s3.amazonaws.com/{BucketName}/");
+        public Uri Uri { get; private set; }
 
         public ILogger Logger { get; }
 
