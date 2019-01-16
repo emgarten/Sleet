@@ -23,14 +23,43 @@ namespace Sleet
             _context = context;
         }
 
-        public async Task AddPackageAsync(PackageInput package)
+        public Task AddPackageAsync(PackageInput package)
+        {
+            return AddPackagesAsync(new[] { package });
+        }
+
+        public Task RemovePackageAsync(PackageIdentity package)
+        {
+            return RemovePackagesAsync(new[] { package });
+        }
+
+        private void DeletePackagePage(PackageIdentity package)
+        {
+            // Delete package page
+            var packageUri = GetPackageUri(package);
+            var packageFile = _context.Source.Get(packageUri);
+            packageFile.Delete(_context.Log, _context.Token);
+        }
+
+        public Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
+        {
+            var byId = SleetUtility.GetPackageSetsById(packageInputs, e => e.Identity.Id);
+            var tasks = new List<Func<Task>>();
+
+            // Create page details pages and index pages in parallel.
+            tasks.AddRange(byId.Select(e => new Func<Task>(() => CreatePackageIndexAsync(e.Key, e.Value))));
+            tasks.AddRange(packageInputs.Select(e => new Func<Task>(() => CreatePackagePageAsync(e))));
+
+            return TaskUtils.RunAsync(tasks);
+        }
+
+        private async Task CreatePackageIndexAsync(string packageId, List<PackageInput> packageInputs)
         {
             // Retrieve index
-            var rootUri = GetIndexUri(package.Identity);
+            var rootUri = GetIndexUri(packageId);
             var rootFile = _context.Source.Get(rootUri);
 
             var packages = new List<JObject>();
-
             var json = await rootFile.GetJsonOrNull(_context.Log, _context.Token);
 
             if (json != null)
@@ -39,23 +68,40 @@ namespace Sleet
                 packages = await GetPackageDetails(json);
             }
 
-            // Add entry
-            var newEntry = CreateItem(package);
-            var removed = packages.RemoveAll(p => GetPackageVersion(p) == package.Identity.Version);
+            // Remove any duplicates from the file
+            var newPackageVersions = new HashSet<NuGetVersion>(packageInputs.Select(e => e.Identity.Version));
 
-            if (removed > 0)
+            foreach (var existingPackage in packages.ToArray())
             {
-                _context.Log.LogWarning($"Removed duplicate registration entry for: {package.Identity}");
+                var existingVersion = GetPackageVersion(existingPackage);
+
+                if (newPackageVersions.Contains(existingVersion))
+                {
+                    packages.Remove(existingPackage);
+                    _context.Log.LogWarning($"Removed duplicate registration entry for: {new PackageIdentity(packageId, existingVersion)}");
+                }
             }
 
-            packages.Add(newEntry);
+            // Add package entries
+            foreach (var package in packageInputs)
+            {
+                // Add entry
+                var newEntry = CreateItem(package);
+                packages.Add(newEntry);
+            }
 
             // Create index
             var newIndexJson = await CreateIndexAsync(rootUri, packages);
 
             // Write
             await rootFile.Write(newIndexJson, _context.Log, _context.Token);
+        }
 
+        /// <summary>
+        /// Create a package details page for a package id/version.
+        /// </summary>
+        private async Task CreatePackagePageAsync(PackageInput package)
+        {
             // Create package page
             var packageUri = GetPackageUri(package.Identity);
             var packageFile = _context.Source.Get(packageUri);
@@ -65,13 +111,30 @@ namespace Sleet
             await packageFile.Write(packageJson, _context.Log, _context.Token);
         }
 
-        public async Task RemovePackageAsync(PackageIdentity package)
+        public Task RemovePackagesAsync(IEnumerable<PackageIdentity> packagesToDelete)
         {
-            var found = false;
+            var byId = SleetUtility.GetPackageSetsById(packagesToDelete, e => e.Id);
+            var tasks = new List<Func<Task>>();
 
+            foreach (var pair in byId)
+            {
+                var packageId = pair.Key;
+                var versions = new HashSet<NuGetVersion>(pair.Value.Select(e => e.Version));
+                tasks.Add(new Func<Task>(() => RemovePackagesFromIndexAsync(packageId, versions)));
+            }
+
+            return TaskUtils.RunAsync(tasks);
+        }
+
+        /// <summary>
+        /// Remove packages from index and remove details pages if they exist.
+        /// </summary>
+        private async Task RemovePackagesFromIndexAsync(string packageId, HashSet<NuGetVersion> versions)
+        {
             // Retrieve index
-            var rootUri = GetIndexUri(package);
+            var rootUri = GetIndexUri(packageId);
             var rootFile = _context.Source.Get(rootUri);
+            var modified = false;
 
             var packages = new List<JObject>();
             var json = await rootFile.GetJsonOrNull(_context.Log, _context.Token);
@@ -85,21 +148,19 @@ namespace Sleet
                 {
                     var version = GetPackageVersion(entry);
 
-                    if (version == package.Version)
+                    if (versions.Contains(version))
                     {
-                        found = true;
+                        modified = true;
                         packages.Remove(entry);
+
+                        // delete details page
+                        DeletePackagePage(new PackageIdentity(packageId, version));
                     }
                 }
             }
 
-            if (found)
+            if (modified)
             {
-                // Delete package page
-                var packageUri = GetPackageUri(package);
-                var packageFile = _context.Source.Get(packageUri);
-                packageFile.Delete(_context.Log, _context.Token);
-
                 if (packages.Count > 0)
                 {
                     // Create index
@@ -148,7 +209,8 @@ namespace Sleet
             var context = await JsonUtility.GetContextAsync("Registration");
             json.Add("@context", context);
 
-            return JsonLDTokenComparer.Format(json);
+            // Avoid formatting all package details again since this file could be very large.
+            return JsonLDTokenComparer.Format(json, recurse: false);
         }
 
         public JObject CreatePage(Uri indexUri, List<JObject> packageDetails)
@@ -168,16 +230,11 @@ namespace Sleet
             json.Add("lower", lower);
             json.Add("upper", upper);
 
-            var itemsArray = new JArray();
+            // Order and add all items
+            var itemsArray = new JArray(packageDetails.OrderBy(GetPackageVersion));
             json.Add("items", itemsArray);
 
-            // Order and add all items
-            foreach (var entry in packageDetails.OrderBy(GetPackageVersion))
-            {
-                itemsArray.Add(entry);
-            }
-
-            return JsonLDTokenComparer.Format(json);
+            return JsonLDTokenComparer.Format(json, recurse: false);
         }
 
         public static NuGetVersion GetPackageVersion(JObject packageDetails)
@@ -208,7 +265,12 @@ namespace Sleet
 
         public Uri GetIndexUri(PackageIdentity package)
         {
-            return UriUtility.CreateUri($"{_context.Source.BaseURI}registration/{package.Id.ToLowerInvariant()}/index.json");
+            return GetIndexUri(package.Id);
+        }
+
+        public Uri GetIndexUri(string packageId)
+        {
+            return UriUtility.CreateUri($"{_context.Source.BaseURI}registration/{packageId.ToLowerInvariant()}/index.json");
         }
 
         public static Uri GetIndexUri(Uri sourceRoot, string packageId)
@@ -321,6 +383,7 @@ namespace Sleet
 
             json.Add("catalogEntry", catalogEntry);
 
+            // Format package details at creation time, and avoid doing it again later to improve perf.
             return JsonLDTokenComparer.Format(json);
         }
 

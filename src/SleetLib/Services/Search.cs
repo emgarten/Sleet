@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
+using NuGet.Versioning;
 
 namespace Sleet
 {
@@ -23,7 +24,17 @@ namespace Sleet
             _context = context;
         }
 
-        public async Task AddPackageAsync(PackageInput packageInput)
+        public Task AddPackageAsync(PackageInput packageInput)
+        {
+            return AddPackagesAsync(new[] { packageInput }); 
+        }
+
+        public Task RemovePackageAsync(PackageIdentity packageIdentity)
+        {
+            return RemovePackagesAsync(new[] { packageIdentity });
+        }
+
+        public async Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
         {
             var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
@@ -31,12 +42,23 @@ namespace Sleet
             // Read existing entries
             var data = GetData(json);
 
-            // Remove the package id we are adding
-            data.RemoveAll(e => packageInput.Identity.Id.Equals(e.GetId(), StringComparison.OrdinalIgnoreCase));
+            var packageIndex = new PackageIndex(_context);
 
-            // Rebuild the new entry
-            var newEntry = await CreatePackageEntry(packageInput.Identity, add: true);
-            data.Add(newEntry);
+            var byId = SleetUtility.GetPackageSetsById(packageInputs, e => e.Identity.Id);
+
+            foreach (var pair in byId)
+            {
+                var packageId = pair.Key;
+                var versions = await packageIndex.GetPackageVersions(packageId);
+                versions.UnionWith(pair.Value.Select(e => e.Identity.Version));
+
+                // Remove the package id we are adding
+                data.RemoveAll(e => packageId.Equals(e.GetId(), StringComparison.OrdinalIgnoreCase));
+
+                // Rebuild the new entry
+                var newEntry = await CreatePackageEntry(packageId, versions);
+                data.Add(newEntry);
+            }
 
             json = CreatePage(data);
 
@@ -44,34 +66,42 @@ namespace Sleet
             await file.Write(json, _context.Log, _context.Token);
         }
 
-        public async Task RemovePackageAsync(PackageIdentity packageIdentity)
+        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
         {
+            var byId = SleetUtility.GetPackageSetsById(packages, e => e.Id);
             var packageIndex = new PackageIndex(_context);
-            var versions = await packageIndex.GetPackageVersions(packageIdentity.Id);
-
-            // Noop if the id does not exist
-            if (!versions.Contains(packageIdentity.Version))
-            {
-                return;
-            }
-
             var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
-
             var data = GetData(json);
+            var modified = false;
 
-            data.RemoveAll(e => packageIdentity.Id.Equals(e.GetId(), StringComparison.OrdinalIgnoreCase));
-
-            if (versions.Count > 1)
+            foreach (var pair in byId)
             {
-                // Remove the version if others still exist, otherwise leave the entire entry out
-                var newEntry = await CreatePackageEntry(packageIdentity, add: false);
-                data.Add(newEntry);
+                var packageId = pair.Key;
+                var versions = await packageIndex.GetPackageVersions(packageId);
+                var toRemove = new HashSet<NuGetVersion>(pair.Value.Select(e => e.Version));
+                var afterRemove = new HashSet<NuGetVersion>(versions.Except(toRemove));
+
+                // Noop if the id does not exist
+                if (afterRemove.Count != versions.Count)
+                {
+                    modified = true;
+                    data.RemoveAll(e => packageId.Equals(e.GetId(), StringComparison.OrdinalIgnoreCase));
+
+                    if (afterRemove.Count > 0)
+                    {
+                        // Remove the version if others still exist, otherwise leave the entire entry out
+                        var newEntry = await CreatePackageEntry(packageId, afterRemove);
+                        data.Add(newEntry);
+                    }
+                }
             }
 
-            json = CreatePage(data);
-
-            await file.Write(json, _context.Log, _context.Token);
+            if (modified)
+            {
+                json = CreatePage(data);
+                await file.Write(json, _context.Log, _context.Token);
+            }
         }
 
         public ISleetFile RootIndexFile
@@ -103,27 +133,15 @@ namespace Sleet
         /// Create a result containing all versions of the package. The passed in identity
         /// may or may not be the latest one that is shown.
         /// </summary>
-        private async Task<JObject> CreatePackageEntry(PackageIdentity package, bool add)
+        private async Task<JObject> CreatePackageEntry(string packageId, ISet<NuGetVersion> versions)
         {
-            var packageIndex = new PackageIndex(_context);
-            var versions = await packageIndex.GetPackageVersions(package.Id);
-
-            if (add)
-            {
-                versions.Add(package.Version);
-            }
-            else
-            {
-                versions.Remove(package.Version);
-            }
-
             var latest = versions.Max();
-            var latestIdentity = new PackageIdentity(package.Id, latest);
+            var latestIdentity = new PackageIdentity(packageId, latest);
 
             var packageUri = Registrations.GetPackageUri(_context.Source.BaseURI, latestIdentity);
             var packageEntry = JsonUtility.Create(packageUri, "Package");
 
-            var registrationUri = Registrations.GetIndexUri(_context.Source.BaseURI, package.Id);
+            var registrationUri = Registrations.GetIndexUri(_context.Source.BaseURI, packageId);
 
             // Read the catalog entry from the package blob. The catalog may not be enabled.
             var registrations = new Registrations(_context);
@@ -165,7 +183,7 @@ namespace Sleet
 
             foreach (var version in versions.OrderBy(v => v))
             {
-                var versionIdentity = new PackageIdentity(package.Id, version);
+                var versionIdentity = new PackageIdentity(packageId, version);
                 var versionUri = Registrations.GetPackageUri(_context.Source.BaseURI, versionIdentity);
 
                 var versionEntry = JsonUtility.Create(versionUri, "Package");

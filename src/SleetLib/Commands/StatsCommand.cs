@@ -36,11 +36,14 @@ namespace Sleet
                 };
 
                 var packageIndex = new PackageIndex(context);
+                var existingPackageSets = await packageIndex.GetPackageSetsAsync();
 
-                var packages = await packageIndex.GetPackagesAsync();
-                var uniqueIds = packages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase);
+                var uniqueIds = existingPackageSets.Packages.Index
+                    .Concat(existingPackageSets.Symbols.Index)
+                    .Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase);
 
-                log.LogMinimal($"Packages: {packages.Count}");
+                log.LogMinimal($"Packages: {existingPackageSets.Packages.Index.Count}");
+                log.LogMinimal($"Symbols Packages: {existingPackageSets.Symbols.Index.Count}");
                 log.LogMinimal($"Unique package ids: {uniqueIds.Count()}");
             }
 

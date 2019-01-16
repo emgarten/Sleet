@@ -39,8 +39,9 @@ namespace Sleet
                 };
 
                 var packageIndex = new PackageIndex(context);
+                var existingPackageSets = await packageIndex.GetPackageSetsAsync();
 
-                var packages = new List<PackageIdentity>();
+                var packages = new HashSet<PackageIdentity>();
 
                 if (!string.IsNullOrEmpty(version))
                 {
@@ -52,7 +53,8 @@ namespace Sleet
                 else
                 {
                     // Delete all versions of the package
-                    packages.AddRange(await packageIndex.GetPackagesByIdAsync(packageId));
+                    packages.UnionWith(await existingPackageSets.Packages.GetPackagesByIdAsync(packageId));
+                    packages.UnionWith(await existingPackageSets.Symbols.GetPackagesByIdAsync(packageId));
                 }
 
                 if (string.IsNullOrEmpty(reason))
@@ -60,10 +62,13 @@ namespace Sleet
                     reason = string.Empty;
                 }
 
+                var toRemove = new HashSet<PackageIdentity>();
+                var toRemoveSymbols = new HashSet<PackageIdentity>();
+
                 foreach (var package in packages)
                 {
-                    var exists = await packageIndex.Exists(package);
-                    var symbolsExists = await packageIndex.SymbolsExists(package);
+                    var exists = existingPackageSets.Packages.Exists(package);
+                    var symbolsExists = existingPackageSets.Symbols.Exists(package);
 
                     if (!exists && !symbolsExists)
                     {
@@ -80,6 +85,16 @@ namespace Sleet
                         }
                     }
 
+                    if (exists)
+                    {
+                        toRemove.Add(package);
+                    }
+
+                    if (symbolsExists)
+                    {
+                        toRemoveSymbols.Add(package);
+                    }
+
                     var message = $"Removing {package.ToString()}";
 
                     if (exists && symbolsExists)
@@ -92,9 +107,12 @@ namespace Sleet
                     }
 
                     await log.LogAsync(LogLevel.Information, message);
-
-                    await SleetUtility.RemovePackage(context, package);
                 }
+
+                // Update feed
+                await log.LogAsync(LogLevel.Information, "Removing packages from feed locally");
+                await SleetUtility.RemoveNonSymbolsPackages(context, toRemove);
+                await SleetUtility.RemoveSymbolsPackages(context, toRemoveSymbols);
 
                 // Save all
                 log.LogMinimal($"Committing changes to {source.BaseURI.AbsoluteUri}");

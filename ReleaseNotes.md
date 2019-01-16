@@ -1,5 +1,10 @@
 # Release Notes
 
+## 2.4.0
+* Performance improvements, packages are added in batch to reduce the number of file read/writes.
+* Add/removes within a service are done in parallel where possible.
+* nupkg files are read in parallel before locking the feed to reduce the amount of time spent in the lock. 
+
 ## 2.3.33
 * Local feeds will contian baseURI by default when using createconfig.
 * Local feeds will fail if path contains an http URI. baseURI should be used instead.
