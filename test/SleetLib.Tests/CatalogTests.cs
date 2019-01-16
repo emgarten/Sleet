@@ -98,13 +98,9 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0-alpha.1")), false)
-                    {
-                        NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0-alpha.1/packageA.1.0.0-alpha.1.nupkg"),
-                        Zip = zip,
-                        Package = new PackageArchiveReader(zip)
-                    };
-
+                    var input = PackageInput.Create(zipFile.FullName);
+                    input.NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0-alpha.1/packageA.1.0.0-alpha.1.nupkg");
+                    
                     // Act
                     var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, context.CommitId, writeFileList: true);
 
@@ -183,13 +179,9 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg"),
-                        Zip = zip,
-                        Package = new PackageArchiveReader(zip)
-                    };
-
+                    var input = PackageInput.Create(zipFile.FullName);
+                    input.NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg");
+                    
                     // Act
                     var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, context.CommitId, writeFileList: true);
 
@@ -262,20 +254,12 @@ namespace Sleet.Test
                 using (var zipA = new ZipArchive(File.OpenRead(zipFileA.FullName), ZipArchiveMode.Read, false))
                 using (var zipB = new ZipArchive(File.OpenRead(zipFileB.FullName), ZipArchiveMode.Read, false))
                 {
-                    var inputA = new PackageInput(zipFileA.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg"),
-                        Zip = zipA,
-                        Package = new PackageArchiveReader(zipA)
-                    };
+                    var inputA = PackageInput.Create(zipFileA.FullName);
+                    inputA.NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg");
 
-                    var inputB = new PackageInput(zipFileB.FullName, new PackageIdentity("packageB", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageB/1.0.0/packageB.1.0.0.nupkg"),
-                        Zip = zipB,
-                        Package = new PackageArchiveReader(zipB)
-                    };
-
+                    var inputB = PackageInput.Create(zipFileB.FullName);
+                    inputB.NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageB/1.0.0/packageB.1.0.0.nupkg");
+                    
                     // Act
                     await catalog.AddPackageAsync(inputA);
                     await catalog.AddPackageAsync(inputB);

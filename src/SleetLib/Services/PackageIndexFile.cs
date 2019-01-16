@@ -29,25 +29,41 @@ namespace Sleet
         {
         }
 
-        public async Task AddPackageAsync(PackageInput packageInput)
+        public Task AddPackageAsync(PackageInput packageInput)
+        {
+            return AddPackagesAsync(new[] { packageInput });
+        }
+
+        public Task RemovePackageAsync(PackageIdentity package)
+        {
+            return RemovePackagesAsync(new[] { package });
+        }
+
+        public async Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
         {
             // Load existing index
             var sets = await GetPackageSetsAsync();
 
             // Add package
-            await sets.Packages.AddPackageAsync(packageInput);
+            await sets.Packages.AddPackagesAsync(packageInputs);
 
             // Write file
             await Save(sets);
         }
 
-        public async Task RemovePackageAsync(PackageIdentity package)
+        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
         {
             // Load existing index
             var sets = await GetPackageSetsAsync();
+            var save = false;
 
             // Remove package
-            if (sets.Packages.Index.Remove(package))
+            foreach (var package in packages)
+            {
+                save |= sets.Packages.Index.Remove(package);
+            }
+
+            if (save)
             {
                 // Create updated index
                 await Save(sets);
@@ -119,7 +135,7 @@ namespace Sleet
         /// Returns all packages in the feed.
         /// Id -> Version
         /// </summary>
-        private async Task<PackageSets> GetPackageSetsAsync()
+        public async Task<PackageSets> GetPackageSetsAsync()
         {
             var index = new PackageSets();
 
@@ -298,13 +314,6 @@ namespace Sleet
         {
             var sets = await GetPackageSetsAsync();
             return sets.Packages.Index.Count == 0 && sets.Symbols.Index.Count == 0;
-        }
-
-        private class PackageSets
-        {
-            public PackageSet Packages { get; set; } = new PackageSet();
-
-            public PackageSet Symbols { get; set; } = new PackageSet();
         }
     }
 }
