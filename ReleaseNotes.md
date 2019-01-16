@@ -1,6 +1,6 @@
 # Release Notes
 
-## 2.4.0
+## 2.3.35
 * Performance improvements, packages are added in batch to reduce the number of file read/writes.
 * Add/removes within a service are done in parallel where possible.
 * nupkg files are read in parallel before locking the feed to reduce the amount of time spent in the lock. 
