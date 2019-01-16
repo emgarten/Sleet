@@ -16,8 +16,13 @@ namespace Sleet
         public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, bool skipExisting, ILogger log)
         {
             var token = CancellationToken.None;
+            var now = DateTimeOffset.UtcNow;
+            var packages = new List<PackageInput>();
 
             await log.LogAsync(LogLevel.Minimal, $"Reading feed {source.BaseURI.AbsoluteUri}");
+
+            // Read packages before locking the feed.
+            packages.AddRange(await GetPackageInputs(inputs, now, log));
 
             // Check if already initialized
             using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
@@ -25,60 +30,65 @@ namespace Sleet
                 // Validate source
                 await SourceUtility.ValidateFeedForClient(source, log, token);
 
-                return await PushPackages(settings, source, inputs, force, skipExisting, log, token);
+                // Push
+                return await PushPackages(settings, source, packages, force, skipExisting, log, token);
             }
         }
 
+        /// <summary>
+        /// Push packages to a feed.
+        /// This assumes the feed is already locked.
+        /// </summary>
         public static async Task<bool> PushPackages(LocalSettings settings, ISleetFileSystem source, List<string> inputs, bool force, bool skipExisting, ILogger log, CancellationToken token)
         {
-            var exitCode = true;
             var now = DateTimeOffset.UtcNow;
             var packages = new List<PackageInput>();
 
-            try
+            // Get packages
+            packages.AddRange(await GetPackageInputs(inputs, now, log));
+
+            // Add packages
+            return await PushPackages(settings, source, packages, force, skipExisting, log, token);
+        }
+
+        /// <summary>
+        /// Push packages to a feed.
+        /// This assumes the feed is already locked.
+        /// </summary>
+        public static async Task<bool> PushPackages(LocalSettings settings, ISleetFileSystem source, List<PackageInput> packages, bool force, bool skipExisting, ILogger log, CancellationToken token)
+        {
+            var exitCode = true;
+            var now = DateTimeOffset.UtcNow;
+
+            // Verify no duplicate packages
+            CheckForDuplicates(packages);
+
+            // Get sleet.settings.json
+            await log.LogAsync(LogLevel.Minimal, "Reading feed");
+            var sourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
+
+            // Settings context used for all operations
+            var context = new SleetContext()
             {
-                // Get packages
-                packages.AddRange(GetPackageInputs(inputs, now, log));
+                LocalSettings = settings,
+                SourceSettings = sourceSettings,
+                Log = log,
+                Source = source,
+                Token = token
+            };
 
-                // Get sleet.settings.json
-                await log.LogAsync(LogLevel.Minimal, "Reading feed");
-                var sourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
+            // Fetch feed
+            await SleetUtility.FetchFeed(context);
 
-                // Settings context used for all operations
-                var context = new SleetContext()
-                {
-                    LocalSettings = settings,
-                    SourceSettings = sourceSettings,
-                    Log = log,
-                    Source = source,
-                    Token = token
-                };
+            await log.LogAsync(LogLevel.Information, "Reading existing package index");
 
-                // Fetch feed
-                await SleetUtility.FetchFeed(context);
+            var packageIndex = new PackageIndex(context);
+            await PushPackages(packages, context, packageIndex, force, skipExisting, log);
 
-                await log.LogAsync(LogLevel.Information, "Reading existing package index");
+            // Save all
+            await log.LogAsync(LogLevel.Minimal, $"Committing changes to {source.BaseURI.AbsoluteUri}");
 
-                var packageIndex = new PackageIndex(context);
-
-                foreach (var package in packages)
-                {
-                    await PushPackage(package, context, packageIndex, force, skipExisting, log);
-                }
-
-                // Save all
-                await log.LogAsync(LogLevel.Minimal, $"Committing changes to {source.BaseURI.AbsoluteUri}");
-
-                await source.Commit(log, token);
-            }
-            finally
-            {
-                // Close all zip readers
-                foreach (var package in packages)
-                {
-                    package.Dispose();
-                }
-            }
+            await source.Commit(log, token);
 
             if (exitCode)
             {
@@ -92,78 +102,79 @@ namespace Sleet
             return exitCode;
         }
 
-        private static async Task PushPackage(PackageInput package, SleetContext context,PackageIndex packageIndex, bool force, bool skipExisting, ILogger log)
+        private static async Task PushPackages(List<PackageInput> packageInputs, SleetContext context, PackageIndex packageIndex, bool force, bool skipExisting, ILogger log)
         {
-            var packageString = $"{package.Identity.Id} {package.Identity.Version.ToFullString()}";
+            var toAdd = new List<PackageInput>();
+            var toRemove = new List<PackageInput>();
+            var existingPackageSets = await packageIndex.GetPackageSetsAsync();
 
-            if (package.IsSymbolsPackage)
+            foreach (var package in packageInputs)
             {
-                packageString += " Symbols";
+                var packageString = $"{package.Identity.Id} {package.Identity.Version.ToFullString()}";
 
-                if (!context.SourceSettings.SymbolsEnabled)
+                if (package.IsSymbolsPackage)
                 {
-                    await log.LogAsync(LogLevel.Warning, $"Skipping {packageString}, to push symbols packages enable the symbols server on this feed.");
-                    return;
-                }
-            }
+                    packageString += " Symbols";
 
-            await log.LogAsync(LogLevel.Minimal, $"Pushing {packageString}");
-            await log.LogAsync(LogLevel.Information, $"Checking if package exists.");
-
-            var exists = false;
-
-            if (package.IsSymbolsPackage)
-            {
-                exists = await packageIndex.SymbolsExists(package.Identity);
-            }
-            else
-            {
-                exists = await packageIndex.Exists(package.Identity);
-            }
-
-            if (exists)
-            {
-                if (skipExisting)
-                {
-                    await log.LogAsync(LogLevel.Minimal, $"Package already exists, skipping {packageString}");
-                    return;
-                }
-                else if (force)
-                {
-                    await log.LogAsync(LogLevel.Information, $"Package already exists, removing {packageString}");
-
-                    // Avoid removing both the symbols and non-symbols packages, this should only
-                    // remove the package we are going to replace.
-                    if (package.IsSymbolsPackage)
+                    if (!context.SourceSettings.SymbolsEnabled)
                     {
-                        await SleetUtility.RemoveSymbolsPackage(context, package.Identity);
+                        await log.LogAsync(LogLevel.Warning, $"Skipping {packageString}, to push symbols packages enable the symbols server on this feed.");
+
+                        // Skip this package
+                        continue;
                     }
-                    else
-                    {
-                        await SleetUtility.RemoveNonSymbolsPackage(context, package.Identity);
-                    }
+                }
+
+                await log.LogAsync(LogLevel.Minimal, $"Pushing {packageString}");
+                await log.LogAsync(LogLevel.Information, $"Checking if package exists.");
+
+                var exists = false;
+
+                if (package.IsSymbolsPackage)
+                {
+                    exists = existingPackageSets.Symbols.Exists(package.Identity);
                 }
                 else
                 {
-                    throw new InvalidOperationException($"Package already exists: {packageString}.");
+                    exists = existingPackageSets.Packages.Exists(package.Identity);
                 }
+
+                if (exists)
+                {
+                    if (skipExisting)
+                    {
+                        await log.LogAsync(LogLevel.Minimal, $"Package already exists, skipping {packageString}");
+                        continue;
+                    }
+                    else if (force)
+                    {
+                        toRemove.Add(package);
+                        await log.LogAsync(LogLevel.Information, $"Package already exists, removing {packageString}");
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Package already exists: {packageString}.");
+                    }
+                }
+
+                // Add to list of packages to push
+                toAdd.Add(package);
+                await log.LogAsync(LogLevel.Information, $"Adding {packageString}");
             }
 
-            await log.LogAsync(LogLevel.Information, $"Adding {packageString}");
+            await log.LogAsync(LogLevel.Minimal, $"Syncing feed files and modifying them locally");
 
-            using (package)
-            {
-                package.Zip = new ZipArchive(File.OpenRead(package.PackagePath), ZipArchiveMode.Read, leaveOpen: false);
-                package.Package = new PackageArchiveReader(package.Zip);
+            // Remove conflicting packages before pushing
+            await SleetUtility.RemovePackages(context, toRemove);
 
-                await SleetUtility.AddPackage(context, package);
-            }
+            // Push packages
+            await SleetUtility.AddPackages(context, toAdd);
         }
 
         /// <summary>
         /// Parse input arguments for nupkg paths.
         /// </summary>
-        public static List<PackageInput> GetPackageInputs(List<string> inputs, DateTimeOffset now, ILogger log)
+        private static async Task<List<PackageInput>> GetPackageInputs(List<string> inputs, DateTimeOffset now, ILogger log)
         {
             // Check inputs
             if (inputs.Count < 1)
@@ -172,22 +183,21 @@ namespace Sleet
             }
 
             // Get package inputs
-            var packages = inputs.SelectMany(GetFiles)
+            var packagePaths = inputs.SelectMany(GetFiles)
                 .Distinct(PathUtility.GetStringComparerBasedOnOS())
-                .Select(e => GetPackageInput(e, log))
-                .OrderBy(e => e)
                 .ToList();
 
-            // Check for duplicates
-            CheckForDuplicates(packages);
+            var tasks = packagePaths.Select(e => new Func<Task<PackageInput>>(() => GetPackageInput(e, log)));
+            var packageInputs = await TaskUtils.RunAsync(tasks, useTaskRun: true, token: CancellationToken.None);
+            var packagesSorted = packageInputs.OrderBy(e => e).ToList();
 
-            return packages;
+            return packagesSorted;
         }
 
         private static void CheckForDuplicates(List<PackageInput> packages)
         {
             PackageInput lastPackage = null;
-            foreach (var package in packages)
+            foreach (var package in packages.OrderBy(e => e))
             {
                 if (package.Equals(lastPackage))
                 {
@@ -198,42 +208,23 @@ namespace Sleet
             }
         }
 
-        private static PackageInput GetPackageInput(string file, ILogger log)
+        private static Task<PackageInput> GetPackageInput(string file, ILogger log)
         {
             // Validate package
             log.LogInformation($"Reading {file}");
-
-            PackageIdentity identity = null;
-            var isSymbolsPackage = false;
-            var hasNuspec = false;
-            var hasMultipleNuspecs = false;
-            var nuspecName = string.Empty;
+            PackageInput packageInput = null;
 
             try
             {
                 // Read basic info from the package and verify that it isn't broken.
-                using (var zip = new ZipArchive(File.OpenRead(file), ZipArchiveMode.Read, leaveOpen: false))
-                using (var package = new PackageArchiveReader(zip))
-                {
-                    identity = package.GetIdentity();
-                    isSymbolsPackage = SymbolsUtility.IsSymbolsPackage(zip, file);
-
-                    // Check for correct nuspec name
-                    nuspecName = identity.Id + ".nuspec";
-                    var nuspecs = zip.Entries.Where(entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)).ToList();
-
-                    hasNuspec = nuspecs.Count == 1;
-                    hasMultipleNuspecs = nuspecs.Count > 1;
-                }
+                packageInput = PackageInput.Create(file);
             }
             catch
             {
                 log.LogError($"Invalid package '{file}'.");
                 throw;
             }
-
-            var packageInput = new PackageInput(file, identity, isSymbolsPackage);
-
+            
             // Display a message for non-normalized packages
             if (packageInput.Identity.Version.ToString() != packageInput.Identity.Version.ToNormalizedString())
             {
@@ -241,19 +232,7 @@ namespace Sleet
                 log.LogVerbose(message);
             }
 
-            // Check for correct nuspec name
-            if (!hasNuspec)
-            {
-                throw new InvalidDataException($"'{packageInput.PackagePath}' does not contain '{nuspecName}'.");
-            }
-
-            // Check for multiple nuspec files
-            if (hasMultipleNuspecs)
-            {
-                throw new InvalidDataException($"'{packageInput.PackagePath}' contains multiple nuspecs and cannot be consumed.");
-            }
-
-            return packageInput;
+            return Task.FromResult(packageInput);
         }
 
         private static IEnumerable<string> GetFiles(string input)

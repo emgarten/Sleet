@@ -63,11 +63,7 @@ namespace SleetLib.Tests
 
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        Zip = zip,
-                        Package = new PackageArchiveReader(zip)
-                    };
+                    var input = PackageInput.Create(zipFile.FullName);
 
                     var catalog = new Catalog(context);
                     var registration = new Registrations(context);

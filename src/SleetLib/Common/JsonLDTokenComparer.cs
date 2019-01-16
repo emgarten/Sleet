@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
@@ -20,28 +20,27 @@ namespace Sleet
         /// <summary>
         /// Apply json-ld formatting
         /// </summary>
-        public static JObject Format(JObject json)
+        public static JObject Format(JObject json, bool recurse=true)
         {
             var children = json.Children().ToList();
             children.Sort(Instance);
 
-            var formatted = new JObject();
-            foreach (var child in children)
+            json.RemoveAll();
+            for (var i = 0; i < children.Count; i++)
             {
-                var childObj = child as JObject;
-                var childArray = child as JArray;
+                var child = children[i];
 
-                if (childObj != null)
+                if (recurse && child.Type == JTokenType.Object)
                 {
-                    formatted.Add(Format(childObj));
+                    json.Add(Format((JObject)child));
                 }
                 else
                 {
-                    formatted.Add(child);
+                    json.Add(child);
                 }
             }
 
-            return formatted;
+            return json;
         }
 
         public int Compare(JToken x, JToken y)

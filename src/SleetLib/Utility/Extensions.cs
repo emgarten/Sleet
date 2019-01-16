@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
@@ -125,6 +126,17 @@ namespace Sleet
         public static Uri GetIdUri(this JObject json)
         {
             return JsonUtility.GetIdUri(json);
+        }
+
+        /// <summary>
+        /// Save an XML file to a stream.
+        /// </summary>
+        public static MemoryStream AsMemoryStreamAsync(this XDocument doc)
+        {
+            var mem = new MemoryStream();
+            doc.Save(mem);
+            mem.Position = 0;
+            return mem;
         }
 
         /// <summary>

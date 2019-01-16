@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
@@ -31,13 +32,7 @@ namespace Sleet
         /// <summary>
         /// Catalog index.json file
         /// </summary>
-        public ISleetFile RootIndexFile
-        {
-            get
-            {
-                return _context.Source.Get(RootIndex);
-            }
-        }
+        public ISleetFile RootIndexFile => _context.Source.Get(RootIndex);
 
         /// <summary>
         /// Example: http://tempuri.org/catalog/
@@ -58,12 +53,43 @@ namespace Sleet
         /// <summary>
         /// Add a package to the catalog.
         /// </summary>
-        public async Task AddPackageAsync(PackageInput packageInput)
+        public Task AddPackageAsync(PackageInput packageInput)
+        {
+            return AddPackagesAsync(new[] { packageInput });
+        }
+
+        public Task RemovePackageAsync(PackageIdentity package)
+        {
+            return RemovePackagesAsync(new[] { package });
+        }
+
+        public async Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
+        {
+            // Write catalog pages for each package
+            var tasks = packageInputs.Select(e => new Func<Task<JObject>>(() => AddPackageToCatalogAndGetCommit(e)));
+            var pageCommits = await TaskUtils.RunAsync(tasks, useTaskRun: true, token: CancellationToken.None);
+
+            // Add pages to the index as commits
+            await AddCatalogCommits(pageCommits, "nuget:lastCreated");
+        }
+
+        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
+        {
+            // Write catalog remove pages for each package
+            var tasks = packages.Select(e => new Func<Task<JObject>>(() => GetRemoveCommit(e)));
+            var pageCommits = await TaskUtils.RunAsync(tasks);
+
+            // Add pages to the index as commits
+            await AddCatalogCommits(pageCommits, "nuget:lastDeleted");
+        }
+
+        /// <summary>
+        /// Adds a catalog page and returns the commit.
+        /// </summary>
+        private async Task<JObject> AddPackageToCatalogAndGetCommit(PackageInput packageInput)
         {
             // Create package details page
-            var addFileList = _context.SourceSettings.CatalogEnabled;
-
-            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, _context.CommitId, addFileList);
+            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, _context.CommitId, writeFileList: true);
             var packageDetailsUri = JsonUtility.GetIdUri(packageDetails);
 
             // Add output to the package input for other services to use.
@@ -73,17 +99,18 @@ namespace Sleet
             await packageDetailsFile.Write(packageDetails, _context.Log, _context.Token);
 
             // Create commit
-            var pageCommit = CatalogUtility.CreatePageCommit(
+            return CatalogUtility.CreatePageCommit(
                 packageInput.Identity,
                 packageDetailsUri,
                 _context.CommitId,
                 SleetOperation.Add,
                 "nuget:PackageDetails");
-
-            await AddCatalogEntry(pageCommit, "nuget:lastCreated");
         }
 
-        public async Task RemovePackageAsync(PackageIdentity package)
+        /// <summary>
+        /// Add a remove entry and return the page commit.
+        /// </summary>
+        private async Task<JObject> GetRemoveCommit(PackageIdentity package)
         {
             // Create package details page for the delete
             var packageDetails = await CatalogUtility.CreateDeleteDetailsAsync(package, string.Empty, CatalogBaseURI, _context.CommitId);
@@ -92,14 +119,12 @@ namespace Sleet
             await packageDetailsFile.Write(packageDetails, _context.Log, _context.Token);
 
             // Create commit
-            var pageCommit = CatalogUtility.CreatePageCommit(
+            return CatalogUtility.CreatePageCommit(
                 package,
                 packageDetailsFile.EntityUri,
                 _context.CommitId,
                 SleetOperation.Remove,
                 "nuget:PackageDelete");
-
-            await AddCatalogEntry(pageCommit, "nuget:lastDeleted");
         }
 
         /// <summary>
@@ -299,7 +324,7 @@ namespace Sleet
         /// <summary>
         /// Add an entry to the catalog.
         /// </summary>
-        private async Task AddCatalogEntry(JObject pageCommit, string lastUpdatedPropertyName)
+        private async Task AddCatalogCommits(IEnumerable<JObject> newPageCommits, string lastUpdatedPropertyName)
         {
             // Add catalog page entry
             var catalogIndexJson = await RootIndexFile.GetJson(_context.Log, _context.Token);
@@ -331,7 +356,9 @@ namespace Sleet
                 pages = JsonUtility.GetItems(catalogIndexJson);
             }
 
-            pageCommits.Add(pageCommit);
+            // Add all commits, this might go over the max catalog page size.
+            // This could be improved to create new pages once over the limit if needed.
+            pageCommits.AddRange(newPageCommits);
 
             // Write catalog page
             var pageJson = await CatalogUtility.CreateCatalogPageAsync(RootIndexFile.EntityUri, currentPageUri, pageCommits, _context.CommitId);
@@ -350,6 +377,6 @@ namespace Sleet
         public Task FetchAsync()
         {
             return RootIndexFile.FetchAsync(_context.Log, _context.Token);
-        }
+        }        
     }
 }
