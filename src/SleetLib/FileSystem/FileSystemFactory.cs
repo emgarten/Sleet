@@ -38,7 +38,9 @@ namespace Sleet
                         var feedSubPath = JsonUtility.GetValueCaseInsensitive(sourceEntry, "feedSubPath");
                         var type = JsonUtility.GetValueCaseInsensitive(sourceEntry, "type")?.ToLowerInvariant();
 
-                        var pathUri = path != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(path)) : null;
+                        var absolutePath = path != null && type == "local" ? UriUtility.GetAbsolutePath(path, settings.Path) : null;
+
+                        var pathUri = path != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(absolutePath)) : null;
                         var baseUri = baseURIString != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(baseURIString)) : pathUri;
 
                         if (type == "local")

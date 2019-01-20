@@ -13,6 +13,11 @@ namespace Sleet
         public JObject Json { get; set; } = new JObject();
 
         /// <summary>
+        /// Path of the sleet.json file
+        /// </summary>
+        public string Path { get; set; }
+
+        /// <summary>
         /// Feed lock wait time.
         /// config/feedLockTimeoutMinutes
         /// </summary>
@@ -20,9 +25,15 @@ namespace Sleet
 
         public static LocalSettings Load(JObject json)
         {
+            return Load(json, null);
+        }
+
+        public static LocalSettings Load(JObject json, string path)
+        {
             return new LocalSettings()
             {
                 Json = json,
+                Path = path,
                 FeedLockTimeout = GetFeedLockTimeout(json)
             };
         }
@@ -44,7 +55,7 @@ namespace Sleet
                     // Resolve tokens in the json
                     SettingsUtility.ResolveTokensInSettingsJson(json, mappings);
 
-                    return Load(json);
+                    return Load(json, path);
                 }
                 else if (!string.IsNullOrEmpty(path))
                 {
