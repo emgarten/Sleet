@@ -1,5 +1,6 @@
 using System;
 using FluentAssertions;
+using Sleet.Test.Common;
 using Xunit;
 
 namespace Sleet.Test
@@ -49,7 +50,7 @@ namespace Sleet.Test
             Assert.Equal(expected, UriUtility.EnsureTrailingSlash(new Uri(uri)).AbsoluteUri);
         }
 
-        [Theory]
+        [WindowsTheory]
         [InlineData(@".\", @"c:\otherPath\sleet.json", @"c:\otherPath\")]
         [InlineData(@".", @"c:\otherPath\sleet.json", @"c:\otherPath")]
         [InlineData(@"", @"c:\otherPath\sleet.json", @"c:\otherPath")]
