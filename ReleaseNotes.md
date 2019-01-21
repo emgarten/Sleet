@@ -1,5 +1,8 @@
 # Release Notes
 
+## 2.3.36
+* Path property in sleet.json can now be a relative path for local feeds
+
 ## 2.3.35
 * Performance improvements, packages are added in batch to reduce the number of file read/writes.
 * Add/removes within a service are done in parallel where possible.
