@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 #if !SLEETLEGACY
 using Amazon;
@@ -6,6 +7,7 @@ using Amazon.S3;
 #endif
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
+using NuGetUriUtility = NuGet.Common.UriUtility;
 
 namespace Sleet
 {
@@ -38,9 +40,25 @@ namespace Sleet
                         var feedSubPath = JsonUtility.GetValueCaseInsensitive(sourceEntry, "feedSubPath");
                         var type = JsonUtility.GetValueCaseInsensitive(sourceEntry, "type")?.ToLowerInvariant();
 
-                        var absolutePath = path != null && type == "local" ? UriUtility.GetAbsolutePath(path, settings.Path) : null;
+                        string absolutePath;
+                        if (path != null && type == "local")
+                        {
+                            if (settings.Path == null && !Path.IsPathRooted(path))
+                            {
+                                throw new ArgumentException("Cannot use a relative 'path' without a settings.json file.");
+                            }
 
-                        var pathUri = path != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(absolutePath)) : null;
+                            var nonEmptyPath = path == "" ? "." : path;
+
+                            var settingsDir = Path.GetDirectoryName(settings.Path);
+                            absolutePath = NuGetUriUtility.GetAbsolutePath(settingsDir, nonEmptyPath);
+                        }
+                        else
+                        {
+                            absolutePath = path;
+                        }
+
+                        var pathUri = absolutePath != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(absolutePath)) : null;
                         var baseUri = baseURIString != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(baseURIString)) : pathUri;
 
                         if (type == "local")

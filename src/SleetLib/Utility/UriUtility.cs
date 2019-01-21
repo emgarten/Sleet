@@ -186,21 +186,5 @@ namespace Sleet
 
             return uri;
         }
-
-        public static string GetAbsolutePath(string path, string settingsPath)
-        {
-            if (Path.IsPathRooted(path))
-            {
-                return path;
-            }
-
-            if (settingsPath == null)
-            {
-                throw new ArgumentException("Cannot use a relative 'path' without a settings.json file.");
-            }
-
-            var settingsDir = Path.GetDirectoryName(settingsPath);
-            return Path.GetFullPath(Path.Combine(settingsDir, path));
-        }
     }
 }
