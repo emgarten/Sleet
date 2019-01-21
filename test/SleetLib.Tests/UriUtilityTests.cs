@@ -1,6 +1,4 @@
 using System;
-using FluentAssertions;
-using Sleet.Test.Common;
 using Xunit;
 
 namespace Sleet.Test
