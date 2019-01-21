@@ -49,35 +49,5 @@ namespace Sleet.Test
         {
             Assert.Equal(expected, UriUtility.EnsureTrailingSlash(new Uri(uri)).AbsoluteUri);
         }
-
-        [WindowsTheory]
-        [InlineData(@".\", @"c:\otherPath\sleet.json", @"c:\otherPath\")]
-        [InlineData(@".", @"c:\otherPath\sleet.json", @"c:\otherPath")]
-        [InlineData(@"", @"c:\otherPath\sleet.json", @"c:\otherPath")]
-        [InlineData(@"singleSubFolder", @"c:\otherPath\sleet.json", @"c:\otherPath\singleSubFolder")]
-        [InlineData(@"nestedSubFolder\a", @"c:\otherPath\sleet.json", @"c:\otherPath\nestedSubFolder\a")]
-        [InlineData(@"c:\absolutePath", @"c:\otherPath\sleet.json", @"c:\absolutePath")]
-        public void UriUtility_GetAbsolutePath(string path, string settingsPath, string expected)
-        {
-            Assert.Equal(expected, UriUtility.GetAbsolutePath(path, settingsPath));
-        }
-
-        [Fact]
-        public void UriUtility_ThrowsIfGetAbosolutePathWithNoSettingsFile()
-        {
-            Exception ex = null;
-
-            try
-            {
-                UriUtility.GetAbsolutePath("", null);
-            }
-            catch (Exception e)
-            {
-                ex = e;
-            }
-
-            ex.Should().NotBeNull();
-            ex.Message.Should().Be("Cannot use a relative 'path' without a settings.json file.");
-        }
     }
 }

@@ -4,10 +4,12 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
 using NuGet.Versioning;
+using Sleet.Test.Common;
 using Xunit;
 
 namespace Sleet.Test
@@ -106,6 +108,61 @@ namespace Sleet.Test
                     });
                 }
             }
+        }
+
+        [WindowsTheory]
+        [InlineData(@"c:\configPath\sleet.config", @".\", @"c:\configPath\")]
+        [InlineData(@"c:\configPath\sleet.config", @".", @"c:\configPath\")]
+        [InlineData(@"c:\configPath\sleet.config", @"", @"c:\configPath\")]
+        [InlineData(@"c:\configPath\sleet.config", @"singleSubFolder", @"c:\configPath\singleSubFolder\")]
+        [InlineData(@"c:\configPath\sleet.config", @"nestedSubFolder\a", @"c:\configPath\nestedSubFolder\a\")]
+        [InlineData(@"c:\configPath\sleet.config", @"c:\absolutePath", @"c:\absolutePath\")]
+        [InlineData(@"\\some-network-share\share\sleet.config", @"singleSubFolder", @"\\some-network-share\share\singleSubFolder\")]
+        [InlineData(@"\\some-network-share\share\sleet.config", @"nestedSubFolder\a", @"\\some-network-share\share\nestedSubFolder\a\")]
+        [InlineData(@"\\some-network-share\share\sleet.config", @".\", @"\\some-network-share\share\")]
+        [InlineData(@"file:///c:/configPath/sleet.config", @"", @"c:\configPath\")]
+        [InlineData(@"file:///c:/configPath/sleet.config", @"singleSubFolder", @"c:\configPath\singleSubFolder\")]
+        [InlineData(@"file:///c:/configPath/sleet.config", @"nestedSubFolder\a", @"c:\configPath\nestedSubFolder\a\")]
+        public void Feed_LocalTypeSupportsRelativePath(string configPath, string outputPath, string expected)
+        {
+            using (var cache = new LocalCache())
+            {
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
+
+                var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputPath, baseUri.AbsoluteUri);
+                
+                var settings = LocalSettings.Load(sleetConfig, configPath);
+                var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, "local") as PhysicalFileSystem;
+
+                Assert.NotNull(fileSystem);
+                Assert.Equal(expected, fileSystem.LocalRoot);
+            }
+        }
+
+        [Fact]
+        public void UriUtility_ThrowsIfGetAbsolutePathWithNoSettingsFile()
+        {
+            Exception ex = null;
+
+            try
+            {
+                using (var cache = new LocalCache())
+                {
+                    var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
+
+                    var sleetConfig = TestUtility.CreateConfigWithLocal("local", "relativePath", baseUri.AbsoluteUri);
+                
+                    var settings = LocalSettings.Load(sleetConfig, null);
+                    FileSystemFactory.CreateFileSystem(settings, cache, "local");
+                }
+            }
+            catch (Exception e)
+            {
+                ex = e;
+            }
+
+            ex.Should().NotBeNull();
+            ex.Message.Should().Be("Cannot use a relative 'path' without a settings.json file.");
         }
     }
 }
