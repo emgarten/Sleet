@@ -43,14 +43,14 @@ namespace Sleet
                         string absolutePath;
                         if (path != null && type == "local")
                         {
-                            if (settings.Path == null && !Path.IsPathRooted(path))
+                            if (settings.Path == null && !Path.IsPathRooted(NuGetUriUtility.GetLocalPath(path)))
                             {
                                 throw new ArgumentException("Cannot use a relative 'path' without a settings.json file.");
                             }
 
                             var nonEmptyPath = path == "" ? "." : path;
 
-                            var settingsDir = Path.GetDirectoryName(settings.Path);
+                            var settingsDir = Path.GetDirectoryName(NuGetUriUtility.GetLocalPath(settings.Path));
                             absolutePath = NuGetUriUtility.GetAbsolutePath(settingsDir, nonEmptyPath);
                         }
                         else
