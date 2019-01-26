@@ -375,9 +375,14 @@ namespace Sleet
             await RootIndexFile.Write(catalogIndexJson, _context.Log, _context.Token);
         }
 
-        public Task FetchAsync()
+        public Task ApplyOperationsAsync(SleetOperations operations)
+        {
+            return OperationsUtility.ApplyAddRemoveAsync(this, operations);
+        }
+
+        public Task PreLoadAsync(SleetOperations operations)
         {
             return RootIndexFile.FetchAsync(_context.Log, _context.Token);
-        }        
+        }
     }
 }

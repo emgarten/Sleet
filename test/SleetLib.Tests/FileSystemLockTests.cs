@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Test.Helpers;
+using Sleet;
 using Xunit;
 
-namespace Sleet.Test
+namespace SleetLib.Tests
 {
     public class FileSystemLockTests
     {

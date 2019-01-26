@@ -1,19 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NuGet.Common;
-using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
 using NuGet.Versioning;
 using Sleet;
-using Sleet.Test;
 using Xunit;
 
 namespace SleetLib.Tests

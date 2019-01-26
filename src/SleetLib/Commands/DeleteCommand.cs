@@ -111,12 +111,9 @@ namespace Sleet
 
                 // Update feed
                 await log.LogAsync(LogLevel.Information, "Removing packages from feed locally");
-                await SleetUtility.RemoveNonSymbolsPackages(context, toRemove);
-                await SleetUtility.RemoveSymbolsPackages(context, toRemoveSymbols);
-
 
                 // Add/Remove packages
-                var changeContext = SleetChangeContext.CreateDelete(existingPackageSets, toRemove, toRemoveSymbols);
+                var changeContext = SleetOperations.CreateDelete(existingPackageSets, toRemove, toRemoveSymbols);
                 await SleetUtility.ApplyPackageChangesAsync(context, changeContext);
 
                 // Save all

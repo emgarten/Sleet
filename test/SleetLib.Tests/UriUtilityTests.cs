@@ -1,7 +1,8 @@
 using System;
+using Sleet;
 using Xunit;
 
-namespace Sleet.Test
+namespace SleetLib.Tests
 {
     public class UriUtilityTests
     {

@@ -6,7 +6,11 @@ using NuGet.Packaging.Core;
 
 namespace Sleet
 {
-    public class SleetChangeContext
+    /// <summary>
+    /// Represents Add/Remove operations.
+    /// This allows large operations to be done in a single batch call.
+    /// </summary>
+    public class SleetOperations
     {
         /// <summary>
         /// Packages to add.
@@ -28,12 +32,12 @@ namespace Sleet
         /// </summary>
         public PackageSets UpdatedIndex { get; set; }
 
-        public SleetChangeContext()
+        public SleetOperations()
         {
             // Empty, assign directly.
         }
 
-        public SleetChangeContext(PackageSets originalIndex, PackageSets updatedIndex, List<PackageInput> toAdd, List<PackageInput> toRemove)
+        public SleetOperations(PackageSets originalIndex, PackageSets updatedIndex, List<PackageInput> toAdd, List<PackageInput> toRemove)
         {
             OriginalIndex = originalIndex ?? throw new ArgumentNullException(nameof(originalIndex));
             UpdatedIndex = updatedIndex ?? throw new ArgumentNullException(nameof(updatedIndex));
@@ -43,6 +47,7 @@ namespace Sleet
 
         /// <summary>
         /// Package ids which have changes.
+        /// Does not include symbols!
         /// </summary>
         public HashSet<string> GetChangedIds()
         {
@@ -51,24 +56,24 @@ namespace Sleet
             return new HashSet<string>(removedPackages.Concat(addedPackages).Select(e => e.Id), StringComparer.OrdinalIgnoreCase);
         }
 
-        public static async Task<SleetChangeContext> CreateDeleteAsync(SleetContext context, IEnumerable<PackageIdentity> packagesToRemove)
+        public static async Task<SleetOperations> CreateDeleteAsync(SleetContext context, IEnumerable<PackageIdentity> packagesToRemove)
         {
             var originalIndex = await GetPackageSets(context);
             return CreateDelete(originalIndex, packagesToRemove);
         }
 
-        public static async Task<SleetChangeContext> CreateDeleteAsync(SleetContext context, IEnumerable<PackageIdentity> packagesToRemove, IEnumerable<PackageIdentity> symbolsPackagesToRemove)
+        public static async Task<SleetOperations> CreateDeleteAsync(SleetContext context, IEnumerable<PackageIdentity> packagesToRemove, IEnumerable<PackageIdentity> symbolsPackagesToRemove)
         {
             var originalIndex = await GetPackageSets(context);
             return CreateDelete(originalIndex, packagesToRemove, symbolsPackagesToRemove);
         }
 
-        public static SleetChangeContext CreateDelete(PackageSets originalIndex, IEnumerable<PackageIdentity> packagesToRemove)
+        public static SleetOperations CreateDelete(PackageSets originalIndex, IEnumerable<PackageIdentity> packagesToRemove)
         {
             return CreateDelete(originalIndex, packagesToRemove, new List<PackageIdentity>());
         }
 
-        public static SleetChangeContext CreateDelete(PackageSets originalIndex, IEnumerable<PackageIdentity> packagesToRemove, IEnumerable<PackageIdentity> symbolsPackagesToRemove)
+        public static SleetOperations CreateDelete(PackageSets originalIndex, IEnumerable<PackageIdentity> packagesToRemove, IEnumerable<PackageIdentity> symbolsPackagesToRemove)
         {
             var toAdd = new List<PackageInput>();
             var toRemove = new List<PackageInput>();
@@ -78,10 +83,10 @@ namespace Sleet
             return Create(originalIndex, toAdd, toRemove);
         }
 
-        public static SleetChangeContext Create(PackageSets originalIndex, List<PackageInput> toAdd, List<PackageInput> toRemove)
+        public static SleetOperations Create(PackageSets originalIndex, List<PackageInput> toAdd, List<PackageInput> toRemove)
         {
             var updated = GetUpdatedIndex(toAdd, toRemove, originalIndex);
-            return new SleetChangeContext(originalIndex, updated, toAdd, toRemove);
+            return new SleetOperations(originalIndex, updated, toAdd, toRemove);
         }
 
         private static Task<PackageSets> GetPackageSets(SleetContext context)

@@ -12,7 +12,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Test.Helpers;
 using NuGet.Versioning;
-using Sleet.Test;
+using Sleet.Tests;
 using Xunit;
 
 namespace Sleet.Integration.Test

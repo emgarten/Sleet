@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NuGet.Test.Helpers;
-using Sleet.Test;
+using Sleet.Tests;
 using Xunit;
 
 namespace Sleet.Integration.Test

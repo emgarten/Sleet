@@ -92,5 +92,15 @@ namespace Sleet
             var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, nupkgUri, _context.CommitId, writeFileList: false);
             packageInput.PackageDetails = packageDetails;
         }
+
+        public Task ApplyOperationsAsync(SleetOperations operations)
+        {
+            return OperationsUtility.ApplyAddRemoveAsync(this, operations);
+        }
+
+        public Task PreLoadAsync(SleetOperations operations)
+        {
+            return Task.FromResult(true);
+        }
     }
 }

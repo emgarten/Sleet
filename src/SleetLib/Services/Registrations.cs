@@ -415,10 +415,25 @@ namespace Sleet
             return results;
         }
 
-        public Task FetchAsync()
+        public Task ApplyOperationsAsync(SleetOperations operations)
         {
-            // Nothing to do
-            return Task.FromResult(true);
+            return OperationsUtility.ApplyAddRemoveAsync(this, operations);
+        }
+
+        public Task PreLoadAsync(SleetOperations operations)
+        {
+            // Retrieve the index pages for all ids we will later modify.
+            return TaskUtils.RunAsync(operations.GetChangedIds().Select(e => new Func<Task>(() => FetchPageAsync(e))));
+        }
+
+        /// <summary>
+        /// Fetch a root page for a package without loading it up.
+        /// </summary>
+        private Task FetchPageAsync(string packageId)
+        {
+            var rootUri = GetIndexUri(packageId);
+            var rootFile = _context.Source.Get(rootUri);
+            return rootFile.FetchAsync(_context.Log, _context.Token);
         }
     }
 }

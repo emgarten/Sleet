@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Sleet
 {
     /// <summary>
@@ -11,5 +13,11 @@ namespace Sleet
         }
 
         public string Name => nameof(PackageIndex);
+
+        public override Task ApplyOperationsAsync(SleetOperations operations)
+        {
+            // Write the entire new set of packages directly.
+            return CreateAsync(operations.UpdatedIndex);
+        }
     }
 }

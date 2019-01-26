@@ -9,10 +9,11 @@ using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
 using NuGet.Versioning;
+using Sleet;
 using Sleet.Test.Common;
 using Xunit;
 
-namespace Sleet.Test
+namespace SleetLib.Tests
 {
     public class FeedTests
     {

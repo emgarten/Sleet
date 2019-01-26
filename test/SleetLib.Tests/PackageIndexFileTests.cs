@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
-using Sleet.Test;
-using SleetLib.Tests;
+using Sleet;
 using Xunit;
 
-namespace Sleet.Tests
+namespace SleetLib.Tests
 {
     public class PackageIndexFileTests
     {

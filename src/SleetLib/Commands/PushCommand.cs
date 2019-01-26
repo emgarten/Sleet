@@ -162,7 +162,7 @@ namespace Sleet
             await log.LogAsync(LogLevel.Minimal, $"Syncing feed files and modifying them locally");
 
             // Add/Remove packages
-            var changeContext = SleetChangeContext.Create(existingPackageSets, toAdd, toRemove);
+            var changeContext = SleetOperations.Create(existingPackageSets, toAdd, toRemove);
             await SleetUtility.ApplyPackageChangesAsync(context, changeContext);
         }
 
