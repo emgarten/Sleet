@@ -3,9 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NuGet.Test.Helpers;
+using Sleet;
 using Xunit;
 
-namespace Sleet.Test
+namespace SleetLib.Tests
 {
     public class InitCommandTests
     {

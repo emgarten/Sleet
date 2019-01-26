@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Sleet
 {
-    public interface ISleetService
+    public interface ISleetService : IApplyOperations
     {
         /// <summary>
         /// Service name

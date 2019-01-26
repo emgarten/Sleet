@@ -6,10 +6,10 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
-using SleetLib.Tests;
+using Sleet;
 using Xunit;
 
-namespace Sleet.Test
+namespace SleetLib.Tests
 {
     public static class TestUtility
     {

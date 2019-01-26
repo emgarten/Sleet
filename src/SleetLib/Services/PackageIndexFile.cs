@@ -12,7 +12,7 @@ namespace Sleet
     /// <summary>
     /// PackageIndexFile is a simple json index of all ids and versions contained in the feed.
     /// </summary>
-    public class PackageIndexFile : IndexFileBase, IAddRemovePackages, IPackagesLookup, ISymbolsAddRemovePackages, ISymbolsPackagesLookup
+    public class PackageIndexFile : IndexFileBase, IAddRemovePackages, IPackagesLookup, ISymbolsAddRemovePackages, ISymbolsPackagesLookup, IApplyOperations
     {
         public PackageIndexFile(SleetContext context, string path)
             : this(context, path, persistWhenEmpty: false)
@@ -317,6 +317,17 @@ namespace Sleet
         {
             var sets = await GetPackageSetsAsync();
             return sets.Packages.Index.Count == 0 && sets.Symbols.Index.Count == 0;
+        }
+
+        public virtual Task ApplyOperationsAsync(SleetOperations operations)
+        {
+            return OperationsUtility.ApplyAddRemoveAsync(this, operations);
+        }
+
+        public Task PreLoadAsync(SleetOperations operations)
+        {
+            // Noop
+            return Task.FromResult(true);
         }
     }
 }

@@ -54,12 +54,6 @@ namespace Sleet
             return ids;
         }
 
-        public Task FetchAsync()
-        {
-            // Nothing to do
-            return Task.FromResult(true);
-        }
-
         /// <summary>
         /// Create the file directly without loading the previous file.
         /// </summary>
@@ -137,6 +131,17 @@ namespace Sleet
             var template = await TemplateUtility.LoadTemplate("AutoComplete", _context.OperationStart, _context.Source.BaseURI);
 
             return JObject.Parse(template);
+        }
+
+        public Task ApplyOperationsAsync(SleetOperations operations)
+        {
+            return CreateAsync(operations.UpdatedIndex.Packages.Index.Select(e => e.Id));
+        }
+
+        public Task PreLoadAsync(SleetOperations operations)
+        {
+            // Noop
+            return Task.FromResult(true);
         }
     }
 }

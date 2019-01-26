@@ -12,7 +12,7 @@ namespace Sleet
     /// <summary>
     /// Search writes all packages into a single static search result file.
     /// </summary>
-    public class Search : ISleetService, IRootIndex, IPackagesLookup, IApplyPackageChanges
+    public class Search : ISleetService, IRootIndex, IPackagesLookup, IApplyOperations
     {
         private readonly SleetContext _context;
         public string RootIndex { get; } = "search/query";
@@ -24,7 +24,7 @@ namespace Sleet
             _context = context;
         }
 
-        public async Task ApplyChangesAsync(SleetChangeContext changeContext)
+        public async Task ApplyOperationsAsync(SleetOperations changeContext)
         {
             var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
@@ -35,18 +35,20 @@ namespace Sleet
 
             foreach (var packageId in changeContext.GetChangedIds())
             {
+                // Remove the existing entry if it exists
+                if (data.ContainsKey(packageId))
+                {
+                    data.Remove(packageId);
+                }
+
                 var packages = await changeContext.UpdatedIndex.Packages.GetPackagesByIdAsync(packageId);
                 var versions = new SortedSet<NuGetVersion>(packages.Select(e => e.Version));
 
-                // Rebuild the new entry
-                var newEntry = await CreatePackageEntry(packageId, versions);
-
-                if (data.ContainsKey(packageId))
+                // If no versions exist then there is no extra work needed.
+                if (versions.Count > 0)
                 {
-                    data[packageId] = newEntry;
-                }
-                else
-                {
+                    // Rebuild the new entry
+                    var newEntry = await CreatePackageEntry(packageId, versions);
                     data.Add(packageId, newEntry);
                 }
             }
@@ -276,7 +278,7 @@ namespace Sleet
             return new HashSet<PackageIdentity>(allPackages.Where(e => e.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase)));
         }
 
-        public Task FetchAsync()
+        public Task PreLoadAsync(SleetOperations operations)
         {
             return RootIndexFile.FetchAsync(_context.Log, _context.Token);
         }

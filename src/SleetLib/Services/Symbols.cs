@@ -589,7 +589,36 @@ namespace Sleet
             return new PackageIndexFile(_context, file, persistWhenEmpty: false);
         }
 
-        public Task FetchAsync()
+        public async Task ApplyOperationsAsync(SleetOperations operations)
+        {
+            // Remove packages
+            foreach (var package in operations.ToRemove)
+            {
+                if (package.IsSymbolsPackage)
+                {
+                    await RemoveSymbolsPackageAsync(package.Identity);
+                }
+                else
+                {
+                    await RemovePackageAsync(package.Identity);
+                }
+            }
+
+            // Add
+            foreach (var package in operations.ToAdd)
+            {
+                if (package.IsSymbolsPackage)
+                {
+                    await AddSymbolsPackageAsync(package);
+                }
+                else
+                {
+                    await AddPackageAsync(package);
+                }
+            }
+        }
+
+        public Task PreLoadAsync(SleetOperations operations)
         {
             return PackageIndex.FetchAsync();
         }
