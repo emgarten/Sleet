@@ -48,7 +48,7 @@ namespace Sleet
             await sets.Packages.AddPackagesAsync(packageInputs);
 
             // Write file
-            await Save(sets);
+            await CreateAsync(sets);
         }
 
         public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
@@ -66,7 +66,7 @@ namespace Sleet
             if (save)
             {
                 // Create updated index
-                await Save(sets);
+                await CreateAsync(sets);
             }
         }
 
@@ -79,7 +79,7 @@ namespace Sleet
             await sets.Symbols.AddPackageAsync(packageInput);
 
             // Write file
-            await Save(sets);
+            await CreateAsync(sets);
         }
 
         public async Task RemoveSymbolsPackageAsync(PackageIdentity package)
@@ -91,7 +91,7 @@ namespace Sleet
             if (sets.Symbols.Index.Remove(package))
             {
                 // Create updated index
-                await Save(sets);
+                await CreateAsync(sets);
             }
         }
 
@@ -254,6 +254,18 @@ namespace Sleet
         }
 
         /// <summary>
+        /// Create the file directly without loading the previous file.
+        /// </summary>
+        public Task CreateAsync(PackageSets index)
+        {
+            // Create updated index
+            var json = CreateJson(index);
+            var isEmpty = (index.Packages.Index.Count < 1) && (index.Symbols.Index.Count < 1);
+
+            return SaveAsync(json, isEmpty);
+        }
+
+        /// <summary>
         /// Empty json file.
         /// </summary>
         protected override Task<JObject> GetJsonTemplateAsync()
@@ -294,15 +306,6 @@ namespace Sleet
             }
 
             return json;
-        }
-
-        private Task Save(PackageSets index)
-        {
-            // Create updated index
-            var json = CreateJson(index);
-            var isEmpty = (index.Packages.Index.Count < 1) && (index.Symbols.Index.Count < 1);
-
-            return SaveAsync(json, isEmpty);
         }
 
         private static SortedSet<PackageIdentity> GetSetForId(string packageId, IEnumerable<PackageIdentity> packages)

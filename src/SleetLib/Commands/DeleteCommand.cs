@@ -114,6 +114,11 @@ namespace Sleet
                 await SleetUtility.RemoveNonSymbolsPackages(context, toRemove);
                 await SleetUtility.RemoveSymbolsPackages(context, toRemoveSymbols);
 
+
+                // Add/Remove packages
+                var changeContext = SleetChangeContext.CreateDelete(existingPackageSets, toRemove, toRemoveSymbols);
+                await SleetUtility.ApplyPackageChangesAsync(context, changeContext);
+
                 // Save all
                 log.LogMinimal($"Committing changes to {source.BaseURI.AbsoluteUri}");
 

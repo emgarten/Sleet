@@ -12,6 +12,8 @@ namespace Sleet
     /// </summary>
     public class AutoComplete : ISleetService, IRootIndex
     {
+        // Limit results
+        private const int MaxResults = 1024;
         private readonly SleetContext _context;
 
         public string Name { get; } = nameof(AutoComplete);
@@ -54,9 +56,29 @@ namespace Sleet
 
         public Task FetchAsync()
         {
-            return RootIndexFile.FetchAsync(_context.Log, _context.Token);
+            // Nothing to do
+            return Task.FromResult(true);
         }
 
+        /// <summary>
+        /// Create the file directly without loading the previous file.
+        /// </summary>
+        public async Task CreateAsync(IEnumerable<string> packageIds)
+        {
+            var ids = new SortedSet<string>(packageIds, StringComparer.OrdinalIgnoreCase);
+
+            // Create a new file using the full set of package ids.
+            // There is no need to read the existing file.
+            var json = await GetEmptyTemplate();
+            var data = new JArray(ids.Take(MaxResults));
+            json["data"] = data;
+            json["totalHits"] = data.Count;
+
+            var formatted = JsonLDTokenComparer.Format(json, recurse: false);
+            await RootIndexFile.Write(formatted, _context.Log, _context.Token);
+        }
+
+        // TODO: Remove this
         public async Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
         {
             var ids = await GetPackageIds();
@@ -81,6 +103,7 @@ namespace Sleet
             }
         }
 
+        // TODO: Remove this
         public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
         {
             var packageIndex = new PackageIndex(_context);
@@ -105,6 +128,15 @@ namespace Sleet
                 json["totalHits"] = after.Count;
                 await file.Write(json, _context.Log, _context.Token);
             }
+        }
+
+        private async Task<JObject> GetEmptyTemplate()
+        {
+            // Load the template from the resource file
+            // Start/URI are not used in the file currently
+            var template = await TemplateUtility.LoadTemplate("AutoComplete", _context.OperationStart, _context.Source.BaseURI);
+
+            return JObject.Parse(template);
         }
     }
 }

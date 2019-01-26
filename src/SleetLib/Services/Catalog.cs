@@ -10,7 +10,7 @@ using NuGet.Versioning;
 
 namespace Sleet
 {
-    public class Catalog : ISleetService, IPackagesLookup, IRootIndex
+    public class Catalog : ISleetService, IPackagesLookup, IRootIndex, IAddRemovePackages
     {
         private readonly SleetContext _context;
 
@@ -89,7 +89,8 @@ namespace Sleet
         private async Task<JObject> AddPackageToCatalogAndGetCommit(PackageInput packageInput)
         {
             // Create package details page
-            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, _context.CommitId, writeFileList: true);
+            var nupkgUri = packageInput.GetNupkgUri(_context);
+            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, nupkgUri, _context.CommitId, writeFileList: true);
             var packageDetailsUri = JsonUtility.GetIdUri(packageDetails);
 
             // Add output to the package input for other services to use.

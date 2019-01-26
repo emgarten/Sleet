@@ -11,7 +11,7 @@ using NuGet.Packaging.Core;
 
 namespace Sleet
 {
-    public class Symbols : ISleetService, ISymbolsAddRemovePackages, ISymbolsPackagesLookup, IValidatableService, IPackagesLookup
+    public class Symbols : ISleetService, ISymbolsAddRemovePackages, ISymbolsPackagesLookup, IValidatableService, IPackagesLookup, IAddRemovePackages
     {
         private readonly SleetContext _context;
 
@@ -220,7 +220,6 @@ namespace Sleet
             // Write .nupkg to feed
             var packagePath = SymbolsIndexUtility.GetSymbolsNupkgPath(package.Identity);
             var packageFile = _context.Source.Get(packagePath);
-            package.NupkgUri = packageFile.EntityUri;
 
             await packageFile.Write(File.OpenRead(package.PackagePath), _context.Log, _context.Token);
 
@@ -230,7 +229,7 @@ namespace Sleet
 
             var commitId = Guid.NewGuid();
 
-            var detailsJson = await CatalogUtility.CreatePackageDetailsWithExactUriAsync(package, detailsFile.EntityUri, commitId, writeFileList: false);
+            var detailsJson = await CatalogUtility.CreatePackageDetailsWithExactUriAsync(package, detailsFile.EntityUri, packageFile.EntityUri, commitId, writeFileList: false);
 
             await detailsFile.Write(detailsJson, _context.Log, _context.Token);
         }

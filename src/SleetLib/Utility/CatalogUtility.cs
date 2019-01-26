@@ -74,18 +74,18 @@ namespace Sleet
         /// <summary>
         /// Create a PackageDetails page that contains all the package information.
         /// </summary>
-        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Guid commitId, bool writeFileList)
+        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Uri nupkgUri, Guid commitId, bool writeFileList)
         {
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
             var rootUri = UriUtility.GetPath(catalogBaseURI, $"data/{pageId}.json");
 
-            return CreatePackageDetailsWithExactUriAsync(packageInput, rootUri, commitId, writeFileList);
+            return CreatePackageDetailsWithExactUriAsync(packageInput, rootUri, nupkgUri, commitId, writeFileList);
         }
 
         /// <summary>
         /// Create a PackageDetails page that contains all the package information and an exact uri.
         /// </summary>
-        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Guid commitId, bool writeFileList)
+        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Uri nupkgUri, Guid commitId, bool writeFileList)
         {
             var now = DateTimeOffset.UtcNow;
             var nuspecReader = packageInput.Nuspec;
@@ -232,7 +232,7 @@ namespace Sleet
                 }
             }
 
-            json.Add("packageContent", packageInput.NupkgUri.AbsoluteUri);
+            json.Add("packageContent", nupkgUri.AbsoluteUri);
 
             if (writeFileList)
             {

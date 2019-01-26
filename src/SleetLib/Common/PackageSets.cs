@@ -12,5 +12,14 @@ namespace Sleet
         public PackageSet Packages { get; set; } = new PackageSet();
 
         public PackageSet Symbols { get; set; } = new PackageSet();
+
+        public PackageSets Clone()
+        {
+            return new PackageSets()
+            {
+                Packages = Packages.Clone(),
+                Symbols = Symbols.Clone()
+            };
+        }
     }
 }

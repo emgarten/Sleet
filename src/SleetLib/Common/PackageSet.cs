@@ -60,5 +60,13 @@ namespace Sleet
         {
             return Index.Contains(package);
         }
+
+        public PackageSet Clone()
+        {
+            var newSet = new PackageSet();
+            newSet.Index.UnionWith(Index);
+
+            return newSet;
+        }
     }
 }

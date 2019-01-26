@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Packaging.Core;
+using NuGet.Versioning;
 
 namespace Sleet
 {
@@ -32,85 +33,129 @@ namespace Sleet
             return result;
         }
 
-        /// <summary>
-        /// Add a package to all services.
-        /// </summary>
-        public static Task AddPackage(SleetContext context, PackageInput package)
+        public static async Task ApplyPackageChangesAsync(SleetContext context, SleetChangeContext changeContext)
         {
-            return AddPackages(context, new[] { package });
-        }
+            var toAdd = changeContext.ToAdd;
+            var toRemove = changeContext.ToRemove;
+            var packageIndexBeforeChanges = changeContext.OriginalIndex;
+            var updatedIndex = changeContext.UpdatedIndex;
 
-        /// <summary>
-        /// Add packages to all services.
-        /// Works for both symbols and non-symbol packages.
-        /// </summary>
-        public static async Task AddPackages(SleetContext context, IEnumerable<PackageInput> packages)
-        {
-            await AddNonSymbolsPackages(context, packages);
-            await AddSymbolsPackages(context, packages);
-        }
+            var tasks = new List<Task>();
 
-        /// <summary>
-        /// Add packages to all services.
-        /// Noops for symbols packages.
-        /// </summary>
-        public static async Task AddNonSymbolsPackages(SleetContext context, IEnumerable<PackageInput> packages)
-        {
-            var services = GetServices(context);
-            var toAdd = packages.Where(e => !e.IsSymbolsPackage).ToList();
+            var catalog = GetCatalogService(context);
+            var catalogTask = ApplyAddRemoveAsync(catalog, toAdd, toRemove);
+            tasks.Add(catalogTask);
 
-            foreach (var service in services)
+            if (context.SourceSettings.SymbolsEnabled)
             {
-                await service.AddPackagesAsync(toAdd);
+                var symbols = new Symbols(context);
+                tasks.Add(ApplyAddRemoveSymbolsAsync(symbols, toAdd, toRemove));
             }
+
+            var flatContainer = new FlatContainer(context);
+            tasks.Add(flatContainer.ApplyChangesAsync(changeContext));
+
+            var autoComplete = new AutoComplete(context);
+            tasks.Add(autoComplete.CreateAsync(updatedIndex.Packages.Index.Select(e => e.Id)));
+
+            var packageIndex = new PackageIndex(context);
+            tasks.Add(packageIndex.CreateAsync(updatedIndex));
+
+
+            var registrations = new Registrations(context);
+            var search = new Search(context);
+
+            // Wait for the catalog task to complete before updating registrations
+            await catalogTask;
+
+            // Update registations
+            await ApplyAddRemoveAsync(registrations, toAdd, toRemove);
+
+            // Search depends on registrations
+            tasks.Add(search.ApplyChangesAsync(changeContext));
+
+
+            // Wait for all the first set of services to complete.
+            // Services after this have requirements on the outputs of these services.
+            await Task.WhenAll(tasks);
         }
 
-        /// <summary>
-        /// Add packages to all services.
-        /// Noops for non-symbols packages and when symbols is disabled.
-        /// </summary>
-        public static async Task AddSymbolsPackages(SleetContext context, IEnumerable<PackageInput> packages)
+        private static async Task ApplyAddRemoveAsync(IAddRemovePackages service, List<PackageInput> toAdd, List<PackageInput> toRemove)
         {
-            var symbolsEnabled = context.SourceSettings.SymbolsEnabled;
+            // Remove packages
+            await service.RemovePackagesAsync(toRemove.Where(e => !e.IsSymbolsPackage).Select(e => e.Identity).ToList());
 
-            if (symbolsEnabled)
+            // Add
+            await service.AddPackagesAsync(toAdd.Where(e => !e.IsSymbolsPackage).ToList());
+        }
+
+        private static async Task ApplyAddRemoveSymbolsAsync(Symbols service, List<PackageInput> toAdd, List<PackageInput> toRemove)
+        {
+            // Remove packages
+            foreach (var package in toRemove)
             {
-                var services = GetSymbolsServices(context);
-
-                foreach (var package in packages)
+                if (package.IsSymbolsPackage)
                 {
-                    if (package.IsSymbolsPackage)
-                    {
-                        foreach (var symbolsService in services)
-                        {
-                            await symbolsService.AddSymbolsPackageAsync(package);
-                        }
-                    }
+                    await service.RemoveSymbolsPackageAsync(package.Identity);
+                }
+                else
+                {
+                    await service.RemovePackageAsync(package.Identity);
+                }
+            }
+
+            // Add
+            foreach (var package in toAdd)
+            {
+                if (package.IsSymbolsPackage)
+                {
+                    await service.AddSymbolsPackageAsync(package);
+                }
+                else
+                {
+                    await service.AddPackageAsync(package);
                 }
             }
         }
 
-        /// <summary>
-        /// Remove both the symbols and non-symbols package from all services.
-        /// Avoid removing both the symbols and non-symbols packages, this should only
-        /// remove the package we are going to replace.
-        /// </summary>
-        public static async Task RemovePackages(SleetContext context, IEnumerable<PackageInput> packages)
+        private static IAddRemovePackages GetCatalogService(SleetContext context)
         {
-            var nonSymbols = packages.Where(e => !e.IsSymbolsPackage).Select(e => e.Identity).ToList();
-            var symbols = packages.Where(e => e.IsSymbolsPackage).Select(e => e.Identity).ToList();
+            IAddRemovePackages catalog = null;
+            if (context.SourceSettings.CatalogEnabled)
+            {
+                // Full catalog that is written to the feed
+                catalog = new Catalog(context);
+            }
+            else
+            {
+                // In memory catalog that is not written to the feed
+                catalog = new VirtualCatalog(context);
+            }
 
-            await RemoveNonSymbolsPackages(context, nonSymbols);
-            await RemoveSymbolsPackages(context, symbols);
+            return catalog;
         }
 
         /// <summary>
         /// Remove both the symbols and non-symbols package from all services.
         /// </summary>
-        public static async Task RemovePackage(SleetContext context, PackageIdentity package)
+        public static async Task RemovePackages(SleetContext context, IEnumerable<PackageIdentity> packages)
         {
-            await RemoveNonSymbolsPackage(context, package);
-            await RemoveSymbolsPackage(context, package);
+            var packageIndex = new PackageIndex(context);
+            var originalIndex = await packageIndex.GetPackageSetsAsync();
+
+            var toDelete = new HashSet<PackageIdentity>(packages.Where(e => originalIndex.Packages.Index.Contains(e)));
+            var toDeleteSymbols = new HashSet<PackageIdentity>(packages.Where(e => originalIndex.Symbols.Index.Contains(e)));
+
+            var changes = SleetChangeContext.CreateDelete(originalIndex, toDelete, toDeleteSymbols);
+            await ApplyPackageChangesAsync(context, changes);
+        }
+
+        /// <summary>
+        /// Remove both the symbols and non-symbols package from all services.
+        /// </summary>
+        public static Task RemovePackage(SleetContext context, PackageIdentity package)
+        {
+            return RemovePackages(context, new[] { package });
         }
 
         /// <summary>
@@ -126,12 +171,8 @@ namespace Sleet
         /// </summary>
         public static async Task RemoveNonSymbolsPackages(SleetContext context, IEnumerable<PackageIdentity> packages)
         {
-            var services = GetServices(context);
-
-            foreach (var service in services)
-            {
-                await service.RemovePackagesAsync(packages);
-            }
+            var changes = await SleetChangeContext.CreateDeleteAsync(context, packages);
+            await ApplyPackageChangesAsync(context, changes);
         }
 
         /// <summary>
@@ -147,66 +188,8 @@ namespace Sleet
         /// </summary>
         public static async Task RemoveSymbolsPackages(SleetContext context, IEnumerable<PackageIdentity> packages)
         {
-            var services = GetSymbolsServices(context);
-            var symbolsEnabled = context.SourceSettings.SymbolsEnabled;
-
-            if (symbolsEnabled)
-            {
-                foreach (var package in packages)
-                {
-                    foreach (var symbolsService in services)
-                    {
-                        await symbolsService.RemoveSymbolsPackageAsync(package);
-                    }
-                }
-            }
-        }
-
-        public static IReadOnlyList<ISymbolsAddRemovePackages> GetSymbolsServices(SleetContext context)
-        {
-            return GetServices(context).Select(e => e as ISymbolsAddRemovePackages).Where(e => e != null).ToList();
-        }
-
-        public static IReadOnlyList<ISleetService> GetServices(SleetContext context)
-        {
-            // Order is important here
-            // Packages must be added to flat container, then the catalog, then registrations.
-            var services = new List<ISleetService>
-            {
-                new FlatContainer(context)
-            };
-
-            if (context.SourceSettings.CatalogEnabled)
-            {
-                // Catalog on disk
-                services.Add(new Catalog(context));
-            }
-            else
-            {
-                // In memory catalog
-                services.Add(new VirtualCatalog(context));
-            }
-
-            services.Add(new Registrations(context));
-            services.Add(new AutoComplete(context));
-            services.Add(new Search(context));
-            services.Add(new PackageIndex(context));
-
-            // Symbols
-            if (context.SourceSettings.SymbolsEnabled)
-            {
-                services.Add(new Symbols(context));
-            }
-
-            return services;
-        }
-
-        /// <summary>
-        /// Pre-load files in parallel
-        /// </summary>
-        public static Task FetchFeed(SleetContext context)
-        {
-            return Task.WhenAll(GetServices(context).Select(e => e.FetchAsync()));
+            var changes = await SleetChangeContext.CreateDeleteAsync(context, new List<PackageIdentity>(), packages);
+            await ApplyPackageChangesAsync(context, changes);
         }
     }
 }

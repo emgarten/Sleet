@@ -12,7 +12,7 @@ namespace Sleet
     /// <summary>
     /// Search writes all packages into a single static search result file.
     /// </summary>
-    public class Search : ISleetService, IRootIndex, IPackagesLookup
+    public class Search : ISleetService, IRootIndex, IPackagesLookup, IApplyPackageChanges
     {
         private readonly SleetContext _context;
         public string RootIndex { get; } = "search/query";
@@ -24,85 +24,118 @@ namespace Sleet
             _context = context;
         }
 
-        public Task AddPackageAsync(PackageInput packageInput)
-        {
-            return AddPackagesAsync(new[] { packageInput }); 
-        }
-
-        public Task RemovePackageAsync(PackageIdentity packageIdentity)
-        {
-            return RemovePackagesAsync(new[] { packageIdentity });
-        }
-
-        public async Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
+        public async Task ApplyChangesAsync(SleetChangeContext changeContext)
         {
             var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
 
             // Read existing entries
+            // Modified packages will be rebuilt, other entries will be left as-is.
             var data = GetData(json);
 
-            var packageIndex = new PackageIndex(_context);
-
-            var byId = SleetUtility.GetPackageSetsById(packageInputs, e => e.Identity.Id);
-
-            foreach (var pair in byId)
+            foreach (var packageId in changeContext.GetChangedIds())
             {
-                var packageId = pair.Key;
-                var versions = await packageIndex.GetPackageVersions(packageId);
-                versions.UnionWith(pair.Value.Select(e => e.Identity.Version));
-
-                // Remove the package id we are adding
-                data.RemoveAll(e => packageId.Equals(e.GetId(), StringComparison.OrdinalIgnoreCase));
+                var packages = await changeContext.UpdatedIndex.Packages.GetPackagesByIdAsync(packageId);
+                var versions = new SortedSet<NuGetVersion>(packages.Select(e => e.Version));
 
                 // Rebuild the new entry
                 var newEntry = await CreatePackageEntry(packageId, versions);
-                data.Add(newEntry);
+
+                if (data.ContainsKey(packageId))
+                {
+                    data[packageId] = newEntry;
+                }
+                else
+                {
+                    data.Add(packageId, newEntry);
+                }
             }
 
-            json = CreatePage(data);
+            json = await CreatePage(data);
 
             // Write the result
             await file.Write(json, _context.Log, _context.Token);
         }
 
-        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
-        {
-            var byId = SleetUtility.GetPackageSetsById(packages, e => e.Id);
-            var packageIndex = new PackageIndex(_context);
-            var file = RootIndexFile;
-            var json = await file.GetJson(_context.Log, _context.Token);
-            var data = GetData(json);
-            var modified = false;
+        //public Task AddPackageAsync(PackageInput packageInput)
+        //{
+        //    return AddPackagesAsync(new[] { packageInput }); 
+        //}
 
-            foreach (var pair in byId)
-            {
-                var packageId = pair.Key;
-                var versions = await packageIndex.GetPackageVersions(packageId);
-                var toRemove = new HashSet<NuGetVersion>(pair.Value.Select(e => e.Version));
-                var afterRemove = new HashSet<NuGetVersion>(versions.Except(toRemove));
+        //public Task RemovePackageAsync(PackageIdentity packageIdentity)
+        //{
+        //    return RemovePackagesAsync(new[] { packageIdentity });
+        //}
 
-                // Noop if the id does not exist
-                if (afterRemove.Count != versions.Count)
-                {
-                    modified = true;
-                    data.RemoveAll(e => packageId.Equals(e.GetId(), StringComparison.OrdinalIgnoreCase));
+        //public async Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
+        //{
+        //    var file = RootIndexFile;
+        //    var json = await file.GetJson(_context.Log, _context.Token);
 
-                    if (afterRemove.Count > 0)
-                    {
-                        // Remove the version if others still exist, otherwise leave the entire entry out
-                        var newEntry = await CreatePackageEntry(packageId, afterRemove);
-                        data.Add(newEntry);
-                    }
-                }
-            }
+        //    // Read existing entries
+        //    var data = GetData(json);
 
-            if (modified)
-            {
-                json = CreatePage(data);
-                await file.Write(json, _context.Log, _context.Token);
-            }
-        }
+        //    var packageIndex = new PackageIndex(_context);
+
+        //    var byId = SleetUtility.GetPackageSetsById(packageInputs, e => e.Identity.Id);
+
+        //    foreach (var pair in byId)
+        //    {
+        //        var packageId = pair.Key;
+        //        var versions = await packageIndex.GetPackageVersions(packageId);
+        //        versions.UnionWith(pair.Value.Select(e => e.Identity.Version));
+
+        //        // Remove the package id we are adding
+        //        data.RemoveAll(e => packageId.Equals(e.GetId(), StringComparison.OrdinalIgnoreCase));
+
+        //        // Rebuild the new entry
+        //        var newEntry = await CreatePackageEntry(packageId, versions);
+        //        data.Add(newEntry);
+        //    }
+
+        //    json = await CreatePage(data);
+
+        //    // Write the result
+        //    await file.Write(json, _context.Log, _context.Token);
+        //}
+
+        //public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
+        //{
+        //    var byId = SleetUtility.GetPackageSetsById(packages, e => e.Id);
+        //    var packageIndex = new PackageIndex(_context);
+        //    var file = RootIndexFile;
+        //    var json = await file.GetJson(_context.Log, _context.Token);
+        //    var data = GetData(json);
+        //    var modified = false;
+
+        //    foreach (var pair in byId)
+        //    {
+        //        var packageId = pair.Key;
+        //        var versions = await packageIndex.GetPackageVersions(packageId);
+        //        var toRemove = new HashSet<NuGetVersion>(pair.Value.Select(e => e.Version));
+        //        var afterRemove = new HashSet<NuGetVersion>(versions.Except(toRemove));
+
+        //        // Noop if the id does not exist
+        //        if (afterRemove.Count != versions.Count)
+        //        {
+        //            modified = true;
+        //            data.RemoveAll(e => packageId.Equals(e.GetId(), StringComparison.OrdinalIgnoreCase));
+
+        //            if (afterRemove.Count > 0)
+        //            {
+        //                // Remove the version if others still exist, otherwise leave the entire entry out
+        //                var newEntry = await CreatePackageEntry(packageId, afterRemove);
+        //                data.Add(newEntry);
+        //            }
+        //        }
+        //    }
+
+        //    if (modified)
+        //    {
+        //        json = await CreatePage(data);
+        //        await file.Write(json, _context.Log, _context.Token);
+        //    }
+        //}
 
         public ISleetFile RootIndexFile
         {
@@ -113,27 +146,21 @@ namespace Sleet
             }
         }
 
-        private JObject CreatePage(List<JObject> data)
+        private async Task<JObject> CreatePage(Dictionary<string, JObject> data)
         {
-            var page = JObject.Parse(TemplateUtility.LoadTemplate("Search", _context.OperationStart, _context.Source.BaseURI));
+            var page = JObject.Parse(await TemplateUtility.LoadTemplate("Search", _context.OperationStart, _context.Source.BaseURI));
 
             page["totalHits"] = data.Count;
-            var dataArray = new JArray();
-            page["data"] = dataArray;
+            page["data"] = new JArray(data.OrderBy(e => e.Key, StringComparer.OrdinalIgnoreCase).Select(e => e.Value));
 
-            foreach (var entry in data.OrderBy(e => e.GetId(), StringComparer.OrdinalIgnoreCase))
-            {
-                dataArray.Add(entry);
-            }
-
-            return JsonLDTokenComparer.Format(page);
+            return JsonLDTokenComparer.Format(page, recurse: false);
         }
 
         /// <summary>
         /// Create a result containing all versions of the package. The passed in identity
         /// may or may not be the latest one that is shown.
         /// </summary>
-        private async Task<JObject> CreatePackageEntry(string packageId, ISet<NuGetVersion> versions)
+        private async Task<JObject> CreatePackageEntry(string packageId, SortedSet<NuGetVersion> versions)
         {
             var latest = versions.Max();
             var latestIdentity = new PackageIdentity(packageId, latest);
@@ -181,7 +208,7 @@ namespace Sleet
             var versionsArray = new JArray();
             packageEntry.Add("versions", versionsArray);
 
-            foreach (var version in versions.OrderBy(v => v))
+            foreach (var version in versions)
             {
                 var versionIdentity = new PackageIdentity(packageId, version);
                 var versionUri = Registrations.GetPackageUri(_context.Source.BaseURI, versionIdentity);
@@ -196,9 +223,21 @@ namespace Sleet
             return JsonLDTokenComparer.Format(packageEntry);
         }
 
-        private List<JObject> GetData(JObject page)
+        private Dictionary<string, JObject> GetData(JObject page)
         {
-            return page.GetJObjectArray("data").ToList();
+            var data = new Dictionary<string, JObject>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var entry in page.GetJObjectArray("data"))
+            {
+                var id = entry.GetId();
+
+                if (!data.ContainsKey(id))
+                {
+                    data.Add(id, entry);
+                }
+            }
+
+            return data;
         }
 
         /// <summary>
@@ -211,9 +250,10 @@ namespace Sleet
             var file = RootIndexFile;
             var json = await file.GetJson(_context.Log, _context.Token);
 
-            foreach (var data in GetData(json))
+            foreach (var pair in GetData(json))
             {
-                var id = data.GetId();
+                var id = pair.Key;
+                var data = pair.Value;
 
                 foreach (var versionEntry in data.GetJObjectArray("versions"))
                 {
