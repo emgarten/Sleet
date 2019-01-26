@@ -20,82 +20,120 @@ namespace Sleet
             _context = context;
         }
 
-        public Task AddPackageAsync(PackageInput packageInput)
+        public Task ApplyChangesAsync(SleetChangeContext changeContext)
         {
-            return AddPackagesAsync(new[] { packageInput });
-        }
-
-        public Task RemovePackageAsync(PackageIdentity package)
-        {
-            return RemovePackagesAsync(new[] { package });
-        }
-
-        public Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
-        {
-            var byId = SleetUtility.GetPackageSetsById(packages, e => e.Id);
-            var tasks = new List<Func<Task>>();
-
-            foreach (var pair in byId)
+            // Remove existing files, this will typically result in marking the files
+            // as deleted in the virtual file system since they have not been
+            // downloaded. It is a fast/safe operation that must be done first.
+            foreach (var toRemove in changeContext.ToRemove)
             {
-                foreach (var package in pair.Value)
+                if (!toRemove.IsSymbolsPackage)
                 {
-                    // Delete nupkg
-                    var nupkgFile = _context.Source.Get(GetNupkgPath(package));
-                    nupkgFile.Delete(_context.Log, _context.Token);
-
-                    // Nuspec
-                    var nuspecPath = $"{package.Id}.nuspec".ToLowerInvariant();
-                    var nuspecFile = _context.Source.Get(GetZipFileUri(package, nuspecPath));
-                    nuspecFile.Delete(_context.Log, _context.Token);
+                    DeleteNupkg(toRemove.Identity);
                 }
-
-                tasks.Add(() => RemoveVersionsAsync(pair.Key, pair.Value.Select(e => e.Version)));
             }
 
-            return TaskUtils.RunAsync(tasks);
-        }
-
-        public Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
-        {
-            var byId = SleetUtility.GetPackageSetsById(packageInputs, e => e.Identity.Id);
             var tasks = new List<Func<Task>>();
 
-            foreach (var pair in byId)
-            {
-                tasks.Add(() => AddVersionsAsync(pair.Key, pair.Value.Select(e => e.Identity.Version)));
-                tasks.AddRange(pair.Value.Select(packageInput => new Func<Task>(() => AddNupkgAsync(packageInput))));
-            }
+            // Copy in nupkgs/nuspec files
+            tasks.AddRange(changeContext.ToAdd.Select(e => new Func<Task>(() => AddNupkgAsync(e))));
 
+            // Rebuild index files as needed
+            var rebuildIds = changeContext.GetChangedIds();
+
+            tasks.AddRange(rebuildIds.Select(e => new Func<Task>(() => CreateIndexAsync(e, changeContext.UpdatedIndex.Packages))));
+
+            // Run all tasks
             return TaskUtils.RunAsync(tasks);
         }
 
-        private async Task RemoveVersionsAsync(string id, IEnumerable<NuGetVersion> versions)
+        //public Task AddPackageAsync(PackageInput packageInput)
+        //{
+        //    return AddPackagesAsync(new[] { packageInput });
+        //}
+
+        //public Task RemovePackageAsync(PackageIdentity package)
+        //{
+        //    return RemovePackagesAsync(new[] { package });
+        //}
+
+        //public Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
+        //{
+        //    var byId = SleetUtility.GetPackageSetsById(packages, e => e.Id);
+        //    var tasks = new List<Func<Task>>();
+
+        //    foreach (var pair in byId)
+        //    {
+        //        foreach (var package in pair.Value)
+        //        {
+        //            DeleteNupkg(package);
+        //        }
+
+        //        tasks.Add(() => RemoveVersionsAsync(pair.Key, pair.Value.Select(e => e.Version)));
+        //    }
+
+        //    return TaskUtils.RunAsync(tasks);
+        //}
+
+        private void DeleteNupkg(PackageIdentity package)
         {
-            // Update index
-            var indexFile = _context.Source.Get(GetIndexUri(id));
+            // Delete nupkg
+            var nupkgFile = _context.Source.Get(GetNupkgPath(package));
+            nupkgFile.Delete(_context.Log, _context.Token);
 
-            var indexVersions = await GetVersions(id);
-            indexVersions.ExceptWith(versions);
-
-            if (indexVersions.Count > 0)
-            {
-                var indexJson = CreateIndex(indexVersions);
-                await indexFile.Write(indexJson, _context.Log, _context.Token);
-            }
-            else
-            {
-                indexFile.Delete(_context.Log, _context.Token);
-            }
+            // Nuspec
+            var nuspecPath = $"{package.Id}.nuspec".ToLowerInvariant();
+            var nuspecFile = _context.Source.Get(GetZipFileUri(package, nuspecPath));
+            nuspecFile.Delete(_context.Log, _context.Token);
         }
 
-        private async Task AddVersionsAsync(string id, IEnumerable<NuGetVersion> versions)
+        //public Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
+        //{
+        //    var byId = SleetUtility.GetPackageSetsById(packageInputs, e => e.Identity.Id);
+        //    var tasks = new List<Func<Task>>();
+
+        //    foreach (var pair in byId)
+        //    {
+        //        tasks.Add(() => AddVersionsAsync(pair.Key, pair.Value.Select(e => e.Identity.Version)));
+        //        tasks.AddRange(pair.Value.Select(packageInput => new Func<Task>(() => AddNupkgAsync(packageInput))));
+        //    }
+
+        //    return TaskUtils.RunAsync(tasks);
+        //}
+
+        //private async Task RemoveVersionsAsync(string id, IEnumerable<NuGetVersion> versions)
+        //{
+        //    // Update index
+        //    var indexFile = _context.Source.Get(GetIndexUri(id));
+
+        //    var indexVersions = await GetVersions(id);
+        //    indexVersions.ExceptWith(versions);
+
+        //    if (indexVersions.Count > 0)
+        //    {
+        //        var indexJson = CreateIndexJson(indexVersions);
+        //        await indexFile.Write(indexJson, _context.Log, _context.Token);
+        //    }
+        //    else
+        //    {
+        //        indexFile.Delete(_context.Log, _context.Token);
+        //    }
+        //}
+
+        private async Task CreateIndexAsync(string id, PackageSet packageSet)
+        {
+            // Get all versions
+            var packages = await packageSet.GetPackagesByIdAsync(id);
+            var versions = new SortedSet<NuGetVersion>(packages.Select(e => e.Version));
+
+            await CreateIndexAsync(id, versions);
+        }
+
+        private async Task CreateIndexAsync(string id, SortedSet<NuGetVersion> versions)
         {
             // Update index
             var indexFile = _context.Source.Get(GetIndexUri(id));
-            var allVersions = await GetVersions(id);
-            allVersions.UnionWith(versions);
-
-            var indexJson = CreateIndex(allVersions);
+            var indexJson = CreateIndexJson(versions);
             await indexFile.Write(indexJson, _context.Log, _context.Token);
         }
 
@@ -114,17 +152,19 @@ namespace Sleet
                 var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, nuspecPath));
                 await entryFile.Write(nuspecStream, _context.Log, _context.Token);
             }
-
-            // Set nupkg url
-            packageInput.NupkgUri = nupkgFile.EntityUri;
         }
 
         public Uri GetNupkgPath(PackageIdentity package)
         {
+            return GetNupkgPath(_context, package);
+        }
+
+        public static Uri GetNupkgPath(SleetContext context, PackageIdentity package)
+        {
             var id = package.Id;
             var version = package.Version.ToIdentityString();
 
-            return _context.Source.GetPath($"/flatcontainer/{id}/{version}/{id}.{version}.nupkg".ToLowerInvariant());
+            return context.Source.GetPath($"/flatcontainer/{id}/{version}/{id}.{version}.nupkg".ToLowerInvariant());
         }
 
         public Uri GetIndexUri(string id)
@@ -155,7 +195,7 @@ namespace Sleet
             return results;
         }
 
-        public JObject CreateIndex(SortedSet<NuGetVersion> versions)
+        public JObject CreateIndexJson(SortedSet<NuGetVersion> versions)
         {
             var json = new JObject();
 

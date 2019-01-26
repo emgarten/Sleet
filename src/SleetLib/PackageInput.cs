@@ -17,9 +17,6 @@ namespace Sleet
 
         public NuspecReader Nuspec { get; }
 
-        // Thehse fields are populated by other steps
-        public Uri NupkgUri { get; set; }
-
         public JObject PackageDetails { get; set; }
 
         public Uri RegistrationUri { get; set; }
@@ -29,13 +26,38 @@ namespace Sleet
         /// </summary>
         public bool IsSymbolsPackage { get; }
 
+        /// <summary>
+        /// Create an empty PackageInput for Delete.
+        /// </summary>
+        public PackageInput(PackageIdentity identity, bool isSymbolsPackage)
+        {
+            Identity = identity ?? throw new ArgumentNullException(nameof(identity));
+            IsSymbolsPackage = isSymbolsPackage;
+        }
+
+        /// <summary>
+        /// Create a PackageInput for Add.
+        /// </summary>
         public PackageInput(string packagePath, bool isSymbolsPackage, NuspecReader nuspecReader)
         {
             PackagePath = packagePath ?? throw new ArgumentNullException(nameof(packagePath));
             IsSymbolsPackage = isSymbolsPackage;
             Nuspec = nuspecReader ?? throw new ArgumentNullException(nameof(nuspecReader));
             Identity = nuspecReader.GetIdentity();
-        }        
+        }
+
+        /// <summary>
+        /// Returns the nupkg URI. This will be different for Symbols packages.
+        /// </summary>
+        public Uri GetNupkgUri(SleetContext context)
+        {
+            if (IsSymbolsPackage)
+            {
+                return context.Source.Get(SymbolsIndexUtility.GetSymbolsNupkgPath(Identity)).EntityUri;
+            }
+
+            return FlatContainer.GetNupkgPath(context, Identity);
+        }
 
         /// <summary>
         /// Creates a new zip archive on each call. This must be disposed of.
@@ -172,6 +194,14 @@ namespace Sleet
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Create an input to be used for a delete operation.
+        /// </summary>
+        public static PackageInput CreateForDelete(PackageIdentity packageIdentity, bool isSymbols)
+        {
+            return new PackageInput(packageIdentity, isSymbols);
         }
     }
 }

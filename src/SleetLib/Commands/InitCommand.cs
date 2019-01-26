@@ -178,7 +178,7 @@ namespace Sleet
 
             if (!await remoteFile.Exists(log, token))
             {
-                var json = TemplateUtility.LoadTemplate(templatePath, now, source.BaseURI);
+                var json = await TemplateUtility.LoadTemplate(templatePath, now, source.BaseURI);
                 await remoteFile.Write(JObject.Parse(json), log, token);
 
                 return true;

@@ -10,7 +10,7 @@ namespace Sleet
     /// <summary>
     /// A virtual catalog that is not written to the feed.
     /// </summary>
-    public class VirtualCatalog : ISleetService, IRootIndex
+    public class VirtualCatalog : ISleetService, IRootIndex, IAddRemovePackages
     {
         private readonly SleetContext _context;
 
@@ -88,7 +88,8 @@ namespace Sleet
         private async Task CreateDetailsForAdd(PackageInput packageInput)
         {
             // Create a a details page and assign it to the input
-            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, _context.CommitId, writeFileList: false);
+            var nupkgUri = packageInput.GetNupkgUri(_context);
+            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, nupkgUri, _context.CommitId, writeFileList: false);
             packageInput.PackageDetails = packageDetails;
         }
     }

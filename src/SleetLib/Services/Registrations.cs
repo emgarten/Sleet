@@ -12,7 +12,7 @@ namespace Sleet
     /// <summary>
     /// Package registrations are an index to the catalog.
     /// </summary>
-    public class Registrations : ISleetService, IPackageIdLookup
+    public class Registrations : ISleetService, IPackageIdLookup, IAddRemovePackages
     {
         private readonly SleetContext _context;
 

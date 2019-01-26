@@ -99,10 +99,10 @@ namespace Sleet.Test
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
                     var input = PackageInput.Create(zipFile.FullName);
-                    input.NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0-alpha.1/packageA.1.0.0-alpha.1.nupkg");
+                    var nupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0-alpha.1/packageA.1.0.0-alpha.1.nupkg");
                     
                     // Act
-                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, context.CommitId, writeFileList: true);
+                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, nupkgUri, context.CommitId, writeFileList: true);
 
                     var dependencyGroups = actual["dependencyGroups"] as JArray;
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;
@@ -180,10 +180,10 @@ namespace Sleet.Test
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
                     var input = PackageInput.Create(zipFile.FullName);
-                    input.NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg");
+                    var nupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg");
                     
                     // Act
-                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, context.CommitId, writeFileList: true);
+                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, nupkgUri, context.CommitId, writeFileList: true);
 
                     var dependencyGroups = actual["dependencyGroups"] as JArray;
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;
@@ -237,7 +237,7 @@ namespace Sleet.Test
                 };
 
                 var catalog = new Catalog(context);
-                var catalogIndex = TemplateUtility.LoadTemplate(
+                var catalogIndex = await TemplateUtility.LoadTemplate(
                     "CatalogIndex",
                     DateTimeOffset.UtcNow,
                     fileSystem.BaseURI);
@@ -255,10 +255,7 @@ namespace Sleet.Test
                 using (var zipB = new ZipArchive(File.OpenRead(zipFileB.FullName), ZipArchiveMode.Read, false))
                 {
                     var inputA = PackageInput.Create(zipFileA.FullName);
-                    inputA.NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg");
-
                     var inputB = PackageInput.Create(zipFileB.FullName);
-                    inputB.NupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageB/1.0.0/packageB.1.0.0.nupkg");
                     
                     // Act
                     await catalog.AddPackageAsync(inputA);

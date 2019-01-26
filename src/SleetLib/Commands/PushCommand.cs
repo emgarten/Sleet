@@ -77,9 +77,6 @@ namespace Sleet
                 Token = token
             };
 
-            // Fetch feed
-            await SleetUtility.FetchFeed(context);
-
             await log.LogAsync(LogLevel.Information, "Reading existing package index");
 
             var packageIndex = new PackageIndex(context);
@@ -164,11 +161,9 @@ namespace Sleet
 
             await log.LogAsync(LogLevel.Minimal, $"Syncing feed files and modifying them locally");
 
-            // Remove conflicting packages before pushing
-            await SleetUtility.RemovePackages(context, toRemove);
-
-            // Push packages
-            await SleetUtility.AddPackages(context, toAdd);
+            // Add/Remove packages
+            var changeContext = SleetChangeContext.Create(existingPackageSets, toAdd, toRemove);
+            await SleetUtility.ApplyPackageChangesAsync(context, changeContext);
         }
 
         /// <summary>
