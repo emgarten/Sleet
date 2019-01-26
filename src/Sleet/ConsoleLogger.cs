@@ -231,9 +231,12 @@ namespace Sleet
         private bool AllowAdvancedWrite()
         {
             // Allow advanced console writes if this is not in debug mode and the console is interactive.
-            return _isValidConsole.Value
-                && !_isCITrue.Value
-                && VerbosityLevel >= LogLevel.Information;
+            // return _isValidConsole.Value
+            //    && !_isCITrue.Value
+            //    && VerbosityLevel >= LogLevel.Information;
+
+            // DISABLED due to parallel threading!
+            return false;
         }
 
         private static bool IsCIMode()
