@@ -96,7 +96,6 @@ namespace Sleet
 
         public override async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
         {
-            BlobContinuationToken continuationToken = null;
             string prefix = null;
             var useFlatBlobListing = true;
             var blobListingDetails = BlobListingDetails.All;
@@ -105,12 +104,13 @@ namespace Sleet
             // Return all files except feedlock
             var blobs = new List<IListBlobItem>();
 
+            BlobResultSegment result = null;
             do
             {
-                var result = await _container.ListBlobsSegmentedAsync(prefix, useFlatBlobListing, blobListingDetails, maxResults, continuationToken, options: null, operationContext: null);
+                result = await _container.ListBlobsSegmentedAsync(prefix, useFlatBlobListing, blobListingDetails, maxResults, result?.ContinuationToken, options: null, operationContext: null);
                 blobs.AddRange(result.Results);
             }
-            while (continuationToken != null);
+            while (result.ContinuationToken != null);
 
             // Skip the feed lock, and limit this to the current sub feed.
             return blobs.Where(e => !e.Uri.AbsoluteUri.EndsWith($"/{AzureFileSystemLock.LockFile}"))
