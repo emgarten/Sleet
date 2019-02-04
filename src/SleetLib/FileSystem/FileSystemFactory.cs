@@ -110,15 +110,20 @@ namespace Sleet
                         {
                             var accessKeyId = JsonUtility.GetValueCaseInsensitive(sourceEntry, "accessKeyId");
                             var secretAccessKey = JsonUtility.GetValueCaseInsensitive(sourceEntry, "secretAccessKey");
+                            var profileName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "profileName");
                             var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
                             var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
 
+                            if (string.IsNullOrEmpty(profileName) && string.IsNullOrEmpty(accessKeyId))
+                                throw new ArgumentException("Must provide a profileName or accessKeyId and secretAccessKey for Amazon S3 account.");
                             if (string.IsNullOrEmpty(bucketName))
                                 throw new ArgumentException("Missing bucketName for Amazon S3 account.");
                             if (string.IsNullOrEmpty(region))
                                 throw new ArgumentException("Missing region for Amazon S3 account.");
 
                             var regionSystemName = RegionEndpoint.GetBySystemName(region);
+                            if (!new Amazon.Runtime.CredentialManagement.SharedCredentialsFile().TryGetProfile(profileName, out var profile))
+                                throw new ArgumentException($"The specified profile {profileName} could not be found.");
 
                             if (pathUri == null)
                             {
@@ -131,7 +136,10 @@ namespace Sleet
                                 baseUri = pathUri;
                             }
 
-                            var amazonS3Client = string.IsNullOrEmpty(accessKeyId) ? new AmazonS3Client(regionSystemName)
+                            var amazonS3Client = string.IsNullOrEmpty(accessKeyId) ?
+                                string.IsNullOrEmpty(profileName) ?
+                                    new AmazonS3Client(regionSystemName)
+                                    : new AmazonS3Client(profile.GetAWSCredentials(null), regionSystemName)
                                 : new AmazonS3Client(accessKeyId, secretAccessKey, region);
 
                             result = new AmazonS3FileSystem(
