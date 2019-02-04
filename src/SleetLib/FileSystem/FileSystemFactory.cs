@@ -113,10 +113,6 @@ namespace Sleet
                             var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
                             var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
 
-                            if (string.IsNullOrEmpty(accessKeyId))
-                                throw new ArgumentException("Missing accessKeyId for Amazon S3 account.");
-                            if (string.IsNullOrEmpty(secretAccessKey))
-                                throw new ArgumentException("Missing secretAccessKey for Amazon S3 account.");
                             if (string.IsNullOrEmpty(bucketName))
                                 throw new ArgumentException("Missing bucketName for Amazon S3 account.");
                             if (string.IsNullOrEmpty(region))
@@ -135,8 +131,8 @@ namespace Sleet
                                 baseUri = pathUri;
                             }
 
-                            var amazonS3Client = new AmazonS3Client(
-                                accessKeyId, secretAccessKey, regionSystemName);
+                            var amazonS3Client = string.IsNullOrEmpty(accessKeyId) ? new AmazonS3Client(regionSystemName)
+                                : new AmazonS3Client(accessKeyId, secretAccessKey, region);
 
                             result = new AmazonS3FileSystem(
                                 cache,
