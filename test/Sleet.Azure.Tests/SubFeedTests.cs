@@ -178,7 +178,6 @@ namespace Sleet.Azure.Tests
         /// </summary>
         private static async Task<List<Uri>> GetFiles(CloudBlobContainer container)
         {
-            BlobContinuationToken continuationToken = null;
             string prefix = null;
             var useFlatBlobListing = true;
             var blobListingDetails = BlobListingDetails.All;
@@ -187,12 +186,13 @@ namespace Sleet.Azure.Tests
             // Return all files except feedlock
             var blobs = new List<IListBlobItem>();
 
+            BlobResultSegment result = null;
             do
             {
-                var result = await container.ListBlobsSegmentedAsync(prefix, useFlatBlobListing, blobListingDetails, maxResults, continuationToken, options: null, operationContext: null);
+                result = await container.ListBlobsSegmentedAsync(prefix, useFlatBlobListing, blobListingDetails, maxResults, result?.ContinuationToken, options: null, operationContext: null);
                 blobs.AddRange(result.Results);
             }
-            while (continuationToken != null);
+            while (result.ContinuationToken != null);
 
             // Skip the feed lock, and limit this to the current sub feed.
             return blobs.Select(e => e.Uri).ToList();
