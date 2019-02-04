@@ -9,20 +9,13 @@ using NuGet.Packaging.Core;
 
 namespace Sleet
 {
-    public class PackageInput : IDisposable, IComparable<PackageInput>, IEquatable<PackageInput>
+    public class PackageInput : IComparable<PackageInput>, IEquatable<PackageInput>
     {
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-
         public string PackagePath { get; }
 
-        public ZipArchive Zip { get; set; }
+        public PackageIdentity Identity { get; }
 
-        public PackageIdentity Identity { get; set; }
-
-        public PackageArchiveReader Package { get; set; }
-
-        // Thehse fields are populated by other steps
-        public Uri NupkgUri { get; set; }
+        public NuspecReader Nuspec { get; }
 
         public JObject PackageDetails { get; set; }
 
@@ -33,40 +26,45 @@ namespace Sleet
         /// </summary>
         public bool IsSymbolsPackage { get; }
 
-        public PackageInput(string packagePath, PackageIdentity identity, bool isSymbolsPackage)
+        /// <summary>
+        /// Create an empty PackageInput for Delete.
+        /// </summary>
+        public PackageInput(PackageIdentity identity, bool isSymbolsPackage)
         {
-            PackagePath = packagePath ?? throw new ArgumentNullException(nameof(packagePath));
             Identity = identity ?? throw new ArgumentNullException(nameof(identity));
             IsSymbolsPackage = isSymbolsPackage;
         }
 
         /// <summary>
-        /// Run a non-thread safe action on the zip or package reader.
+        /// Create a PackageInput for Add.
         /// </summary>
-        public async Task<T> RunWithLockAsync<T>(Func<PackageInput, Task<T>> action)
+        public PackageInput(string packagePath, bool isSymbolsPackage, NuspecReader nuspecReader)
         {
-            await _semaphore.WaitAsync();
-
-            var result = default(T);
-
-            try
-            {
-                result = await action(this);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-
-            return result;
+            PackagePath = packagePath ?? throw new ArgumentNullException(nameof(packagePath));
+            IsSymbolsPackage = isSymbolsPackage;
+            Nuspec = nuspecReader ?? throw new ArgumentNullException(nameof(nuspecReader));
+            Identity = nuspecReader.GetIdentity();
         }
 
         /// <summary>
-        /// Read a zip entry into a memory stream safely.
+        /// Returns the nupkg URI. This will be different for Symbols packages.
         /// </summary>
-        public Task<MemoryStream> GetEntryStreamWithLockAsync(ZipArchiveEntry entry)
+        public Uri GetNupkgUri(SleetContext context)
         {
-            return RunWithLockAsync(async p => await entry.Open().AsMemoryStreamAsync());
+            if (IsSymbolsPackage)
+            {
+                return context.Source.Get(SymbolsIndexUtility.GetSymbolsNupkgPath(Identity)).EntityUri;
+            }
+
+            return FlatContainer.GetNupkgPath(context, Identity);
+        }
+
+        /// <summary>
+        /// Creates a new zip archive on each call. This must be disposed of.
+        /// </summary>
+        public ZipArchive CreateZip()
+        {
+            return new ZipArchive(File.OpenRead(PackagePath), ZipArchiveMode.Read, leaveOpen: false);
         }
 
         public override string ToString()
@@ -79,17 +77,6 @@ namespace Sleet
             }
 
             return s;
-        }
-
-        public void Dispose()
-        {
-            Package?.Dispose();
-            Package = null;
-
-            Zip?.Dispose();
-            Zip = null;
-
-            _semaphore.Dispose();
         }
 
         // Order by identity, then by symbols package last.
@@ -190,6 +177,31 @@ namespace Sleet
         public static bool operator >=(PackageInput left, PackageInput right)
         {
             return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;
+        }
+
+        /// <summary>
+        /// Create a package input from the given file path.
+        /// </summary>
+        public static PackageInput Create(string file)
+        {
+            PackageInput result = null;
+
+            using (var zip = new ZipArchive(File.OpenRead(file), ZipArchiveMode.Read, leaveOpen: false))
+            using (var reader = new PackageArchiveReader(file))
+            {
+                var isSymbolsPackage = SymbolsUtility.IsSymbolsPackage(zip, file);
+                result = new PackageInput(file, isSymbolsPackage, reader.NuspecReader);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Create an input to be used for a delete operation.
+        /// </summary>
+        public static PackageInput CreateForDelete(PackageIdentity packageIdentity, bool isSymbols)
+        {
+            return new PackageInput(packageIdentity, isSymbols);
         }
     }
 }

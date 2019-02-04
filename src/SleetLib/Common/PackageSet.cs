@@ -39,5 +39,34 @@ namespace Sleet
 
             return Task.FromResult(true);
         }
+
+        public async Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
+        {
+            foreach (var input in packageInputs)
+            {
+                await AddPackageAsync(input);
+            }
+        }
+
+        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packageInputs)
+        {
+            foreach (var input in packageInputs)
+            {
+                await RemovePackageAsync(input);
+            }
+        }
+
+        public bool Exists(PackageIdentity package)
+        {
+            return Index.Contains(package);
+        }
+
+        public PackageSet Clone()
+        {
+            var newSet = new PackageSet();
+            newSet.Index.UnionWith(Index);
+
+            return newSet;
+        }
     }
 }

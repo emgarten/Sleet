@@ -1,16 +1,19 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Sleet
 {
     public static class TemplateUtility
     {
-        public static string LoadTemplate(string name, DateTimeOffset now, Uri baseUri)
+        public static async Task<string> LoadTemplate(string name, DateTimeOffset now, Uri baseUri)
         {
             using (var reader = new StreamReader(GetResource($"template{name}.json")))
             {
-                return reader.ReadToEnd()
+                var data = await reader.ReadToEndAsync();
+
+                return data
                     .Replace("$SLEETVERSION$", AssemblyVersionHelper.GetVersion().ToFullVersionString())
                     .Replace("$BASEURI$", UriUtility.RemoveTrailingSlash(baseUri).AbsoluteUri.TrimEnd('/'))
                     .Replace("$NOW$", now.GetDateString());

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace Sleet
@@ -25,7 +25,14 @@ namespace Sleet
 
         public void Dispose()
         {
-            Root.Delete(recursive: true);
+            try
+            {
+                Root.Delete(recursive: true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }

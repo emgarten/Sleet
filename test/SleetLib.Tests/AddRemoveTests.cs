@@ -4,16 +4,178 @@ using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
 using NuGet.Versioning;
+using Sleet;
 using Xunit;
 
-namespace Sleet.Test
+namespace SleetLib.Tests
 {
     public class AddRemoveTests
     {
+        [Fact]
+        public async Task AddRemove_AddManyPackagesThenRemoveSome()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true,
+                        SymbolsEnabled = true
+                    }
+                };
+
+                var identities = new HashSet<PackageIdentity>();
+                var ids = new[] { "a", "b", "c", "d" };
+
+                foreach (var id in ids)
+                {
+                    for (var i = 0; i < 50; i++)
+                    {
+                        var testPackage = new TestNupkg(id, $"{i}.0.0");
+                        var zipFile = testPackage.Save(packagesFolder.Root);
+                        identities.Add(new PackageIdentity(testPackage.Nuspec.Id, NuGetVersion.Parse(testPackage.Nuspec.Version)));
+                    }
+                }
+
+                var catalog = new Catalog(context);
+                var registration = new Registrations(context);
+                var packageIndex = new PackageIndex(context);
+                var search = new Search(context);
+                var autoComplete = new AutoComplete(context);
+
+                await InitCommand.InitAsync(context);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { packagesFolder.Root }, false, false, context.Log);
+
+                // Act
+                // run delete command
+                await DeleteCommand.RunAsync(context.LocalSettings, context.Source, "b", null, "removing", false, context.Log);
+
+                var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+
+                // read output
+                var catalogEntries = await catalog.GetIndexEntriesAsync();
+                var catalogExistingEntries = await catalog.GetExistingPackagesIndexAsync();
+                var catalogPackages = await catalog.GetPackagesAsync();
+
+                var regPackages = new HashSet<PackageIdentity>();
+
+                foreach (var id in ids)
+                {
+                    regPackages.UnionWith(await registration.GetPackagesByIdAsync(id));
+                }
+
+                var indexPackages = await packageIndex.GetPackagesAsync();
+                var searchPackages = await search.GetPackagesAsync();
+                var autoCompletePackages = await autoComplete.GetPackageIds();
+
+                // Assert
+                Assert.True(validateOutput);
+                Assert.Equal(identities.Count + 50, catalogEntries.Count);
+                Assert.Equal(identities.Count - 50, catalogExistingEntries.Count);
+                regPackages.Count.Should().Be(identities.Count - 50);
+                Assert.Equal(identities.Count - 50, indexPackages.Count);
+                Assert.Equal(identities.Count - 50, searchPackages.Count);
+                Assert.Equal(ids.Length - 1, autoCompletePackages.Count);
+            }
+        }
+
+        [Fact]
+        public async Task AddRemove_AddManyPackages()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true,
+                        SymbolsEnabled = true
+                    }
+                };
+
+                var identities = new HashSet<PackageIdentity>();
+                var ids = new[] { "a", "b", "c", "d" };
+
+                foreach (var id in ids)
+                {
+                    for (var i = 0; i < 50; i++)
+                    {
+                        var testPackage = new TestNupkg(id, $"{i}.0.0");
+                        var zipFile = testPackage.Save(packagesFolder.Root);
+                        identities.Add(new PackageIdentity(testPackage.Nuspec.Id, NuGetVersion.Parse(testPackage.Nuspec.Version)));
+                    }
+                }
+
+                var catalog = new Catalog(context);
+                var registration = new Registrations(context);
+                var packageIndex = new PackageIndex(context);
+                var search = new Search(context);
+                var autoComplete = new AutoComplete(context);
+
+                // Act
+                // run commands
+                await InitCommand.InitAsync(context);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { packagesFolder.Root }, false, false, context.Log);
+                var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+
+                // read outputs
+                var catalogEntries = await catalog.GetIndexEntriesAsync();
+                var catalogExistingEntries = await catalog.GetExistingPackagesIndexAsync();
+                var catalogPackages = await catalog.GetPackagesAsync();
+
+                var regPackages = new HashSet<PackageIdentity>();
+
+                foreach (var id in ids)
+                {
+                    regPackages.UnionWith(await registration.GetPackagesByIdAsync(id));
+                }
+
+                var indexPackages = await packageIndex.GetPackagesAsync();
+                var searchPackages = await search.GetPackagesAsync();
+                var autoCompletePackages = await autoComplete.GetPackageIds();
+
+                // Assert
+                Assert.True(validateOutput);
+                Assert.Equal(identities.Count, catalogEntries.Count);
+                Assert.Equal(identities.Count, catalogExistingEntries.Count);
+                regPackages.Count.Should().Be(identities.Count);
+                Assert.Equal(identities.Count, indexPackages.Count);
+                Assert.Equal(identities.Count, searchPackages.Count);
+                Assert.Equal(ids.Length, autoCompletePackages.Count);
+
+                foreach (var entry in catalogEntries)
+                {
+                    Assert.Equal(SleetOperation.Add, entry.Operation);
+                }
+            }
+        }
+
         [Fact]
         public async Task AddRemove_AddNonNormalizedPackageAsync()
         {
@@ -43,11 +205,7 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        Zip = zip,
-                        Package = new PackageArchiveReader(zip)
-                    };
+                    var input = PackageInput.Create(zipFile.FullName);
 
                     var catalog = new Catalog(context);
                     var registration = new Registrations(context);
@@ -117,11 +275,7 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        Zip = zip,
-                        Package = new PackageArchiveReader(zip)
-                    };
+                    var input = PackageInput.Create(zipFile.FullName);
 
                     var catalog = new Catalog(context);
                     var registration = new Registrations(context);
@@ -191,11 +345,7 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        Zip = zip,
-                        Package = new PackageArchiveReader(zip)
-                    };
+                    var input = PackageInput.Create(zipFile.FullName);
 
                     var catalog = new Catalog(context);
                     var registration = new Registrations(context);
@@ -266,11 +416,7 @@ namespace Sleet.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
                 using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput(zipFile.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        Zip = zip,
-                        Package = new PackageArchiveReader(zip)
-                    };
+                    var input = PackageInput.Create(zipFile.FullName);
 
                     var catalog = new Catalog(context);
                     var registration = new Registrations(context);
@@ -491,17 +637,8 @@ namespace Sleet.Test
                 using (var zip1 = new ZipArchive(File.OpenRead(zipFile1.FullName), ZipArchiveMode.Read, false))
                 using (var zip2 = new ZipArchive(File.OpenRead(zipFile2.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input = new PackageInput(zipFile1.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        Zip = zip1,
-                        Package = new PackageArchiveReader(zip1)
-                    };
-
-                    var input2 = new PackageInput(zipFile2.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        Zip = zip2,
-                        Package = new PackageArchiveReader(zip2)
-                    };
+                    var input = PackageInput.Create(zipFile1.FullName);
+                    var input2 = PackageInput.Create(zipFile2.FullName);
 
                     var catalog = new Catalog(context);
                     var registration = new Registrations(context);
@@ -569,17 +706,8 @@ namespace Sleet.Test
                 using (var zip1 = new ZipArchive(File.OpenRead(zipFile1.FullName), ZipArchiveMode.Read, false))
                 using (var zip2 = new ZipArchive(File.OpenRead(zipFile2.FullName), ZipArchiveMode.Read, false))
                 {
-                    var input1 = new PackageInput(zipFile1.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        Zip = zip1,
-                        Package = new PackageArchiveReader(zip1)
-                    };
-
-                    var input2 = new PackageInput(zipFile2.FullName, new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), false)
-                    {
-                        Zip = zip2,
-                        Package = new PackageArchiveReader(zip2)
-                    };
+                    var input1 = PackageInput.Create(zipFile1.FullName);
+                    var input2 = PackageInput.Create(zipFile2.FullName);
 
                     var catalog = new Catalog(context);
                     var registration = new Registrations(context);

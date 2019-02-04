@@ -71,18 +71,10 @@ namespace Sleet.Test.Common
         /// </summary>
         public PackageInput GetPackageInput(FileInfo zipFile, bool isSymbols)
         {
-            var reader = new PackageArchiveReader(zipFile.FullName);
-
-            var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false);
-            var input = new PackageInput(zipFile.FullName, reader.GetIdentity(), isSymbols)
+            using (var reader = new PackageArchiveReader(zipFile.FullName))
             {
-                Zip = zip,
-                Package = reader
-            };
-
-            DisposeItems.Add(input);
-            DisposeItems.Add(reader);
-            return input;
+                return new PackageInput(zipFile.FullName, isSymbols, reader.NuspecReader);
+            }
         }
 
         public Task Commit()

@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging.Core;
 
@@ -7,7 +10,7 @@ namespace Sleet
     /// <summary>
     /// A virtual catalog that is not written to the feed.
     /// </summary>
-    public class VirtualCatalog : ISleetService, IRootIndex
+    public class VirtualCatalog : ISleetService, IRootIndex, IAddRemovePackages
     {
         private readonly SleetContext _context;
 
@@ -53,11 +56,9 @@ namespace Sleet
             CatalogBaseURI = catalogBaseURI;
         }
 
-        public async Task AddPackageAsync(PackageInput packageInput)
+        public Task AddPackageAsync(PackageInput packageInput)
         {
-            // Create package details page
-            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, _context.CommitId, writeFileList: false);
-            packageInput.PackageDetails = packageDetails;
+            return AddPackagesAsync(new[] { packageInput });
         }
 
         public Task RemovePackageAsync(PackageIdentity package)
@@ -66,9 +67,40 @@ namespace Sleet
             return Task.FromResult(true);
         }
 
+        public Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
+        {
+            // No actions needed
+            return Task.FromResult(true);
+        }
+
         public Task FetchAsync()
         {
             return RootIndexFile.FetchAsync(_context.Log, _context.Token);
+        }
+
+        public Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
+        {
+            // Create package details page
+            var tasks = packageInputs.Select(e => new Func<Task>(() => CreateDetailsForAdd(e)));
+            return TaskUtils.RunAsync(tasks, useTaskRun: true, token: CancellationToken.None);
+        }
+
+        private async Task CreateDetailsForAdd(PackageInput packageInput)
+        {
+            // Create a a details page and assign it to the input
+            var nupkgUri = packageInput.GetNupkgUri(_context);
+            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, nupkgUri, _context.CommitId, writeFileList: false);
+            packageInput.PackageDetails = packageDetails;
+        }
+
+        public Task ApplyOperationsAsync(SleetOperations operations)
+        {
+            return OperationsUtility.ApplyAddRemoveAsync(this, operations);
+        }
+
+        public Task PreLoadAsync(SleetOperations operations)
+        {
+            return Task.FromResult(true);
         }
     }
 }

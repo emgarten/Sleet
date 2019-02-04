@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
@@ -73,21 +74,21 @@ namespace Sleet
         /// <summary>
         /// Create a PackageDetails page that contains all the package information.
         /// </summary>
-        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Guid commitId, bool writeFileList)
+        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Uri nupkgUri, Guid commitId, bool writeFileList)
         {
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
             var rootUri = UriUtility.GetPath(catalogBaseURI, $"data/{pageId}.json");
 
-            return CreatePackageDetailsWithExactUriAsync(packageInput, rootUri, commitId, writeFileList);
+            return CreatePackageDetailsWithExactUriAsync(packageInput, rootUri, nupkgUri, commitId, writeFileList);
         }
 
         /// <summary>
         /// Create a PackageDetails page that contains all the package information and an exact uri.
         /// </summary>
-        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Guid commitId, bool writeFileList)
+        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Uri nupkgUri, Guid commitId, bool writeFileList)
         {
             var now = DateTimeOffset.UtcNow;
-            var nuspecReader = await packageInput.RunWithLockAsync(async (p) => await p.Package.GetNuspecReaderAsync(CancellationToken.None));
+            var nuspecReader = packageInput.Nuspec;
 
             var json = JsonUtility.Create(detailsUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
             json.Add("commitId", commitId.ToString().ToLowerInvariant());
@@ -231,7 +232,7 @@ namespace Sleet
                 }
             }
 
-            json.Add("packageContent", packageInput.NupkgUri.AbsoluteUri);
+            json.Add("packageContent", nupkgUri.AbsoluteUri);
 
             if (writeFileList)
             {
@@ -239,7 +240,10 @@ namespace Sleet
                 var packageEntriesArray = new JArray();
                 json.Add("packageEntries", packageEntriesArray);
 
-                await packageInput.RunWithLockAsync(p => AddZipEntry(p, detailsUri, packageEntriesArray));
+                using (var zip = packageInput.CreateZip())
+                {
+                    AddZipEntry(zip, detailsUri, packageEntriesArray);
+                }
             }
 
             json.Add("sleet:toolVersion", AssemblyVersionHelper.GetVersion().ToFullVersionString());
@@ -247,12 +251,12 @@ namespace Sleet
             return JsonLDTokenComparer.Format(json);
         }
 
-        private static Task<bool> AddZipEntry(PackageInput packageInput, Uri detailsUri, JArray packageEntriesArray)
+        private static void AddZipEntry(ZipArchive zip, Uri detailsUri, JArray packageEntriesArray)
         {
             var packageEntryIndex = 0;
 
             // This method is called from RunWithLockAsync
-            foreach (var entry in packageInput.Zip.Entries.OrderBy(e => e.FullName, StringComparer.OrdinalIgnoreCase))
+            foreach (var entry in zip.Entries.OrderBy(e => e.FullName, StringComparer.OrdinalIgnoreCase))
             {
                 var fileEntry = JsonUtility.Create(detailsUri, $"packageEntry/{packageEntryIndex}", "packageEntry");
                 fileEntry.Add("fullName", entry.FullName);
@@ -262,9 +266,6 @@ namespace Sleet
                 packageEntriesArray.Add(fileEntry);
                 packageEntryIndex++;
             }
-
-            // Result is not used
-            return Task.FromResult(true);
         }
 
         /// <summary>
