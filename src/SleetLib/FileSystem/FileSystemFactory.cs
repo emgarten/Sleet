@@ -140,7 +140,7 @@ namespace Sleet
                                 string.IsNullOrEmpty(profileName) ?
                                     new AmazonS3Client(regionSystemName)
                                     : new AmazonS3Client(profile.GetAWSCredentials(null), regionSystemName)
-                                : new AmazonS3Client(accessKeyId, secretAccessKey, region);
+                                : new AmazonS3Client(accessKeyId, secretAccessKey, regionSystemName);
 
                             result = new AmazonS3FileSystem(
                                 cache,
