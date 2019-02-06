@@ -77,6 +77,13 @@ namespace Sleet
                         { "profileName", "default" }
                     };
                     break;
+                case FileSystemStorageType.Unspecified:
+                    storageTemplateJson = new JObject
+                    {
+                        { "name", "myFeed" },
+                        { "type", "" }
+                    };
+                    break;
             }
 
             if (storageTemplateJson != null)
