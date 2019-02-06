@@ -81,11 +81,6 @@ namespace Sleet
 
             var root = CreateUri(paths[0]);
 
-            if (paths.Length < 1)
-            {
-                return root;
-            }
-
             return GetPath(root, paths.Skip(1).ToArray());
         }
 
