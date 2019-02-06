@@ -280,9 +280,7 @@ namespace Sleet
 
         public Uri GetPackageUri(PackageIdentity package)
         {
-            var fileSystemBase = (FileSystemBase)_context.Source;
-            var fragment = fileSystemBase == null ? _context.Source.BaseURI : UriUtility.GetPath(_context.Source.BaseURI, fileSystemBase.FeedSubPath);
-            return UriUtility.CreateUri($"{fragment}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
+            return UriUtility.CreateUri($"{_context.Source.BaseURI}registration/{package.Id.ToLowerInvariant()}/{package.Version.ToIdentityString().ToLowerInvariant()}.json");
         }
 
         public static Uri GetPackageUri(Uri sourceRoot, PackageIdentity package)
