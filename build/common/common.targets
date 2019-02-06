@@ -37,8 +37,8 @@
   <PropertyGroup>
     <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">4.19.4</FluentAssertionsVersion>
     <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.5.0</ToStringWithoutOverrideAnalyzerVersion>
-    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">15.7.0</TestSDKVersion>
-    <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.3.1</XunitVersion>
+    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">15.8.0</TestSDKVersion>
+    <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.4.1</XunitVersion>
     <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">$(XunitVersion)</XunitRunnerVisualStudioVersion>
     <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">2.8.0</SourceLinkVersion>
   </PropertyGroup>

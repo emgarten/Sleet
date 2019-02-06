@@ -3,10 +3,11 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
+using Sleet;
 using Sleet.Test.Common;
 using Xunit;
 
-namespace Sleet.Test
+namespace SleetLib.Tests
 {
     public class BaseUriTests
     {

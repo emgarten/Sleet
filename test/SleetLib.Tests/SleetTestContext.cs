@@ -74,13 +74,8 @@ namespace SleetLib.Tests
             var reader = new PackageArchiveReader(zipFile.FullName);
 
             var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false);
-            var input = new PackageInput(zipFile.FullName, reader.GetIdentity(), isSymbols)
-            {
-                Zip = zip,
-                Package = reader
-            };
+            var input = PackageInput.Create(zipFile.FullName);
 
-            DisposeItems.Add(input);
             DisposeItems.Add(reader);
             return input;
         }

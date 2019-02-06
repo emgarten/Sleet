@@ -12,6 +12,8 @@ namespace Sleet
     /// </summary>
     public class AutoComplete : ISleetService, IRootIndex
     {
+        // Limit results
+        private const int MaxResults = 1024;
         private readonly SleetContext _context;
 
         public string Name { get; } = nameof(AutoComplete);
@@ -23,72 +25,7 @@ namespace Sleet
             _context = context;
         }
 
-        public ISleetFile RootIndexFile
-        {
-            get
-            {
-                return _context.Source.Get(RootIndex);
-            }
-        }
-
-        public async Task AddPackageAsync(PackageInput packageInput)
-        {
-            var file = RootIndexFile;
-            var json = await file.GetJson(_context.Log, _context.Token);
-
-            var data = json["data"] as JArray;
-
-            var ids = await GetPackageIds();
-
-            ids.Add(packageInput.Identity.Id);
-
-            data.Clear();
-
-            foreach (var id in ids.OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
-            {
-                data.Add(id);
-            }
-
-            json["totalHits"] = ids.Count;
-
-            json = JsonLDTokenComparer.Format(json);
-
-            await file.Write(json, _context.Log, _context.Token);
-        }
-
-        public async Task RemovePackageAsync(PackageIdentity packageIdentity)
-        {
-            var packageIndex = new PackageIndex(_context);
-            var allPackagesForId = await packageIndex.GetPackagesByIdAsync(packageIdentity.Id);
-            allPackagesForId.Remove(packageIdentity);
-
-            // Only remove the package if all versions have been removed
-            if (allPackagesForId.Count == 0)
-            {
-                var file = RootIndexFile;
-                var json = await file.GetJson(_context.Log, _context.Token);
-
-                var data = json["data"] as JArray;
-
-                var ids = await GetPackageIds();
-
-                if (ids.Remove(packageIdentity.Id))
-                {
-                    data.Clear();
-
-                    foreach (var id in ids.OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
-                    {
-                        data.Add(id);
-                    }
-
-                    json["totalHits"] = ids.Count;
-
-                    json = JsonLDTokenComparer.Format(json);
-
-                    await file.Write(json, _context.Log, _context.Token);
-                }
-            }
-        }
+        public ISleetFile RootIndexFile => _context.Source.Get(RootIndex);
 
         /// <summary>
         /// Returns all known ids.
@@ -107,9 +44,42 @@ namespace Sleet
             return ids;
         }
 
-        public Task FetchAsync()
+        /// <summary>
+        /// Create the file directly without loading the previous file.
+        /// </summary>
+        public async Task CreateAsync(IEnumerable<string> packageIds)
         {
-            return RootIndexFile.FetchAsync(_context.Log, _context.Token);
+            var ids = new SortedSet<string>(packageIds, StringComparer.OrdinalIgnoreCase);
+
+            // Create a new file using the full set of package ids.
+            // There is no need to read the existing file.
+            var json = await GetEmptyTemplate();
+            var data = new JArray(ids.Take(MaxResults));
+            json["data"] = data;
+            json["totalHits"] = data.Count;
+
+            var formatted = JsonLDTokenComparer.Format(json, recurse: false);
+            await RootIndexFile.Write(formatted, _context.Log, _context.Token);
+        }
+
+        private async Task<JObject> GetEmptyTemplate()
+        {
+            // Load the template from the resource file
+            // Start/URI are not used in the file currently
+            var template = await TemplateUtility.LoadTemplate("AutoComplete", _context.OperationStart, _context.Source.BaseURI);
+
+            return JObject.Parse(template);
+        }
+
+        public Task ApplyOperationsAsync(SleetOperations operations)
+        {
+            return CreateAsync(operations.UpdatedIndex.Packages.Index.Select(e => e.Id));
+        }
+
+        public Task PreLoadAsync(SleetOperations operations)
+        {
+            // Noop
+            return Task.FromResult(true);
         }
     }
 }

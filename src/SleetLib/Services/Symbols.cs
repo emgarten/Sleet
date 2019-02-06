@@ -11,7 +11,7 @@ using NuGet.Packaging.Core;
 
 namespace Sleet
 {
-    public class Symbols : ISleetService, ISymbolsAddRemovePackages, ISymbolsPackagesLookup, IValidatableService, IPackagesLookup
+    public class Symbols : ISleetService, ISymbolsAddRemovePackages, ISymbolsPackagesLookup, IValidatableService, IPackagesLookup, IAddRemovePackages
     {
         private readonly SleetContext _context;
 
@@ -71,6 +71,9 @@ namespace Sleet
 
             // Wait for everything to finish
             await Task.WhenAll(tasks);
+
+            // Dispose of memory streams
+            assemblies.ForEach(e => e.Dispose());
         }
 
         public async Task RemovePackageAsync(PackageIdentity package)
@@ -109,6 +112,22 @@ namespace Sleet
                 {
                     file.Delete(_context.Log, _context.Token);
                 }
+            }
+        }
+
+        public async Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
+        {
+            foreach (var packageInput in packageInputs)
+            {
+                await AddPackageAsync(packageInput);
+            }
+        }
+
+        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
+        {
+            foreach (var package in packages)
+            {
+                await RemovePackageAsync(package);
             }
         }
 
@@ -191,10 +210,7 @@ namespace Sleet
             if (await file.Exists(_context.Log, _context.Token) == false)
             {
                 // Write assembly
-                using (var stream = await packageInput.GetEntryStreamWithLockAsync(assembly.ZipEntry))
-                {
-                    await file.Write(stream, _context.Log, _context.Token);
-                }
+                await file.Write(assembly.Stream, _context.Log, _context.Token);
             }
         }
 
@@ -204,7 +220,6 @@ namespace Sleet
             // Write .nupkg to feed
             var packagePath = SymbolsIndexUtility.GetSymbolsNupkgPath(package.Identity);
             var packageFile = _context.Source.Get(packagePath);
-            package.NupkgUri = packageFile.EntityUri;
 
             await packageFile.Write(File.OpenRead(package.PackagePath), _context.Log, _context.Token);
 
@@ -214,7 +229,7 @@ namespace Sleet
 
             var commitId = Guid.NewGuid();
 
-            var detailsJson = await CatalogUtility.CreatePackageDetailsWithExactUriAsync(package, detailsFile.EntityUri, commitId, writeFileList: false);
+            var detailsJson = await CatalogUtility.CreatePackageDetailsWithExactUriAsync(package, detailsFile.EntityUri, packageFile.EntityUri, commitId, writeFileList: false);
 
             await detailsFile.Write(detailsJson, _context.Log, _context.Token);
         }
@@ -273,69 +288,76 @@ namespace Sleet
             var result = new List<PackageFile>();
             var seen = new HashSet<ISleetFile>();
 
-            var assemblyFiles = await packageInput.RunWithLockAsync(p => Task.FromResult(p.Zip.Entries
-                .Where(e => e.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                .ToList()));
-
-            var pdbFiles = await packageInput.RunWithLockAsync(p => Task.FromResult(p.Zip.Entries
-                .Where(e => e.FullName.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
-                .ToList()));
-
-            foreach (var assembly in assemblyFiles)
+            using (var zip = packageInput.CreateZip())
             {
-                string assemblyHash = null;
-                string pdbHash = null;
-                ZipArchiveEntry pdbEntry = null;
-                var valid = false;
+                var assemblyFiles = zip.Entries
+                    .Where(e => e.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
 
-                try
+                var pdbFiles = zip.Entries
+                    .Where(e => e.FullName.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                foreach (var assembly in assemblyFiles)
                 {
-                    using (var stream = await packageInput.GetEntryStreamWithLockAsync(assembly))
-                    using (var reader = new PEReader(stream))
+                    string assemblyHash = null;
+                    string pdbHash = null;
+                    ZipArchiveEntry pdbEntry = null;
+                    var valid = false;
+                    MemoryStream assemblyStream = null;
+
+                    try
                     {
-                        assemblyHash = SymbolsUtility.GetSymbolHashFromAssembly(reader);
-                        pdbHash = SymbolsUtility.GetPDBHashFromAssembly(reader);
+                        assemblyStream = await assembly.Open().AsMemoryStreamAsync();
+
+                        using (var reader = new PEReader(assemblyStream, PEStreamOptions.LeaveOpen))
+                        {
+                            assemblyHash = SymbolsUtility.GetSymbolHashFromAssembly(reader);
+                            pdbHash = SymbolsUtility.GetPDBHashFromAssembly(reader);
+                        }
+
+                        assemblyStream.Position = 0;
+                        var assemblyWithoutExt = SleetLib.PathUtility.GetFullPathWithoutExtension(assembly.FullName);
+
+                        pdbEntry = pdbFiles.FirstOrDefault(e =>
+                            StringComparer.OrdinalIgnoreCase.Equals(
+                                SleetLib.PathUtility.GetFullPathWithoutExtension(e.FullName), assemblyWithoutExt));
+
+                        valid = true;
+                    }
+                    catch
+                    {
+                        // Ignore bad assemblies
+                        var message = LogMessage.Create(LogLevel.Warning, $"Unable add symbols for {assembly.FullName}, this file will not be present in the symbol server.");
+                        await _context.Log.LogAsync(message);
                     }
 
-                    var assemblyWithoutExt = SleetLib.PathUtility.GetFullPathWithoutExtension(assembly.FullName);
-
-                    pdbEntry = pdbFiles.FirstOrDefault(e =>
-                        StringComparer.OrdinalIgnoreCase.Equals(
-                            SleetLib.PathUtility.GetFullPathWithoutExtension(e.FullName), assemblyWithoutExt));
-
-                    valid = true;
-                }
-                catch
-                {
-                    // Ignore bad assemblies
-                    var message = LogMessage.Create(LogLevel.Warning, $"Unable add symbols for {assembly.FullName}, this file will not be present in the symbol server.");
-                    await _context.Log.LogAsync(message);
-                }
-
-                if (valid)
-                {
-                    // Add .dll
-                    var fileInfo = new FileInfo(assembly.FullName);
-                    var dllFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyFilePath(fileInfo.Name, assemblyHash));
-                    var indexFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyToPackageIndexPath(fileInfo.Name, assemblyHash));
-
-                    // Avoid duplicates
-                    if (seen.Add(dllFile))
+                    if (valid)
                     {
-                        result.Add(new PackageFile(fileInfo.Name, assemblyHash, assembly, dllFile, indexFile));
-                    }
-
-                    // Add .pdb
-                    if (pdbEntry != null)
-                    {
-                        var pdbFileInfo = new FileInfo(pdbEntry.FullName);
-                        var pdbFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyFilePath(pdbFileInfo.Name, pdbHash));
-                        var pdbIndexFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyToPackageIndexPath(pdbFileInfo.Name, pdbHash));
+                        // Add .dll
+                        var fileInfo = new FileInfo(assembly.FullName);
+                        var dllFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyFilePath(fileInfo.Name, assemblyHash));
+                        var indexFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyToPackageIndexPath(fileInfo.Name, assemblyHash));
 
                         // Avoid duplicates
-                        if (seen.Add(pdbFile))
+                        if (seen.Add(dllFile))
                         {
-                            result.Add(new PackageFile(pdbFileInfo.Name, pdbHash, pdbEntry, pdbFile, pdbIndexFile));
+                            result.Add(new PackageFile(fileInfo.Name, assemblyHash, assemblyStream, dllFile, indexFile));
+                        }
+
+                        // Add .pdb
+                        if (pdbEntry != null)
+                        {
+                            var pdbFileInfo = new FileInfo(pdbEntry.FullName);
+                            var pdbFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyFilePath(pdbFileInfo.Name, pdbHash));
+                            var pdbIndexFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyToPackageIndexPath(pdbFileInfo.Name, pdbHash));
+
+                            // Avoid duplicates
+                            if (seen.Add(pdbFile))
+                            {
+                                var pdbStream = await pdbEntry.Open().AsMemoryStreamAsync();
+                                result.Add(new PackageFile(pdbFileInfo.Name, pdbHash, pdbStream, pdbFile, pdbIndexFile));
+                            }
                         }
                     }
                 }
@@ -567,7 +589,36 @@ namespace Sleet
             return new PackageIndexFile(_context, file, persistWhenEmpty: false);
         }
 
-        public Task FetchAsync()
+        public async Task ApplyOperationsAsync(SleetOperations operations)
+        {
+            // Remove packages
+            foreach (var package in operations.ToRemove)
+            {
+                if (package.IsSymbolsPackage)
+                {
+                    await RemoveSymbolsPackageAsync(package.Identity);
+                }
+                else
+                {
+                    await RemovePackageAsync(package.Identity);
+                }
+            }
+
+            // Add
+            foreach (var package in operations.ToAdd)
+            {
+                if (package.IsSymbolsPackage)
+                {
+                    await AddSymbolsPackageAsync(package);
+                }
+                else
+                {
+                    await AddPackageAsync(package);
+                }
+            }
+        }
+
+        public Task PreLoadAsync(SleetOperations operations)
         {
             return PackageIndex.FetchAsync();
         }
@@ -575,25 +626,30 @@ namespace Sleet
         /// <summary>
         /// dll or pdb file
         /// </summary>
-        private class PackageFile
+        private class PackageFile : IDisposable
         {
             public string FileName { get; }
 
             public string Hash { get; }
 
-            public ZipArchiveEntry ZipEntry { get; }
+            public MemoryStream Stream { get; }
 
             public ISleetFile AssetFile { get; }
 
             public ISleetFile IndexFile { get; }
 
-            public PackageFile(string fileName, string hash, ZipArchiveEntry zipEntry, ISleetFile assetFile, ISleetFile indexFile)
+            public PackageFile(string fileName, string hash, MemoryStream stream, ISleetFile assetFile, ISleetFile indexFile)
             {
                 AssetFile = assetFile;
                 FileName = fileName;
                 Hash = hash;
-                ZipEntry = zipEntry;
+                Stream = stream;
                 IndexFile = indexFile;
+            }
+
+            public void Dispose()
+            {
+                Stream?.Dispose();
             }
         }
     }

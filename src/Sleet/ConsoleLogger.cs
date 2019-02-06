@@ -11,9 +11,6 @@ namespace Sleet
         private static readonly Lazy<bool> _isValidConsole = new Lazy<bool>(IsValidConsole);
         private static readonly Lazy<bool> _isCITrue = new Lazy<bool>(IsCIMode);
 
-        private string _lastCollapsedMessage;
-        private string _lastIndicator;
-
         /// <summary>
         /// Collapse all messages below the minimal level.
         /// </summary>
@@ -37,13 +34,8 @@ namespace Sleet
 
             if (level >= (int)VerbosityLevel)
             {
-                var isCollapsed = CollapseMessages
-                    && RuntimeEnvironmentHelper.IsWindows
-                    && level < (int)LogLevel.Minimal
-                    && AllowAdvancedWrite();
-
                 // Replace or clear the color if needed
-                var updatedColor = GetColor(color, isCollapsed);
+                var updatedColor = GetColor(color, isCollapsed: false);
 
                 // Break up multi-line messages
                 var messages = SplitMessages(message.Message);
@@ -59,19 +51,7 @@ namespace Sleet
                     {
                         // Modify message
                         var updatedMessage = messages[i];
-
-                        if (AllowAdvancedWrite())
-                        {
-                            // Hide the cursor for overwrites
-                            HideCursor();
-
-                            // Modify the message to overwrite if allowed.
-                            updatedMessage = GetCollapsedMessage(messages[i], isCollapsed);
-                        }
-                        else
-                        {
-                            updatedMessage = updatedMessage.TrimEnd() + Environment.NewLine;
-                        }
+                        updatedMessage = updatedMessage.TrimEnd() + Environment.NewLine;
 
                         // Write
                         Console.Write(updatedMessage);
@@ -94,10 +74,7 @@ namespace Sleet
 
         public void Dispose()
         {
-            if (_cursorVisibleOriginalState.HasValue && AllowAdvancedWrite())
-            {
-                Console.CursorVisible = _cursorVisibleOriginalState.Value;
-            }
+
         }
 
         private static ConsoleColor? GetColor(ILogMessage message)
@@ -145,95 +122,6 @@ namespace Sleet
             }
 
             return messages;
-        }
-
-        private string GetCollapsedMessage(string message, bool isCollapsed)
-        {
-            var updatedMessage = message;
-
-            if (isCollapsed)
-            {
-                var indicator = GetNextIndicator(_lastIndicator);
-                updatedMessage = $"  [{indicator}] " + message.Trim();
-                _lastIndicator = indicator;
-            }
-
-            var lastMessageWasCollapsed = !string.IsNullOrEmpty(_lastCollapsedMessage);
-
-            var minLength = _lastCollapsedMessage?.TrimEnd().Length ?? 0;
-            var maxLength = Math.Max(1, Console.WindowWidth - 1);
-
-            if (!isCollapsed)
-            {
-                // Non-collapsed messages can take up more room.
-                maxLength = Math.Max(maxLength, message.Length);
-            }
-
-            while (lastMessageWasCollapsed && updatedMessage.Length < minLength)
-            {
-                // Add extra spaces to overwrite the previous output
-                updatedMessage += " ";
-            }
-
-            // Trim messages longer than the window. This causes odd output.
-            if (updatedMessage.Length > maxLength)
-            {
-                updatedMessage = updatedMessage.Substring(0, maxLength);
-            }
-
-            if (lastMessageWasCollapsed)
-            {
-                updatedMessage = "\r" + updatedMessage;
-            }
-
-            if (isCollapsed)
-            {
-                // Move to the beginning of the line
-                _lastCollapsedMessage = updatedMessage;
-            }
-            else
-            {
-                // Clear the last collapsed message
-                _lastCollapsedMessage = null;
-                _lastIndicator = null;
-                updatedMessage += Environment.NewLine;
-            }
-
-            return updatedMessage;
-        }
-
-        private static string GetNextIndicator(string current)
-        {
-            // - \ | / - \ | / -
-            if (string.IsNullOrEmpty(current))
-            {
-                return "-";
-            }
-
-            switch (current)
-            {
-                case "-":
-                    return "\\";
-                case "\\":
-                    return "|";
-                case "|":
-                    return "/";
-                case "/":
-                    return "-";
-                default:
-                    return "-";
-            }
-        }
-
-        /// <summary>
-        /// Check if overwriting should be used.
-        /// </summary>
-        private bool AllowAdvancedWrite()
-        {
-            // Allow advanced console writes if this is not in debug mode and the console is interactive.
-            return _isValidConsole.Value
-                && !_isCITrue.Value
-                && VerbosityLevel >= LogLevel.Information;
         }
 
         private static bool IsCIMode()

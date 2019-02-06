@@ -1,116 +1,160 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using NuGet.Packaging.Core;
 
 namespace Sleet
 {
     public static class SleetUtility
     {
         /// <summary>
-        /// Add a package to all services.
+        /// Create a dictionary of packages by id
         /// </summary>
-        public static async Task AddPackage(SleetContext context, PackageInput package)
+        public static Dictionary<string, List<T>> GetPackageSetsById<T>(IEnumerable<T> packages, Func<T, string> getId)
         {
-            var services = GetServices(context);
+            var result = new Dictionary<string, List<T>>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var service in services)
+            foreach (var package in packages)
             {
-                if (package.IsSymbolsPackage)
-                {
-                    var symbolsService = service as ISymbolsAddRemovePackages;
+                var id = getId(package);
 
-                    if (symbolsService != null)
+                List<T> list = null;
+                if (!result.TryGetValue(id, out list))
+                {
+                    list = new List<T>(1);
+                    result.Add(id, list);
+                }
+
+                list.Add(package);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Main entry point for updating the feed.
+        /// All add/remove operations can be added to a single changeContext and applied in
+        /// a single call using this method.
+        /// </summary>
+        public static async Task ApplyPackageChangesAsync(SleetContext context, SleetOperations changeContext)
+        {
+            var steps = GetSteps(context);
+            var tasks = steps.Select(e => new Func<Task>(() => e.RunAsync(changeContext))).ToList();
+
+            // Run each service on its own thread and in parallel
+            // Services with depenencies will pre-fetch files that will be used later
+            // and then wait until the other services have completed.
+            await TaskUtils.RunAsync(tasks, useTaskRun: true, maxThreads: steps.Count, token: CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Build pipeline steps.
+        /// </summary>
+        private static List<SleetStep> GetSteps(SleetContext context)
+        {
+            var result = new List<SleetStep>();
+
+            var catalog = new SleetStep(GetCatalogService(context));
+            result.Add(catalog);
+
+            if (context.SourceSettings.SymbolsEnabled)
+            {
+                result.Add(new SleetStep(new Symbols(context)));
+            }
+
+            result.Add(new SleetStep(new FlatContainer(context)));
+            result.Add(new SleetStep(new AutoComplete(context)));
+            result.Add(new SleetStep(new PackageIndex(context)));
+
+            // Registration depends on catalog pages
+            var registrations = new SleetStep(new Registrations(context), catalog);
+            result.Add(registrations);
+
+            //// Search depends on registation files
+            var search = new SleetStep(new Search(context), registrations);
+            result.Add(search);
+
+            return result;
+        }
+
+        /// <summary>
+        /// PreLoad, Wait for dependencies, Run
+        /// </summary>
+        private class SleetStep
+        {
+            private bool _done = false;
+
+            public ISleetService Service { get; }
+            public List<SleetStep> Dependencies { get; } = new List<SleetStep>();
+
+            public SleetStep(ISleetService service)
+            {
+                Service = service;
+            }
+
+            public SleetStep(ISleetService service, SleetStep dependency)
+            {
+                Service = service;
+                Dependencies.Add(dependency);
+            }
+
+            public async Task WaitAsync()
+            {
+                // Run with a simple spin lock to avoid problems with SemaphoreSlim
+                while (!_done)
+                {
+                    await Task.Delay(10);
+                }
+            }
+
+            public async Task RunAsync(SleetOperations operations)
+            {
+                try
+                {
+                    // Pre load while waiting for dependencies
+                    await Service.PreLoadAsync(operations);
+
+                    if (Dependencies.Count > 0)
                     {
-                        await symbolsService.AddSymbolsPackageAsync(package);
+                        // Wait for dependencies
+                        // await Task.WhenAll(Dependencies.Select(e => e.Semaphore.WaitAsync()));
+                        foreach (var dep in Dependencies)
+                        {
+                            await dep.WaitAsync();
+                        }
                     }
+
+                    // Update the service
+                    await Service.ApplyOperationsAsync(operations);
+
                 }
-                else
+                finally
                 {
-                    await service.AddPackageAsync(package);
+                    // Complete
+                    _done = true;
                 }
             }
         }
 
         /// <summary>
-        /// Remove both the symbols and non-symbols package from all services.
+        /// Retrieve the catalog service based on the settings.
         /// </summary>
-        public static async Task RemovePackage(SleetContext context, PackageIdentity package)
+        private static ISleetService GetCatalogService(SleetContext context)
         {
-            await RemoveNonSymbolsPackage(context, package);
-            await RemoveSymbolsPackage(context, package);
-        }
-
-        /// <summary>
-        /// Remove a non-symbols package from all services.
-        /// </summary>
-        public static async Task RemoveNonSymbolsPackage(SleetContext context, PackageIdentity package)
-        {
-            var services = GetServices(context);
-
-            foreach (var service in services)
-            {
-                await service.RemovePackageAsync(package);
-            }
-        }
-
-        /// <summary>
-        /// Remove a symbols package from all services.
-        /// </summary>
-        public static async Task RemoveSymbolsPackage(SleetContext context, PackageIdentity package)
-        {
-            var services = GetServices(context);
-            var symbolsEnabled = context.SourceSettings.SymbolsEnabled;
-
-            if (symbolsEnabled)
-            {
-                foreach (var symbolsService in services.Select(e => e as ISymbolsAddRemovePackages).Where(e => e != null))
-                {
-                    await symbolsService.RemoveSymbolsPackageAsync(package);
-                }
-            }
-        }
-
-        public static IReadOnlyList<ISleetService> GetServices(SleetContext context)
-        {
-            // Order is important here
-            // Packages must be added to flat container, then the catalog, then registrations.
-            var services = new List<ISleetService>
-            {
-                new FlatContainer(context)
-            };
-
+            ISleetService catalog = null;
             if (context.SourceSettings.CatalogEnabled)
             {
-                // Catalog on disk
-                services.Add(new Catalog(context));
+                // Full catalog that is written to the feed
+                catalog = new Catalog(context);
             }
             else
             {
-                // In memory catalog
-                services.Add(new VirtualCatalog(context));
+                // In memory catalog that is not written to the feed
+                catalog = new VirtualCatalog(context);
             }
 
-            services.Add(new Registrations(context));
-            services.Add(new AutoComplete(context));
-            services.Add(new Search(context));
-            services.Add(new PackageIndex(context));
-
-            // Symbols
-            if (context.SourceSettings.SymbolsEnabled)
-            {
-                services.Add(new Symbols(context));
-            }
-
-            return services;
-        }
-
-        /// <summary>
-        /// Pre-load files in parallel
-        /// </summary>
-        public static Task FetchFeed(SleetContext context)
-        {
-            return Task.WhenAll(GetServices(context).Select(e => e.FetchAsync()));
+            return catalog;
         }
     }
 }

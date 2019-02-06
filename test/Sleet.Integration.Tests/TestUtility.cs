@@ -6,7 +6,7 @@ using System.Reflection;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-namespace Sleet.Test
+namespace Sleet.Tests
 {
     /// <summary>
     /// Duplicated from SleetLib.Tests due to a VS 2017 RC2 Issue.

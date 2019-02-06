@@ -12,7 +12,7 @@ namespace Sleet
     /// <summary>
     /// PackageIndexFile is a simple json index of all ids and versions contained in the feed.
     /// </summary>
-    public class PackageIndexFile : IndexFileBase, IAddRemovePackages, IPackagesLookup, ISymbolsAddRemovePackages, ISymbolsPackagesLookup
+    public class PackageIndexFile : IndexFileBase, IAddRemovePackages, IPackagesLookup, ISymbolsAddRemovePackages, ISymbolsPackagesLookup, IApplyOperations
     {
         public PackageIndexFile(SleetContext context, string path)
             : this(context, path, persistWhenEmpty: false)
@@ -29,28 +29,44 @@ namespace Sleet
         {
         }
 
-        public async Task AddPackageAsync(PackageInput packageInput)
+        public Task AddPackageAsync(PackageInput packageInput)
+        {
+            return AddPackagesAsync(new[] { packageInput });
+        }
+
+        public Task RemovePackageAsync(PackageIdentity package)
+        {
+            return RemovePackagesAsync(new[] { package });
+        }
+
+        public async Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
         {
             // Load existing index
             var sets = await GetPackageSetsAsync();
 
             // Add package
-            await sets.Packages.AddPackageAsync(packageInput);
+            await sets.Packages.AddPackagesAsync(packageInputs);
 
             // Write file
-            await Save(sets);
+            await CreateAsync(sets);
         }
 
-        public async Task RemovePackageAsync(PackageIdentity package)
+        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
         {
             // Load existing index
             var sets = await GetPackageSetsAsync();
+            var save = false;
 
             // Remove package
-            if (sets.Packages.Index.Remove(package))
+            foreach (var package in packages)
+            {
+                save |= sets.Packages.Index.Remove(package);
+            }
+
+            if (save)
             {
                 // Create updated index
-                await Save(sets);
+                await CreateAsync(sets);
             }
         }
 
@@ -63,7 +79,7 @@ namespace Sleet
             await sets.Symbols.AddPackageAsync(packageInput);
 
             // Write file
-            await Save(sets);
+            await CreateAsync(sets);
         }
 
         public async Task RemoveSymbolsPackageAsync(PackageIdentity package)
@@ -75,7 +91,7 @@ namespace Sleet
             if (sets.Symbols.Index.Remove(package))
             {
                 // Create updated index
-                await Save(sets);
+                await CreateAsync(sets);
             }
         }
 
@@ -119,7 +135,7 @@ namespace Sleet
         /// Returns all packages in the feed.
         /// Id -> Version
         /// </summary>
-        private async Task<PackageSets> GetPackageSetsAsync()
+        public async Task<PackageSets> GetPackageSetsAsync()
         {
             var index = new PackageSets();
 
@@ -238,6 +254,18 @@ namespace Sleet
         }
 
         /// <summary>
+        /// Create the file directly without loading the previous file.
+        /// </summary>
+        public Task CreateAsync(PackageSets index)
+        {
+            // Create updated index
+            var json = CreateJson(index);
+            var isEmpty = (index.Packages.Index.Count < 1) && (index.Symbols.Index.Count < 1);
+
+            return SaveAsync(json, isEmpty);
+        }
+
+        /// <summary>
         /// Empty json file.
         /// </summary>
         protected override Task<JObject> GetJsonTemplateAsync()
@@ -280,15 +308,6 @@ namespace Sleet
             return json;
         }
 
-        private Task Save(PackageSets index)
-        {
-            // Create updated index
-            var json = CreateJson(index);
-            var isEmpty = (index.Packages.Index.Count < 1) && (index.Symbols.Index.Count < 1);
-
-            return SaveAsync(json, isEmpty);
-        }
-
         private static SortedSet<PackageIdentity> GetSetForId(string packageId, IEnumerable<PackageIdentity> packages)
         {
             return new SortedSet<PackageIdentity>(packages.Where(e => StringComparer.OrdinalIgnoreCase.Equals(packageId, e.Id)));
@@ -300,11 +319,15 @@ namespace Sleet
             return sets.Packages.Index.Count == 0 && sets.Symbols.Index.Count == 0;
         }
 
-        private class PackageSets
+        public virtual Task ApplyOperationsAsync(SleetOperations operations)
         {
-            public PackageSet Packages { get; set; } = new PackageSet();
+            return OperationsUtility.ApplyAddRemoveAsync(this, operations);
+        }
 
-            public PackageSet Symbols { get; set; } = new PackageSet();
+        public Task PreLoadAsync(SleetOperations operations)
+        {
+            // Noop
+            return Task.FromResult(true);
         }
     }
 }
