@@ -13,7 +13,7 @@ namespace Sleet
         public JObject Json { get; set; } = new JObject();
 
         /// <summary>
-        /// Path of the sleet.json file
+        /// Absolute path of the sleet.json file
         /// </summary>
         public string Path { get; set; }
 
@@ -48,14 +48,16 @@ namespace Sleet
 
             if (!skipConfig)
             {
-                json = SettingsUtility.GetSleetJsonOrNull(path);
+                var resolvedPath = SettingsUtility.GetSleetJsonPathOrNull(path);
 
-                if (json != null)
+                if (resolvedPath != null)
                 {
+                    json = JObject.Parse(File.ReadAllText(resolvedPath));
+
                     // Resolve tokens in the json
                     SettingsUtility.ResolveTokensInSettingsJson(json, mappings);
 
-                    return Load(json, path);
+                    return Load(json, resolvedPath);
                 }
                 else if (!string.IsNullOrEmpty(path))
                 {
