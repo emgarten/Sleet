@@ -112,18 +112,18 @@ namespace SleetLib.Tests
         }
 
         [WindowsTheory]
-        [InlineData(@"c:\configPath\sleet.config", @".\", @"c:\configPath\")]
-        [InlineData(@"c:\configPath\sleet.config", @".", @"c:\configPath\")]
-        [InlineData(@"c:\configPath\sleet.config", @"", @"c:\configPath\")]
-        [InlineData(@"c:\configPath\sleet.config", @"singleSubFolder", @"c:\configPath\singleSubFolder\")]
-        [InlineData(@"c:\configPath\sleet.config", @"nestedSubFolder\a", @"c:\configPath\nestedSubFolder\a\")]
-        [InlineData(@"c:\configPath\sleet.config", @"c:\absolutePath", @"c:\absolutePath\")]
-        [InlineData(@"\\some-network-share\share\sleet.config", @"singleSubFolder", @"\\some-network-share\share\singleSubFolder\")]
-        [InlineData(@"\\some-network-share\share\sleet.config", @"nestedSubFolder\a", @"\\some-network-share\share\nestedSubFolder\a\")]
-        [InlineData(@"\\some-network-share\share\sleet.config", @".\", @"\\some-network-share\share\")]
-        [InlineData(@"file:///c:/configPath/sleet.config", @"", @"c:\configPath\")]
-        [InlineData(@"file:///c:/configPath/sleet.config", @"singleSubFolder", @"c:\configPath\singleSubFolder\")]
-        [InlineData(@"file:///c:/configPath/sleet.config", @"nestedSubFolder\a", @"c:\configPath\nestedSubFolder\a\")]
+        [InlineData(@"c:\configPath\sleet.json", @".\", @"c:\configPath\")]
+        [InlineData(@"c:\configPath\sleet.json", @".", @"c:\configPath\")]
+        [InlineData(@"c:\configPath\sleet.json", @"", @"c:\configPath\")]
+        [InlineData(@"c:\configPath\sleet.json", @"singleSubFolder", @"c:\configPath\singleSubFolder\")]
+        [InlineData(@"c:\configPath\sleet.json", @"nestedSubFolder\a", @"c:\configPath\nestedSubFolder\a\")]
+        [InlineData(@"c:\configPath\sleet.json", @"c:\absolutePath", @"c:\absolutePath\")]
+        [InlineData(@"\\some-network-share\share\sleet.json", @"singleSubFolder", @"\\some-network-share\share\singleSubFolder\")]
+        [InlineData(@"\\some-network-share\share\sleet.json", @"nestedSubFolder\a", @"\\some-network-share\share\nestedSubFolder\a\")]
+        [InlineData(@"\\some-network-share\share\sleet.json", @".\", @"\\some-network-share\share\")]
+        [InlineData(@"file:///c:/configPath/sleet.json", @"", @"c:\configPath\")]
+        [InlineData(@"file:///c:/configPath/sleet.json", @"singleSubFolder", @"c:\configPath\singleSubFolder\")]
+        [InlineData(@"file:///c:/configPath/sleet.json", @"nestedSubFolder\a", @"c:\configPath\nestedSubFolder\a\")]
         public void Feed_LocalTypeSupportsRelativePath(string configPath, string outputPath, string expected)
         {
             using (var cache = new LocalCache())
