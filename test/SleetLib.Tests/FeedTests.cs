@@ -124,8 +124,14 @@ namespace SleetLib.Tests
         [InlineData(@"file:///c:/configPath/sleet.json", @"", @"c:\configPath\")]
         [InlineData(@"file:///c:/configPath/sleet.json", @"singleSubFolder", @"c:\configPath\singleSubFolder\")]
         [InlineData(@"file:///c:/configPath/sleet.json", @"nestedSubFolder\a", @"c:\configPath\nestedSubFolder\a\")]
+        [InlineData(@"sleet.json", @"", @"{workingDir}\")]
+        [InlineData(@"sleet.json", @".\", @"{workingDir}\")]
+        [InlineData(@"sleet.json", @"singleSubFolder", @"{workingDir}\singleSubFolder\")]
+        [InlineData(@"sleet.json", @"nestedSubFolder\a", @"{workingDir}\nestedSubFolder\a\")]
         public void Feed_LocalTypeSupportsRelativePath(string configPath, string outputPath, string expected)
         {
+            var expectedFull = expected.Replace("{workingDir}", Directory.GetCurrentDirectory());
+
             using (var cache = new LocalCache())
             {
                 var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
@@ -136,7 +142,7 @@ namespace SleetLib.Tests
                 var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, "local") as PhysicalFileSystem;
 
                 Assert.NotNull(fileSystem);
-                Assert.Equal(expected, fileSystem.LocalRoot);
+                Assert.Equal(expectedFull, fileSystem.LocalRoot);
             }
         }
 

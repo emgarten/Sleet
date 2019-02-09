@@ -48,7 +48,9 @@ namespace Sleet
 
                         var nonEmptyPath = path == "" ? "." : path;
 
-                        var settingsDir = Path.GetDirectoryName(NuGetUriUtility.GetLocalPath(settings.Path));
+                        var absoluteSettingsPath = NuGetUriUtility.GetAbsolutePath(Directory.GetCurrentDirectory(), settings.Path);
+
+                        var settingsDir = Path.GetDirectoryName(absoluteSettingsPath);
                         absolutePath = NuGetUriUtility.GetAbsolutePath(settingsDir, nonEmptyPath);
                     }
                     else
