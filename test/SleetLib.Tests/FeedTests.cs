@@ -163,7 +163,7 @@ namespace SleetLib.Tests
             }
 
             ex.Should().NotBeNull();
-            ex.Message.Should().Be("Cannot use a relative 'path' without a settings.json file.");
+            ex.Message.Should().Be("Cannot use a relative 'path' without a sleet.json file.");
         }
     }
 }
