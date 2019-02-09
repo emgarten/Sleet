@@ -43,7 +43,7 @@ namespace Sleet
                     {
                         if (settings.Path == null && !Path.IsPathRooted(NuGetUriUtility.GetLocalPath(path)))
                         {
-                            throw new ArgumentException("Cannot use a relative 'path' without a settings.json file.");
+                            throw new ArgumentException("Cannot use a relative 'path' without a sleet.json file.");
                         }
 
                         var nonEmptyPath = path == "" ? "." : path;
