@@ -4,7 +4,7 @@ This guide is used to setup a new feed hosted on Amazon S3 storage.
 
 ## Creating a config for Amazon S3 feed
 
-Create a `sleet.json` config file to define a new package feed hosted on azure storage.
+Create a `sleet.json` config file to define a new package feed hosted on Amazon S3 storage.
 
 ``sleet createconfig --s3``
 
