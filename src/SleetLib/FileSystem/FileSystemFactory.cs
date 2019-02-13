@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 #if !SLEETLEGACY
 using Amazon;
+using Amazon.Runtime.CredentialManagement;
 using Amazon.S3;
 #endif
 using Microsoft.WindowsAzure.Storage;
@@ -114,16 +115,58 @@ namespace Sleet
                         var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
                         var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
 
-                        if (string.IsNullOrEmpty(profileName) && string.IsNullOrEmpty(accessKeyId))
-                            throw new ArgumentException("Must provide a profileName or accessKeyId and secretAccessKey for Amazon S3 account.");
                         if (string.IsNullOrEmpty(bucketName))
+                        {
                             throw new ArgumentException("Missing bucketName for Amazon S3 account.");
+                        }
+
                         if (string.IsNullOrEmpty(region))
+                        {
                             throw new ArgumentException("Missing region for Amazon S3 account.");
+                        }
+
+                        if (string.IsNullOrEmpty(profileName) && string.IsNullOrEmpty(accessKeyId))
+                        {
+                            throw new ArgumentException("Must provide a profileName or accessKeyId and secretAccessKey for Amazon S3 account.");
+                        }
 
                         var regionSystemName = RegionEndpoint.GetBySystemName(region);
-                        if (!new Amazon.Runtime.CredentialManagement.SharedCredentialsFile().TryGetProfile(profileName, out var profile))
-                            throw new ArgumentException($"The specified profile {profileName} could not be found.");
+                        AmazonS3Client amazonS3Client = null;
+
+                        if (string.IsNullOrEmpty(profileName))
+                        {
+                            // Access key in sleet.json
+                            if (string.IsNullOrEmpty(accessKeyId))
+                            {
+                                throw new ArgumentException("Missing accessKeyId for Amazon S3 account.");
+                            }
+
+                            if (string.IsNullOrEmpty(secretAccessKey))
+                            {
+                                throw new ArgumentException("Missing secretAccessKey for Amazon S3 account.");
+                            }
+
+                            amazonS3Client = new AmazonS3Client(accessKeyId, secretAccessKey, regionSystemName);
+                        }
+                        else
+                        {
+                            // Avoid mismatched configs, this would get confusing for users.
+                            if (!string.IsNullOrEmpty(accessKeyId) || !string.IsNullOrEmpty(secretAccessKey))
+                            {
+                                throw new ArgumentException("accessKeyId/secretAccessKey may not be used with profileName. Either use profileName with a credential file containing the access keys, or set the access keys in sleet.json and remove profileName.");
+                            }
+
+                            // Credential file
+                            var credFile = new SharedCredentialsFile();
+                            if (credFile.TryGetProfile(profileName, out var profile))
+                            {
+                                amazonS3Client = new AmazonS3Client(profile.GetAWSCredentials(profileSource: null), regionSystemName);
+                            }
+                            else
+                            {
+                                throw new ArgumentException($"The specified AWS profileName {profileName} could not be found. The feed must specify a valid profileName for an AWS credentials file, or accessKeyId and secretAccessKey must be provided. For help on credential files see: https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file");
+                            }
+                        }
 
                         if (pathUri == null)
                         {
@@ -135,12 +178,6 @@ namespace Sleet
                         {
                             baseUri = pathUri;
                         }
-
-                        var amazonS3Client = string.IsNullOrEmpty(accessKeyId) ?
-                            string.IsNullOrEmpty(profileName) ?
-                                new AmazonS3Client(regionSystemName)
-                                : new AmazonS3Client(profile.GetAWSCredentials(null), regionSystemName)
-                            : new AmazonS3Client(accessKeyId, secretAccessKey, regionSystemName);
 
                         result = new AmazonS3FileSystem(
                             cache,
