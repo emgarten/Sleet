@@ -18,7 +18,6 @@ Edit `sleet.json` using your editor of choice to set the url of your storage acc
     {
       "name": "feed",
       "type": "azure",
-      "path": "https://yourStorageAccount.blob.core.windows.net/feed/",
       "container": "feed",
       "connectionString": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint="
     }
