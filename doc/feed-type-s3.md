@@ -68,3 +68,12 @@ Add packages to the feed with the push command, this can be used with either a p
 ## Using the feed
 
 Add the feed as a source to your `NuGet.Config` file. In the example above the package source URL is ``https://s3.amazonaws.com/my-bucket-feed/index.json``
+
+## Creating a private S3 feed
+
+Private feeds can be created by creating a lambda function to authenticate clients. 
+
+For help setting up S3 go [here](http://kynatro.com/blog/2018/01/03/a-step-by-step-guide-to-creating-a-password-protected-s3-bucket/)
+
+In *sleet.json* set *baseURI* for the feed to the CloudFront address, this will write the CloudFront URI to the feed json files instead of the restricted S3 bucket which the client cannot access.
+
