@@ -15,7 +15,7 @@ namespace Sleet
         private readonly CloudBlockBlob _blob;
 
         internal AzureFile(AzureFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile, CloudBlockBlob blob)
-            : base(fileSystem, rootPath, displayPath, localCacheFile)
+            : base(fileSystem, rootPath, displayPath, localCacheFile, fileSystem.LocalCache.PerfTracker)
         {
             _blob = blob;
         }
@@ -24,7 +24,7 @@ namespace Sleet
         {
             if (await _blob.ExistsAsync())
             {
-                log.LogInformation($"GET {_blob.Uri.AbsoluteUri}");
+                log.LogVerbose($"GET {_blob.Uri.AbsoluteUri}");
 
                 if (File.Exists(LocalCacheFile.FullName))
                 {
@@ -39,7 +39,7 @@ namespace Sleet
                 // If the blob is compressed it needs to be decompressed locally before it can be used
                 if (_blob.Properties.ContentEncoding?.Equals("gzip", StringComparison.OrdinalIgnoreCase) == true)
                 {
-                    log.LogInformation($"Decompressing {_blob.Uri.AbsoluteUri}");
+                    log.LogVerbose($"Decompressing {_blob.Uri.AbsoluteUri}");
 
                     var gzipFile = LocalCacheFile.FullName + ".gz";
                     File.Move(LocalCacheFile.FullName, gzipFile);
@@ -58,7 +58,7 @@ namespace Sleet
         {
             if (File.Exists(LocalCacheFile.FullName))
             {
-                log.LogInformation($"Pushing {_blob.Uri.AbsoluteUri}");
+                log.LogVerbose($"Pushing {_blob.Uri.AbsoluteUri}");
 
                 using (var cache = LocalCacheFile.OpenRead())
                 {
@@ -80,7 +80,7 @@ namespace Sleet
                         _blob.Properties.ContentEncoding = "gzip";
 
                         // Compress content before uploading
-                        log.LogInformation($"Compressing {_blob.Uri.AbsoluteUri}");
+                        log.LogVerbose($"Compressing {_blob.Uri.AbsoluteUri}");
                         writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
@@ -107,12 +107,12 @@ namespace Sleet
             }
             else if (await _blob.ExistsAsync())
             {
-                log.LogInformation($"Removing {_blob.Uri.AbsoluteUri}");
+                log.LogVerbose($"Removing {_blob.Uri.AbsoluteUri}");
                 await _blob.DeleteAsync();
             }
             else
             {
-                log.LogInformation($"Skipping {_blob.Uri.AbsoluteUri}");
+                log.LogVerbose($"Skipping {_blob.Uri.AbsoluteUri}");
             }
         }
 

@@ -256,13 +256,15 @@ namespace Sleet
         /// <summary>
         /// Create the file directly without loading the previous file.
         /// </summary>
-        public Task CreateAsync(PackageSets index)
+        public async Task CreateAsync(PackageSets index)
         {
-            // Create updated index
-            var json = CreateJson(index);
-            var isEmpty = (index.Packages.Index.Count < 1) && (index.Symbols.Index.Count < 1);
-
-            return SaveAsync(json, isEmpty);
+            using (var timer = PerfEntryWrapper.CreateModifyTimer(File, Context))
+            {
+                // Create updated index
+                var json = CreateJson(index);
+                var isEmpty = (index.Packages.Index.Count < 1) && (index.Symbols.Index.Count < 1);
+                await SaveAsync(json, isEmpty);
+            }
         }
 
         /// <summary>

@@ -24,7 +24,7 @@
     <RepositoryUrl>https://github.com/emgarten/Sleet</RepositoryUrl>
     <PackageTags>nuget nugetserver nugetfeed</PackageTags>
     <Description>Sleet creates nuget v3.0.0 nupkg feeds.</Description>
-    <Copyright>Copyright © 2017 Justin Emgarten</Copyright>
+    <Copyright>Copyright © 2019 Justin Emgarten</Copyright>
     <PackageIconUrl>https://emgartenstatic.blob.core.windows.net/nupkgs/icons/sleet.png</PackageIconUrl>
   </PropertyGroup>
 

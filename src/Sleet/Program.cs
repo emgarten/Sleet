@@ -10,7 +10,7 @@ namespace Sleet
     {
         public static int Main(string[] args)
         {
-            var logLevel = LogLevel.Minimal;
+            var logLevel = Util.DefaultLogLevel;
 
             if (CmdUtils.IsDebugModeEnabled())
             {
