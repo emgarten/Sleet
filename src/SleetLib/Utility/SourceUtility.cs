@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -25,13 +26,20 @@ namespace Sleet
                     throw new InvalidOperationException($"Unable to use feed.");
                 }
 
+                var timer = Stopwatch.StartNew();
                 feedLock = fileSystem.CreateLock(log);
+
+                // Get lock
                 var isLocked = await feedLock.GetLock(settings.FeedLockTimeout, token);
 
                 if (!isLocked)
                 {
                     throw new InvalidOperationException("Unable to obtain a lock on the feed.");
                 }
+
+                // Log perf
+                timer.Stop();
+                fileSystem.LocalCache.PerfTracker.Add(new PerfSummaryEntry(timer.Elapsed, "Obtained feed lock in {0}", TimeSpan.FromSeconds(30)));
 
                 var indexPath = fileSystem.Get("index.json");
 

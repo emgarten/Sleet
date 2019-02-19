@@ -32,13 +32,7 @@ namespace Sleet
         /// <summary>
         /// Catalog index.json file
         /// </summary>
-        public ISleetFile RootIndexFile
-        {
-            get
-            {
-                return _context.Source.Get(RootIndex);
-            }
-        }
+        public ISleetFile RootIndexFile => _context.Source.Get(RootIndex);
 
         /// <summary>
         /// Example: http://tempuri.org/virtualcatalog/

@@ -115,6 +115,22 @@ Validate is a built in helper to verify that all packages contained in the index
 | config | Optional path to *sleet.json* where the source information is contained. | 
 | source | Source name from *sleet.json*. *Required* |
 
+## Download
+
+Downloads all packages and symbols packages from the feed to a local folder.
+
+``Usage: sleet download [options]``
+
+### Options
+
+| Parameter | Description |
+| --- | ------ |
+| config | Optional path to *sleet.json* where the source information is contained. | 
+| source | Source name from *sleet.json*. *Required* |
+| skip-existing | Skip packages that already exist in the output folder. |
+| no-lock | Skip locking the feed and verifying the client version. |
+| ignore-errors | Ignore download errors. |
+
 ## Properties and settings
 
 All feed related commands allow passing *--property* to specify properties on the command line. These properties can be used to override env vars or populate tokens in sleet.json.

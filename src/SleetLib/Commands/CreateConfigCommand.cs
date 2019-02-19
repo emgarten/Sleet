@@ -74,8 +74,15 @@ namespace Sleet
                         { "type", "s3" },
                         { "bucketName", "bucketname" },
                         { "region", "us-east-1" },
-                        { "accessKeyId", "" },
-                        { "secretAccessKey", "" }
+                        { "profileName", "credentialsFileProfileName" }
+                    };
+                    log.Log(LogLevel.Minimal, "AWS credentials can be specified directly in sleet.json using accessKeyId and secretAccessKey instead of profileName. By default sleet.json is set to use a credentials file profile. To configure keys see: https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file");
+                    break;
+                case FileSystemStorageType.Unspecified:
+                    storageTemplateJson = new JObject
+                    {
+                        { "name", "myFeed" },
+                        { "type", "" }
                     };
                     break;
             }

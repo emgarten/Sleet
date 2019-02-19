@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace Sleet
 
             // Copy in nupkgs/nuspec files
             // Ignore symbols packages
-            tasks.AddRange(changeContext.ToAdd.Where(e => !e.IsSymbolsPackage).Select(e => new Func<Task>(() => AddNupkgAsync(e))));
+            tasks.AddRange(changeContext.ToAdd.Where(e => !e.IsSymbolsPackage).Select(e => new Func<Task>(() => AddPackageAsync(e))));
 
             // Rebuild index files as needed
             var rebuildIds = changeContext.GetChangedIds();
@@ -148,23 +149,40 @@ namespace Sleet
         {
             // Update index
             var indexFile = _context.Source.Get(GetIndexUri(id));
-            var indexJson = CreateIndexJson(versions);
-            await indexFile.Write(indexJson, _context.Log, _context.Token);
+
+            using (var timer = PerfEntryWrapper.CreateModifyTimer(indexFile, _context.PerfTracker))
+            {
+                var indexJson = CreateIndexJson(versions);
+                await indexFile.Write(indexJson, _context.Log, _context.Token);
+            }
         }
 
-        private async Task AddNupkgAsync(PackageInput packageInput)
+        private Task AddPackageAsync(PackageInput packageInput)
         {
-            // Add nupkg
+            return Task.WhenAll(new[]
+            {
+                AddNuspecAsync(packageInput),
+                AddNupkgAsync(packageInput)
+            });
+        }
+
+        private Task AddNupkgAsync(PackageInput packageInput)
+        {
+            // Add the nupkg by linking it instead of copying it to the local cache.
             var nupkgFile = _context.Source.Get(GetNupkgPath(packageInput.Identity));
+            nupkgFile.Link(packageInput.PackagePath, _context.Log, _context.Token);
 
-            await nupkgFile.Write(File.OpenRead(packageInput.PackagePath), _context.Log, _context.Token);
+            return Task.FromResult(true);
+        }
 
+        private async Task AddNuspecAsync(PackageInput packageInput)
+        {
             // Add nuspec
             var nuspecPath = $"{packageInput.Identity.Id}.nuspec".ToLowerInvariant();
+            var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, nuspecPath));
 
-            using (var nuspecStream = packageInput.Nuspec.Xml.AsMemoryStreamAsync())
+            using (var nuspecStream = packageInput.Nuspec.Xml.AsMemoryStream())
             {
-                var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, nuspecPath));
                 await entryFile.Write(nuspecStream, _context.Log, _context.Token);
             }
         }

@@ -138,17 +138,23 @@ namespace Sleet
                 json.Add("title", titleValue);
             }
 
-            using (var stream = File.OpenRead(packageInput.PackagePath))
+            // Avoid hashing the package for virtual catalog pages, it takes
+            // a long time for machines with slow disks. It also isn't used
+            // anywhere except in the real catalog.
+            if (writeFileList)
             {
-                using (var sha512 = SHA512.Create())
+                using (var stream = File.OpenRead(packageInput.PackagePath))
                 {
-                    var packageHash = Convert.ToBase64String(sha512.ComputeHash(stream));
+                    using (var sha512 = SHA512.Create())
+                    {
+                        var packageHash = Convert.ToBase64String(sha512.ComputeHash(stream));
 
-                    json.Add("packageHash", packageHash);
-                    json.Add("packageHashAlgorithm", "SHA512");
+                        json.Add("packageHash", packageHash);
+                        json.Add("packageHashAlgorithm", "SHA512");
+                    }
+
+                    json.Add("packageSize", stream.Length);
                 }
-
-                json.Add("packageSize", stream.Length);
             }
 
             json.Add("published", now.GetDateString());

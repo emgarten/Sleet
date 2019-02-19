@@ -24,7 +24,7 @@ namespace Sleet
             IAmazonS3 client,
             string bucketName,
             string key)
-            : base(fileSystem, rootPath, displayPath, localCacheFile)
+            : base(fileSystem, rootPath, displayPath, localCacheFile, fileSystem.LocalCache.PerfTracker)
         {
             this.client = client;
             this.bucketName = bucketName;
@@ -37,10 +37,9 @@ namespace Sleet
             if (!await FileExistsAsync(client, bucketName, key, token).ConfigureAwait(false))
                 return;
 
-            log.LogInformation($"GET {absoluteUri}");
+            log.LogVerbose($"GET {absoluteUri}");
 
-            if (File.Exists(LocalCacheFile.FullName))
-                LocalCacheFile.Delete();
+            DeleteInternal();
 
             string contentEncoding;
             using (var cache = File.OpenWrite(LocalCacheFile.FullName))
@@ -50,7 +49,7 @@ namespace Sleet
 
             if (contentEncoding?.Equals("gzip", StringComparison.OrdinalIgnoreCase) == true)
             {
-                log.LogInformation($"Decompressing {absoluteUri}");
+                log.LogVerbose($"Decompressing {absoluteUri}");
 
                 var gzipFile = LocalCacheFile.FullName + ".gz";
                 File.Move(LocalCacheFile.FullName, gzipFile);
@@ -61,6 +60,8 @@ namespace Sleet
                 {
                     await zipStream.CopyToAsync(destination, DefaultCopyBufferSize, token).ConfigureAwait(false);
                 }
+
+                File.Delete(gzipFile);
             }
         }
 
@@ -71,18 +72,18 @@ namespace Sleet
             {
                 if (await FileExistsAsync(client, bucketName, key, token).ConfigureAwait(false))
                 {
-                    log.LogInformation($"Removing {absoluteUri}");
+                    log.LogVerbose($"Removing {absoluteUri}");
                     await RemoveFileAsync(client, bucketName, key, token).ConfigureAwait(false);
                 }
                 else
                 {
-                    log.LogInformation($"Skipping {absoluteUri}");
+                    log.LogVerbose($"Skipping {absoluteUri}");
                 }
 
                 return;
             }
 
-            log.LogInformation($"Pushing {absoluteUri}");
+            log.LogVerbose($"Pushing {absoluteUri}");
 
             using (var cache = LocalCacheFile.OpenRead())
             {
@@ -104,7 +105,7 @@ namespace Sleet
                     contentEncoding = "gzip";
 
                     // Compress content before uploading
-                    log.LogInformation($"Compressing {absoluteUri}");
+                    log.LogVerbose($"Compressing {absoluteUri}");
                     writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
                 }
                 else if (key.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)

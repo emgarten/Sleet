@@ -27,6 +27,9 @@ namespace Sleet
             cmd.HelpOption(Constants.HelpOption);
 
             var outputPath = cmd.Option("-o|--output-path", "Output directory to store downloaded nupkgs.", CommandOptionType.SingleValue);
+            var skipExisting = cmd.Option("--skip-existing", "Skip packages that already exist in the output folder.", CommandOptionType.NoValue);
+            var noLock = cmd.Option("--no-lock", "Skip locking the feed and verifying the client version.", CommandOptionType.NoValue);
+            var ignoreErrors = cmd.Option("--ignore-errors", "Ignore download errors.", CommandOptionType.NoValue);
 
             var required = new List<CommandOption>()
             {
@@ -49,7 +52,7 @@ namespace Sleet
                     var fileSystem = Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
                     // Download packages
-                    var success = await DownloadCommand.RunAsync(settings, fileSystem, outputPath.Value(), ignoreErrors: false, log: log);
+                    var success = await DownloadCommand.RunAsync(settings, fileSystem, outputPath.Value(), ignoreErrors.HasValue(), noLock.HasValue(), skipExisting.HasValue(), log);
 
                     return success ? 0 : 1;
                 }

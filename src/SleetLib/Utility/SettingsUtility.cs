@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
+using NuGetUriUtility = NuGet.Common.UriUtility;
 
 namespace Sleet
 {
@@ -202,7 +203,7 @@ namespace Sleet
         /// <summary>
         /// Find sleet.json at the given path or search upwards from the current directory.
         /// </summary>
-        public static JObject GetSleetJsonOrNull(string path)
+        public static string GetSleetJsonPathOrNull(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -214,7 +215,9 @@ namespace Sleet
                 return null;
             }
 
-            return JObject.Parse(File.ReadAllText(path));
+            var absolutePath = NuGetUriUtility.GetAbsolutePath(Directory.GetCurrentDirectory(), path);
+
+            return absolutePath;
         }
 
         /// <summary>

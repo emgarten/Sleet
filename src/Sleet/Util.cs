@@ -7,6 +7,8 @@ namespace Sleet
 {
     internal static class Util
     {
+        internal static LogLevel DefaultLogLevel = LogLevel.Information;
+
         internal static ISleetFileSystem CreateFileSystemOrThrow(LocalSettings settings, string sourceName, LocalCache cache)
         {
             var sourceNamePassed = !string.IsNullOrEmpty(sourceName);
@@ -83,7 +85,7 @@ namespace Sleet
                 }
                 else
                 {
-                    consoleLogger.VerbosityLevel = LogLevel.Information;
+                    consoleLogger.VerbosityLevel = DefaultLogLevel;
                     consoleLogger.CollapseMessages = true;
                 }
             }

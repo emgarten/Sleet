@@ -131,7 +131,7 @@ namespace Sleet
         /// <summary>
         /// Save an XML file to a stream.
         /// </summary>
-        public static MemoryStream AsMemoryStreamAsync(this XDocument doc)
+        public static MemoryStream AsMemoryStream(this XDocument doc)
         {
             var mem = new MemoryStream();
             doc.Save(mem);
@@ -164,6 +164,33 @@ namespace Sleet
 
             mem.Position = 0;
             return mem;
+        }
+
+        /// <summary>
+        /// Partition a list into segements of a given number.
+        /// </summary>
+        internal static List<List<T>> Partition<T>(this IEnumerable<T> entries, int max)
+        {
+            var results = new List<List<T>>();
+            var set = new List<T>();
+
+            foreach (var entry in entries)
+            {
+                if (set.Count >= max)
+                {
+                    results.Add(set);
+                    set = new List<T>();
+                }
+
+                set.Add(entry);
+            }
+
+            if (set.Count > 0)
+            {
+                results.Add(set);
+            }
+
+            return results;
         }
     }
 }

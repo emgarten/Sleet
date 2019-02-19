@@ -957,6 +957,7 @@ namespace SleetLib.Tests
         {
             using (var testContext = new SleetTestContext())
             {
+                var log = (TestLogger)testContext.SleetContext.Log;
                 var context = testContext.SleetContext;
                 context.SourceSettings.SymbolsEnabled = true;
 
@@ -993,6 +994,8 @@ namespace SleetLib.Tests
                     log: testContext.SleetContext.Log,
                     token: CancellationToken.None);
 
+                success.Should().BeTrue("Init failed: " + log.GetMessages(LogLevel.Information));
+
                 // Push
                 success &= await PushCommand.RunAsync(
                     testContext.SleetContext.LocalSettings,
@@ -1001,6 +1004,8 @@ namespace SleetLib.Tests
                     force: false,
                     skipExisting: false,
                     log: testContext.SleetContext.Log);
+
+                success.Should().BeTrue("Push failed: " + log.GetMessages(LogLevel.Information));
 
                 // Force push
                 success &= await PushCommand.RunAsync(
@@ -1011,18 +1016,20 @@ namespace SleetLib.Tests
                     skipExisting: false,
                     log: testContext.SleetContext.Log);
 
+                success.Should().BeTrue("Force push failed: " + log.GetMessages(LogLevel.Information));
+
                 // Validate
                 success &= await ValidateCommand.RunAsync(
                         testContext.SleetContext.LocalSettings,
                         testContext.SleetContext.Source,
                         log: testContext.SleetContext.Log);
 
-                success.Should().BeTrue();
+                success.Should().BeTrue("Validate failed: " + log.GetMessages(LogLevel.Information));
 
                 // Both packages should exist, force should not delete one or the other.
                 var index = new PackageIndex(context);
-                (await index.Exists(identity)).Should().BeTrue();
-                (await index.SymbolsExists(identity)).Should().BeTrue();
+                (await index.Exists(identity)).Should().BeTrue($"{identity} does not exist in the index");
+                (await index.SymbolsExists(identity)).Should().BeTrue($"symbols: {identity} does not exist in the index");
             }
         }
 

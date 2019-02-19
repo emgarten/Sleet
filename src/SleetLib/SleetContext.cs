@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using NuGet.Common;
 
@@ -19,5 +19,7 @@ namespace Sleet
         public Guid CommitId { get; set; } = Guid.NewGuid();
 
         public DateTimeOffset OperationStart { get; set; } = DateTimeOffset.UtcNow;
+
+        public IPerfTracker PerfTracker { get; set; } = NullPerfTracker.Instance;
     }
 }

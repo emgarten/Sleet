@@ -39,13 +39,16 @@ namespace Sleet
         /// </summary>
         public static async Task ApplyPackageChangesAsync(SleetContext context, SleetOperations changeContext)
         {
-            var steps = GetSteps(context);
-            var tasks = steps.Select(e => new Func<Task>(() => e.RunAsync(changeContext))).ToList();
+            using (var timer = PerfEntryWrapper.CreateSummaryTimer("Updated all files locally. Total time: {0}", context.PerfTracker))
+            {
+                var steps = GetSteps(context);
+                var tasks = steps.Select(e => new Func<Task>(() => e.RunAsync(changeContext, context.PerfTracker))).ToList();
 
-            // Run each service on its own thread and in parallel
-            // Services with depenencies will pre-fetch files that will be used later
-            // and then wait until the other services have completed.
-            await TaskUtils.RunAsync(tasks, useTaskRun: true, maxThreads: steps.Count, token: CancellationToken.None);
+                // Run each service on its own thread and in parallel
+                // Services with depenencies will pre-fetch files that will be used later
+                // and then wait until the other services have completed.
+                await TaskUtils.RunAsync(tasks, useTaskRun: true, maxThreads: steps.Count, token: CancellationToken.None);
+            }
         }
 
         /// <summary>
@@ -55,24 +58,24 @@ namespace Sleet
         {
             var result = new List<SleetStep>();
 
-            var catalog = new SleetStep(GetCatalogService(context));
+            var catalog = new SleetStep(GetCatalogService(context), SleetPerfGroup.Catalog);
             result.Add(catalog);
 
             if (context.SourceSettings.SymbolsEnabled)
             {
-                result.Add(new SleetStep(new Symbols(context)));
+                result.Add(new SleetStep(new Symbols(context), SleetPerfGroup.Symbols));
             }
 
-            result.Add(new SleetStep(new FlatContainer(context)));
-            result.Add(new SleetStep(new AutoComplete(context)));
-            result.Add(new SleetStep(new PackageIndex(context)));
+            result.Add(new SleetStep(new FlatContainer(context), SleetPerfGroup.FlatContainer));
+            result.Add(new SleetStep(new AutoComplete(context), SleetPerfGroup.AutoComplete));
+            result.Add(new SleetStep(new PackageIndex(context), SleetPerfGroup.PackageIndex));
 
             // Registration depends on catalog pages
-            var registrations = new SleetStep(new Registrations(context), catalog);
+            var registrations = new SleetStep(new Registrations(context), SleetPerfGroup.Registration, catalog);
             result.Add(registrations);
 
-            //// Search depends on registation files
-            var search = new SleetStep(new Search(context), registrations);
+            // Search depends on registation files
+            var search = new SleetStep(new Search(context), SleetPerfGroup.Search, registrations);
             result.Add(search);
 
             return result;
@@ -86,16 +89,18 @@ namespace Sleet
             private bool _done = false;
 
             public ISleetService Service { get; }
+            public SleetPerfGroup PerfGroup { get; }
             public List<SleetStep> Dependencies { get; } = new List<SleetStep>();
 
-            public SleetStep(ISleetService service)
+            public SleetStep(ISleetService service, SleetPerfGroup perfGroup)
             {
                 Service = service;
             }
 
-            public SleetStep(ISleetService service, SleetStep dependency)
+            public SleetStep(ISleetService service, SleetPerfGroup perfGroup, SleetStep dependency)
             {
                 Service = service;
+                PerfGroup = perfGroup;
                 Dependencies.Add(dependency);
             }
 
@@ -104,11 +109,11 @@ namespace Sleet
                 // Run with a simple spin lock to avoid problems with SemaphoreSlim
                 while (!_done)
                 {
-                    await Task.Delay(10);
+                    await Task.Delay(100);
                 }
             }
 
-            public async Task RunAsync(SleetOperations operations)
+            public async Task RunAsync(SleetOperations operations, IPerfTracker perfTracker)
             {
                 try
                 {
@@ -125,9 +130,13 @@ namespace Sleet
                         }
                     }
 
-                    // Update the service
-                    await Service.ApplyOperationsAsync(operations);
-
+                    var name = Service.GetType().ToString().Split('.').Last();
+                    var message = $"Updated {name} in " + "{0}";
+                    using (var timer = PerfEntryWrapper.CreateSummaryTimer(message, perfTracker))
+                    {
+                        // Update the service
+                        await Service.ApplyOperationsAsync(operations);
+                    }
                 }
                 finally
                 {

@@ -50,11 +50,33 @@ The example file contains a set of sources. If only feed exists in the file slee
 
 | Property | Description |
 | --- | ------ |
-| accessKeyId | Access key id *[Required]* |
-| secretAccessKey | Secret access key *[Required]* |
+| profileName | AWS [credentials file](https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file) profile name. *[Cannot be used with accessKeyId or secretAccessKey]* |
+| accessKeyId | Access key id *[Cannot be used with profileName]* |
+| secretAccessKey | Secret access key *[Cannot be used with profileName]* |
 | bucketName | S3 bucket name *[Required]* |
 | region | S3 region *[Required]* |
 | path | Full URI of the storage bucket. If not specified a default URI will be used. |
+
+### Using an AWS credentials file
+
+```json
+{
+  "sources": [
+    {
+      "name": "feed",
+      "type": "s3",
+      "path": "https://s3.amazonaws.com/my-bucket-feed/",
+      "profileName": "sleetProfile",
+      "bucketName": "my-bucket-feed",
+      "region": "us-west-2",
+      "baseURI": "https://tempuri.org/",
+      "feedSubPath": "a/b/c/"
+    }
+  ]
+}
+```
+
+### Using accessKeyId and secretAccessKey in sleet.json
 
 ```json
 {

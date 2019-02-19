@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,11 +62,35 @@ namespace Sleet
 
         public async Task<bool> Commit(ILogger log, CancellationToken token)
         {
-            // Push in parallel
-            await TaskUtils.RunAsync(
-                tasks: Files.Values.Select(e => GetCommitFileFunc(e, log, token)),
-                useTaskRun: true,
-                token: token);
+            var perfTracker = LocalCache.PerfTracker;
+
+            // Find all files with changes
+            var withChanges = Files.Values.Where(e => e.HasChanges).ToList();
+
+            // Order files so that nupkgs are pushed first to help clients avoid
+            // missing files during the push.
+            withChanges.Sort(new SleetFileComparer());
+
+            if (withChanges.Count > 0)
+            {
+                var bytes = withChanges.Select(e => e as FileBase)
+                    .Where(e => e != null)
+                    .Sum(e => e.LocalFileSizeIfExists);
+
+                // Create tasks to run in parallel
+                var tasks = withChanges.Select(e => GetCommitFileFunc(e, log, token));
+
+                var message = $"Files committed: {withChanges.Count} Size: {PrintUtility.GetBytesString(bytes)} Total upload time: " + "{0}";
+                using (var timer = PerfEntryWrapper.CreateSummaryTimer(message, perfTracker))
+                {
+                    // Push in parallel
+                    await TaskUtils.RunAsync(
+                        tasks: tasks,
+                        useTaskRun: true,
+                        maxThreads: 8,
+                        token: token);
+                }
+            }
 
             return true;
         }
