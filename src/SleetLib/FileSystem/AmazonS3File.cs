@@ -39,8 +39,7 @@ namespace Sleet
 
             log.LogVerbose($"GET {absoluteUri}");
 
-            if (File.Exists(LocalCacheFile.FullName))
-                LocalCacheFile.Delete();
+            DeleteInternal();
 
             string contentEncoding;
             using (var cache = File.OpenWrite(LocalCacheFile.FullName))
@@ -61,6 +60,8 @@ namespace Sleet
                 {
                     await zipStream.CopyToAsync(destination, DefaultCopyBufferSize, token).ConfigureAwait(false);
                 }
+
+                File.Delete(gzipFile);
             }
         }
 

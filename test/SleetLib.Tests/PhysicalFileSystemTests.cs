@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -322,6 +321,86 @@ namespace SleetLib.Tests
 
                 ex.Should().NotBeNull();
                 ex.Message.Should().Be("Local feed path cannot be an http URI, use baseURI instead.");
+            }
+        }
+
+        [Fact]
+        public async Task GivenAFileLinkVerifyGetAfter()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var extCache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                var jsonInput = new JObject(new JProperty("abc", "xyz"));
+                var extFile = extCache.GetNewTempPath();
+                File.WriteAllText(extFile.FullName, jsonInput.ToString());
+
+                var a = fileSystem.Get("a.txt");
+                a.Link(extFile.FullName, log, CancellationToken.None);
+                var json = await a.GetJson(log, CancellationToken.None);
+
+                a.HasChanges.Should().BeTrue();
+                cache.Root.GetFiles().Length.Should().Be(0);
+                json.ToString().Should().Be(jsonInput.ToString());
+            }
+        }
+
+        [Fact]
+        public void GivenALinkedFileDeleteVerifyFileIsNotRemoved()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var extCache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                var jsonInput = new JObject(new JProperty("abc", "xyz"));
+                var extFile = extCache.GetNewTempPath();
+                File.WriteAllText(extFile.FullName, jsonInput.ToString());
+
+                var a = fileSystem.Get("a.txt");
+                a.Link(extFile.FullName, log, CancellationToken.None);
+                a.Delete(log, CancellationToken.None);
+
+                a.HasChanges.Should().BeTrue();
+                cache.Root.GetFiles().Length.Should().Be(0);
+                File.Exists(extFile.FullName).Should().BeTrue("The original file should not be removed");
+            }
+        }
+
+        [Fact]
+        public async Task GivenALinkedFileDeleteAndRecreateVerifyFile()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var extCache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                var jsonInput = new JObject(new JProperty("abc", "xyz"));
+                var jsonInput2 = new JObject(new JProperty("abc", "abc"));
+
+                var extFile = extCache.GetNewTempPath();
+                File.WriteAllText(extFile.FullName, jsonInput.ToString());
+
+                var a = fileSystem.Get("a.txt");
+
+                // Link to an ext file
+                a.Link(extFile.FullName, log, CancellationToken.None);
+
+                // Overwrite with a different file
+                await a.Write(jsonInput2, log, CancellationToken.None);
+                var json = await a.GetJson(log, CancellationToken.None);
+
+
+                json.ToString().Should().Be(jsonInput2.ToString());
+                a.HasChanges.Should().BeTrue();
+                File.Exists(extFile.FullName).Should().BeTrue("The original file should not be removed");
             }
         }
     }
