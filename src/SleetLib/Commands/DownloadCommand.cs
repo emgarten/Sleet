@@ -1,11 +1,11 @@
-using NuGet.Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System;
+using NuGet.Common;
 using NuGet.Packaging.Core;
-using System.Linq;
 
 namespace Sleet
 {
@@ -14,26 +14,60 @@ namespace Sleet
     /// </summary>
     public static class DownloadCommand
     {
-        private const int MaxThreads = 4;
+        private const int MaxThreads = 8;
 
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string outputPath, bool ignoreErrors, ILogger log)
+        public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string outputPath, bool ignoreErrors, ILogger log)
+        {
+            return RunAsync(settings, source, outputPath, ignoreErrors, noLock: false, skipExisting: false, log: log);
+        }
+
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string outputPath, bool ignoreErrors, bool noLock, bool skipExisting, ILogger log)
         {
             var token = CancellationToken.None;
+            ISleetFileSystemLock feedLock = null;
+            var success = true;
+            var perfTracker = source.LocalCache.PerfTracker;
 
-            // Check if already initialized
-            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
+            using (var timer = PerfEntryWrapper.CreateSummaryTimer("Total execution time: {0}", perfTracker))
             {
-                // Validate source
-                await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);
+                // Check if already initialized
+                try
+                {
+                    if (!noLock)
+                    {
+                        // Lock
+                        feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token);
 
-                return await DownloadPackages(settings, source, outputPath, ignoreErrors, log, token);
+                        // Validate source
+                        await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);
+                    }
+
+                    success = await DownloadPackages(settings, source, outputPath, ignoreErrors, log, token);
+                }
+                finally
+                {
+                    feedLock?.Dispose();
+                }
             }
+
+            // Write out perf summary
+            await perfTracker.LogSummary(log);
+            return success;
+        }
+
+
+        /// <summary>
+        /// Download packages. This method does not lock the feed or verify the client version.
+        /// </summary>
+        public static Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string outputPath, bool ignoreErrors, ILogger log, CancellationToken token)
+        {
+            return DownloadPackages(settings, source, outputPath, ignoreErrors, skipExisting: false, log: log, token: token);
         }
 
         /// <summary>
         /// Download packages. This method does not lock the feed or verify the client version.
         /// </summary>
-        public static async Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string outputPath, bool ignoreErrors, ILogger log, CancellationToken token)
+        public static async Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string outputPath, bool ignoreErrors, bool skipExisting, ILogger log, CancellationToken token)
         {
             if (string.IsNullOrEmpty(outputPath))
             {
@@ -69,38 +103,13 @@ namespace Sleet
             packages.AddRange((await packageIndex.GetSymbolsPackagesAsync()).Select(e =>
                 new KeyValuePair<PackageIdentity, ISleetFile>(e, symbols.GetSymbolsNupkgFile(e))));
 
-            var tasks = new List<Task<bool>>(MaxThreads);
-            var downloadSuccess = true;
-
             log.LogMinimal($"Downloading nupkgs to {outputPath}");
 
-            foreach (var pair in packages)
-            {
-                if (tasks.Count >= MaxThreads)
-                {
-                    downloadSuccess &= await CompleteTask(tasks);
-                }
+            // Run downloads
+            var tasks = packages.Select(e => new Func<Task<bool>>(() => DownloadPackageAsync(outputPath, skipExisting, log, e, token)));
+            var results = await TaskUtils.RunAsync(tasks, useTaskRun: true, token: CancellationToken.None);
 
-                var package = pair.Key;
-                var nupkgFile = pair.Value;
-
-                var fileName = UriUtility.GetFileName(nupkgFile.EntityUri);
-
-                // id/id.version.nupkg or id/id.version.symbols.nupkg
-                var outputNupkgPath = Path.Combine(outputPath,
-                    package.Id.ToLowerInvariant(),
-                    fileName.ToLowerInvariant());
-
-                log.LogInformation($"Downloading {outputNupkgPath}");
-
-                tasks.Add(nupkgFile.CopyTo(outputNupkgPath, overwrite: true, log: log, token: token));
-            }
-
-            while (tasks.Count > 0)
-            {
-                downloadSuccess &= await CompleteTask(tasks);
-            }
-
+            var downloadSuccess = results.All(e => e);
             success &= downloadSuccess;
 
             if (packages.Count < 1)
@@ -132,12 +141,20 @@ namespace Sleet
             return success;
         }
 
-        private static async Task<bool> CompleteTask(List<Task<bool>> tasks)
+        private static async Task<bool> DownloadPackageAsync(string outputPath, bool skipExisting, ILogger log, KeyValuePair<PackageIdentity, ISleetFile> pair, CancellationToken token)
         {
-            var task = await Task.WhenAny(tasks);
-            tasks.Remove(task);
+            var package = pair.Key;
+            var nupkgFile = pair.Value;
 
-            return await task;
+            var fileName = UriUtility.GetFileName(nupkgFile.EntityUri);
+
+            // id/id.version.nupkg or id/id.version.symbols.nupkg
+            var outputNupkgPath = Path.Combine(outputPath,
+                package.Id.ToLowerInvariant(),
+                fileName.ToLowerInvariant());
+
+            await log.LogAsync(LogLevel.Information, $"Downloading {outputNupkgPath}");
+            return await nupkgFile.CopyTo(outputNupkgPath, overwrite: !skipExisting, log: log, token: token);
         }
     }
 }

@@ -1,11 +1,10 @@
 # Release Notes
 
-## 2.3.74
+## 2.3.75
+* Added Download command options: --no-lock --skip-existing --ignore-errors
 * Skip package SHA512 hashing when the catalog is disabled. Package details blobs will no longer write this extra property.
 * ISleetFile.Link support
 * Nupkgs are no longer copied to the temp cache during push. This improves perf and saves disk space for large pushes.
-
-## 2.3.73
 * Reduced default log output, http get/push calls will now only be shown on verbose mode.
 * Performance summary displays where time was spent during push operations.
 * Push batch support. Instead of pushing possibly hundreds of thousands of packages at once push will now load nupkgs in batches and process them to avoid running out of memory.
