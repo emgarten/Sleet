@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 #if !SLEETLEGACY
 using Amazon;
 using Amazon.Runtime.CredentialManagement;
@@ -131,6 +132,13 @@ namespace Sleet
                         }
 
                         var regionSystemName = RegionEndpoint.GetBySystemName(region);
+
+                        var config = new AmazonS3Config()
+                        {
+                            RegionEndpoint = regionSystemName,
+                            ProxyCredentials = new NetworkCredential()
+                        };
+
                         AmazonS3Client amazonS3Client = null;
 
                         if (string.IsNullOrEmpty(profileName))
@@ -146,7 +154,7 @@ namespace Sleet
                                 throw new ArgumentException("Missing secretAccessKey for Amazon S3 account.");
                             }
 
-                            amazonS3Client = new AmazonS3Client(accessKeyId, secretAccessKey, regionSystemName);
+                            amazonS3Client = new AmazonS3Client(accessKeyId, secretAccessKey, config);
                         }
                         else
                         {
@@ -160,7 +168,7 @@ namespace Sleet
                             var credFile = new SharedCredentialsFile();
                             if (credFile.TryGetProfile(profileName, out var profile))
                             {
-                                amazonS3Client = new AmazonS3Client(profile.GetAWSCredentials(profileSource: null), regionSystemName);
+                                amazonS3Client = new AmazonS3Client(profile.GetAWSCredentials(profileSource: null), config);
                             }
                             else
                             {
