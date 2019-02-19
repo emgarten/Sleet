@@ -1,5 +1,12 @@
 # Release Notes
 
+## 2.3.73
+* Reduced default log output, http get/push calls will now only be shown on verbose mode.
+* Performance summary displays where time was spent during push operations.
+* Push batch support. Instead of pushing possibly hundreds of thousands of packages at once push will now load nupkgs in batches and process them to avoid running out of memory.
+* Files are now ordered during upload. Index files will be pushed last to help avoid conflicts on the client when the feed is still incomplete.
+* Increased the delay for obtaining a file lock on azure feeds. Cleaned up file lock logging.
+
 ## 2.3.36
 * Path property in sleet.json can now be a relative path for local feeds
 

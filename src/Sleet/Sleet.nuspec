@@ -9,7 +9,7 @@
     <licenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</licenseUrl>
     <projectUrl>https://github.com/emgarten/Sleet/</projectUrl>
     <description>Sleet is a static feed generator for NuGet package feeds.</description>
-    <copyright>Copyright © 2017 Justin Emgarten</copyright>
+    <copyright>Copyright © 2019 Justin Emgarten</copyright>
     <tags>nuget nugetserver nugetfeed</tags>
     <repository type="git" url="https://github.com/emgarten/Sleet" branch="$branch$" commit="$commit$" />
     <developmentDependency>true</developmentDependency>

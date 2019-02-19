@@ -37,11 +37,11 @@ namespace Sleet
         public Task<bool> GetLock(TimeSpan wait, CancellationToken token)
         {
             var result = false;
-
-            var timer = new Stopwatch();
-            timer.Start();
-
-            var lastNotify = TimeSpan.Zero;
+            var timer = Stopwatch.StartNew();
+            var lastNotify = Stopwatch.StartNew();
+            var notifyDelay = TimeSpan.FromMinutes(5);
+            var waitTime = TimeSpan.FromMilliseconds(200);
+            var firstLoop = true;
 
             do
             {
@@ -67,14 +67,14 @@ namespace Sleet
 
                 if (!result)
                 {
-                    var diff = timer.Elapsed.Subtract(lastNotify);
-
-                    if (diff.TotalSeconds > 60)
+                    if (lastNotify.Elapsed >= notifyDelay || firstLoop)
                     {
                         _log.LogMinimal($"Waiting to obtain an exclusive lock on the feed.");
+                        lastNotify.Restart();
+                        firstLoop = false;
                     }
 
-                    Thread.Sleep(100);
+                    Thread.Sleep(waitTime);
                 }
             }
             while (!result && timer.Elapsed < wait);

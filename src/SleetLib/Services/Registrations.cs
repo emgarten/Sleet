@@ -59,42 +59,45 @@ namespace Sleet
             var rootUri = GetIndexUri(packageId);
             var rootFile = _context.Source.Get(rootUri);
 
-            var packages = new List<JObject>();
-            var json = await rootFile.GetJsonOrNull(_context.Log, _context.Token);
-
-            if (json != null)
+            using (var timer = PerfEntryWrapper.CreateModifyTimer(rootFile, _context))
             {
-                // Get all entries
-                packages = await GetPackageDetails(json);
-            }
+                var packages = new List<JObject>();
+                var json = await rootFile.GetJsonOrNull(_context.Log, _context.Token);
 
-            // Remove any duplicates from the file
-            var newPackageVersions = new HashSet<NuGetVersion>(packageInputs.Select(e => e.Identity.Version));
-
-            foreach (var existingPackage in packages.ToArray())
-            {
-                var existingVersion = GetPackageVersion(existingPackage);
-
-                if (newPackageVersions.Contains(existingVersion))
+                if (json != null)
                 {
-                    packages.Remove(existingPackage);
-                    _context.Log.LogWarning($"Removed duplicate registration entry for: {new PackageIdentity(packageId, existingVersion)}");
+                    // Get all entries
+                    packages = await GetPackageDetails(json);
                 }
+
+                // Remove any duplicates from the file
+                var newPackageVersions = new HashSet<NuGetVersion>(packageInputs.Select(e => e.Identity.Version));
+
+                foreach (var existingPackage in packages.ToArray())
+                {
+                    var existingVersion = GetPackageVersion(existingPackage);
+
+                    if (newPackageVersions.Contains(existingVersion))
+                    {
+                        packages.Remove(existingPackage);
+                        _context.Log.LogWarning($"Removed duplicate registration entry for: {new PackageIdentity(packageId, existingVersion)}");
+                    }
+                }
+
+                // Add package entries
+                foreach (var package in packageInputs)
+                {
+                    // Add entry
+                    var newEntry = CreateItem(package);
+                    packages.Add(newEntry);
+                }
+
+                // Create index
+                var newIndexJson = await CreateIndexAsync(rootUri, packages);
+
+                // Write
+                await rootFile.Write(newIndexJson, _context.Log, _context.Token);
             }
-
-            // Add package entries
-            foreach (var package in packageInputs)
-            {
-                // Add entry
-                var newEntry = CreateItem(package);
-                packages.Add(newEntry);
-            }
-
-            // Create index
-            var newIndexJson = await CreateIndexAsync(rootUri, packages);
-
-            // Write
-            await rootFile.Write(newIndexJson, _context.Log, _context.Token);
         }
 
         /// <summary>
@@ -105,10 +108,14 @@ namespace Sleet
             // Create package page
             var packageUri = GetPackageUri(package.Identity);
             var packageFile = _context.Source.Get(packageUri);
-            var packageJson = await CreatePackageBlobAsync(package);
 
-            // Write package page
-            await packageFile.Write(packageJson, _context.Log, _context.Token);
+            using (var timer = PerfEntryWrapper.CreateModifyTimer(packageFile, _context))
+            {
+                var packageJson = await CreatePackageBlobAsync(package);
+
+                // Write package page
+                await packageFile.Write(packageJson, _context.Log, _context.Token);
+            }
         }
 
         public Task RemovePackagesAsync(IEnumerable<PackageIdentity> packagesToDelete)
@@ -134,45 +141,49 @@ namespace Sleet
             // Retrieve index
             var rootUri = GetIndexUri(packageId);
             var rootFile = _context.Source.Get(rootUri);
-            var modified = false;
 
-            var packages = new List<JObject>();
-            var json = await rootFile.GetJsonOrNull(_context.Log, _context.Token);
-
-            if (json != null)
+            using (var timer = PerfEntryWrapper.CreateModifyTimer(rootFile, _context))
             {
-                // Get all entries
-                packages = await GetPackageDetails(json);
+                var modified = false;
 
-                foreach (var entry in packages.ToArray())
+                var packages = new List<JObject>();
+                var json = await rootFile.GetJsonOrNull(_context.Log, _context.Token);
+
+                if (json != null)
                 {
-                    var version = GetPackageVersion(entry);
+                    // Get all entries
+                    packages = await GetPackageDetails(json);
 
-                    if (versions.Contains(version))
+                    foreach (var entry in packages.ToArray())
                     {
-                        modified = true;
-                        packages.Remove(entry);
+                        var version = GetPackageVersion(entry);
 
-                        // delete details page
-                        DeletePackagePage(new PackageIdentity(packageId, version));
+                        if (versions.Contains(version))
+                        {
+                            modified = true;
+                            packages.Remove(entry);
+
+                            // delete details page
+                            DeletePackagePage(new PackageIdentity(packageId, version));
+                        }
                     }
                 }
-            }
 
-            if (modified)
-            {
-                if (packages.Count > 0)
+                if (modified)
                 {
-                    // Create index
-                    var newIndexJson = await CreateIndexAsync(rootUri, packages);
+                    if (packages.Count > 0)
+                    {
+                        // Create index
+                        var newIndexJson = await CreateIndexAsync(rootUri, packages);
 
-                    // Write
-                    await rootFile.Write(newIndexJson, _context.Log, _context.Token);
-                }
-                else
-                {
-                    // This package id been completely removed
-                    rootFile.Delete(_context.Log, _context.Token);
+                        // Write
+                        await rootFile.Write(newIndexJson, _context.Log, _context.Token);
+                    }
+                    else
+                    {
+                        // This package id been completely removed
+                        rootFile.Delete(_context.Log, _context.Token);
+                    }
                 }
             }
         }
