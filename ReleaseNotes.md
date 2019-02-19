@@ -1,5 +1,16 @@
 # Release Notes
 
+## 2.3.75
+* Added Download command options: --no-lock --skip-existing --ignore-errors
+* Skip package SHA512 hashing when the catalog is disabled. Package details blobs will no longer write this extra property.
+* ISleetFile.Link support
+* Nupkgs are no longer copied to the temp cache during push. This improves perf and saves disk space for large pushes.
+* Reduced default log output, http get/push calls will now only be shown on verbose mode.
+* Performance summary displays where time was spent during push operations.
+* Push batch support. Instead of pushing possibly hundreds of thousands of packages at once push will now load nupkgs in batches and process them to avoid running out of memory.
+* Files are now ordered during upload. Index files will be pushed last to help avoid conflicts on the client when the feed is still incomplete.
+* Increased the delay for obtaining a file lock on azure feeds. Cleaned up file lock logging.
+
 ## 2.3.36
 * Path property in sleet.json can now be a relative path for local feeds
 

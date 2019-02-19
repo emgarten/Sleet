@@ -54,7 +54,7 @@ namespace Sleet
                 Util.SetVerbosity(log, verbose.HasValue());
 
                 // Create a temporary folder for caching files during the operation.
-                using (var cache = new LocalCache())
+                using (var cache = new LocalCache(new PerfTracker()))
                 {
                     // Load settings and file system.
                     var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values));

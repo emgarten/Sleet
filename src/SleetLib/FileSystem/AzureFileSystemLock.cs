@@ -36,6 +36,11 @@ namespace Sleet
         public async Task<bool> GetLock(TimeSpan wait, CancellationToken token)
         {
             var result = false;
+            var timer = Stopwatch.StartNew();
+            var lastNotify = Stopwatch.StartNew();
+            var notifyDelay = TimeSpan.FromMinutes(5);
+            var waitTime = TimeSpan.FromSeconds(30);
+            var firstLoop = true;
 
             if (!_isLocked)
             {
@@ -47,27 +52,19 @@ namespace Sleet
                     await _blob.UploadFromByteArrayAsync(bytes, 0, bytes.Length);
                 }
 
-                var timer = new Stopwatch();
-                timer.Start();
-
-                var lastNotify = TimeSpan.Zero;
-                var firstLoop = true;
-
                 do
                 {
                     result = await _lease.GetLease();
 
                     if (!result)
                     {
-                        var diff = timer.Elapsed.Subtract(lastNotify);
-
-                        if (diff.TotalSeconds > 60 || firstLoop)
+                        if (lastNotify.Elapsed >= notifyDelay || firstLoop)
                         {
                             _log.LogMinimal($"Waiting to obtain an exclusive lock on the feed.");
                         }
 
                         firstLoop = false;
-                        await Task.Delay(100);
+                        await Task.Delay(waitTime);
                     }
                 }
                 while (!result && timer.Elapsed < wait);
@@ -105,6 +102,8 @@ namespace Sleet
 
         private async Task KeepLock()
         {
+            var renewTime = TimeSpan.FromSeconds(15);
+
             try
             {
                 while (!_cts.IsCancellationRequested)
@@ -112,8 +111,7 @@ namespace Sleet
                     try
                     {
                         await _lease.Renew();
-
-                        await Task.Delay(TimeSpan.FromSeconds(30), _cts.Token);
+                        await Task.Delay(renewTime, _cts.Token);
                     }
                     catch (TaskCanceledException)
                     {

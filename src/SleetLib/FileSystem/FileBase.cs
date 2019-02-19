@@ -46,21 +46,42 @@ namespace Sleet
         protected bool? RemoteExistsCacheValue { get; private set; }
 
         /// <summary>
-        /// Temp file on disk representing the remote file.
+        /// Local file on disk.
+        /// If IsLink is true this is an external file.
+        /// If IsLink is false, this is a temp file.
         /// </summary>
-        protected FileInfo LocalCacheFile { get; }
+        protected FileInfo LocalCacheFile { get; private set; }
+
+        /// <summary>
+        /// File operation performance tracker.
+        /// </summary>
+        protected IPerfTracker PerfTracker { get; }
+
+        /// <summary>
+        /// True if the file is linked and not in the LocalCache.
+        /// Linked files should NEVER be deleted from their original location.
+        /// </summary>
+        protected bool IsLink { get; private set; }
 
         /// <summary>
         /// Retry count for failures.
         /// </summary>
         protected int RetryCount { get; set; } = 5;
 
-        protected FileBase(ISleetFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile)
+        /// <summary>
+        /// Original local cache file from the constructor. This is used if the linked
+        /// file is removed.
+        /// </summary>
+        private FileInfo _originalLocalCacheFile;
+
+        protected FileBase(ISleetFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile, IPerfTracker perfTracker)
         {
             FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             RootPath = rootPath ?? throw new ArgumentNullException(nameof(rootPath));
             EntityUri = displayPath ?? throw new ArgumentNullException(nameof(displayPath));
+            PerfTracker = perfTracker ?? NullPerfTracker.Instance;
             LocalCacheFile = localCacheFile ?? throw new ArgumentNullException(nameof(localCacheFile));
+            _originalLocalCacheFile = LocalCacheFile;
         }
 
         /// <summary>
@@ -106,25 +127,28 @@ namespace Sleet
         {
             if (HasChanges)
             {
-                var retry = Math.Max(RetryCount, 1);
-
-                for (var i = 0; i < retry; i++)
+                using (var timer = PerfEntryWrapper.CreateFileTimer(this, PerfTracker, PerfFileEntry.FileOperation.Put))
                 {
-                    try
-                    {
-                        // Upload to remote source.
-                        await CopyToSource(log, token);
+                    var retry = Math.Max(RetryCount, 1);
 
-                        // The file no longer has changes.
-                        HasChanges = false;
-
-                        break;
-                    }
-                    catch (Exception ex) when (i < (retry - 1))
+                    for (var i = 0; i < retry; i++)
                     {
-                        await log.LogAsync(LogLevel.Debug, ex.ToString());
-                        await log.LogAsync(LogLevel.Warning, $"Failed to upload '{RootPath}'. Retrying.");
-                        await Task.Delay(TimeSpan.FromSeconds(10));
+                        try
+                        {
+                            // Upload to remote source.
+                            await CopyToSource(log, token);
+
+                            // The file no longer has changes.
+                            HasChanges = false;
+
+                            break;
+                        }
+                        catch (Exception ex) when (i < (retry - 1))
+                        {
+                            await log.LogAsync(LogLevel.Debug, ex.ToString());
+                            await log.LogAsync(LogLevel.Warning, $"Failed to upload '{RootPath}'. Retrying.");
+                            await Task.Delay(TimeSpan.FromSeconds(10));
+                        }
                     }
                 }
             }
@@ -159,11 +183,14 @@ namespace Sleet
         /// </summary>
         public Task Write(JObject json, ILogger log, CancellationToken token)
         {
-            // Remove the file if it exists
-            Delete(log, token);
+            using (var timer = PerfEntryWrapper.CreateFileTimer(this, PerfTracker, PerfFileEntry.FileOperation.LocalWrite))
+            {
+                // Remove the file if it exists
+                Delete(log, token);
 
-            // Write out json to the file.
-            return JsonUtility.SaveJsonAsync(LocalCacheFile, json);
+                // Write out json to the file.
+                return JsonUtility.SaveJsonAsync(LocalCacheFile, json);
+            }
         }
 
         /// <summary>
@@ -171,14 +198,37 @@ namespace Sleet
         /// </summary>
         public async Task Write(Stream stream, ILogger log, CancellationToken token)
         {
+            using (var timer = PerfEntryWrapper.CreateFileTimer(this, PerfTracker, PerfFileEntry.FileOperation.LocalWrite))
+            {
+                // Remove the file if it exists
+                Delete(log, token);
+
+                using (stream)
+                using (var writeStream = File.OpenWrite(LocalCacheFile.FullName))
+                {
+                    await stream.CopyToAsync(writeStream);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Link this file to an external file instead of creating a file in LocalCache.
+        /// </summary>
+        public void Link(string path, ILogger log, CancellationToken token)
+        {
+            var file = new FileInfo(path);
+            if (!file.Exists)
+            {
+                throw new FileNotFoundException(path);
+            }
+
             // Remove the file if it exists
             Delete(log, token);
 
-            using (stream)
-            using (var writeStream = File.OpenWrite(LocalCacheFile.FullName))
-            {
-                await stream.CopyToAsync(writeStream);
-            }
+            // Mark this file as linked and use path directly instead
+            // of creating a new temp file and copy.
+            IsLink = true;
+            LocalCacheFile = file;
         }
 
         /// <summary>
@@ -188,6 +238,22 @@ namespace Sleet
         {
             IsDownloaded = true;
             HasChanges = true;
+
+            DeleteInternal();
+        }
+
+        /// <summary>
+        /// Delete without changing IsDownloaded or HasChanges.
+        /// If the file is linked this will remove the link.
+        /// </summary>
+        protected void DeleteInternal()
+        {
+            if (IsLink)
+            {
+                // Convert this file back to a non-linked and non-existant temp file.
+                IsLink = false;
+                LocalCacheFile = _originalLocalCacheFile;
+            }
 
             if (File.Exists(LocalCacheFile.FullName))
             {
@@ -202,27 +268,28 @@ namespace Sleet
         {
             if (!IsDownloaded)
             {
-                var retry = Math.Max(RetryCount, 1);
-
-                for (var i = 0; !IsDownloaded && i < retry; i++)
+                using (var timer = PerfEntryWrapper.CreateFileTimer(this, PerfTracker, PerfFileEntry.FileOperation.Get))
                 {
-                    try
+                    var retry = Math.Max(RetryCount, 1);
+
+                    for (var i = 0; !IsDownloaded && i < retry; i++)
                     {
-                        if (File.Exists(LocalCacheFile.FullName))
+                        try
                         {
-                            File.Delete(LocalCacheFile.FullName);
+                            // Delete any existing file
+                            DeleteInternal();
+
+                            // Download from the remote source.
+                            await CopyFromSource(log, token);
+
+                            IsDownloaded = true;
                         }
-
-                        // Download from the remote source.
-                        await CopyFromSource(log, token);
-
-                        IsDownloaded = true;
-                    }
-                    catch (Exception ex) when (i < (retry - 1))
-                    {
-                        await log.LogAsync(LogLevel.Debug, ex.ToString());
-                        await log.LogAsync(LogLevel.Warning, $"Failed to sync '{RootPath}'. Retrying.");
-                        await Task.Delay(TimeSpan.FromSeconds(5));
+                        catch (Exception ex) when (i < (retry - 1))
+                        {
+                            await log.LogAsync(LogLevel.Debug, ex.ToString());
+                            await log.LogAsync(LogLevel.Warning, $"Failed to sync '{RootPath}'. Retrying.");
+                            await Task.Delay(TimeSpan.FromSeconds(5));
+                        }
                     }
                 }
             }
@@ -280,6 +347,25 @@ namespace Sleet
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns FileInfo.Length if the file exists.
+        /// Null if the file does not exist.
+        /// </summary>
+        public long LocalFileSizeIfExists
+        {
+            get
+            {
+                long size = 0;
+
+                if (File.Exists(LocalCacheFile.FullName))
+                {
+                    size = LocalCacheFile.Length;
+                }
+
+                return size;
+            }
         }
 
         public override string ToString()

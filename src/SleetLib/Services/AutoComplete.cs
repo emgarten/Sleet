@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -49,17 +50,20 @@ namespace Sleet
         /// </summary>
         public async Task CreateAsync(IEnumerable<string> packageIds)
         {
-            var ids = new SortedSet<string>(packageIds, StringComparer.OrdinalIgnoreCase);
+            using (var timer = PerfEntryWrapper.CreateModifyTimer(RootIndexFile, _context.PerfTracker))
+            {
+                var ids = new SortedSet<string>(packageIds, StringComparer.OrdinalIgnoreCase);
 
-            // Create a new file using the full set of package ids.
-            // There is no need to read the existing file.
-            var json = await GetEmptyTemplate();
-            var data = new JArray(ids.Take(MaxResults));
-            json["data"] = data;
-            json["totalHits"] = data.Count;
+                // Create a new file using the full set of package ids.
+                // There is no need to read the existing file.
+                var json = await GetEmptyTemplate();
+                var data = new JArray(ids.Take(MaxResults));
+                json["data"] = data;
+                json["totalHits"] = data.Count;
 
-            var formatted = JsonLDTokenComparer.Format(json, recurse: false);
-            await RootIndexFile.Write(formatted, _context.Log, _context.Token);
+                var formatted = JsonLDTokenComparer.Format(json, recurse: false);
+                await RootIndexFile.Write(formatted, _context.Log, _context.Token);
+            }
         }
 
         private async Task<JObject> GetEmptyTemplate()

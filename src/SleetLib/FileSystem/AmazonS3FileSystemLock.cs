@@ -35,10 +35,12 @@ namespace Sleet
 
         public async Task<bool> GetLock(TimeSpan wait, CancellationToken token)
         {
-            bool result = false;
-            var timer = new Stopwatch();
-            timer.Start();
-            var lastNotify = TimeSpan.Zero;
+            var result = false;
+            var timer = Stopwatch.StartNew();
+            var lastNotify = Stopwatch.StartNew();
+            var notifyDelay = TimeSpan.FromMinutes(5);
+            var waitTime = TimeSpan.FromSeconds(30);
+            var firstLoop = true;
 
             do
             {
@@ -46,7 +48,7 @@ namespace Sleet
                 {
                     if (!await FileExistsAsync(client, bucketName, LockFile, token).ConfigureAwait(false))
                     {
-                        string fileContent = DateTime.UtcNow.ToString("O", DateTimeFormatInfo.InvariantInfo);
+                        var fileContent = DateTime.UtcNow.ToString("O", DateTimeFormatInfo.InvariantInfo);
                         await CreateFileAsync(client, bucketName, LockFile, fileContent, token).ConfigureAwait(false);
                         result = true;
                     }
@@ -61,15 +63,14 @@ namespace Sleet
                     continue;
                 }
 
-                TimeSpan diff = timer.Elapsed.Subtract(lastNotify);
-
-                if (diff.TotalSeconds > 60)
+                if (lastNotify.Elapsed >= notifyDelay || firstLoop)
                 {
                     log.LogMinimal($"Waiting to obtain an exclusive lock on the feed.");
-                    lastNotify = timer.Elapsed;
+                    lastNotify.Restart();
+                    firstLoop = false;
                 }
 
-                await Task.Delay(100, token).ConfigureAwait(false);
+                await Task.Delay(waitTime, token).ConfigureAwait(false);
             } while (!result && timer.Elapsed < wait);
 
             if (result)

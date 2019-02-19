@@ -10,13 +10,29 @@ namespace Sleet
         {
         }
 
+        public LocalCache(IPerfTracker perfTracker)
+            : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), perfTracker)
+        {
+        }
+
         public LocalCache(string path)
+            : this(path, perfTracker: null)
+        {
+        }
+
+        public LocalCache(string path, IPerfTracker perfTracker)
         {
             Root = new DirectoryInfo(path);
             Root.Create();
+            PerfTracker = perfTracker ?? NullPerfTracker.Instance;
         }
 
         public DirectoryInfo Root { get; }
+
+        /// <summary>
+        /// Performance related tracking
+        /// </summary>
+        public IPerfTracker PerfTracker { get; }
 
         public FileInfo GetNewTempPath()
         {
