@@ -131,7 +131,7 @@ namespace Sleet
         /// <summary>
         /// Save an XML file to a stream.
         /// </summary>
-        public static MemoryStream AsMemoryStreamAsync(this XDocument doc)
+        public static MemoryStream AsMemoryStream(this XDocument doc)
         {
             var mem = new MemoryStream();
             doc.Save(mem);

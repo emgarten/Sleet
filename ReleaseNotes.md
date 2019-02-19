@@ -1,5 +1,10 @@
 # Release Notes
 
+## 2.3.74
+* Skip package SHA512 hashing when the catalog is disabled. Package details blobs will no longer write this extra property.
+* ISleetFile.Link support
+* Nupkgs are no longer copied to the temp cache during push. This improves perf and saves disk space for large pushes.
+
 ## 2.3.73
 * Reduced default log output, http get/push calls will now only be shown on verbose mode.
 * Performance summary displays where time was spent during push operations.

@@ -46,9 +46,11 @@ namespace Sleet
         protected bool? RemoteExistsCacheValue { get; private set; }
 
         /// <summary>
-        /// Temp file on disk representing the remote file.
+        /// Local file on disk.
+        /// If IsLink is true this is an external file.
+        /// If IsLink is false, this is a temp file.
         /// </summary>
-        protected FileInfo LocalCacheFile { get; }
+        protected FileInfo LocalCacheFile { get; private set; }
 
         /// <summary>
         /// File operation performance tracker.
@@ -56,17 +58,30 @@ namespace Sleet
         protected IPerfTracker PerfTracker { get; }
 
         /// <summary>
+        /// True if the file is linked and not in the LocalCache.
+        /// Linked files should NEVER be deleted from their original location.
+        /// </summary>
+        protected bool IsLink { get; private set; }
+
+        /// <summary>
         /// Retry count for failures.
         /// </summary>
         protected int RetryCount { get; set; } = 5;
+
+        /// <summary>
+        /// Original local cache file from the constructor. This is used if the linked
+        /// file is removed.
+        /// </summary>
+        private FileInfo _originalLocalCacheFile;
 
         protected FileBase(ISleetFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile, IPerfTracker perfTracker)
         {
             FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             RootPath = rootPath ?? throw new ArgumentNullException(nameof(rootPath));
             EntityUri = displayPath ?? throw new ArgumentNullException(nameof(displayPath));
-            LocalCacheFile = localCacheFile ?? throw new ArgumentNullException(nameof(localCacheFile));
             PerfTracker = perfTracker ?? NullPerfTracker.Instance;
+            LocalCacheFile = localCacheFile ?? throw new ArgumentNullException(nameof(localCacheFile));
+            _originalLocalCacheFile = LocalCacheFile;
         }
 
         /// <summary>
@@ -197,12 +212,48 @@ namespace Sleet
         }
 
         /// <summary>
+        /// Link this file to an external file instead of creating a file in LocalCache.
+        /// </summary>
+        public void Link(string path, ILogger log, CancellationToken token)
+        {
+            var file = new FileInfo(path);
+            if (!file.Exists)
+            {
+                throw new FileNotFoundException(path);
+            }
+
+            // Remove the file if it exists
+            Delete(log, token);
+
+            // Mark this file as linked and use path directly instead
+            // of creating a new temp file and copy.
+            IsLink = true;
+            LocalCacheFile = file;
+        }
+
+        /// <summary>
         /// Delete a file from the feed.
         /// </summary>
         public void Delete(ILogger log, CancellationToken token)
         {
             IsDownloaded = true;
             HasChanges = true;
+
+            DeleteInternal();
+        }
+
+        /// <summary>
+        /// Delete without changing IsDownloaded or HasChanges.
+        /// If the file is linked this will remove the link.
+        /// </summary>
+        protected void DeleteInternal()
+        {
+            if (IsLink)
+            {
+                // Convert this file back to a non-linked and non-existant temp file.
+                IsLink = false;
+                LocalCacheFile = _originalLocalCacheFile;
+            }
 
             if (File.Exists(LocalCacheFile.FullName))
             {
@@ -225,10 +276,8 @@ namespace Sleet
                     {
                         try
                         {
-                            if (File.Exists(LocalCacheFile.FullName))
-                            {
-                                File.Delete(LocalCacheFile.FullName);
-                            }
+                            // Delete any existing file
+                            DeleteInternal();
 
                             // Download from the remote source.
                             await CopyFromSource(log, token);

@@ -8,6 +8,7 @@ using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
 using NuGet.Versioning;
 using Sleet;
+using Sleet.Test.Common;
 using Xunit;
 
 namespace SleetLib.Tests
@@ -312,6 +313,7 @@ namespace SleetLib.Tests
                     Assert.Equal("packageA", catalogLatest.Id);
                     Assert.Equal("1.0.0", catalogLatest.Version.ToIdentityString());
                     Assert.Equal(SleetOperation.Remove, catalogLatest.Operation);
+                    Assert.True(File.Exists(zipFile.FullName));
                 }
             }
         }
@@ -381,6 +383,7 @@ namespace SleetLib.Tests
                     Assert.Equal("packageA", catalogLatest.Id);
                     Assert.Equal("1.0.0", catalogLatest.Version.ToIdentityString());
                     Assert.Equal(SleetOperation.Add, catalogLatest.Operation);
+                    Assert.True(File.Exists(zipFile.FullName));
                 }
             }
         }
@@ -739,6 +742,88 @@ namespace SleetLib.Tests
                     Assert.Equal(2, indexPackages.Count);
                     Assert.Equal(2, searchPackages.Count);
                     Assert.Equal(2, autoCompletePackages.Count);
+                }
+            }
+        }
+
+        [EnvVarExistsFact("CIBUILD")]
+        public async Task AddRemove_AddMultipleBatchesCIOnly()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true,
+                        SymbolsEnabled = true
+                    }
+                };
+
+                var identities = new HashSet<PackageIdentity>();
+                var ids = new[] { "a", "b", "c", "d", "e", "f", "g" };
+
+                foreach (var id in ids)
+                {
+                    for (var i = 0; i < 1000; i++)
+                    {
+                        var testPackage = new TestNupkg(id, $"{i}.0.0");
+                        var zipFile = testPackage.Save(packagesFolder.Root);
+                        identities.Add(new PackageIdentity(testPackage.Nuspec.Id, NuGetVersion.Parse(testPackage.Nuspec.Version)));
+                    }
+                }
+
+                var catalog = new Catalog(context);
+                var registration = new Registrations(context);
+                var packageIndex = new PackageIndex(context);
+                var search = new Search(context);
+                var autoComplete = new AutoComplete(context);
+
+                // Act
+                // run commands
+                await InitCommand.InitAsync(context);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { packagesFolder.Root }, false, false, context.Log);
+                var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+
+                // read outputs
+                var catalogEntries = await catalog.GetIndexEntriesAsync();
+                var catalogExistingEntries = await catalog.GetExistingPackagesIndexAsync();
+                var catalogPackages = await catalog.GetPackagesAsync();
+
+                var regPackages = new HashSet<PackageIdentity>();
+
+                foreach (var id in ids)
+                {
+                    regPackages.UnionWith(await registration.GetPackagesByIdAsync(id));
+                }
+
+                var indexPackages = await packageIndex.GetPackagesAsync();
+                var searchPackages = await search.GetPackagesAsync();
+                var autoCompletePackages = await autoComplete.GetPackageIds();
+
+                // Assert
+                Assert.True(validateOutput);
+                Assert.Equal(identities.Count, catalogEntries.Count);
+                Assert.Equal(identities.Count, catalogExistingEntries.Count);
+                regPackages.Count.Should().Be(identities.Count);
+                Assert.Equal(identities.Count, indexPackages.Count);
+                Assert.Equal(identities.Count, searchPackages.Count);
+                Assert.Equal(ids.Length, autoCompletePackages.Count);
+
+                foreach (var entry in catalogEntries)
+                {
+                    Assert.Equal(SleetOperation.Add, entry.Operation);
                 }
             }
         }

@@ -42,6 +42,13 @@ namespace Sleet
 
         Task Write(JObject json, ILogger log, CancellationToken token);
 
+        /// <summary>
+        /// Link the file to an external file.
+        /// This is an alternative to Write which can be used for nupkgs
+        /// instead of copying them to the temp cache.
+        /// </summary>
+        void Link(string path, ILogger log, CancellationToken token);
+
         void Delete(ILogger log, CancellationToken token);
 
         /// <summary>

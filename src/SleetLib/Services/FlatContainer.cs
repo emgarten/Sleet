@@ -161,20 +161,18 @@ namespace Sleet
         {
             return Task.WhenAll(new[]
             {
-                AddNupkgAsync(packageInput),
-                AddNuspecAsync(packageInput)
+                AddNuspecAsync(packageInput),
+                AddNupkgAsync(packageInput)
             });
         }
 
-        private async Task AddNupkgAsync(PackageInput packageInput)
+        private Task AddNupkgAsync(PackageInput packageInput)
         {
-            // Add nupkg
+            // Add the nupkg by linking it instead of copying it to the local cache.
             var nupkgFile = _context.Source.Get(GetNupkgPath(packageInput.Identity));
+            nupkgFile.Link(packageInput.PackagePath, _context.Log, _context.Token);
 
-            using (var timer = PerfEntryWrapper.CreateModifyTimer(nupkgFile, _context.PerfTracker))
-            {
-                await nupkgFile.Write(File.OpenRead(packageInput.PackagePath), _context.Log, _context.Token);
-            }
+            return Task.FromResult(true);
         }
 
         private async Task AddNuspecAsync(PackageInput packageInput)
@@ -183,8 +181,7 @@ namespace Sleet
             var nuspecPath = $"{packageInput.Identity.Id}.nuspec".ToLowerInvariant();
             var entryFile = _context.Source.Get(GetZipFileUri(packageInput.Identity, nuspecPath));
 
-            using (var timer = PerfEntryWrapper.CreateModifyTimer(entryFile, _context.PerfTracker))
-            using (var nuspecStream = packageInput.Nuspec.Xml.AsMemoryStreamAsync())
+            using (var nuspecStream = packageInput.Nuspec.Xml.AsMemoryStream())
             {
                 await entryFile.Write(nuspecStream, _context.Log, _context.Token);
             }
