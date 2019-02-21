@@ -136,7 +136,7 @@ namespace Sleet
                         var config = new AmazonS3Config()
                         {
                             RegionEndpoint = regionSystemName,
-                            ProxyCredentials = new NetworkCredential()
+                            ProxyCredentials = CredentialCache.DefaultNetworkCredentials
                         };
 
                         AmazonS3Client amazonS3Client = null;
