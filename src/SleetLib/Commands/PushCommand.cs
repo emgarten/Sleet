@@ -43,8 +43,14 @@ namespace Sleet
 
                         if (feedLock == null)
                         {
+                            string lockMessage = null;
+                            if (packages.Count > 0)
+                            {
+                                lockMessage = $"Push of {packages[0].Identity.ToString()}";
+                            }
+
                             // Check if already initialized
-                            feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token);
+                            feedLock = await SourceUtility.VerifyInitAndLock(settings, source, lockMessage, log, token);
 
                             // Validate source
                             await SourceUtility.ValidateFeedForClient(source, log, token);

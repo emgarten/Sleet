@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,7 +9,7 @@ namespace Sleet
         /// <summary>
         /// Enter the lock. Returns true if successful.
         /// </summary>
-        Task<bool> GetLock(TimeSpan wait, CancellationToken token);
+        Task<bool> GetLock(TimeSpan wait, string lockMessage, CancellationToken token);
 
         /// <summary>
         /// True if locked.

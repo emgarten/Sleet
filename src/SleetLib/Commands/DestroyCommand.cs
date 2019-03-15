@@ -14,7 +14,7 @@ namespace Sleet
         {
             var token = CancellationToken.None;
 
-            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
+            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Destroy", log, token))
             {
                 return await Destroy(settings, source, log, token);
             }

@@ -36,7 +36,7 @@ namespace Sleet
                     if (!noLock)
                     {
                         // Lock
-                        feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token);
+                        feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Download", log, token);
 
                         // Validate source
                         await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);

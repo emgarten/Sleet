@@ -1,115 +1,95 @@
 #if !SLEETLEGACY
 using System;
-using System.Diagnostics;
-using System.Globalization;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
+using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using static Sleet.AmazonS3FileSystemAbstraction;
 
 namespace Sleet
 {
-    public class AmazonS3FileSystemLock : ISleetFileSystemLock
+    public class AmazonS3FileSystemLock : FileSystemLockBase
     {
         public const string LockFile = ".feedlock";
 
         private readonly string bucketName;
         private readonly IAmazonS3 client;
-        private int isLocked;
-        private readonly ILogger log;
 
         public AmazonS3FileSystemLock(IAmazonS3 client, string bucketName, ILogger log)
+            : base(log)
         {
             this.client = client;
             this.bucketName = bucketName;
-            this.log = log;
         }
 
-        public bool IsLocked => isLocked > 0;
-
-        public void Dispose()
-        {
-            Release();
-        }
-
-        public async Task<bool> GetLock(TimeSpan wait, CancellationToken token)
+        protected override async Task<Tuple<bool, JObject>> TryObtainLockAsync(string lockMessage, CancellationToken token)
         {
             var result = false;
-            var timer = Stopwatch.StartNew();
-            var lastNotify = Stopwatch.StartNew();
-            var notifyDelay = TimeSpan.FromMinutes(5);
-            var waitTime = TimeSpan.FromSeconds(30);
-            var firstLoop = true;
-
-            do
-            {
-                try
-                {
-                    if (!await FileExistsAsync(client, bucketName, LockFile, token).ConfigureAwait(false))
-                    {
-                        var fileContent = DateTime.UtcNow.ToString("O", DateTimeFormatInfo.InvariantInfo);
-                        await CreateFileAsync(client, bucketName, LockFile, fileContent, token).ConfigureAwait(false);
-                        result = true;
-                    }
-                }
-                catch
-                {
-                    // Ignore and retry
-                }
-
-                if (result)
-                {
-                    continue;
-                }
-
-                if (lastNotify.Elapsed >= notifyDelay || firstLoop)
-                {
-                    log.LogMinimal($"Waiting to obtain an exclusive lock on the feed.");
-                    lastNotify.Restart();
-                    firstLoop = false;
-                }
-
-                await Task.Delay(waitTime, token).ConfigureAwait(false);
-            } while (!result && timer.Elapsed < wait);
-
-            if (result)
-            {
-                Interlocked.Increment(ref isLocked);
-            }
-            else
-            {
-                log.LogError(
-                    "Unable to obtain a lock on the feed. If this is an error delete " +
-                    $"{bucketName}/{LockFile} and try again.");
-            }
-
-            return result;
-        }
-
-        public void Release()
-        {
-            ReleaseAsync(default(CancellationToken)).Wait();
-        }
-
-        public async Task ReleaseAsync(CancellationToken token)
-        {
-            if (!IsLocked)
-                return;
+            var json = new JObject();
 
             try
             {
                 if (await FileExistsAsync(client, bucketName, LockFile, token).ConfigureAwait(false))
                 {
-                    await RemoveFileAsync(client, bucketName, LockFile, token).ConfigureAwait(false);
-                    Interlocked.Exchange(ref isLocked, 0);
+                    // Read the existing message
+                    json = await GetExistingMessage(json, token);
+                }
+                else
+                {
+                    // Create a new lock
+                    json = GetMessageJson(lockMessage);
+                    await CreateFileAsync(client, bucketName, LockFile, json.ToString(), token).ConfigureAwait(false);
+                    result = true;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                log.LogWarning($"Unable to clean up lock: {bucketName}/{LockFile} due to: {ex.Message}");
+                // Ignore and retry
+            }
+
+            return Tuple.Create(result, json);
+        }
+
+        private async Task<JObject> GetExistingMessage(JObject json, CancellationToken token)
+        {
+            using (var ms = new MemoryStream())
+            {
+                await DownloadFileAsync(client, bucketName, LockFile, ms, token);
+                ms.Position = 0;
+                json = await JsonUtility.LoadJsonAsync(ms);
+            }
+
+            return json;
+        }
+
+        public override void Release()
+        {
+            ReleaseAsync(default(CancellationToken)).Wait();
+        }
+
+        protected override string ManualUnlockInstructions => $"Delete {bucketName}/{LockFile} to forcibly unlock the feed.";
+
+        public async Task ReleaseAsync(CancellationToken token)
+        {
+            if (IsLocked)
+            {
+                try
+                {
+                    if (await FileExistsAsync(client, bucketName, LockFile, token).ConfigureAwait(false))
+                    {
+                        await RemoveFileAsync(client, bucketName, LockFile, token).ConfigureAwait(false);
+                        IsLocked = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.LogWarning($"Unable to clean up lock: {bucketName}/{LockFile} due to: {ex.Message}");
+                }
             }
         }
+
     }
 }
 #endif

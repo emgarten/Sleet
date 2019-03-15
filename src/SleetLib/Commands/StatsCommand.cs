@@ -17,7 +17,7 @@ namespace Sleet
             var token = CancellationToken.None;
 
             // Check if already initialized
-            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
+            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Stats", log, token))
             {
                 // Validate source
                 await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);
