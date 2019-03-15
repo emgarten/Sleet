@@ -85,13 +85,10 @@ namespace Sleet
 
         public override ISleetFileSystemLock CreateLock(ILogger log)
         {
-            // Find display URI
-            var path = GetPath(AzureFileSystemLock.LockFile);
-            var relativePath = GetRelativePath(path);
-
-            // Create blob
-            var blob = _container.GetBlockBlobReference(relativePath);
-            return new AzureFileSystemLock(blob, log);
+            // Create blobs
+            var blob = _container.GetBlockBlobReference(GetRelativePath(GetPath(AzureFileSystemLock.LockFile)));
+            var messageBlob = _container.GetBlockBlobReference(GetRelativePath(GetPath(AzureFileSystemLock.LockFileMessage)));
+            return new AzureFileSystemLock(blob, messageBlob, log);
         }
 
         public override async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)

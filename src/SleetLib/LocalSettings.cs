@@ -23,6 +23,11 @@ namespace Sleet
         /// </summary>
         public TimeSpan FeedLockTimeout { get; set; } = TimeSpan.MaxValue;
 
+        /// <summary>
+        /// Message written to feedback. This will be shown to waiting clients.
+        /// </summary>
+        public string FeedLockMessage { get; set; }
+
         public static LocalSettings Load(JObject json)
         {
             return Load(json, null);

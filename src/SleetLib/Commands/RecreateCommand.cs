@@ -31,7 +31,7 @@ namespace Sleet
 
             log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
 
-            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, log, token))
+            using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Recreate", log, token))
             {
                 if (!force)
                 {

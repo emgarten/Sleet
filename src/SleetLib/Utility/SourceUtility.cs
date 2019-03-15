@@ -10,7 +10,12 @@ namespace Sleet
 {
     public static class SourceUtility
     {
-        public static async Task<ISleetFileSystemLock> VerifyInitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
+        public static Task<ISleetFileSystemLock> VerifyInitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
+        {
+            return VerifyInitAndLock(settings, fileSystem, lockMessage: null, log: log, token: token);
+        }
+
+        public static async Task<ISleetFileSystemLock> VerifyInitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, string lockMessage, ILogger log, CancellationToken token)
         {
             ISleetFileSystemLock feedLock = null;
 
@@ -29,8 +34,11 @@ namespace Sleet
                 var timer = Stopwatch.StartNew();
                 feedLock = fileSystem.CreateLock(log);
 
+                // Use the message from settings as an override if it exists.
+                var lockInfoMessage = string.IsNullOrEmpty(settings.FeedLockMessage) ? lockMessage : settings.FeedLockMessage;
+
                 // Get lock
-                var isLocked = await feedLock.GetLock(settings.FeedLockTimeout, token);
+                var isLocked = await feedLock.GetLock(settings.FeedLockTimeout, lockInfoMessage, token);
 
                 if (!isLocked)
                 {
