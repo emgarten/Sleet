@@ -56,7 +56,7 @@ In the projects' `web.config` file add the following lines:
 <configuration>
    <system.webServer>
       <staticContent>
-          <mimeMap fileExtensions=".nupkg" mimeType="application/zip"/>
+          <mimeMap fileExtension=".nupkg" mimeType="application/zip"/>
           <mimeMap fileExtension="." mimeType="application/json"/>
       </staticContent>
    </system.webServer>
