@@ -59,7 +59,7 @@ namespace Sleet.Integration.Test
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
                 var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
-                var packages = (await resource.GetMetadataAsync("packageA", true, true, log, CancellationToken.None)).ToList();
+                var packages = (await resource.GetMetadataAsync("packageA", true, true, new SourceCacheContext(), log, CancellationToken.None)).ToList();
 
                 // Assert
                 Assert.True(success, log.ToString());
@@ -106,7 +106,7 @@ namespace Sleet.Integration.Test
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
                 var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
-                var packages = (await resource.GetMetadataAsync("packageA", true, true, log, CancellationToken.None)).ToList();
+                var packages = (await resource.GetMetadataAsync("packageA", true, true, new SourceCacheContext(), log, CancellationToken.None)).ToList();
 
                 // Assert
                 Assert.True(success, log.ToString());
@@ -149,7 +149,7 @@ namespace Sleet.Integration.Test
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
                 var resource = await localSource.GetResourceAsync<MetadataResource>();
-                var latest = await resource.GetLatestVersion("packageA", true, true, log, CancellationToken.None);
+                var latest = await resource.GetLatestVersion("packageA", true, true, new SourceCacheContext(), log, CancellationToken.None);
 
                 // Assert
                 Assert.True(success, log.ToString());
@@ -297,7 +297,7 @@ namespace Sleet.Integration.Test
 
                 var resource = await localSource.GetResourceAsync<AutoCompleteResource>();
                 var ids = await resource.IdStartsWith("p", true, log, CancellationToken.None);
-                var versions = await resource.VersionStartsWith("packageA", "1", true, log, CancellationToken.None);
+                var versions = await resource.VersionStartsWith("packageA", "1", true, new SourceCacheContext(), log, CancellationToken.None);
 
                 // Assert
                 Assert.True(success, log.ToString());
@@ -388,7 +388,7 @@ namespace Sleet.Integration.Test
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
                 var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
-                var results = await resource.GetMetadataAsync("packageA", true, true, log, CancellationToken.None);
+                var results = await resource.GetMetadataAsync("packageA", true, true, new SourceCacheContext(), log, CancellationToken.None);
                 var resultArray = results.OrderBy(e => e.Identity.Version).ToArray();
 
                 // Assert
@@ -583,18 +583,19 @@ namespace Sleet.Integration.Test
                 // Create a repository abstraction for nuget
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
+                var cacheContext = new SourceCacheContext();
 
                 var dependencyInfoResource = await localSource.GetResourceAsync<DependencyInfoResource>();
 
-                var dependencyPackagesNet46 = await dependencyInfoResource.ResolvePackages("packageA", NuGetFramework.Parse("net46"), log, CancellationToken.None);
+                var dependencyPackagesNet46 = await dependencyInfoResource.ResolvePackages("packageA", NuGetFramework.Parse("net46"), cacheContext, log, CancellationToken.None);
                 var dependencyPackageNet46 = dependencyPackagesNet46.Single();
                 var depString46 = string.Join("|", dependencyPackageNet46.Dependencies.Select(d => d.Id + " " + d.VersionRange.ToNormalizedString()));
 
-                var dependencyPackagesNet45 = await dependencyInfoResource.ResolvePackages("packageA", NuGetFramework.Parse("net45"), log, CancellationToken.None);
+                var dependencyPackagesNet45 = await dependencyInfoResource.ResolvePackages("packageA", NuGetFramework.Parse("net45"), cacheContext, log, CancellationToken.None);
                 var dependencyPackageNet45 = dependencyPackagesNet45.Single();
                 var depString45 = string.Join("|", dependencyPackageNet45.Dependencies.Select(d => d.Id + " " + d.VersionRange.ToNormalizedString()));
 
-                var dependencyPackagesNet40 = await dependencyInfoResource.ResolvePackages("packageA", NuGetFramework.Parse("net40"), log, CancellationToken.None);
+                var dependencyPackagesNet40 = await dependencyInfoResource.ResolvePackages("packageA", NuGetFramework.Parse("net40"), cacheContext, log, CancellationToken.None);
                 var dependencyPackageNet40 = dependencyPackagesNet40.Single();
                 var depString40 = string.Join("|", dependencyPackageNet40.Dependencies.Select(d => d.Id + " " + d.VersionRange.ToNormalizedString()));
 
