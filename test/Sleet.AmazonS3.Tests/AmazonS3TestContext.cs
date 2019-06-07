@@ -1,4 +1,3 @@
-#if TEST_AMAZON_S3
 using System;
 using System.Linq;
 using System.Threading;
@@ -83,4 +82,3 @@ namespace Sleet.AmazonS3.Tests
         }
     }
 }
-#endif

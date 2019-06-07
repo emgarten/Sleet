@@ -1,4 +1,4 @@
-<Project ToolsVersion="15.0">
+﻿<Project ToolsVersion="15.0">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
@@ -9,15 +9,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>DotNet.Cesar.SleetLib</PackageId>
+    <PackageId>DotNet.SleetLib</PackageId>
     <RootNamespace>SleetLib</RootNamespace>
     <AssemblyName>SleetLib</AssemblyName>
     <Description>Access Sleet.exe commands through the Sleet API.</Description>
     <PackProject>true</PackProject>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>OtherStrongNameKey.snk</AssemblyOriginatorKeyFile>
-    <DelaySign>false</DelaySign>
-    <Version>2.2.321+git.06217e8</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard1.3' Or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netstandard2.1'">
