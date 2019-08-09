@@ -49,6 +49,9 @@ namespace Sleet
                 timer.Stop();
                 fileSystem.LocalCache.PerfTracker.Add(new PerfSummaryEntry(timer.Elapsed, "Obtained feed lock in {0}", TimeSpan.FromSeconds(30)));
 
+                // Reset the file system to avoid using files retrieved before the lock, this would be unsafe
+                fileSystem.Reset();
+
                 var indexPath = fileSystem.Get("index.json");
 
                 if (!await indexPath.ExistsWithFetch(log, token))

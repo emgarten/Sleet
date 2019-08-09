@@ -214,5 +214,20 @@ namespace Sleet
 
             return pair;
         }
+
+        /// <summary>
+        /// Clear all tracked files
+        /// </summary>
+        public void Reset()
+        {
+            // Mark all files as invalid so that any external users will fail when trying to use them.
+            foreach (var file in Files.Values)
+            {
+                file.Invalidate();
+            }
+
+            // Clear all tracked filed
+            Files.Clear();
+        }
     }
 }

@@ -65,12 +65,6 @@ namespace SleetLib.Tests
                 {
                     var input = PackageInput.Create(zipFile.FullName);
 
-                    var catalog = new Catalog(context);
-                    var registration = new Registrations(context);
-                    var packageIndex = new PackageIndex(context);
-                    var search = new Search(context);
-                    var autoComplete = new AutoComplete(context);
-
                     // Act
                     // run commands
                     await InitCommand.InitAsync(context);
@@ -78,6 +72,12 @@ namespace SleetLib.Tests
                     var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
 
                     // read outputs
+                    var catalog = new Catalog(context);
+                    var registration = new Registrations(context);
+                    var packageIndex = new PackageIndex(context);
+                    var search = new Search(context);
+                    var autoComplete = new AutoComplete(context);
+
                     var catalogEntries = await catalog.GetIndexEntriesAsync();
                     var indexPackages = await packageIndex.GetPackagesAsync();
 

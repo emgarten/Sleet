@@ -286,6 +286,7 @@ namespace Sleet.Integration.Test
                 var settings = LocalSettings.Load(sleetConfigPath);
                 var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, "local");
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
+                fileSystem.Reset();
 
                 // Act
                 // Run sleet

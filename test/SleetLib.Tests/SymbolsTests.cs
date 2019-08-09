@@ -382,8 +382,6 @@ namespace SleetLib.Tests
             {
                 var context = testContext.SleetContext;
                 context.SourceSettings.SymbolsEnabled = true;
-                var symbols = new Symbols(context);
-                var packageIndex = new PackageIndex(context);
 
                 // Create package
                 var pkgA = new TestNupkg("a", "1.0.0");
@@ -421,6 +419,9 @@ namespace SleetLib.Tests
                 var symbolsIndex = new HashSet<PackageIdentity>();
                 var packageIndexPkgs = new HashSet<PackageIdentity>();
 
+                var symbols = new Symbols(context);
+                var packageIndex = new PackageIndex(context);
+
                 if (isSymbols)
                 {
                     symbolsIndex.UnionWith(await symbols.GetSymbolsPackagesAsync());
@@ -448,13 +449,6 @@ namespace SleetLib.Tests
             {
                 var context = testContext.SleetContext;
                 context.SourceSettings.SymbolsEnabled = true;
-                var symbols = new Symbols(context);
-                var packageIndex = new PackageIndex(context);
-                var catalog = new Catalog(context);
-                var autoComplete = new AutoComplete(context);
-                var flatContainer = new FlatContainer(context);
-                var registrations = new Registrations(context);
-                var search = new Search(context);
 
                 // Create package
                 var pkgA = new TestNupkg("a", "1.0.0");
@@ -491,6 +485,14 @@ namespace SleetLib.Tests
 
                 success.Should().BeTrue();
 
+                var symbols = new Symbols(context);
+                var packageIndex = new PackageIndex(context);
+                var catalog = new Catalog(context);
+                var autoComplete = new AutoComplete(context);
+                var flatContainer = new FlatContainer(context);
+                var registrations = new Registrations(context);
+                var search = new Search(context);
+
                 // Exists under symbols
                 (await symbols.GetSymbolsPackagesAsync()).Should().NotBeEmpty();
                 (await packageIndex.GetSymbolsPackagesAsync()).Should().NotBeEmpty();
@@ -523,13 +525,6 @@ namespace SleetLib.Tests
             {
                 var context = testContext.SleetContext;
                 context.SourceSettings.SymbolsEnabled = true;
-                var symbols = new Symbols(context);
-                var packageIndex = new PackageIndex(context);
-                var catalog = new Catalog(context);
-                var autoComplete = new AutoComplete(context);
-                var flatContainer = new FlatContainer(context);
-                var registrations = new Registrations(context);
-                var search = new Search(context);
 
                 // Create package
                 var pkgA = new TestNupkg("a", "1.0.0");
@@ -562,6 +557,9 @@ namespace SleetLib.Tests
                     testContext.SleetContext.Log);
 
                 success.Should().BeTrue();
+
+                var symbols = new Symbols(context);
+                var packageIndex = new PackageIndex(context);
 
                 // The nupkg should exist, but there should not be any assets added.
                 (await symbols.GetSymbolsPackagesAsync()).Should().BeEmpty();

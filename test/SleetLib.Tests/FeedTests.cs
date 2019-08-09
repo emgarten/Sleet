@@ -5,10 +5,7 @@ using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using NuGet.Packaging;
-using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
-using NuGet.Versioning;
 using Sleet;
 using Sleet.Test.Common;
 using Xunit;
@@ -64,12 +61,6 @@ namespace SleetLib.Tests
                 {
                     var input = PackageInput.Create(zipFile.FullName);
 
-                    var catalog = new Catalog(context);
-                    var registration = new Registrations(context);
-                    var packageIndex = new PackageIndex(context);
-                    var search = new Search(context);
-                    var autoComplete = new AutoComplete(context);
-
                     // Act
                     // run commands
                     await InitCommand.InitAsync(context);
@@ -77,6 +68,12 @@ namespace SleetLib.Tests
                     var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
 
                     // read outputs
+                    var catalog = new Catalog(context);
+                    var registration = new Registrations(context);
+                    var packageIndex = new PackageIndex(context);
+                    var search = new Search(context);
+                    var autoComplete = new AutoComplete(context);
+
                     var catalogEntries = await catalog.GetIndexEntriesAsync();
                     var catalogExistingEntries = await catalog.GetExistingPackagesIndexAsync();
                     var catalogLatest = await catalog.GetLatestEntryAsync(input.Identity);
