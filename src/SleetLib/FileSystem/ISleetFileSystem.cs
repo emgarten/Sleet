@@ -48,5 +48,10 @@ namespace Sleet
         /// Optional sub path for the feed.
         /// </summary>
         string FeedSubPath { get;  }
+
+        /// <summary>
+        /// Reset the file system and clear all tracked and cached files.
+        /// </summary>
+        void Reset();
     }
 }

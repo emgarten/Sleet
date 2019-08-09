@@ -69,5 +69,10 @@ namespace Sleet
         /// Fetch the file and then check if it exists.
         /// </summary>
         Task<bool> ExistsWithFetch(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// Invalidate a file that is no longer part of the file system. This file will throw an error when used.
+        /// </summary>
+        void Invalidate();
     }
 }

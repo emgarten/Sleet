@@ -248,6 +248,8 @@ namespace Sleet
         /// </summary>
         protected void DeleteInternal()
         {
+            EnsureValid();
+
             if (IsLink)
             {
                 // Convert this file back to a non-linked and non-existant temp file.
@@ -266,6 +268,8 @@ namespace Sleet
         /// </summary>
         protected async Task EnsureFile(ILogger log, CancellationToken token)
         {
+            EnsureValid();
+
             if (!IsDownloaded)
             {
                 using (var timer = PerfEntryWrapper.CreateFileTimer(this, PerfTracker, PerfFileEntry.FileOperation.Get))
@@ -395,5 +399,32 @@ namespace Sleet
         /// True if the file exists in the source.
         /// </summary>
         protected abstract Task<bool> RemoteExists(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// Called when the file system is reset. This file should not longer be used after this is called.
+        /// </summary>
+        public void Invalidate()
+        {
+            HasBeenInvalidated = true;
+        }
+
+        /// <summary>
+        /// True if the file is tracked by the file system.
+        /// </summary>
+        protected bool HasBeenInvalidated
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// Throw if the file is no longer tracked by the file system.
+        /// </summary>
+        protected virtual void EnsureValid()
+        {
+            if (HasBeenInvalidated)
+            {
+                throw new InvalidOperationException($"File is out of sync with the file system and cannot be used. This may occur if the file was kept externally while the file system was locked and unlocked between operations. Uri: {EntityUri.AbsoluteUri}");
+            }
+        }
     }
 }
