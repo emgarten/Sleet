@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -315,6 +316,60 @@ namespace SleetLib.Tests
                     Assert.Equal(SleetOperation.Remove, catalogLatest.Operation);
                     Assert.True(File.Exists(zipFile.FullName));
                 }
+            }
+        }
+
+        // Verify DeletePackagesAsync method
+        [Fact]
+        public async Task AddRemove_AddAndDeletePackagesAsync()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
+                };
+
+                var testPackage1 = new TestNupkg("packageA", "1.0.0");
+                var testPackage2 = new TestNupkg("packageA", "2.0.0");
+                var testPackage3 = new TestNupkg("packageB", "2.0.0");
+
+                var zipFile1 = testPackage1.Save(packagesFolder.Root);
+                var zipFile2 = testPackage2.Save(packagesFolder.Root);
+                var zipFile3 = testPackage3.Save(packagesFolder.Root);
+
+                var toDelete = new List<PackageIdentity>() { new PackageIdentity("packageA", NuGetVersion.Parse("1.0.0")), new PackageIdentity("packageB", NuGetVersion.Parse("2.0.0")) };
+                var packageIndex = new PackageIndex(context);
+
+                // Act
+                // run commands
+                await InitCommand.InitAsync(context);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { packagesFolder.Root }, false, false, context.Log);
+                await DeleteCommand.DeletePackagesAsync(context.LocalSettings, context.Source, toDelete, string.Empty, false, context.Log);
+                var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+
+                // read outputs
+                var indexPackages = await packageIndex.GetPackagesAsync();
+
+                // Assert
+                Assert.True(validateOutput);
+                Assert.Equal(1, indexPackages.Count);
+                Assert.Equal("packageA", indexPackages.First().Id);
+                Assert.Equal("2.0.0", indexPackages.First().Version.ToNormalizedString());
             }
         }
 
