@@ -174,7 +174,7 @@ namespace Sleet
             json.Add("tags", tagArray);
 
             // Framework assemblies
-            var fwrGroups = nuspecReader.GetFrameworkReferenceGroups();
+            var fwrGroups = nuspecReader.GetFrameworkAssemblyGroups();
             var fwrArray = new JArray();
             json.Add("frameworkAssemblyGroup", fwrArray);
 
