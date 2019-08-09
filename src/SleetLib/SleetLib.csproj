@@ -2,10 +2,10 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
-    <TargetFrameworks>netstandard2.0;netstandard1.3;net46;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
-    <TargetFrameworks>netstandard2.0;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -16,7 +16,7 @@
     <PackProject>true</PackProject>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard1.3'">
+  <PropertyGroup Condition="'$(SLEETLEGACY)' == 'true'">
     <DefineConstants>USEJSONNET901;SLEETLEGACY</DefineConstants>
     <UseJsonNet901>true</UseJsonNet901>
   </PropertyGroup>
@@ -25,7 +25,7 @@
     <EmbeddedResource Include="compiler\resources\**\*" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' OR '$(TargetFramework)' == 'net45' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net45' ">
     <Reference Include="System.IO.Compression" />
   </ItemGroup>
 
@@ -37,11 +37,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" Condition=" '$(UseJsonNet901)' != 'true' " />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" Condition=" '$(UseJsonNet901)' == 'true' " />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
-    <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />
