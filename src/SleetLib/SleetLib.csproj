@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.3.17.3" />
+    <PackageReference Include="AWSSDK.S3" Version="$(AWSSDKVersion)" />
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="$(MicrosoftAzureStorageBlobVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" Condition=" '$(UseJsonNet901)' != 'true' " />

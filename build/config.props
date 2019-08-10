@@ -3,12 +3,12 @@
   <!-- Dependency versions -->
   <PropertyGroup>
     <NuGetPackageVersion>5.2.0</NuGetPackageVersion>
-    <WindowsAzureStorageVersion>8.4.0</WindowsAzureStorageVersion>
     <MicrosoftAzureStorageBlobVersion>11.0.0</MicrosoftAzureStorageBlobVersion>
     <JsonVersion>10.0.3</JsonVersion>
     <CommandLineUtilsVersion>2.0.0</CommandLineUtilsVersion>
     <NuGetTestHelpersVersion>2.0.0</NuGetTestHelpersVersion>
-    <PortablePdbVersion>1.2.0</PortablePdbVersion>
+    <PortablePdbVersion>1.5.0</PortablePdbVersion>
+    <AWSSDKVersion>3.3.104.12</AWSSDKVersion>
   </PropertyGroup>
 
   <!-- Config -->
