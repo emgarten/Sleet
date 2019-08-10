@@ -25,15 +25,14 @@
     <EmbeddedResource Include="compiler\resources\**\*" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net45' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <Reference Include="System.IO.Compression" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.3.17.3" />
-    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" Condition=" '$(UseJsonNet901)' != 'true' " />
-    <PackageReference Include="NuGet.Packaging" Version="4.3.0" Condition=" '$(UseJsonNet901)' == 'true' " />
-    <PackageReference Include="WindowsAzure.Storage" Version="$(WindowsAzureStorageVersion)" />
+    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
+    <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="$(MicrosoftAzureStorageBlobVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" Condition=" '$(UseJsonNet901)' != 'true' " />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" Condition=" '$(UseJsonNet901)' == 'true' " />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />

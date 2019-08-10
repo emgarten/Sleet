@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.WindowsAzure.Storage;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 
 namespace Sleet
 {

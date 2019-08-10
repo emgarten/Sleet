@@ -1,11 +1,9 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
+using Microsoft.Azure.Storage.Blob;
 using NuGet.Common;
 
 namespace Sleet
