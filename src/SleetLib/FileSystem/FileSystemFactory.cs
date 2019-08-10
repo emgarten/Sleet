@@ -6,8 +6,8 @@ using System.Net;
 using Amazon;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.S3;
+using Microsoft.Azure.Storage;
 #endif
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 using NuGetUriUtility = NuGet.Common.UriUtility;
 

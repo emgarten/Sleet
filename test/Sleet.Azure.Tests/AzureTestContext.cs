@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 using NuGet.Common;
 using NuGet.Test.Helpers;
 
