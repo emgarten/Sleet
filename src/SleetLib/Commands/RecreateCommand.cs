@@ -36,7 +36,7 @@ namespace Sleet
                 if (!force)
                 {
                     // Validate source
-                    await UpgradeUtility.EnsureFeedVersionMatchesTool(source, allowNewer: true, log: log, token: token);
+                    await UpgradeUtility.EnsureCompatibility(source, log: log, token: token);
                 }
 
                 // Read settings and persist them in the new feed.

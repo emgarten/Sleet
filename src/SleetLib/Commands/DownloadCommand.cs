@@ -39,7 +39,7 @@ namespace Sleet
                         feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Download", log, token);
 
                         // Validate source
-                        await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);
+                        await UpgradeUtility.EnsureCompatibility(source, log, token);
                     }
 
                     success = await DownloadPackages(settings, source, outputPath, ignoreErrors, log, token);

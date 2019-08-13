@@ -32,9 +32,9 @@ namespace Sleet
             using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Feed settings", log, token))
             {
                 // Validate source
-                var success = await UpgradeUtility.EnsureFeedVersionMatchesTool(source, log, token);
+                await UpgradeUtility.EnsureCompatibility(source, log, token);
 
-                success &= await ApplySettingsAsync(source, unsetAll, getAll, getSettings, unsetSettings, setSettings, log, token);
+                var success = await ApplySettingsAsync(source, unsetAll, getAll, getSettings, unsetSettings, setSettings, log, token);
 
                 log.LogMinimal($"Run 'recreate' to rebuild the feed with the new settings.");
 
