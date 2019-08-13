@@ -119,7 +119,7 @@ namespace Sleet
         /// </summary>
         public static async Task ValidateFeedForClient(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
         {
-            await UpgradeUtility.EnsureFeedVersionMatchesTool(fileSystem, log, token);
+            await UpgradeUtility.EnsureCompatibility(fileSystem, log, token);
             await EnsureBaseUriMatchesFeed(fileSystem, log, token);
         }
 

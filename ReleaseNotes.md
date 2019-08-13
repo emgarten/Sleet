@@ -1,5 +1,10 @@
 # Release Notes
 
+## 3.0.0
+* Removed client/feed version compat checks based on the minor version of sleet.
+* Added capabilities for client/feed compat checks.
+* Remove netstandard1.0
+
 ## 2.3.75
 * Added Download command options: --no-lock --skip-existing --ignore-errors
 * Skip package SHA512 hashing when the catalog is disabled. Package details blobs will no longer write this extra property.

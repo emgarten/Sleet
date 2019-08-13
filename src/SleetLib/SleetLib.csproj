@@ -1,4 +1,4 @@
-﻿<Project ToolsVersion="15.0">
+<Project ToolsVersion="15.0">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
