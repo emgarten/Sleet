@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using NuGet.Versioning;
 
@@ -29,7 +29,16 @@ namespace Sleet
                 // Read the assembly
                 var assemblyVersion = typeof(AssemblyVersionHelper).GetTypeInfo().Assembly.GetName().Version;
 
-                _version = new SemanticVersion(Math.Max(0, assemblyVersion.Major), Math.Max(0, assemblyVersion.Minor), Math.Max(0, assemblyVersion.Build));
+                // Avoid going lower than 3.0.0. This can happen in some build environments and will fail tests.
+                var lowestPossible = new SemanticVersion(3, 0, 0);
+                var tempVersion = new SemanticVersion(Math.Max(0, assemblyVersion.Major), Math.Max(0, assemblyVersion.Minor), Math.Max(0, assemblyVersion.Build));
+
+                if (tempVersion < lowestPossible)
+                {
+                    tempVersion = lowestPossible;
+                }
+
+                _version = tempVersion;
             }
 
             return _version;
