@@ -4,7 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using NuGet.Protocol.Core.Types;
+using NuGet.Protocol;
 using NuGet.Test.Helpers;
+using NuGet.Common;
 using Sleet.Test.Common;
 using Xunit;
 
@@ -59,6 +62,66 @@ namespace Sleet.Azure.Tests
                     token: CancellationToken.None);
 
                 result &= await PushCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    new List<string>() { zipFile.FullName },
+                    force: false,
+                    skipExisting: false,
+                    log: testContext.Logger);
+
+                result &= await ValidateCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    testContext.Logger);
+
+                result.Should().BeTrue();
+
+                await testContext.CleanupAsync();
+            }
+        }
+
+        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        public async Task GivenAStorageAccountWithNoContainerVerifyPushSucceeds()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var testContext = new AzureTestContext())
+            {
+                // Skip creation and allow it to be done during push.
+                testContext.CreateContainerOnInit = false;
+
+                await testContext.InitAsync();
+
+                var testPackage = new TestNupkg("packageA", "1.0.0");
+                var zipFile = testPackage.Save(packagesFolder.Root);
+
+                var result = await PushCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    new List<string>() { zipFile.FullName },
+                    force: false,
+                    skipExisting: false,
+                    log: testContext.Logger);
+
+                result &= await ValidateCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    testContext.Logger);
+
+                result.Should().BeTrue();
+
+                await testContext.CleanupAsync();
+            }
+        }
+
+        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        public async Task GivenAStorageAccountWithNoInitVerifyPushSucceeds()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var testContext = new AzureTestContext())
+            {
+                await testContext.InitAsync();
+
+                var testPackage = new TestNupkg("packageA", "1.0.0");
+                var zipFile = testPackage.Save(packagesFolder.Root);
+
+                // Skip init
+                var result = await PushCommand.RunAsync(testContext.LocalSettings,
                     testContext.FileSystem,
                     new List<string>() { zipFile.FullName },
                     force: false,

@@ -229,5 +229,11 @@ namespace Sleet
             // Clear all tracked filed
             Files.Clear();
         }
+
+        public abstract Task<bool> HasBucket(ILogger log, CancellationToken token);
+
+        public abstract Task CreateBucket(ILogger log, CancellationToken token);
+
+        public abstract Task DeleteBucket(ILogger log, CancellationToken token);
     }
 }

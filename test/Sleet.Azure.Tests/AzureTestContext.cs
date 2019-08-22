@@ -27,9 +27,11 @@ namespace Sleet.Azure.Tests
 
         public ILogger Logger { get; }
 
+        public bool CreateContainerOnInit = true;
+
         public AzureTestContext()
         {
-            ContainerName = Guid.NewGuid().ToString();
+            ContainerName = $"sleet-test-{Guid.NewGuid().ToString()}";
             StorageAccount = CloudStorageAccount.Parse(GetConnectionString());
             BlobClient = StorageAccount.CreateCloudBlobClient();
             Container = BlobClient.GetContainerReference(ContainerName);
@@ -39,9 +41,12 @@ namespace Sleet.Azure.Tests
             Logger = new TestLogger();
         }
 
-        public Task InitAsync()
+        public async Task InitAsync()
         {
-            return Container.CreateIfNotExistsAsync();
+            if (CreateContainerOnInit)
+            {
+                await Container.CreateIfNotExistsAsync();
+            }
         }
 
         private bool _cleanupDone = false;

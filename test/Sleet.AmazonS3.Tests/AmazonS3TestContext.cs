@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,14 +20,15 @@ namespace Sleet.AmazonS3.Tests
 
         public AmazonS3TestContext()
         {
-            BucketName = Guid.NewGuid().ToString();
+            BucketName = $"sleet-test-{Guid.NewGuid().ToString()}";
             LocalCache = new LocalCache();
             LocalSettings = new LocalSettings();
 
-            string accessKeyId = Environment.GetEnvironmentVariable(EnvAccessKeyId);
-            string secretAccessKey = Environment.GetEnvironmentVariable(EnvSecretAccessKey);
-            string region = Environment.GetEnvironmentVariable(EnvDefaultRegion) ?? "us-east-1";
+            var accessKeyId = Environment.GetEnvironmentVariable(EnvAccessKeyId);
+            var secretAccessKey = Environment.GetEnvironmentVariable(EnvSecretAccessKey);
+            var region = Environment.GetEnvironmentVariable(EnvDefaultRegion) ?? "us-east-1";
             Client = new AmazonS3Client(accessKeyId, secretAccessKey, RegionEndpoint.GetBySystemName(region));
+            Uri = AmazonS3Utility.GetBucketPath(BucketName, region);
 
             FileSystem = new AmazonS3FileSystem(LocalCache, Uri, Client, BucketName);
             Logger = new TestLogger();
@@ -43,29 +44,41 @@ namespace Sleet.AmazonS3.Tests
 
         public LocalCache LocalCache { get; }
 
-        public Uri Uri => new Uri($"https://s3.amazonaws.com/{BucketName}/");
+        public Uri Uri { get; set; }
 
         public ILogger Logger { get; }
+
+        public bool CreateBucketOnInit = true;
 
         public async Task CleanupAsync()
         {
             cleanupDone = true;
 
-            var s3Objects = (await AmazonS3FileSystemAbstraction
-                .GetFilesAsync(Client, BucketName, CancellationToken.None))
-                .Select(x => new KeyVersion { Key = x.Key })
-                .ToArray();
-
-            if (s3Objects.Any())
+            try
             {
-                await AmazonS3FileSystemAbstraction.RemoveMultipleFilesAsync(
-                    Client,
-                    BucketName,
-                    s3Objects,
-                    CancellationToken.None);
-            }
+                var s3Objects = (await AmazonS3FileSystemAbstraction
+                    .GetFilesAsync(Client, BucketName, CancellationToken.None))
+                    .Select(x => new KeyVersion { Key = x.Key })
+                    .ToArray();
 
-            await Client.DeleteBucketAsync(BucketName);
+                if (s3Objects.Any())
+                {
+                    await AmazonS3FileSystemAbstraction.RemoveMultipleFilesAsync(
+                        Client,
+                        BucketName,
+                        s3Objects,
+                        CancellationToken.None);
+                }
+
+                if (await Client.DoesS3BucketExistAsync(BucketName))
+                {
+                    await Client.DeleteBucketAsync(BucketName);
+                }
+            }
+            catch
+            {
+                // Ignore clean up errors
+            }
         }
 
         public void Dispose()
@@ -73,12 +86,17 @@ namespace Sleet.AmazonS3.Tests
             LocalCache.Dispose();
 
             if (!cleanupDone)
+            {
                 CleanupAsync().Wait();
+            }
         }
 
-        public Task InitAsync()
+        public async Task InitAsync()
         {
-            return Client.EnsureBucketExistsAsync(BucketName);
+            if (CreateBucketOnInit)
+            {
+                await Client.EnsureBucketExistsAsync(BucketName);
+            }
         }
     }
 }

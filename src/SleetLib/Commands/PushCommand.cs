@@ -49,8 +49,9 @@ namespace Sleet
                                 lockMessage = $"Push of {packages[0].Identity.ToString()}";
                             }
 
-                            // Check if already initialized
-                            feedLock = await SourceUtility.VerifyInitAndLock(settings, source, lockMessage, log, token);
+                            // Create and initialize the feed if it is new.
+                            // Lock the feed before running push.
+                            feedLock = await SourceUtility.InitAndLock(settings, source, lockMessage, autoCreateBucket: true, autoInit: true, log: log, token: token);
 
                             // Validate source
                             await SourceUtility.ValidateFeedForClient(source, log, token);

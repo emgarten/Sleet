@@ -53,18 +53,16 @@ namespace Sleet
                     new FileInfo(pair.Root.LocalPath)));
         }
 
-        public override Task<bool> Validate(ILogger log, CancellationToken token)
+        public override async Task<bool> Validate(ILogger log, CancellationToken token)
         {
-            var dir = new DirectoryInfo(Root.LocalPath);
-
-            if (!dir.Parent.Exists)
+            if (!await HasBucket(log, token))
             {
-                log.LogError($"Local source folder does not exist. Create the folder and try again: {dir.FullName}");
+                log.LogError($"Local source folder does not exist. Create the folder and try again: {Root.LocalPath}");
 
-                return Task.FromResult(false);
+                return false;
             }
 
-            return Task.FromResult(true);
+            return true;
         }
 
         public override ISleetFileSystemLock CreateLock(ILogger log)
@@ -118,6 +116,24 @@ namespace Sleet
                     .Select(UriUtility.CreateUri)
                     .Select(Get)
                     .ToList());
+        }
+
+        public override Task<bool> HasBucket(ILogger log, CancellationToken token)
+        {
+            return Task.FromResult(Directory.Exists(Root.LocalPath));
+        }
+
+        public override Task CreateBucket(ILogger log, CancellationToken token)
+        {
+            // Create the directory and all needed parent directories
+            Directory.CreateDirectory(Root.LocalPath);
+            return Task.FromResult(true);
+        }
+
+        public override Task DeleteBucket(ILogger log, CancellationToken token)
+        {
+            Directory.Delete(Root.LocalPath, recursive: true);
+            return Task.FromResult(true);
         }
     }
 }

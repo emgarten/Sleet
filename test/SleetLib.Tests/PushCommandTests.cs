@@ -4,7 +4,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
 using NuGet.Versioning;
@@ -86,6 +85,94 @@ namespace SleetLib.Tests
                     Assert.Equal(1, catalogEntries.Count);
                     Assert.Equal(1, indexPackages.Count);
                 }
+            }
+        }
+
+        [Fact]
+        public async Task PushCommand_GivenANonExistantFeedVerifyAutoInit()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var root = Path.Combine(target.Root, "a/b/feed");
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
+                };
+
+                var testPackage = new TestNupkg("packageA", "1.0.0");
+                var packageIdentity = new PackageIdentity(testPackage.Nuspec.Id, NuGetVersion.Parse(testPackage.Nuspec.Version));
+
+                var zipFile = testPackage.Save(packagesFolder.Root);
+
+                // Act
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
+                var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+
+                // read outputs
+                var packageIndex = new PackageIndex(context);
+                var indexPackages = await packageIndex.GetPackagesAsync();
+
+                // Assert
+                Assert.Equal(1, indexPackages.Count);
+            }
+        }
+
+        [Fact]
+        public async Task PushCommand_GivenAEmptyFolderVerifyAutoInit()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var root = Path.Combine(target.Root, "a/b/feed");
+                Directory.CreateDirectory(root);
+
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
+                };
+
+                var testPackage = new TestNupkg("packageA", "1.0.0");
+                var packageIdentity = new PackageIdentity(testPackage.Nuspec.Id, NuGetVersion.Parse(testPackage.Nuspec.Version));
+
+                var zipFile = testPackage.Save(packagesFolder.Root);
+
+                // Act
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
+                var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+
+                // read outputs
+                var packageIndex = new PackageIndex(context);
+                var indexPackages = await packageIndex.GetPackagesAsync();
+
+                // Assert
+                Assert.Equal(1, indexPackages.Count);
             }
         }
     }

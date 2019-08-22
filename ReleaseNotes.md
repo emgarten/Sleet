@@ -1,9 +1,11 @@
 # Release Notes
 
 ## 3.0.0
+* Init command will now automatically create a public bucket/container if it does not exist already. *breaking change*
+* Push command will now automatically create a public bucket/container and initialize a feed using the default settings if it does not exist already. *breaking change*
 * Removed client/feed version compat checks based on the minor version of sleet.
 * Added capabilities for client/feed compat checks.
-* Remove netstandard1.0
+* Remove netstandard1.0 *breaking change*
 
 ## 2.3.75
 * Added Download command options: --no-lock --skip-existing --ignore-errors

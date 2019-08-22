@@ -53,5 +53,20 @@ namespace Sleet
         /// Reset the file system and clear all tracked and cached files.
         /// </summary>
         void Reset();
+
+        /// <summary>
+        /// True if the folder/container/bucket exists.
+        /// </summary>
+        Task<bool> HasBucket(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// Create the folder/container/bucket.
+        /// </summary>
+        Task CreateBucket(ILogger log, CancellationToken token);
+
+        /// <summary>
+        /// Delete the folder/container/bucket.
+        /// </summary>
+        Task DeleteBucket(ILogger log, CancellationToken token);
     }
 }
