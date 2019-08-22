@@ -127,5 +127,20 @@ namespace Sleet
 
             return relativePath;
         }
+
+        public override Task<bool> HasBucket(ILogger log, CancellationToken token)
+        {
+            return _container.ExistsAsync(token);
+        }
+
+        public override async Task CreateBucket(ILogger log, CancellationToken token)
+        {
+            await _container.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Blob, null, null, token);
+        }
+
+        public override async Task DeleteBucket(ILogger log, CancellationToken token)
+        {
+            await _container.DeleteIfExistsAsync(token);
+        }
     }
 }

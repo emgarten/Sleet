@@ -15,22 +15,33 @@ namespace Sleet
             return VerifyInitAndLock(settings, fileSystem, lockMessage: null, log: log, token: token);
         }
 
-        public static async Task<ISleetFileSystemLock> VerifyInitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, string lockMessage, ILogger log, CancellationToken token)
+        /// <summary>
+        /// Verify a feed is valid and lock it. This will not automatically create the feed or initialize a new feed.
+        /// </summary>
+        public static Task<ISleetFileSystemLock> VerifyInitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, string lockMessage, ILogger log, CancellationToken token)
+        {
+            return InitAndLock(settings, fileSystem, lockMessage, autoCreateBucket: false, autoInit: false, log: log, token: token);
+        }
+
+        /// <summary>
+        /// Ensure a feed is initialized. If the feed is not initialized it can be automatically created and initialized.
+        /// Feeds that are not in a vaild state will fail, these must be manually fixed to avoid losing data.
+        /// </summary>
+        /// <param name="lockMessage">Optional message to display when the feed is locked.</param>
+        /// <param name="autoCreateBucket">Automatically create the folder/container/bucket without files.</param>
+        /// <param name="autoInit">Automatically initialize the files in the feed.</param>
+        public static async Task<ISleetFileSystemLock> InitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, string lockMessage, bool autoCreateBucket, bool autoInit, ILogger log, CancellationToken token)
         {
             ISleetFileSystemLock feedLock = null;
 
+            // Validate URI path
             ValidateFileSystem(fileSystem);
+
+            // Create the bucket if allowed or throw.
+            await EnsureBucketOrThrow(fileSystem, autoCreateBucket, log, token);
 
             try
             {
-                // Validate source
-                var exists = await fileSystem.Validate(log, token);
-
-                if (!exists)
-                {
-                    throw new InvalidOperationException($"Unable to use feed.");
-                }
-
                 var timer = Stopwatch.StartNew();
                 feedLock = fileSystem.CreateLock(log);
 
@@ -52,12 +63,7 @@ namespace Sleet
                 // Reset the file system to avoid using files retrieved before the lock, this would be unsafe
                 fileSystem.Reset();
 
-                var indexPath = fileSystem.Get("index.json");
-
-                if (!await indexPath.ExistsWithFetch(log, token))
-                {
-                    throw new InvalidOperationException($"{fileSystem.BaseURI} is missing sleet files. Use 'sleet.exe init' to create a new feed.");
-                }
+                await EnsureFeedIndexOrThrow(settings, fileSystem, autoInit, log, token);
             }
             catch
             {
@@ -70,6 +76,51 @@ namespace Sleet
             }
 
             return feedLock;
+        }
+
+        /// <summary>
+        /// Verify the feed has been initialized. Initialize it or throw.
+        /// </summary>
+        public static async Task EnsureFeedIndexOrThrow(LocalSettings settings, ISleetFileSystem fileSystem, bool autoInit, ILogger log, CancellationToken token)
+        {
+            var indexPath = fileSystem.Get("index.json");
+            var validInit = await indexPath.ExistsWithFetch(log, token);
+
+            if (!validInit && autoInit)
+            {
+                validInit = await InitCommand.RunAsync(settings, fileSystem, log);
+            }
+
+            if (!validInit)
+            {
+                throw new InvalidOperationException($"{fileSystem.BaseURI} is missing sleet files. Use 'sleet.exe init' to create a new feed.");
+            }
+        }
+
+        /// <summary>
+        /// Verify the feed exists, create it, or throw.
+        /// </summary>
+        public static async Task EnsureBucketOrThrow(ISleetFileSystem fileSystem, bool autoCreateBucket, ILogger log, CancellationToken token)
+        {
+            if (autoCreateBucket)
+            {
+                // Check if the feed exists already
+                var bucketExists = await fileSystem.HasBucket(log, token);
+                if (!bucketExists)
+                {
+                    await fileSystem.CreateBucket(log, token);
+                }
+            }
+            else
+            {
+                // Validate source, this will provide a filesystem specific error if the bucket does
+                // not exist.
+                var exists = await fileSystem.Validate(log, token);
+                if (!exists)
+                {
+                    throw new InvalidOperationException($"Unable to use feed. Create the appropriate feed folder/container/bucket to continue.");
+                }
+            }
         }
 
         public static void ValidateFileSystem(ISleetFileSystem fileSystem)

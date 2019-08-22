@@ -403,5 +403,90 @@ namespace SleetLib.Tests
                 File.Exists(extFile.FullName).Should().BeTrue("The original file should not be removed");
             }
         }
+
+        [Fact]
+        public async Task VerifyHasBucketReturnsFalse()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var extCache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var root = Path.Combine(target.RootDirectory.FullName, "testFeed");
+
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(root));
+                var exists = await fileSystem.HasBucket(log, CancellationToken.None);
+                exists.Should().Be(false);
+            }
+        }
+
+        [Fact]
+        public async Task VerifyHasBucketWithMultipleLevelsReturnsFalse()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var extCache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var root = Path.Combine(target.RootDirectory.FullName, "testParent2/testParent1/testFeed");
+
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(root));
+                var exists = await fileSystem.HasBucket(log, CancellationToken.None);
+                exists.Should().Be(false);
+            }
+        }
+
+        [Fact]
+        public async Task VerifyCreateBucketCreates()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var extCache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var root = Path.Combine(target.RootDirectory.FullName, "testParent2/testParent1/testFeed");
+
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(root));
+                await fileSystem.CreateBucket(log, CancellationToken.None);
+                var exists = await fileSystem.HasBucket(log, CancellationToken.None);
+                exists.Should().Be(true);
+            }
+        }
+
+        [Fact]
+        public async Task VerifyDeleteBucketRemovesFolder()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var extCache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var root = Path.Combine(target.RootDirectory.FullName, "testParent2/testParent1/testFeed");
+
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(root));
+                await fileSystem.CreateBucket(log, CancellationToken.None);
+                await fileSystem.DeleteBucket(log, CancellationToken.None);
+                var exists = await fileSystem.HasBucket(log, CancellationToken.None);
+                exists.Should().Be(false);
+            }
+        }
+
+        [Fact]
+        public async Task VerifyValidate()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var extCache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var root = Path.Combine(target.RootDirectory.FullName, "testParent2/testParent1/testFeed");
+
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(root));
+
+                (await fileSystem.HasBucket(log, CancellationToken.None)).Should().BeFalse();
+                await fileSystem.CreateBucket(log, CancellationToken.None);
+                (await fileSystem.HasBucket(log, CancellationToken.None)).Should().BeTrue();
+            }
+        }
     }
 }

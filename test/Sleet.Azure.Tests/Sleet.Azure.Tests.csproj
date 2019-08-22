@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
+    <PackageReference Include="NuGet.Protocol" Version="$(NuGetPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>

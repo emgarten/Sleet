@@ -30,9 +30,15 @@ namespace Sleet
             return InitAsync(context.LocalSettings, context.Source, context.SourceSettings, context.Log, context.Token);
         }
 
-        public static async Task<bool> InitAsync(LocalSettings settings, ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token)
+        public static Task<bool> InitAsync(LocalSettings settings, ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token)
+        {
+            return InitAsync(settings, source, feedSettings, autoCreateBucket: true, log: log, token: token);
+        }
+
+        public static async Task<bool> InitAsync(LocalSettings settings, ISleetFileSystem source, FeedSettings feedSettings, bool autoCreateBucket, ILogger log, CancellationToken token)
         {
             SourceUtility.ValidateFileSystem(source);
+            await SourceUtility.EnsureBucketOrThrow(source, autoCreateBucket, log, token);
 
             var exitCode = true;
             var noChanges = true;

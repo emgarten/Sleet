@@ -71,6 +71,66 @@ namespace Sleet.AmazonS3.Tests
         }
 
         [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        public async Task GivenAStorageAccountWithNoContainerVerifyPushSucceeds()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var testContext = new AmazonS3TestContext())
+            {
+                // Skip creation and allow it to be done during push.
+                testContext.CreateBucketOnInit = false;
+
+                await testContext.InitAsync();
+
+                var testPackage = new TestNupkg("packageA", "1.0.0");
+                var zipFile = testPackage.Save(packagesFolder.Root);
+
+                var result = await PushCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    new List<string>() { zipFile.FullName },
+                    force: false,
+                    skipExisting: false,
+                    log: testContext.Logger);
+
+                result &= await ValidateCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    testContext.Logger);
+
+                result.Should().BeTrue();
+
+                await testContext.CleanupAsync();
+            }
+        }
+
+        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        public async Task GivenAStorageAccountWithNoInitVerifyPushSucceeds()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var testContext = new AmazonS3TestContext())
+            {
+                await testContext.InitAsync();
+
+                var testPackage = new TestNupkg("packageA", "1.0.0");
+                var zipFile = testPackage.Save(packagesFolder.Root);
+
+                // Skip init
+                var result = await PushCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    new List<string>() { zipFile.FullName },
+                    force: false,
+                    skipExisting: false,
+                    log: testContext.Logger);
+
+                result &= await ValidateCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    testContext.Logger);
+
+                result.Should().BeTrue();
+
+                await testContext.CleanupAsync();
+            }
+        }
+
+        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
         public async Task GivenAStorageAccountVerifyPushAndRemoveSucceed()
         {
             using (var packagesFolder = new TestFolder())
