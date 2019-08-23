@@ -41,4 +41,21 @@
     <Exec Command="$(MergeExeCommand)" ContinueOnError="false" StandardOutputImportance="low" />
   </Target>
 
+  <!--
+    ============================================================
+    Remove desktop dependencies from Sleet package.
+    ============================================================
+  -->
+  <Target Name="RemoveDesktopDependencies"
+        Condition=" '$(SkipPublishArtifacts)' != 'true' AND '$(IsXPlat)' != 'true' "
+        AfterTargets="Pack">
+
+    <PropertyGroup>
+      <NupkgWrenchExePath>$(PackagesConfigDirectory)NupkgWrenchExe.1.4.25\tools\NupkgWrench.exe</NupkgWrenchExePath>
+      <WrenchExeCommand>$(NupkgWrenchExePath) nuspec dependencies remove --id Sleet $(NupkgOutputDirectory)</WrenchExeCommand>
+    </PropertyGroup>
+
+    <Exec Command="$(WrenchExeCommand)" ContinueOnError="false" StandardOutputImportance="low" />
+  </Target>
+
 </Project>
