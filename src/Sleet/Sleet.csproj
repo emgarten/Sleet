@@ -5,8 +5,14 @@
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
     <TargetFrameworks>netcoreapp2.1;net472</TargetFrameworks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(IsXPlat)' == 'true' OR '$(PackAsTool)' == 'true' ">
+  <PropertyGroup Condition=" '$(IsXPlat)' == 'true' OR '$(PackSleetDotnetTool)' == 'true' ">
     <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(PackSleetDotnetTool)' == 'true' ">
+    <ToolCommandName>sleet</ToolCommandName>
+    <IsTool>true</IsTool>
+    <PackAsTool>true</PackAsTool>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -16,7 +22,6 @@
     <PackProject>true</PackProject>
     <PublishProject>true</PublishProject>
     <SkipDocs>true</SkipDocs>
-    <ToolCommandName>sleet</ToolCommandName>
 
     <Authors>emgarten</Authors>
     <PackageLicenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</PackageLicenseUrl>
@@ -63,9 +68,10 @@
          desktop framework at that time. -->
 
     <!-- Pack Sleet -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Properties="Configuration=$(Configuration);PackageOutputPath=$(NupkgOutputDirectory);NoPackageAnalysis=true;IncludeSymbols=false;IsTool=true;PackAsTool=true" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Properties="Configuration=$(Configuration);PackageOutputPath=$(NupkgOutputDirectory);PackSleetDotnetTool=true" />
     <!-- Pack Sleet Exe -->
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Condition=" '$(MergedExePathExists)' == 'true' " Properties="Configuration=$(Configuration);PackageOutputPath=$(NupkgOutputDirectory);NoPackageAnalysis=true;IncludeSymbols=false;NuspecFile=SleetExe.nuspec;NuspecProperties=$(NuspecProperties);" />
   </Target>
+
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
