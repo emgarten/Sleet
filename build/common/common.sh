@@ -15,7 +15,7 @@ run_standard_tests()
 
     # Run install.sh
     chmod +x .cli/dotnet-install.sh
-    .cli/dotnet-install.sh -i .cli -c 2.1 -v 2.1.801
+    .cli/dotnet-install.sh -i .cli -c 2.2 -v 2.2.301
   fi
 
   # Display info
