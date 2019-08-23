@@ -1,6 +1,7 @@
 # Release Notes
 
 ## 3.0.0
+* Moved Sleet.exe from the package 'Sleet' to 'SleetExe' *breaking change*
 * Init command will now automatically create a public bucket/container if it does not exist already. *breaking change*
 * Push command will now automatically create a public bucket/container and initialize a feed using the default settings if it does not exist already. *breaking change*
 * Removed client/feed version compat checks based on the minor version of sleet.

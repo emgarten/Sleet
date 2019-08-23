@@ -1,28 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>Sleet</id>
+    <id>SleetExe</id>
     <version>$version$</version>
     <authors>emgarten</authors>
     <owners>emgarten</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <licenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</licenseUrl>
     <projectUrl>https://github.com/emgarten/Sleet/</projectUrl>
-    <description>Sleet is a static feed generator for NuGet package feeds.</description>
+    <description>Sleet is a static feed generator for NuGet package feeds. This package contains Sleet.exe, an alternative to the dotnet tool.</description>
     <copyright>Copyright © 2019 Justin Emgarten</copyright>
     <tags>nuget nugetserver nugetfeed</tags>
     <repository type="git" url="https://github.com/emgarten/Sleet" branch="$branch$" commit="$commit$" />
     <developmentDependency>true</developmentDependency>
     <iconUrl>https://emgartenstatic.blob.core.windows.net/nupkgs/icons/sleet.png</iconUrl>
-    <packageTypes>
-      <packageType name="DotnetTool" />
-    </packageTypes>
   </metadata>
   <files>
     <file src="..\..\artifacts\publish\*.exe" target="tools\" />
-    <file src="..\..\artifacts\publish\netcoreapp2.1\*.dll" target="tools\netcoreapp2.1\any\" />
-    <file src="..\..\artifacts\publish\netcoreapp2.1\DotnetToolSettings.xml" target="tools\netcoreapp2.1\any\" />
-    <file src="..\..\artifacts\publish\netcoreapp2.1\Sleet.runtimeconfig.json" target="tools\netcoreapp2.1\any\" />
     <file src="..\..\build\nupkgIncludes\Sleet.props" target="build\net46\Sleet.props" />
   </files>
 </package>

@@ -5,7 +5,7 @@
   <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
     <TargetFrameworks>netcoreapp2.1;net472</TargetFrameworks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
+  <PropertyGroup Condition=" '$(IsXPlat)' == 'true' OR '$(PackAsTool)' == 'true' ">
     <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
 
@@ -17,6 +17,16 @@
     <PublishProject>true</PublishProject>
     <SkipDocs>true</SkipDocs>
     <ToolCommandName>sleet</ToolCommandName>
+
+    <Authors>emgarten</Authors>
+    <PackageLicenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageIconUrl>https://emgartenstatic.blob.core.windows.net/nupkgs/icons/sleet.png</PackageIconUrl>
+    <ProjectUrl>https://github.com/emgarten/Sleet</ProjectUrl>
+    <Copyright>Copyright © 2019 Justin Emgarten</Copyright>
+    <PackageTags>nuget nugetserver nugetfeed</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>$(ProjectUrl)</RepositoryUrl>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
   </PropertyGroup>
 
   <ItemGroup>
@@ -47,9 +57,15 @@
 
     <Error Condition=" '$(IsXPlat)' != 'true' AND '$(MergedExePathExists)' != 'true' " Text="Missing $(MergedExePath)" />
 
+    <!-- This project packs both the dotnet tool package: Sleet and the exe package: SleetExe. 
+         NuGet pack currently rejects dotnet tool packages with desktop framework TFMs, to get
+         around this we pass PackAsTool=true only during the dotnet tool pack, and exclude the
+         desktop framework at that time. -->
+
     <!-- Pack Sleet -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Properties="Configuration=$(Configuration);&#xD;&#xA;                         PackageOutputPath=$(NupkgOutputDirectory);&#xD;&#xA;                         NoPackageAnalysis=true;&#xD;&#xA;                         IncludeSymbols=false;&#xD;&#xA;                         IsTool=true;&#xD;&#xA;                         NuspecFile=Sleet.nuspec;&#xD;&#xA;                         NuspecProperties=$(NuspecProperties);">
-    </MSBuild>
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Properties="Configuration=$(Configuration);PackageOutputPath=$(NupkgOutputDirectory);NoPackageAnalysis=true;IncludeSymbols=false;IsTool=true;PackAsTool=true" />
+    <!-- Pack Sleet Exe -->
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Condition=" '$(MergedExePathExists)' == 'true' " Properties="Configuration=$(Configuration);PackageOutputPath=$(NupkgOutputDirectory);NoPackageAnalysis=true;IncludeSymbols=false;NuspecFile=SleetExe.nuspec;NuspecProperties=$(NuspecProperties);" />
   </Target>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
