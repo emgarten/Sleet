@@ -29,12 +29,6 @@ namespace Sleet.AmazonS3.Tests
                 (await testContext.FileSystem.HasBucket(testContext.Logger, CancellationToken.None)).Should().BeTrue();
                 (await testContext.FileSystem.Validate(testContext.Logger, CancellationToken.None)).Should().BeTrue();
 
-                // Delete
-                await testContext.FileSystem.DeleteBucket(testContext.Logger, CancellationToken.None);
-
-                (await testContext.FileSystem.HasBucket(testContext.Logger, CancellationToken.None)).Should().BeFalse();
-                (await testContext.FileSystem.Validate(testContext.Logger, CancellationToken.None)).Should().BeFalse();
-
                 await testContext.CleanupAsync();
             }
         }
