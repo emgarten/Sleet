@@ -11,7 +11,8 @@ namespace Sleet.AmazonS3.Tests
 {
     public class AmazonS3FileSystemTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        // Disabled due to timing issues that cause this to fail on the CI
+        // [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
         public async Task GivenAS3AccountVerifyBucketOperations()
         {
             using (var testContext = new AmazonS3TestContext())
