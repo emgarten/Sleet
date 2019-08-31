@@ -54,7 +54,7 @@ namespace Sleet.AmazonS3.Tests
         {
             cleanupDone = true;
 
-            try
+            if (await Client.DoesS3BucketExistAsync(BucketName))
             {
                 var s3Objects = (await AmazonS3FileSystemAbstraction
                     .GetFilesAsync(Client, BucketName, CancellationToken.None))
@@ -70,14 +70,7 @@ namespace Sleet.AmazonS3.Tests
                         CancellationToken.None);
                 }
 
-                if (await Client.DoesS3BucketExistAsync(BucketName))
-                {
-                    await Client.DeleteBucketAsync(BucketName);
-                }
-            }
-            catch
-            {
-                // Ignore clean up errors
+                await Client.DeleteBucketAsync(BucketName);
             }
         }
 
