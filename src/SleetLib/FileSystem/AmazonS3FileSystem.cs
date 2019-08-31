@@ -14,8 +14,9 @@ namespace Sleet
 {
     public class AmazonS3FileSystem : FileSystemBase
     {
-        private readonly string bucketName;
-        private readonly IAmazonS3 client;
+        private readonly string _bucketName;
+        private readonly IAmazonS3 _client;
+        private bool? _hasBucket;
 
         public AmazonS3FileSystem(LocalCache cache, Uri root, IAmazonS3 client, string bucketName)
             : this(cache, root, root, client, bucketName)
@@ -31,8 +32,8 @@ namespace Sleet
             string feedSubPath = null)
             : base(cache, root, baseUri)
         {
-            this.client = client;
-            this.bucketName = bucketName;
+            _client = client;
+            _bucketName = bucketName;
 
             if (!string.IsNullOrEmpty(feedSubPath))
             {
@@ -42,13 +43,13 @@ namespace Sleet
 
         public override async Task<bool> Validate(ILogger log, CancellationToken token)
         {
-            log.LogInformation($"Verifying {bucketName} exists.");
+            log.LogInformation($"Verifying {_bucketName} exists.");
 
             var isBucketFound = await HasBucket(log, token);
             if (!isBucketFound)
             {
                 log.LogError(
-                    $"Unable to find {bucketName}. Verify that the Amazon account and bucket exists. The bucket " +
+                    $"Unable to find {_bucketName}. Verify that the Amazon account and bucket exists. The bucket " +
                     "must be created manually before using this feed.");
             }
 
@@ -57,7 +58,7 @@ namespace Sleet
 
         public override ISleetFileSystemLock CreateLock(ILogger log)
         {
-            return new AmazonS3FileSystemLock(client, bucketName, log);
+            return new AmazonS3FileSystemLock(_client, _bucketName, log);
         }
 
         public override ISleetFile Get(Uri path)
@@ -69,7 +70,7 @@ namespace Sleet
 
         public override async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
         {
-            return (await GetFilesAsync(client, bucketName, token))
+            return (await GetFilesAsync(_client, _bucketName, token))
                 .Where(x => !x.Key.Equals(AmazonS3FileSystemLock.LockFile))
                 .Select(x => Get(GetPath(x.Key)))
                 .ToList();
@@ -78,7 +79,7 @@ namespace Sleet
         private ISleetFile CreateAmazonS3File(SleetUriPair pair)
         {
             var key = GetRelativePath(pair.Root);
-            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), client, bucketName, key);
+            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key);
         }
 
         public override string GetRelativePath(Uri uri)
@@ -95,28 +96,65 @@ namespace Sleet
 
         public override async Task<bool> HasBucket(ILogger log, CancellationToken token)
         {
-            return await client.DoesS3BucketExistAsync(bucketName);
+            if (_hasBucket == null)
+            {
+                _hasBucket = await _client.DoesS3BucketExistAsync(_bucketName);
+            }
+
+            return _hasBucket == true;
         }
 
         public override async Task CreateBucket(ILogger log, CancellationToken token)
         {
-            await client.EnsureBucketExistsAsync(bucketName);
 
-            var policyRequest = new PutBucketPolicyRequest()
+            if (!await HasBucket(log, token))
             {
-                BucketName = bucketName,
-                Policy = GetReadOnlyPolicy(bucketName).ToString()
-            };
+                log.LogInformation($"Creating new bucket: ${_bucketName}");
+                await _client.EnsureBucketExistsAsync(_bucketName);
 
-            await client.PutBucketPolicyAsync(policyRequest);
+                var tries = 0;
+                var maxTries = 10;
+                var success = false;
+
+                while (tries < maxTries && !success)
+                {
+                    tries++;
+
+                    try
+                    {
+                        var policyRequest = new PutBucketPolicyRequest()
+                        {
+                            BucketName = _bucketName,
+                            Policy = GetReadOnlyPolicy(_bucketName).ToString()
+                        };
+
+                        log.LogInformation($"Adding policy for public read access to bucket: ${_bucketName}");
+                        await _client.PutBucketPolicyAsync(policyRequest);
+                        success = true;
+                    }
+                    catch (AmazonS3Exception ex) when (tries < (maxTries - 1))
+                    {
+                        log.LogWarning($"Failed to update policy for bucket: {ex.Message} Trying again.");
+                        await Task.Delay(TimeSpan.FromSeconds(tries));
+                    }
+                }
+
+                if (tries >= maxTries)
+                {
+                    throw new InvalidOperationException("Unable to create bucket");
+                }
+
+                _hasBucket = true;
+            }
         }
 
         public override async Task DeleteBucket(ILogger log, CancellationToken token)
         {
             if (await HasBucket(log, token))
             {
-                await client.DeleteBucketAsync(bucketName, token);
+                await _client.DeleteBucketAsync(_bucketName, token);
             }
+            _hasBucket = false;
         }
 
         private static JObject GetReadOnlyPolicy(string bucketName)
