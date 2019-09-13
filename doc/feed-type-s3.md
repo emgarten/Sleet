@@ -33,6 +33,24 @@ Edit `sleet.json` using your editor of choice to set the url of your s3 bucket a
 
 For details on creating a credentials file go [here](https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file)
 
+### Using an EC2 instance profile
+
+```json
+{
+  "sources": [
+    {
+      "name": "feed",
+      "type": "s3",
+      "path": "https://s3.amazonaws.com/my-bucket-feed/",
+      "bucketName": "my-bucket-feed",
+      "region": "us-west-2",
+      "baseURI": "https://tempuri.org/",
+      "feedSubPath": "a/b/c/"
+    }
+  ]
+}
+```
+
 ### Using accessKeyId and secretAccessKey in sleet.json
 
 ```json
