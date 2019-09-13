@@ -126,11 +126,6 @@ namespace Sleet
                             throw new ArgumentException("Missing region for Amazon S3 account.");
                         }
 
-                        if (string.IsNullOrEmpty(profileName) && string.IsNullOrEmpty(accessKeyId))
-                        {
-                            throw new ArgumentException("Must provide a profileName or accessKeyId and secretAccessKey for Amazon S3 account.");
-                        }
-
                         var regionSystemName = RegionEndpoint.GetBySystemName(region);
 
                         var config = new AmazonS3Config()
