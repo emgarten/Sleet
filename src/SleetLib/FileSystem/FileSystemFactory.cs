@@ -126,6 +126,17 @@ namespace Sleet
                             throw new ArgumentException("Missing region for Amazon S3 account.");
                         }
 
+                        if (string.IsNullOrEmpty(profileName) && string.IsNullOrEmpty(accessKeyId)) {
+                            try {
+                                AmazonS3Utility.EnsureIAMRoleOrThrow();
+                            } catch (Exception e) {
+                                throw new ArgumentException("As no credentials are set in the configuration attempted "
+                                    + "to verify that an IAM role is assigned to this EC2 instance, but was unable to "
+                                    + "do so (is this an EC2 instance with an IAM role assigned?): "
+                                    + e.Message);
+                            }
+                        }
+
                         var regionSystemName = RegionEndpoint.GetBySystemName(region);
 
                         var config = new AmazonS3Config()
@@ -138,18 +149,21 @@ namespace Sleet
 
                         if (string.IsNullOrEmpty(profileName))
                         {
-                            // Access key in sleet.json
-                            if (string.IsNullOrEmpty(accessKeyId))
+                            var noAccessKeyId = string.IsNullOrEmpty(accessKeyId);
+                            var noSecretAccessKey = string.IsNullOrEmpty(secretAccessKey);
+                            if (noAccessKeyId && noSecretAccessKey) {
+                                amazonS3Client = new AmazonS3Client(config);
+                            }
+                            else if (noAccessKeyId)
                             {
                                 throw new ArgumentException("Missing accessKeyId for Amazon S3 account.");
                             }
-
-                            if (string.IsNullOrEmpty(secretAccessKey))
+                            else if (noSecretAccessKey)
                             {
                                 throw new ArgumentException("Missing secretAccessKey for Amazon S3 account.");
+                            } else {
+                                amazonS3Client = new AmazonS3Client(accessKeyId, secretAccessKey, config);
                             }
-
-                            amazonS3Client = new AmazonS3Client(accessKeyId, secretAccessKey, config);
                         }
                         else
                         {
