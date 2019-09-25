@@ -4,6 +4,7 @@
   <PropertyGroup>
     <NuGetPackageVersion>5.2.0</NuGetPackageVersion>
     <MicrosoftAzureStorageBlobVersion>11.0.0</MicrosoftAzureStorageBlobVersion>
+    <MicrosoftCSharpVersion>4.6.0</MicrosoftCSharpVersion>
     <JsonVersion>10.0.3</JsonVersion>
     <CommandLineUtilsVersion>2.0.0</CommandLineUtilsVersion>
     <NuGetTestHelpersVersion>2.0.0</NuGetTestHelpersVersion>
