@@ -6,6 +6,8 @@ using System.Net;
 using Amazon;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.S3;
+using Amazon.SecurityToken;
+using Amazon.SecurityToken.Model;
 using Microsoft.Azure.Storage;
 #endif
 using Newtonsoft.Json.Linq;
@@ -126,18 +128,17 @@ namespace Sleet
                             throw new ArgumentException("Missing region for Amazon S3 account.");
                         }
 
+                        var regionSystemName = RegionEndpoint.GetBySystemName(region);
+
                         if (string.IsNullOrEmpty(profileName) && string.IsNullOrEmpty(accessKeyId)) {
+                            var client = new AmazonSecurityTokenServiceClient(regionSystemName);
                             try {
-                                AmazonS3Utility.EnsureIAMRoleOrThrow();
-                            } catch (Exception e) {
-                                throw new ArgumentException("As no credentials are set in the configuration attempted "
-                                    + "to verify that an IAM role is assigned to this EC2 instance, but was unable to "
-                                    + "do so (is this an EC2 instance with an IAM role assigned?): "
-                                    + e.Message);
+                                var identity = client.GetCallerIdentityAsync(new GetCallerIdentityRequest { }).Result;
+                            } catch (Exception) {
+                                throw new ArgumentException("Failed to determine AWS identity - ensure you have an IAM " +
+                                    "role set, have set up default credentials or have specified a profile/key pair.");
                             }
                         }
-
-                        var regionSystemName = RegionEndpoint.GetBySystemName(region);
 
                         var config = new AmazonS3Config()
                         {

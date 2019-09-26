@@ -31,13 +31,12 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="$(AWSSDKVersion)" />
-    <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
+    <PackageReference Include="AWSSDK.SecurityToken" Version="3.3.102.28" />
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="$(MicrosoftAzureStorageBlobVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" Condition=" '$(UseJsonNet901)' != 'true' " />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" Condition=" '$(UseJsonNet901)' == 'true' " />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />
