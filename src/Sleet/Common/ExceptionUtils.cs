@@ -56,7 +56,7 @@ namespace Sleet
             }
 
             // Log for debugging
-            foreach (var innerEx in GetExceptions(ex))
+            foreach (var innerEx in GetExceptions(ex, includeInner: true))
             {
                 logger.Log(LogLevel.Debug, innerEx.ToString());
             }
@@ -99,7 +99,7 @@ namespace Sleet
             var sb = new StringBuilder();
             var hasMessage = !string.IsNullOrEmpty(message);
 
-            var exceptions = GetExceptions(ex).ToList();
+            var exceptions = GetExceptions(ex, includeInner: false).ToList();
 
             if (hasMessage)
             {
@@ -128,7 +128,7 @@ namespace Sleet
         /// </summary>
         internal static Exception Unwrap(Exception ex)
         {
-            return GetExceptions(ex).FirstOrDefault();
+            return GetExceptions(ex, includeInner: false).FirstOrDefault();
         }
 
         /// <summary>
@@ -147,21 +147,26 @@ namespace Sleet
         /// <summary>
         /// Flatten AggregateExceptions
         /// </summary>
-        internal static IEnumerable<Exception> GetExceptions(Exception ex)
+        internal static IEnumerable<Exception> GetExceptions(Exception ex, bool includeInner)
         {
             if (ex != null)
             {
                 if (ex is AggregateException ag)
                 {
-                    return ag.InnerExceptions.SelectMany(e => GetExceptions(e));
+                    return ag.InnerExceptions.SelectMany(e => GetExceptions(e, includeInner));
                 }
                 else if (ex is TargetInvocationException te)
                 {
-                    return GetExceptions(te.InnerException);
+                    return GetExceptions(te.InnerException, includeInner);
                 }
                 else
                 {
-                    return new[] { ex };
+                    var exceptions = new List<Exception>() { ex };
+                    if (includeInner)
+                    {
+                        exceptions.AddRange(GetExceptions(ex.InnerException, includeInner));
+                    }
+                    return exceptions;
                 }
             }
 

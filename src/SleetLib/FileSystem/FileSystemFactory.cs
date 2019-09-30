@@ -134,9 +134,9 @@ namespace Sleet
                             var client = new AmazonSecurityTokenServiceClient(regionSystemName);
                             try {
                                 var identity = client.GetCallerIdentityAsync(new GetCallerIdentityRequest { }).Result;
-                            } catch (Exception) {
-                                throw new ArgumentException("Failed to determine AWS identity - ensure you have an IAM " +
-                                    "role set, have set up default credentials or have specified a profile/key pair.");
+                            } catch (Exception ex) {
+                                    throw new ArgumentException("Failed to determine AWS identity - ensure you have an IAM " +
+                                        "role set, have set up default credentials or have specified a profile/key pair.", ex);
                             }
                         }
 

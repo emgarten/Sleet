@@ -79,7 +79,11 @@ namespace Sleet
         {
             if (log is ConsoleLogger consoleLogger)
             {
-                if (verbose)
+                if (CmdUtils.IsDebugModeEnabled())
+                {
+                    consoleLogger.VerbosityLevel = LogLevel.Debug;
+                }
+                else if (verbose)
                 {
                     consoleLogger.VerbosityLevel = LogLevel.Verbose;
                 }
