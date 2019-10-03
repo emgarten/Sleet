@@ -114,9 +114,9 @@ namespace Sleet
 #if !SLEETLEGACY
                     else if (type == "s3")
                     {
+                        var profileName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "profileName");
                         var accessKeyId = JsonUtility.GetValueCaseInsensitive(sourceEntry, "accessKeyId");
                         var secretAccessKey = JsonUtility.GetValueCaseInsensitive(sourceEntry, "secretAccessKey");
-                        var profileName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "profileName");
                         var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
                         var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
 
@@ -185,7 +185,6 @@ namespace Sleet
                                         "Failed to determine AWS identity - ensure you have an IAM " +
                                         "role set, have set up default credentials or have specified a profile/key pair.", ex);
                                 }
-
                             amazonS3Client = new AmazonS3Client(config);
                         }
 
