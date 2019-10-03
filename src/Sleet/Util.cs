@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 
@@ -9,7 +10,7 @@ namespace Sleet
     {
         internal static LogLevel DefaultLogLevel = LogLevel.Information;
 
-        internal static ISleetFileSystem CreateFileSystemOrThrow(LocalSettings settings, string sourceName, LocalCache cache)
+        internal static async Task<ISleetFileSystem> CreateFileSystemOrThrow(LocalSettings settings, string sourceName, LocalCache cache)
         {
             var sourceNamePassed = !string.IsNullOrEmpty(sourceName);
 
@@ -24,7 +25,7 @@ namespace Sleet
                 }
             }
 
-            var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, sourceName);
+            var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, sourceName);
 
             if (fileSystem == null)
             {
