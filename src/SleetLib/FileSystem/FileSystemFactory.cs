@@ -137,8 +137,9 @@ namespace Sleet
                         };
 
                         AmazonS3Client amazonS3Client = null;
+
                         // Load credentials from the current profile
-                        if (!string.IsNullOrEmpty(profileName))
+                        if (!string.IsNullOrWhiteSpace(profileName))
                         {
                             var credFile = new SharedCredentialsFile();
                             if (credFile.TryGetProfile(profileName, out var profile))
@@ -152,21 +153,21 @@ namespace Sleet
                         }
                         // Load credentials explicitely with an accessKey and secretKey
                         else if (
-                            !string.IsNullOrEmpty(accessKeyId) &&
-                            !string.IsNullOrEmpty(secretAccessKey))
+                            !string.IsNullOrWhiteSpace(accessKeyId) &&
+                            !string.IsNullOrWhiteSpace(secretAccessKey))
                         {
                             amazonS3Client = new AmazonS3Client(new BasicAWSCredentials(accessKeyId, secretAccessKey), config);
                         }
                         // Load credentials from Environment Variables
                         else if (
-                            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ENVIRONMENT_VARIABLE_ACCESSKEY")) &&
-                            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ENVIRONMENT_VARIABLE_SECRETKEY")))
+                            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EnvironmentVariablesAWSCredentials.ENVIRONMENT_VARIABLE_ACCESSKEY)) &&
+                            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EnvironmentVariablesAWSCredentials.ENVIRONMENT_VARIABLE_SECRETKEY)))
                         {
                             amazonS3Client = new AmazonS3Client(new EnvironmentVariablesAWSCredentials(), config);
                         }
                         // Load credentials from an ECS docker container
                         else if (
-                            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")))
+                            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(ECSTaskCredentials.ContainerCredentialsURIEnvVariable)))
                         {
                             amazonS3Client = new AmazonS3Client(new ECSTaskCredentials(), config);
                         }
