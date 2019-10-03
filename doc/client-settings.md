@@ -38,8 +38,6 @@ The example file contains a set of sources. If only feed exists in the file slee
       "type": "azure",
       "container": "feed",
       "path": "https://yourStorageAccount.blob.core.windows.net/feed/",
-      "feedSubPath": "a/b/c/",
-      "baseURI": "https://tempuri.org/",
       "connectionString": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint="
     }
   ]
@@ -68,9 +66,7 @@ The example file contains a set of sources. If only feed exists in the file slee
       "path": "https://s3.amazonaws.com/my-bucket-feed/",
       "profileName": "sleetProfile",
       "bucketName": "my-bucket-feed",
-      "region": "us-west-2",
-      "baseURI": "https://tempuri.org/",
-      "feedSubPath": "a/b/c/"
+      "region": "us-west-2"
     }
   ]
 }
@@ -88,13 +84,29 @@ The example file contains a set of sources. If only feed exists in the file slee
       "bucketName": "my-bucket-feed",
       "region": "us-east-1",
       "accessKeyId": "IAM_ACCESS_KEY_ID",
-      "secretAccessKey": "IAM_SECRET_ACCESS_KEY",
-      "baseURI": "https://tempuri.org/",
-      "feedSubPath": "a/b/c/"
+      "secretAccessKey": "IAM_SECRET_ACCESS_KEY"
     }
   ]
 }
 ```
+
+### Using AWS environments
+
+```json
+{
+  "sources": [
+    {
+      "name": "feed",
+      "type": "s3",
+      "path": "https://s3.amazonaws.com/my-bucket-feed/",
+      "bucketName": "my-bucket-feed",
+      "region": "us-east-1"
+    }
+  ]
+}
+```
+
+When running Sleet with [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) leave accessKeyId, secretAccessKey, and profileName blank. If these properties are not set in sleet.json Sleet will try to set up the S3 feed using the environment.
 
 ## Folder feed specific properties
 

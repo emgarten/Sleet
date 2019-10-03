@@ -23,33 +23,13 @@ Edit `sleet.json` using your editor of choice to set the url of your s3 bucket a
       "path": "https://s3.amazonaws.com/my-bucket-feed/",
       "profileName": "sleetProfile",
       "bucketName": "my-bucket-feed",
-      "region": "us-west-2",
-      "baseURI": "https://tempuri.org/",
-      "feedSubPath": "a/b/c/"
+      "region": "us-west-2"
     }
   ]
 }
 ```
 
 For details on creating a credentials file go [here](https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file)
-
-### Using an EC2 instance profile
-
-```json
-{
-  "sources": [
-    {
-      "name": "feed",
-      "type": "s3",
-      "path": "https://s3.amazonaws.com/my-bucket-feed/",
-      "bucketName": "my-bucket-feed",
-      "region": "us-west-2",
-      "baseURI": "https://tempuri.org/",
-      "feedSubPath": "a/b/c/"
-    }
-  ]
-}
-```
 
 ### Using accessKeyId and secretAccessKey in sleet.json
 
@@ -63,25 +43,52 @@ For details on creating a credentials file go [here](https://docs.aws.amazon.com
       "bucketName": "my-bucket-feed",
       "region": "us-east-1",
       "accessKeyId": "IAM_ACCESS_KEY_ID",
-      "secretAccessKey": "IAM_SECRET_ACCESS_KEY",
-      "baseURI": "https://tempuri.org/",
-      "feedSubPath": "a/b/c/"
+      "secretAccessKey": "IAM_SECRET_ACCESS_KEY"
     }
   ]
 }
 ```
 
-## Initialize the feed
+This example specifies the access key id and secret key directly in sleet.json.
 
-Now initialize the feed, this creates the basic files needed to get started. The `source` value here corresponds to the `name` property used in `sleet.json`.
+### Using an EC2 instance profile
 
-``sleet init --source feed``
+```json
+{
+  "sources": [
+    {
+      "name": "feed",
+      "type": "s3",
+      "path": "https://s3.amazonaws.com/my-bucket-feed/",
+      "bucketName": "my-bucket-feed",
+      "region": "us-west-2"
+    }
+  ]
+}
+```
+
+To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) create an s3 feed config without an *accessKeyId* or *secretAccessKey*. Sleet will attempt to automatically configure the feed based on the environment.
+
+### Additional feed settings
+
+Help on additional feed settings such as *baseURI* and *feedSubPath* can be found under [Sleet client settings](client-settings.md)
 
 ## Adding packages
 
 Add packages to the feed with the push command, this can be used with either a path to a single nupkg or a folder of nupkgs.
 
-``sleet push d:\nupkgsToPush --source feed``
+``sleet push d:\nupkgsToPush``
+
+## Initializing the feed
+
+For a new feed the first push will do the following:
+
+* Create the bucket and set the policy to public read-only
+* Initialize the feed with the default settings
+
+If the bucket already exists the policy will *not* be modified. Private feeds should set up the bucket before pushing for the first time.
+
+To create a feed with custom feed settings, such as with a catalog or symbols feed, use the `init` first.
 
 ## Using the feed
 

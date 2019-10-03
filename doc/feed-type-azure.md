@@ -25,17 +25,22 @@ Edit `sleet.json` using your editor of choice to set the url of your storage acc
 }
 ```
 
-## Initialize the feed
-
-Now initialize the feed, this creates the basic files needed to get started. The `source` value here corresponds to the `name` property used in `sleet.json`.
-
-``sleet init --source feed``
-
 ## Adding packages
 
 Add packages to the feed with the push command, this can be used with either a path to a single nupkg or a folder of nupkgs.
 
-``sleet push d:\nupkgsToPush --source feed``
+``sleet push d:\nupkgsToPush``
+
+## Initializing the feed
+
+For a new feed the first push will do the following:
+
+* Create the container and set access to public read
+* Initialize the feed with the default settings
+
+If the container already exists the access will *not* be modified. Private feeds should set up the container before pushing for the first time.
+
+To create a feed with custom feed settings, such as with a catalog or symbols feed, use the `init` first.
 
 ## Using the feed
 
