@@ -1,5 +1,8 @@
 # Release Notes
 
+## 3.0.8
+* Support for AWS environment variables and docker environments
+
 ## 3.0.0
 * Moved Sleet.exe from the package 'Sleet' to 'SleetExe' *breaking change*
 * Init command will now automatically create a public bucket/container if it does not exist already. *breaking change*
