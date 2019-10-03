@@ -125,7 +125,7 @@ namespace SleetLib.Tests
         [InlineData(@"sleet.json", @".\", @"{workingDir}\")]
         [InlineData(@"sleet.json", @"singleSubFolder", @"{workingDir}\singleSubFolder\")]
         [InlineData(@"sleet.json", @"nestedSubFolder\a", @"{workingDir}\nestedSubFolder\a\")]
-        public void Feed_LocalTypeSupportsRelativePath(string configPath, string outputPath, string expected)
+        public async Task Feed_LocalTypeSupportsRelativePath(string configPath, string outputPath, string expected)
         {
             var expectedFull = expected.Replace("{workingDir}", Directory.GetCurrentDirectory());
 
@@ -136,7 +136,7 @@ namespace SleetLib.Tests
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputPath, baseUri.AbsoluteUri);
                 
                 var settings = LocalSettings.Load(sleetConfig, configPath);
-                var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, "local") as PhysicalFileSystem;
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local") as PhysicalFileSystem;
 
                 Assert.NotNull(fileSystem);
                 Assert.Equal(expectedFull, fileSystem.LocalRoot);
@@ -144,7 +144,7 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public void UriUtility_ThrowsIfGetAbsolutePathWithNoSettingsFile()
+        public async Task UriUtility_ThrowsIfGetAbsolutePathWithNoSettingsFile()
         {
             Exception ex = null;
 
@@ -157,7 +157,7 @@ namespace SleetLib.Tests
                     var sleetConfig = TestUtility.CreateConfigWithLocal("local", "relativePath", baseUri.AbsoluteUri);
                 
                     var settings = LocalSettings.Load(sleetConfig, null);
-                    FileSystemFactory.CreateFileSystem(settings, cache, "local");
+                    await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
                 }
             }
             catch (Exception e)

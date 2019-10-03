@@ -34,7 +34,7 @@ namespace SleetLib.Tests
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, "local");
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
 
                 // Act
                 var initSuccess = await InitCommand.RunAsync(settings, fileSystem, log);

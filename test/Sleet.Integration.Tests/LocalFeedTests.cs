@@ -28,7 +28,7 @@ namespace Sleet.Integration.Test
                 await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, "local") as PhysicalFileSystem;
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local") as PhysicalFileSystem;
 
                 fileSystem.Should().NotBeNull();
                 fileSystem.LocalRoot.Should().Be(Path.Combine(target.Root, "output") + Path.DirectorySeparatorChar);
@@ -59,7 +59,7 @@ namespace Sleet.Integration.Test
 
                     //Load sleet.json file from working directory
                     var settings = LocalSettings.Load(path: null);
-                    var fileSystem = FileSystemFactory.CreateFileSystem(settings, cache, "local") as PhysicalFileSystem;
+                    var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local") as PhysicalFileSystem;
 
                     fileSystem.Should().NotBeNull();
                     fileSystem.LocalRoot.Should().Be(Path.Combine(target.Root, "output") + Path.DirectorySeparatorChar);

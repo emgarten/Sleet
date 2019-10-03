@@ -2,8 +2,10 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 #if !SLEETLEGACY
 using Amazon;
+using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.S3;
 using Amazon.SecurityToken;
@@ -20,7 +22,7 @@ namespace Sleet
         /// <summary>
         /// Parses sleet.json to find the source and constructs it.
         /// </summary>
-        public static ISleetFileSystem CreateFileSystem(LocalSettings settings, LocalCache cache, string source)
+        public static async Task<ISleetFileSystem> CreateFileSystemAsync(LocalSettings settings, LocalCache cache, string source)
         {
             ISleetFileSystem result = null;
 
@@ -128,53 +130,16 @@ namespace Sleet
                             throw new ArgumentException("Missing region for Amazon S3 account.");
                         }
 
-                        var regionSystemName = RegionEndpoint.GetBySystemName(region);
-
-                        if (string.IsNullOrEmpty(profileName) && string.IsNullOrEmpty(accessKeyId)) {
-                            var client = new AmazonSecurityTokenServiceClient(regionSystemName);
-                            try {
-                                var identity = client.GetCallerIdentityAsync(new GetCallerIdentityRequest { }).Result;
-                            } catch (Exception ex) {
-                                    throw new ArgumentException("Failed to determine AWS identity - ensure you have an IAM " +
-                                        "role set, have set up default credentials or have specified a profile/key pair.", ex);
-                            }
-                        }
-
                         var config = new AmazonS3Config()
                         {
-                            RegionEndpoint = regionSystemName,
+                            RegionEndpoint = RegionEndpoint.GetBySystemName(region),
                             ProxyCredentials = CredentialCache.DefaultNetworkCredentials
                         };
 
                         AmazonS3Client amazonS3Client = null;
-
-                        if (string.IsNullOrEmpty(profileName))
+                        // Load credentials from the current profile
+                        if (!string.IsNullOrEmpty(profileName))
                         {
-                            var noAccessKeyId = string.IsNullOrEmpty(accessKeyId);
-                            var noSecretAccessKey = string.IsNullOrEmpty(secretAccessKey);
-                            if (noAccessKeyId && noSecretAccessKey) {
-                                amazonS3Client = new AmazonS3Client(config);
-                            }
-                            else if (noAccessKeyId)
-                            {
-                                throw new ArgumentException("Missing accessKeyId for Amazon S3 account.");
-                            }
-                            else if (noSecretAccessKey)
-                            {
-                                throw new ArgumentException("Missing secretAccessKey for Amazon S3 account.");
-                            } else {
-                                amazonS3Client = new AmazonS3Client(accessKeyId, secretAccessKey, config);
-                            }
-                        }
-                        else
-                        {
-                            // Avoid mismatched configs, this would get confusing for users.
-                            if (!string.IsNullOrEmpty(accessKeyId) || !string.IsNullOrEmpty(secretAccessKey))
-                            {
-                                throw new ArgumentException("accessKeyId/secretAccessKey may not be used with profileName. Either use profileName with a credential file containing the access keys, or set the access keys in sleet.json and remove profileName.");
-                            }
-
-                            // Credential file
                             var credFile = new SharedCredentialsFile();
                             if (credFile.TryGetProfile(profileName, out var profile))
                             {
@@ -182,14 +147,51 @@ namespace Sleet
                             }
                             else
                             {
-                                throw new ArgumentException($"The specified AWS profileName {profileName} could not be found. The feed must specify a valid profileName for an AWS credentials file, or accessKeyId and secretAccessKey must be provided. For help on credential files see: https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file");
+                                throw new ArgumentException($"The specified AWS profileName {profileName} could not be found. The feed must specify a valid profileName for an AWS credentials file. For help on credential files see: https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file");
                             }
+                        }
+                        // Load credentials explicitely with an accessKey and secretKey
+                        else if (
+                            !string.IsNullOrEmpty(accessKeyId) &&
+                            !string.IsNullOrEmpty(secretAccessKey))
+                        {
+                            amazonS3Client = new AmazonS3Client(new BasicAWSCredentials(accessKeyId, secretAccessKey), config);
+                        }
+                        // Load credentials from Environment Variables
+                        else if (
+                            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ENVIRONMENT_VARIABLE_ACCESSKEY")) &&
+                            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ENVIRONMENT_VARIABLE_SECRETKEY")))
+                        {
+                            amazonS3Client = new AmazonS3Client(new EnvironmentVariablesAWSCredentials(), config);
+                        }
+                        // Load credentials from an ECS docker container
+                        else if (
+                            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")))
+                        {
+                            amazonS3Client = new AmazonS3Client(new ECSTaskCredentials(), config);
+                        }
+                        // Assume IAM role
+                        else
+                        {
+                            using (var client = new AmazonSecurityTokenServiceClient(config.RegionEndpoint))
+                                try
+                                {
+                                    var identity = await client.GetCallerIdentityAsync(new GetCallerIdentityRequest());
+                                }
+                                catch (Exception ex)
+                                {
+                                    throw new ArgumentException(
+                                        "Failed to determine AWS identity - ensure you have an IAM " +
+                                        "role set, have set up default credentials or have specified a profile/key pair.", ex);
+                                }
+
+                            amazonS3Client = new AmazonS3Client(config);
                         }
 
                         if (pathUri == null)
                         {
                             // Find the default path
-                            pathUri = AmazonS3Utility.GetBucketPath(bucketName, regionSystemName.SystemName);
+                            pathUri = AmazonS3Utility.GetBucketPath(bucketName, config.RegionEndpoint.SystemName);
                         }
 
                         if (baseUri == null)

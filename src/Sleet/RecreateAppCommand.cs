@@ -45,7 +45,7 @@ namespace Sleet
                 {
                     // Load settings and file system.
                     var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values));
-                    var fileSystem = Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
+                    var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
                     var tmpPath = nupkgPath.HasValue() ? nupkgPath.Value() : null;
 
