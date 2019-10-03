@@ -151,7 +151,7 @@ namespace Sleet
                                 throw new ArgumentException($"The specified AWS profileName {profileName} could not be found. The feed must specify a valid profileName for an AWS credentials file. For help on credential files see: https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file");
                             }
                         }
-                        // Load credentials explicitely with an accessKey and secretKey
+                        // Load credentials explicitly with an accessKey and secretKey
                         else if (
                             !string.IsNullOrWhiteSpace(accessKeyId) &&
                             !string.IsNullOrWhiteSpace(secretAccessKey))
@@ -175,6 +175,7 @@ namespace Sleet
                         else
                         {
                             using (var client = new AmazonSecurityTokenServiceClient(config.RegionEndpoint))
+                            {
                                 try
                                 {
                                     var identity = await client.GetCallerIdentityAsync(new GetCallerIdentityRequest());
@@ -185,6 +186,8 @@ namespace Sleet
                                         "Failed to determine AWS identity - ensure you have an IAM " +
                                         "role set, have set up default credentials or have specified a profile/key pair.", ex);
                                 }
+                            }
+
                             amazonS3Client = new AmazonS3Client(config);
                         }
 
