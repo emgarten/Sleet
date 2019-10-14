@@ -101,7 +101,7 @@ namespace SleetLib.Tests
                 {
                     var input = PackageInput.Create(zipFile.FullName);
                     var nupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0-alpha.1/packageA.1.0.0-alpha.1.nupkg");
-                    
+
                     // Act
                     var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, nupkgUri, context.CommitId, writeFileList: true);
 
@@ -182,7 +182,7 @@ namespace SleetLib.Tests
                 {
                     var input = PackageInput.Create(zipFile.FullName);
                     var nupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg");
-                    
+
                     // Act
                     var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, nupkgUri, context.CommitId, writeFileList: true);
 
@@ -257,7 +257,7 @@ namespace SleetLib.Tests
                 {
                     var inputA = PackageInput.Create(zipFileA.FullName);
                     var inputB = PackageInput.Create(zipFileB.FullName);
-                    
+
                     // Act
                     await catalog.AddPackageAsync(inputA);
                     await catalog.AddPackageAsync(inputB);

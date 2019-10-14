@@ -93,7 +93,7 @@ namespace SleetLib.Tests
         {
             var json = new JObject
             {
-                ["sources"] = new  JArray(new JObject(new JProperty("key", "x$a$z")))
+                ["sources"] = new JArray(new JObject(new JProperty("key", "x$a$z")))
             };
 
             var values = new List<string>()

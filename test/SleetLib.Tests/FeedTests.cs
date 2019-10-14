@@ -134,7 +134,7 @@ namespace SleetLib.Tests
                 var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputPath, baseUri.AbsoluteUri);
-                
+
                 var settings = LocalSettings.Load(sleetConfig, configPath);
                 var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local") as PhysicalFileSystem;
 
@@ -155,7 +155,7 @@ namespace SleetLib.Tests
                     var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                     var sleetConfig = TestUtility.CreateConfigWithLocal("local", "relativePath", baseUri.AbsoluteUri);
-                
+
                     var settings = LocalSettings.Load(sleetConfig, null);
                     await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
                 }

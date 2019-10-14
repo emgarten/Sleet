@@ -20,7 +20,7 @@ namespace Sleet
         /// <summary>
         /// Apply json-ld formatting
         /// </summary>
-        public static JObject Format(JObject json, bool recurse=true)
+        public static JObject Format(JObject json, bool recurse = true)
         {
             var children = json.Children().ToList();
             children.Sort(Instance);

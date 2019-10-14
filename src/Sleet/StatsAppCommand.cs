@@ -44,10 +44,10 @@ namespace Sleet
                     var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values));
                     var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
-                    var success =  await StatsCommand.RunAsync(settings, fileSystem, log);
+                    var success = await StatsCommand.RunAsync(settings, fileSystem, log);
                     return success ? 0 : 1;
                 }
             });
-        }        
+        }
     }
 }
