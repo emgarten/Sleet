@@ -167,7 +167,7 @@ namespace Sleet
             return "$" + input + "$";
         }
 
-        public static string ResolveTokens(string input, Dictionary<string, string> mappings, int depth=0)
+        public static string ResolveTokens(string input, Dictionary<string, string> mappings, int depth = 0)
         {
             // noop if possible
             // avoid circular token resolution

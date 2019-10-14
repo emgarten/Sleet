@@ -43,9 +43,9 @@ namespace Sleet
 
             var parts = new List<string>(relativePaths.Length);
 
-            for (var i=0; i < relativePaths.Length; i++)
+            for (var i = 0; i < relativePaths.Length; i++)
             {
-                if ((i+1) == relativePaths.Length)
+                if ((i + 1) == relativePaths.Length)
                 {
                     // Leaving trailing slashes on the final piece
                     parts.Add(relativePaths[i].TrimStart(_dirChars));

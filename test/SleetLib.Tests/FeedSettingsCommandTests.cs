@@ -42,7 +42,7 @@ namespace SleetLib.Tests
                     getAll: true,
                     getSettings: new string[] { },
                     unsetSettings: new string[] { },
-                    setSettings: new string[] { }, 
+                    setSettings: new string[] { },
                     log: log,
                     token: context.Token);
 

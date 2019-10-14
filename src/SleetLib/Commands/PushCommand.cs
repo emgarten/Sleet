@@ -35,7 +35,7 @@ namespace Sleet
                         var inputBatch = inputBatches[i];
                         if (inputBatches.Count > 1)
                         {
-                            await log.LogAsync(LogLevel.Minimal, $"Pushing {inputBatch.Count} packages. Batch: {i+1} / {inputBatches.Count}");
+                            await log.LogAsync(LogLevel.Minimal, $"Pushing {inputBatch.Count} packages. Batch: {i + 1} / {inputBatches.Count}");
                         }
 
                         // Read packages before locking the feed the first time.

@@ -9,7 +9,7 @@ namespace Sleet
     /// <summary>
     /// A set of packages. This could be either symbols packages or non-symbols packages.
     /// </summary>
-    public class PackageSet: IPackagesLookup, IAddRemovePackages
+    public class PackageSet : IPackagesLookup, IAddRemovePackages
     {
         public SortedSet<PackageIdentity> Index { get; } = new SortedSet<PackageIdentity>();
 
