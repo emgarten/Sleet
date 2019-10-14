@@ -1,5 +1,8 @@
 # Release Notes
 
+## 3.0.14
+* netcoreapp3.0 tool support
+
 ## 3.0.8
 * Support for AWS environment variables and docker environments
 
