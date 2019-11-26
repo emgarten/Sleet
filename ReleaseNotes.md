@@ -1,5 +1,8 @@
 # Release Notes
 
+## 3.0.19
+* Improve feed lock error logging
+
 ## 3.0.14
 * netcoreapp3.0 tool support
 

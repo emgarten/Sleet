@@ -50,9 +50,10 @@ namespace Sleet
                     result = true;
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 // Ignore and retry
+                ExceptionUtilsSleetLib.LogException(ex, Log, LogLevel.Debug);
             }
 
             return Tuple.Create(result, json);

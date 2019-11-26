@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Storage.Blob;
@@ -76,9 +75,10 @@ namespace Sleet
                 var text = await _messageBlob.DownloadTextAsync();
                 return JObject.Parse(text);
             }
-            catch
+            catch (Exception ex)
             {
                 // ignore
+                ExceptionUtilsSleetLib.LogException(ex, Log, LogLevel.Debug);
             }
 
             return new JObject();
@@ -120,7 +120,8 @@ namespace Sleet
                     catch (Exception ex)
                     {
                         // Ignore
-                        Debug.Fail($"KeepLock failed: {ex}");
+                        Log.LogWarning("Failed to renew lock on feed. If another client takes the lock conflicts could occur.");
+                        ExceptionUtilsSleetLib.LogException(ex, Log, LogLevel.Warning);
                     }
                 }
 
@@ -134,7 +135,8 @@ namespace Sleet
             catch (Exception ex)
             {
                 // Ignore
-                Debug.Fail($"KeepLock failed: {ex}");
+                Log.LogWarning("Unable to clear lock messsage");
+                ExceptionUtilsSleetLib.LogException(ex, Log, LogLevel.Warning);
             }
         }
 
