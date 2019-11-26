@@ -29,17 +29,27 @@ namespace Sleet
             var result = false;
             var json = new JObject();
 
-            if (await FileExistsAsync(client, bucketName, LockFile, token).ConfigureAwait(false))
+            try
             {
-                // Read the existing message
-                json = await GetExistingMessage(json, token);
+                if (await FileExistsAsync(client, bucketName, LockFile, token).ConfigureAwait(false))
+                {
+                    // Read the existing message
+                    json = await GetExistingMessage(json, token);
+                }
+                else
+                {
+                    // Create a new lock
+                    json = GetMessageJson(lockMessage);
+
+                    await CreateFileAsync(client, bucketName, LockFile, json.ToString(), token).ConfigureAwait(false);
+
+                    result = true;
+                }
             }
-            else
+            catch (AmazonS3Exception ex) when (ex.StatusCode != System.Net.HttpStatusCode.Forbidden && ex.StatusCode != System.Net.HttpStatusCode.Unauthorized)
             {
-                // Create a new lock
-                json = GetMessageJson(lockMessage);
-                await CreateFileAsync(client, bucketName, LockFile, json.ToString(), token).ConfigureAwait(false);
-                result = true;
+                // Ignore and retry, there may be a race case writing the lock file.
+                ExceptionUtilsSleetLib.LogException(ex, Log, LogLevel.Verbose);
             }
 
             return Tuple.Create(result, json);
