@@ -29,24 +29,17 @@ namespace Sleet
             var result = false;
             var json = new JObject();
 
-            try
+            if (await FileExistsAsync(client, bucketName, LockFile, token).ConfigureAwait(false))
             {
-                if (await FileExistsAsync(client, bucketName, LockFile, token).ConfigureAwait(false))
-                {
-                    // Read the existing message
-                    json = await GetExistingMessage(json, token);
-                }
-                else
-                {
-                    // Create a new lock
-                    json = GetMessageJson(lockMessage);
-                    await CreateFileAsync(client, bucketName, LockFile, json.ToString(), token).ConfigureAwait(false);
-                    result = true;
-                }
+                // Read the existing message
+                json = await GetExistingMessage(json, token);
             }
-            catch
+            else
             {
-                // Ignore and retry
+                // Create a new lock
+                json = GetMessageJson(lockMessage);
+                await CreateFileAsync(client, bucketName, LockFile, json.ToString(), token).ConfigureAwait(false);
+                result = true;
             }
 
             return Tuple.Create(result, json);

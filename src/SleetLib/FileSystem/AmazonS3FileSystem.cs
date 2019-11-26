@@ -109,11 +109,11 @@ namespace Sleet
 
             if (!await HasBucket(log, token))
             {
-                log.LogInformation($"Creating new bucket: ${_bucketName}");
+                log.LogInformation($"Creating new bucket: {_bucketName}");
                 await _client.EnsureBucketExistsAsync(_bucketName);
 
                 var tries = 0;
-                var maxTries = 10;
+                var maxTries = 30;
                 var success = false;
 
                 while (tries < maxTries && !success)
@@ -142,6 +142,38 @@ namespace Sleet
                 if (tries >= maxTries)
                 {
                     throw new InvalidOperationException("Unable to create bucket");
+                }
+
+                // Get and release the lock to ensure that everything will work for the next operation.
+                // In the E2E tests there are often failures due to the bucket saying it is not available
+                // even though the above checks passed. To work around this wait until a file can be
+                // successfully created in the bucket before returning.
+                tries = 0;
+                success = false;
+
+                // Pass the null logger to avoid noise
+                using (var feedLock = CreateLock(NullLogger.Instance))
+                {
+                    while (tries < maxTries && !success)
+                    {
+                        tries++;
+
+                        try
+                        {
+                            // Attempt to get the lock, since this is a new container it will be available.
+                            // This will fail if the bucket it not yet ready.
+                            if (await feedLock.GetLock(TimeSpan.FromMinutes(1), "Container create lock test", token))
+                            {
+                                feedLock.Release();
+                                success = true;
+                            }
+                        }
+                        catch (AmazonS3Exception) when (tries < (maxTries - 1))
+                        {
+                            // Ignore exceptions until the last exception
+                            await Task.Delay(TimeSpan.FromSeconds(tries));
+                        }
+                    }
                 }
 
                 _hasBucket = true;
