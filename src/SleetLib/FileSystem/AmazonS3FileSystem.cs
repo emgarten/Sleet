@@ -17,6 +17,7 @@ namespace Sleet
         private readonly string _bucketName;
         private readonly IAmazonS3 _client;
         private bool? _hasBucket;
+        private bool compress = true;
 
         public AmazonS3FileSystem(LocalCache cache, Uri root, IAmazonS3 client, string bucketName)
             : this(cache, root, root, client, bucketName)
@@ -29,7 +30,8 @@ namespace Sleet
             Uri baseUri,
             IAmazonS3 client,
             string bucketName,
-            string feedSubPath = null)
+            string feedSubPath = null,
+            bool compress = true)
             : base(cache, root, baseUri)
         {
             _client = client;
@@ -39,6 +41,7 @@ namespace Sleet
             {
                 FeedSubPath = feedSubPath.Trim('/') + '/';
             }
+            this.compress = compress;
         }
 
         public override async Task<bool> Validate(ILogger log, CancellationToken token)
@@ -79,7 +82,7 @@ namespace Sleet
         private ISleetFile CreateAmazonS3File(SleetUriPair pair)
         {
             var key = GetRelativePath(pair.Root);
-            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key);
+            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, compress);
         }
 
         public override string GetRelativePath(Uri uri)

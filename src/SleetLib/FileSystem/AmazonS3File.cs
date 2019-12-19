@@ -15,6 +15,7 @@ namespace Sleet
         private readonly IAmazonS3 client;
         private readonly string bucketName;
         private readonly string key;
+        private readonly bool compress = true;
 
         internal AmazonS3File(
             AmazonS3FileSystem fileSystem,
@@ -23,12 +24,14 @@ namespace Sleet
             FileInfo localCacheFile,
             IAmazonS3 client,
             string bucketName,
-            string key)
+            string key,
+            bool compress = true)
             : base(fileSystem, rootPath, displayPath, localCacheFile, fileSystem.LocalCache.PerfTracker)
         {
             this.client = client;
             this.bucketName = bucketName;
             this.key = key;
+            this.compress = compress;
         }
 
         protected override async Task CopyFromSource(ILogger log, CancellationToken token)
@@ -102,11 +105,13 @@ namespace Sleet
                          || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                 {
                     contentType = "application/json";
-                    contentEncoding = "gzip";
-
-                    // Compress content before uploading
-                    log.LogVerbose($"Compressing {absoluteUri}");
-                    writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
+                    if (compress)
+                    {
+                        contentEncoding = "gzip";
+                        // Compress content before uploading
+                        log.LogVerbose($"Compressing {absoluteUri}");
+                        writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
+                    }
                 }
                 else if (key.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
                          || key.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))

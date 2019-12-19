@@ -69,6 +69,26 @@ This example specifies the access key id and secret key directly in sleet.json.
 
 To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) create an s3 feed config without an *accessKeyId* or *secretAccessKey*. Sleet will attempt to automatically configure the feed based on the environment.
 
+### Using S3 compatible storage
+
+```json
+{
+  "sources": [
+    {
+      "name": "feed",
+      "type": "s3",
+      "path": "https://nupkg.website.yandexcloud.net/",
+      "bucketName": "nupkg",
+      "serviceURL": "https://storage.yandexcloud.net",
+      "accessKeyId": "IAM_ACCESS_KEY_ID",
+      "secretAccessKey": "IAM_SECRET_ACCESS_KEY"
+    }
+  ]
+}
+```
+
+To use S3 compatible storage create an s3 feed config with *serviceURL* instead of *region*.
+
 ### Additional feed settings
 
 Help on additional feed settings such as *baseURI* and *feedSubPath* can be found under [Sleet client settings](client-settings.md)
