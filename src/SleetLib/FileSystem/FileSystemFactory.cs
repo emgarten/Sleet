@@ -119,22 +119,36 @@ namespace Sleet
                         var secretAccessKey = JsonUtility.GetValueCaseInsensitive(sourceEntry, "secretAccessKey");
                         var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
                         var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
+                        var serviceURL = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serviceURL");
+                        var compress = JsonUtility.GetBoolCaseInsesitive(sourceEntry, "compress", true);
 
                         if (string.IsNullOrEmpty(bucketName))
                         {
                             throw new ArgumentException("Missing bucketName for Amazon S3 account.");
                         }
 
-                        if (string.IsNullOrEmpty(region))
+                        if (string.IsNullOrEmpty(region) && string.IsNullOrEmpty(serviceURL))
                         {
-                            throw new ArgumentException("Missing region for Amazon S3 account.");
+                            throw new ArgumentException("Missing region and serviceURL for Amazon S3 account.");
                         }
 
-                        var config = new AmazonS3Config()
+                        AmazonS3Config config = null;
+                        if (serviceURL != null)
                         {
-                            RegionEndpoint = RegionEndpoint.GetBySystemName(region),
-                            ProxyCredentials = CredentialCache.DefaultNetworkCredentials
-                        };
+                            config = new AmazonS3Config()
+                            {
+                                ServiceURL = serviceURL,
+                                ProxyCredentials = CredentialCache.DefaultNetworkCredentials
+                            };
+                        }
+                        else
+                        {
+                            config = new AmazonS3Config()
+                            {
+                                RegionEndpoint = RegionEndpoint.GetBySystemName(region),
+                                ProxyCredentials = CredentialCache.DefaultNetworkCredentials
+                            };
+                        }
 
                         AmazonS3Client amazonS3Client = null;
 
@@ -208,7 +222,8 @@ namespace Sleet
                             baseUri,
                             amazonS3Client,
                             bucketName,
-                            feedSubPath);
+                            feedSubPath,
+                            compress);
                     }
 #endif
                 }

@@ -8,7 +8,7 @@
 
 Sleet is a static NuGet package feed generator.
 
-* **Serverless**. Create static feeds directly on *Azure Storage* or *Amazon S3*. No compute required.
+* **Serverless**. Create static feeds directly on *Azure Storage*, *Amazon S3* or another S3 compatible storage. No compute required.
 * **Cross platform**. Sleet is built in .NET, it can run on *.NET Framework*, *Mono*, or [dotnet CLI](https://github.com/dotnet/cli)
 * **Fast.** Static feeds are created using the [NuGet v3 feed format](https://docs.microsoft.com/en-us/nuget/api/overview).
 * **Symbol server.** Assemblies and pdb files from packages are automatically indexed and provided as a [symbol server](doc/symbol-server.md).
@@ -35,6 +35,7 @@ These provide a walk through on the basics of configuring sleet, creating, and u
 
 * [Setting up an Azure feed](doc/feed-type-azure.md)
 * [Setting up an AWS S3 feed](doc/feed-type-s3.md)
+* [Setting up an S3 compatible feed](doc/feed-type-s3.md#using-s3-compatible-storage)
 * [Setting up a local feed with IIS hosting](doc/feed-type-local.md)
 
 Check out the full getting started guide [here](http://emgarten.com/2016/04/25/how-to-host-a-nuget-v3-feed-on-azure-storage/).

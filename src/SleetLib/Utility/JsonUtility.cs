@@ -302,5 +302,20 @@ namespace Sleet
 
             return null;
         }
+
+        public static bool GetBoolCaseInsesitive(JObject obj, string name, bool defaultValue)
+        {
+            if (obj != null)
+            {
+                var val = obj.GetValue(name, StringComparison.OrdinalIgnoreCase);
+
+                if (val != null)
+                {
+                    return val.ToObject<bool>();
+                }
+            }
+
+            return defaultValue;
+        }
     }
 }
