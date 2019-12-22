@@ -120,7 +120,7 @@ namespace Sleet
                         var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
                         var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
                         var serviceURL = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serviceURL");
-                        var compress = JsonUtility.GetBoolCaseInsesitive(sourceEntry, "compress", true);
+                        var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
 
                         if (string.IsNullOrEmpty(bucketName))
                         {
@@ -129,7 +129,11 @@ namespace Sleet
 
                         if (string.IsNullOrEmpty(region) && string.IsNullOrEmpty(serviceURL))
                         {
-                            throw new ArgumentException("Missing region and serviceURL for Amazon S3 account.");
+                            throw new ArgumentException("Either 'region' or 'serviceURL' must be specified for an Amazon S3 account");
+                        }
+                        if (!string.IsNullOrEmpty(region) && !string.IsNullOrEmpty(serviceURL))
+                        {
+                            throw new ArgumentException("Options 'region' and 'serviceURL' cannot be used together");
                         }
 
                         AmazonS3Config config = null;
