@@ -52,8 +52,12 @@ The example file contains a set of sources. If only feed exists in the file slee
 | accessKeyId | Access key id *[Cannot be used with profileName]* |
 | secretAccessKey | Secret access key *[Cannot be used with profileName]* |
 | bucketName | S3 bucket name *[Required]* |
-| region | S3 region *[Required]* |
+| region | S3 region *[Cannot be used with serviceURL]* |
+| serviceURL | S3 service URL *[Cannot be used with region]* |
 | path | Full URI of the storage bucket. If not specified a default URI will be used. |
+| compress | Compress JSON files with GZIP before uploading. Default is *true* |
+
+Either `region` or `serviceURL` should be specified but not both.
 
 ### Using an AWS credentials file
 
@@ -105,6 +109,23 @@ The example file contains a set of sources. If only feed exists in the file slee
   ]
 }
 ```
+
+### Using serviceURL
+
+```json
+{
+  "sources": [
+    {
+      "name": "feed",
+      "type": "s3",
+      "path": "https://s3.amazonaws.com/my-bucket-feed/",
+      "bucketName": "my-bucket-feed",
+      "serviceURL": "https://s3.us-east-1.amazonaws.com"
+    }
+  ]
+}
+```
+
 
 When running Sleet with [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) leave accessKeyId, secretAccessKey, and profileName blank. If these properties are not set in sleet.json Sleet will try to set up the S3 feed using the environment.
 

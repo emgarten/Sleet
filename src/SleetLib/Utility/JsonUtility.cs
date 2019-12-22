@@ -303,7 +303,7 @@ namespace Sleet
             return null;
         }
 
-        public static bool GetBoolCaseInsesitive(JObject obj, string name, bool defaultValue)
+        public static bool GetBoolCaseInsensitive(JObject obj, string name, bool defaultValue)
         {
             if (obj != null)
             {
