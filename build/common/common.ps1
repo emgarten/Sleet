@@ -20,9 +20,9 @@ Function Install-DotnetCLI {
 
         Write-Host "Fetching $installDotnet"
 
-        wget https://raw.githubusercontent.com/dotnet/cli/1f4478755d57ed37058096ed739bbdf9b3d2eb3c/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
+        wget https://raw.githubusercontent.com/dotnet/sdk/983c8115e6341287a5866ed7be05c663c7e89614/scripts/obtain/dotnet-install.ps1 -OutFile $installDotnet
 
-        & $installDotnet -Channel 3.0 -i $CLIRoot -Version 3.0.100
+        & $installDotnet -Channel 3.1 -i $CLIRoot -Version 3.1.101
 
         if (-not (Test-Path $DotnetExe)) {
             Write-Log "Missing $DotnetExe"
@@ -169,10 +169,9 @@ Function Invoke-DotnetFormat {
 
     & $formatExe $args
 
-    # Ignore failures due to CI issues
-    # if (-not $?) {
-    #    Write-Error "Run dotnet-format to fix style errors and try again!"
-    #    Write-Error $command
-    #    exit 1
-    # }
+    if (-not $?) {
+        Write-Error "Run dotnet-format to fix style errors and try again!"
+        Write-Error $command
+        exit 1
+    }
 }

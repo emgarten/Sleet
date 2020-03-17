@@ -1,0 +1,15 @@
+<Project ToolsVersion="15.0">
+  <!-- Default Config -->
+  <PropertyGroup>
+    <PackageIconPath Condition=" '$(PackageIconPath)' == '' ">$(BuildCommonDirectory)icon.png</PackageIconPath>
+  </PropertyGroup>
+
+  <!-- Nuspec defaults -->
+  <PropertyGroup>
+    <Authors  Condition=" '$(Authors)' == '' ">emgarten</Authors>
+    <PackageLicenseExpression  Condition=" '$(PackageLicenseExpression)' == '' ">MIT</PackageLicenseExpression>
+    <RepositoryType  Condition=" '$(RepositoryType)' == '' ">git</RepositoryType>
+    <Copyright  Condition=" '$(Copyright)' == '' ">Copyright © $([System.DateTime]::Now.ToString(`yyyy`)) Justin Emgarten</Copyright>
+    <PackageIcon Condition=" '$(PackageIcon)' == '' ">icon.png</PackageIcon>
+  </PropertyGroup>
+</Project>

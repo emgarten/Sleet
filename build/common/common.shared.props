@@ -29,7 +29,7 @@
   <PropertyGroup>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <WarningsAsErrors>True</WarningsAsErrors>
-    <DebugType>portable</DebugType>
+    <DebugType>embedded</DebugType>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ComVisible>false</ComVisible>
