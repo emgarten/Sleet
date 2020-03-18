@@ -1,5 +1,11 @@
 # Release Notes
 
+## 3.0.24
+* netcoreapp3.0 -> netcoreapp3.1
+* PDBs are now embedded in the dlls
+* Updated package dependencies on NuGet
+* Updated nuspec properties
+
 ## 3.0.19
 * Improve feed lock error logging
 

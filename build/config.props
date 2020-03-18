@@ -2,7 +2,7 @@
 
   <!-- Dependency versions -->
   <PropertyGroup>
-    <NuGetPackageVersion>5.2.0</NuGetPackageVersion>
+    <NuGetPackageVersion>5.4.0</NuGetPackageVersion>
     <MicrosoftAzureStorageBlobVersion>11.0.0</MicrosoftAzureStorageBlobVersion>
     <JsonVersion>10.0.3</JsonVersion>
     <CommandLineUtilsVersion>2.0.0</CommandLineUtilsVersion>
@@ -19,14 +19,10 @@
   <!-- Nuspec defaults -->
   <PropertyGroup>
     <Authors>emgarten</Authors>
-    <ProjectUrl>https://github.com/emgarten/Sleet</ProjectUrl>
-    <PackageLicenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</PackageLicenseUrl>
-    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/emgarten/Sleet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/emgarten/Sleet</RepositoryUrl>
     <PackageTags>nuget nugetserver nugetfeed</PackageTags>
-    <Description>Sleet creates nuget v3.0.0 nupkg feeds.</Description>
-    <Copyright>Copyright © 2019 Justin Emgarten</Copyright>
-    <PackageIconUrl>https://emgartenstatic.blob.core.windows.net/nupkgs/icons/sleet.png</PackageIconUrl>
+    <Description>A static nuget feed generator for Azure Storage, AWS S3, and more.</Description>
   </PropertyGroup>
 
 </Project>

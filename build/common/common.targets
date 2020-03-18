@@ -37,10 +37,13 @@
   <PropertyGroup>
     <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">4.19.4</FluentAssertionsVersion>
     <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.5.0</ToStringWithoutOverrideAnalyzerVersion>
-    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">15.8.0</TestSDKVersion>
+    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">16.5.0</TestSDKVersion>
     <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.4.1</XunitVersion>
     <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">$(XunitVersion)</XunitRunnerVisualStudioVersion>
-    <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">2.8.0</SourceLinkVersion>
+
+    <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">1.0.0</SourceLinkVersion>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <!-- Verify that the framework was identified above -->
@@ -50,9 +53,7 @@
 
   <!-- Symbols -->
   <ItemGroup Condition=" '$(PackProject)' == 'true' AND '$(SkipSourceLink)' != 'true' ">
-    <PackageReference Include="SourceLink.Create.GitHub" Version="$(SourceLinkVersion)" PrivateAssets="all" />
-    <DotNetCliToolReference Include="dotnet-sourcelink-git" Version="$(SourceLinkVersion)" />
-    <DotNetCliToolReference Include="dotnet-sourcelink" Version="$(SourceLinkVersion)" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(SourceLinkVersion)" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- Nupkg -->
@@ -64,7 +65,8 @@
   <!-- Create nupkg hook -->
   <PropertyGroup Condition=" '$(PackProject)' == 'true' ">
     <IsPackable>true</IsPackable>
-    <IncludeSymbols Condition=" '$(IncludeSymbols)' == '' ">true</IncludeSymbols>
+    <IncludeSymbols Condition=" '$(IncludeSymbols)' == '' AND '$(DebugType)' != 'embedded' ">true</IncludeSymbols>
+    <SymbolPackageFormat Condition=" '$(IncludeSymbols)' == '' AND '$(DebugType)' != 'embedded' ">snupkg</SymbolPackageFormat> 
     <PackageOutputPath>$(NupkgOutputDirectory)</PackageOutputPath>
     <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
@@ -102,6 +104,11 @@
     <AssemblyOriginatorKeyFile>$(SignKeyPath)</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
+  <!-- Include default pack items -->
+  <ItemGroup>
+    <None Include="$(BuildCommonDirectory)icon.png" Pack="true" Visible="false" PackagePath="" />
+  </ItemGroup>
+
   <!--
     ============================================================
     PackProjects
@@ -117,8 +124,9 @@
       Properties="Configuration=$(Configuration);
                   PackageOutputPath=$(NupkgOutputDirectory);
                   NoPackageAnalysis=true;
-                  IncludeSymbols=true;
-                  IsPackable=true;">
+                  IncludeSymbols=$(IncludeSymbols);
+                  IsPackable=true;
+                  IncludePackItems=true;">
     </MSBuild>
   </Target>
 
