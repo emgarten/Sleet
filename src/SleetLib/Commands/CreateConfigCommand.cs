@@ -67,7 +67,7 @@ namespace Sleet
                         { "connectionString", AzureFileSystem.AzureEmptyConnectionString }
                     };
                     break;
-                case FileSystemStorageType.AmazonS3:
+                case FileSystemStorageType.S3:
                     storageTemplateJson = new JObject
                     {
                         { "name", "myAmazonS3Feed" },
