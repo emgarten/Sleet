@@ -81,7 +81,7 @@ namespace Sleet
         {
             var packageIndex = new PackageIndex(context);
             var existingPackageSets = await packageIndex.GetPackageSetsAsync();
-            var allPackages = await PruneUtility.ResolvePackageSets(existingPackageSets);
+            var allPackages = await RetentionUtility.ResolvePackageSets(existingPackageSets);
 
             var stableMax = pruneContext.StableVersionMax == null ? context.SourceSettings.RetentionMaxStableVersions : pruneContext.StableVersionMax;
             var prerelMax = pruneContext.PrereleaseVersionMax == null ? context.SourceSettings.RetentionMaxPrereleaseVersions : pruneContext.PrereleaseVersionMax;
@@ -96,7 +96,7 @@ namespace Sleet
                 throw new ArgumentException("Package retention must specify a maximum number of prerelease versions that is > 0");
             }
 
-            var toPrune = PruneUtility.GetPackagesToPrune(allPackages, pruneContext.PinnedPackages, (int)stableMax, (int)prerelMax);
+            var toPrune = RetentionUtility.GetPackagesToPrune(allPackages, pruneContext.PinnedPackages, (int)stableMax, (int)prerelMax);
 
             await RemovePackages(context, existingPackageSets, toPrune, pruneContext.DryRun, context.Log);
 
