@@ -49,7 +49,20 @@ namespace Sleet
                     var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
 
                     var success = false;
-                    // TODO: implement command
+
+                    var pruneContext = new RetentionPruneCommandContext()
+                    {
+                        DryRun = dryRun.HasValue(),
+                        StableVersionMax = stableVersions.HasValue() ? (int?)int.Parse(stableVersions.Value()) : null,
+                        PrereleaseVersionMax = prereleaseVersions.HasValue() ? (int?)int.Parse(prereleaseVersions.Value()) : null,
+                    };
+
+                    if (packageIds.HasValue())
+                    {
+                        pruneContext.PackageIds.UnionWith(packageIds.Values);
+                    }
+
+                    success = await RetentionPruneCommand.RunAsync(settings, fileSystem, pruneContext, log);
 
                     return success ? 0 : 1;
                 }
