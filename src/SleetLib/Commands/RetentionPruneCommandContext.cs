@@ -17,7 +17,7 @@ namespace Sleet
         /// Filter to only certain package ids.
         /// If empty all packages are processed.
         /// </summary>
-        public HashSet<string> PackageIds { get; set; } = new HashSet<string>();
+        public HashSet<string> PackageIds { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Packages that should not be removed.

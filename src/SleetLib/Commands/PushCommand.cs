@@ -129,8 +129,12 @@ namespace Sleet
 
             await log.LogAsync(LogLevel.Verbose, "Reading existing package index");
 
+            // Push
             var packageIndex = new PackageIndex(context);
             await PushPackages(packages, context, packageIndex, force, skipExisting, log);
+
+            // Prune packages
+            await PrunePackages(packages, context);
 
             // Save all
             await log.LogAsync(LogLevel.Minimal, $"Committing changes to {source.BaseURI.AbsoluteUri}");
@@ -147,6 +151,22 @@ namespace Sleet
             }
 
             return exitCode;
+        }
+
+        private static async Task PrunePackages(List<PackageInput> packages, SleetContext context)
+        {
+            // Run only if the package retention settings are present for the feed
+            if (context.SourceSettings.RetentionMaxStableVersions > 0 && context.SourceSettings.RetentionMaxPrereleaseVersions > 0)
+            {
+                // Prune if prune is enabled for the feed
+                var pruneContext = new RetentionPruneCommandContext();
+                // Do not prune packages that were just pushed
+                pruneContext.PinnedPackages.UnionWith(packages.Select(e => e.Identity));
+                // Only prune package ids that were pushed
+                pruneContext.PackageIds.UnionWith(packages.Select(e => e.Identity.Id));
+                // Run prune against the local files
+                await RetentionPruneCommand.PrunePackagesNoCommit(context, pruneContext);
+            }
         }
 
         private static async Task PushPackages(List<PackageInput> packageInputs, SleetContext context, PackageIndex packageIndex, bool force, bool skipExisting, ILogger log)

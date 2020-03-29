@@ -27,7 +27,7 @@ namespace Sleet
 
             var stableVersions = cmd.Option("--stable", "Number of stable versions per package id. If not specified the feed settings will be used.", CommandOptionType.SingleValue);
             var prereleaseVersions = cmd.Option("--prerelease", "Number of prerelease versions per package id. If not specified the feed settings will be used.", CommandOptionType.SingleValue);
-            var packageIds = cmd.Option("--package", "Prune only the given package id or wildcard. If not specified all package ids will be used.", CommandOptionType.MultipleValue);
+            var packageIds = cmd.Option("--package", "Prune only the given package ids", CommandOptionType.MultipleValue);
             var dryRun = cmd.Option("--dry-run", "Print out all versions that would be deleted without actually removing them.", CommandOptionType.NoValue);
             var propertyOptions = cmd.Option(Constants.PropertyOption, Constants.PropertyDescription, CommandOptionType.MultipleValue);
 
