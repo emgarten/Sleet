@@ -131,6 +131,44 @@ Downloads all packages and symbols packages from the feed to a local folder.
 | no-lock | Skip locking the feed and verifying the client version. |
 | ignore-errors | Ignore download errors. |
 
+## Retention
+
+Package retention commands for pruning and limiting package versions.
+
+## Retention settings
+
+``Usage: sleet retention settings [options]``
+
+### Options
+
+| Parameter | Description |
+| --- | ------ |
+| stable | Number of stable versions per package id to retain. |
+| prerelease | Number of prerelease versions per package id to retain. |
+| disable | Disable package retention. |
+
+### Examples
+
+Limit the feed to contain only the latest 5 stable versions of a package, and only the latest 2 pre-release versions.
+
+``sleet retention settings --stable 5 --prerelease 2``
+
+Run the prune command to apply the new feed settings.
+
+``sleet retention prune``
+
+Alternatively the prune command can be used directly without feed settings.
+
+``sleet retention prune --stable 5 --prerelease 2``
+
+Or with package ids to prune only select packages
+
+``sleet retention prune --package a --package b --stable 2 --prerelease 1``
+
+Disable automatic package pruning with *--disable*
+
+``sleet retention settings --disable``
+
 ## Properties and settings
 
 All feed related commands allow passing *--property* to specify properties on the command line. These properties can be used to override env vars or populate tokens in sleet.json.

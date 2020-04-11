@@ -16,5 +16,15 @@ namespace Sleet
         /// If false the symbol feed will be disabled.
         /// </summary>
         public bool SymbolsEnabled { get; set; } = false;
+
+        /// <summary>
+        /// Package retention - Maximum number of stable versions
+        /// </summary>
+        public int? RetentionMaxStableVersions { get; set; }
+
+        /// <summary>
+        /// Package retention - Maximum number of prerelease versions
+        /// </summary>
+        public int? RetentionMaxPrereleaseVersions { get; set; }
     }
 }

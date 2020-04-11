@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -70,7 +70,23 @@ namespace Sleet
                     case "symbolsfeedenabled":
                         settings.SymbolsEnabled = GetBoolOrDefault(pair.Value, defaultValue: false);
                         break;
+                    case "retentionmaxstableversions":
+                        settings.RetentionMaxStableVersions = GetIntOrDefault(pair.Value, defaultValue: -1);
+                        break;
+                    case "retentionmaxprereleaseversions":
+                        settings.RetentionMaxPrereleaseVersions = GetIntOrDefault(pair.Value, defaultValue: -1);
+                        break;
                 }
+            }
+
+            if (settings.RetentionMaxStableVersions < 1)
+            {
+                settings.RetentionMaxStableVersions = null;
+            }
+
+            if (settings.RetentionMaxPrereleaseVersions < 1)
+            {
+                settings.RetentionMaxPrereleaseVersions = null;
             }
 
             return settings;
@@ -87,6 +103,17 @@ namespace Sleet
                 { "catalogpagesize", settings.CatalogPageSize.ToString() },
                 { "symbolsfeedenabled", settings.SymbolsEnabled.ToString().ToLowerInvariant() }
             };
+
+            if (settings.RetentionMaxStableVersions > 0)
+            {
+                values.Add("retentionmaxstableversions", settings.RetentionMaxStableVersions.ToString());
+            }
+
+            if (settings.RetentionMaxPrereleaseVersions > 0)
+            {
+                values.Add("retentionmaxprereleaseversions", settings.RetentionMaxPrereleaseVersions.ToString());
+            }
+
             return values;
         }
 
