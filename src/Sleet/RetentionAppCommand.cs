@@ -10,11 +10,12 @@ namespace Sleet
             var parentCommand = cmdApp.Command("retention", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
 
             RetentionSettingsAppCommand.Register(parentCommand, log);
+            RetentionPruneAppCommand.Register(parentCommand, log);
         }
 
         private static void Run(CommandLineApplication cmd, ILogger log)
         {
-            cmd.Description = "Package retention commands.";
+            cmd.Description = "Package retention commands for pruning and limiting package versions.";
 
             cmd.HelpOption(Constants.HelpOption);
 

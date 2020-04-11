@@ -48,6 +48,7 @@ namespace Sleet
             DownloadAppCommand.Register(app, log);
             RecreateAppCommand.Register(app, log);
             FeedSettingsAppCommand.Register(app, log);
+            RetentionAppCommand.Register(app, log);
 
             app.OnExecute(() =>
             {

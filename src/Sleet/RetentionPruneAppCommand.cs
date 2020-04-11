@@ -13,7 +13,7 @@ namespace Sleet
 
         private static void Run(CommandLineApplication cmd, ILogger log)
         {
-            cmd.Description = "Prune packages.";
+            cmd.Description = "Prune feed packages.";
 
             var optionConfigFile = cmd.Option(Constants.ConfigOption, Constants.ConfigDesc,
                 CommandOptionType.SingleValue);

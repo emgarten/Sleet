@@ -11,7 +11,7 @@ namespace Sleet
         /// </summary>
         public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, int stableVersionMax, int prereleaseVersionMax, bool disableRetention, ILogger log)
         {
-            var exitCode = true;
+            var exitCode = false;
 
             log.LogMinimal($"Updating package retention settings in {source.BaseURI}");
             var token = CancellationToken.None;
@@ -35,12 +35,12 @@ namespace Sleet
                     Token = token
                 };
 
-                if (disableRetention)
+                if (disableRetention && stableVersionMax < 1 && prereleaseVersionMax < 1)
                 {
                     // Remove settings
                     exitCode = await DisableRetention(context);
                 }
-                else
+                else if (stableVersionMax > 0 && prereleaseVersionMax > 0)
                 {
                     // Add max version settings
                     exitCode = await UpdateRetentionSettings(context, stableVersionMax, prereleaseVersionMax);
@@ -69,7 +69,8 @@ namespace Sleet
 
             if (exitCode)
             {
-                await log.LogAsync(LogLevel.Minimal, "Successfully updated package retention settings.");
+                await log.LogAsync(LogLevel.Minimal, $"Successfully updated package retention settings. Stable: {stableVersionMax} Prerelease: {prereleaseVersionMax}.");
+                await log.LogAsync(LogLevel.Minimal, $"Run prune to apply the new settings and remove packages from the feed.");
             }
             else
             {

@@ -13,7 +13,7 @@ namespace Sleet
 
         private static void Run(CommandLineApplication cmd, ILogger log)
         {
-            cmd.Description = "Modify package retention feed settings.";
+            cmd.Description = "Modify feed settings to automatically prune packages on push.";
 
             var optionConfigFile = cmd.Option(Constants.ConfigOption, Constants.ConfigDesc,
                 CommandOptionType.SingleValue);
@@ -25,8 +25,8 @@ namespace Sleet
 
             cmd.HelpOption(Constants.HelpOption);
 
-            var stableVersions = cmd.Option("--stable", "Number of stable versions per package id. ex: 1.0.0", CommandOptionType.SingleValue);
-            var prereleaseVersions = cmd.Option("--prerelease", "Number of prerelease versions per package id. ex: 1.0.0-beta", CommandOptionType.SingleValue);
+            var stableVersions = cmd.Option("--stable", "Number of stable versions per package id to retain.", CommandOptionType.SingleValue);
+            var prereleaseVersions = cmd.Option("--prerelease", "Number of prerelease versions per package id to retain.", CommandOptionType.SingleValue);
             var disableRetention = cmd.Option("--disable", "Disable package retention.", CommandOptionType.NoValue);
             var propertyOptions = cmd.Option(Constants.PropertyOption, Constants.PropertyDescription, CommandOptionType.MultipleValue);
 
@@ -56,8 +56,8 @@ namespace Sleet
 
                     var success = false;
 
-                    var stableVersionMax = int.Parse(stableVersions.Value());
-                    var prereleaseVersionMax = int.Parse(prereleaseVersions.Value());
+                    var stableVersionMax = stableVersions.HasValue() ? int.Parse(stableVersions.Value()) : -1;
+                    var prereleaseVersionMax = prereleaseVersions.HasValue() ? int.Parse(prereleaseVersions.Value()) : -1;
 
                     success = await RetentionSettingsCommand.RunAsync(settings, fileSystem, stableVersionMax, prereleaseVersionMax, disableRetention.HasValue(), log);
 
