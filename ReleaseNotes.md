@@ -1,5 +1,10 @@
 # Release Notes
 
+## 3.1.0
+* Package retention commands have been added to support pruning feed packages by version. [PR](https://github.com/emgarten/Sleet/pull/110)
+* Fixed bug in specifying S3 feed type through env vars [PR](https://github.com/emgarten/Sleet/pull/108)
+* S3 compatible storage support [PR](https://github.com/emgarten/Sleet/pull/99)
+
 ## 3.0.24
 * netcoreapp3.0 -> netcoreapp3.1
 * PDBs are now embedded in the dlls
