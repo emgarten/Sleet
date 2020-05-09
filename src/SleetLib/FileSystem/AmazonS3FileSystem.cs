@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.S3.Util;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using static Sleet.AmazonS3FileSystemAbstraction;
@@ -101,7 +102,7 @@ namespace Sleet
         {
             if (_hasBucket == null)
             {
-                _hasBucket = await _client.DoesS3BucketExistAsync(_bucketName);
+                _hasBucket = await AmazonS3Util.DoesS3BucketExistV2Async(_client, _bucketName);
             }
 
             return _hasBucket == true;
