@@ -21,6 +21,7 @@ namespace Sleet
             string bucketName,
             string key,
             string contentBody,
+            ServerSideEncryptionMethod serverSideEncryptionMethod,
             CancellationToken token)
         {
             var putObjectRequest = new PutObjectRequest
@@ -28,6 +29,7 @@ namespace Sleet
                 BucketName = bucketName,
                 Key = key,
                 ContentBody = contentBody,
+                ServerSideEncryptionMethod = serverSideEncryptionMethod
             };
 
             return client.PutObjectAsync(putObjectRequest, token);
@@ -125,6 +127,7 @@ namespace Sleet
             string contentType,
             string contentEncoding,
             Stream reader,
+            ServerSideEncryptionMethod serverSideEncryptionMethod,
             CancellationToken token)
         {
             var transferUtility = new TransferUtility(client);
@@ -135,7 +138,8 @@ namespace Sleet
                 InputStream = reader,
                 AutoCloseStream = false,
                 AutoResetStreamPosition = false,
-                Headers = { CacheControl = "no-store" }
+                Headers = { CacheControl = "no-store" },
+                ServerSideEncryptionMethod = serverSideEncryptionMethod
             };
 
             if (contentType != null)

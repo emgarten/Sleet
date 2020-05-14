@@ -17,11 +17,13 @@ namespace Sleet
     {
         private readonly string _bucketName;
         private readonly IAmazonS3 _client;
+        private readonly bool _compress;
+        private readonly ServerSideEncryptionMethod _serverSideEncryptionMethod;
+
         private bool? _hasBucket;
-        private bool compress = true;
 
         public AmazonS3FileSystem(LocalCache cache, Uri root, IAmazonS3 client, string bucketName)
-            : this(cache, root, root, client, bucketName)
+            : this(cache, root, root, client, bucketName, ServerSideEncryptionMethod.None)
         {
         }
 
@@ -31,18 +33,21 @@ namespace Sleet
             Uri baseUri,
             IAmazonS3 client,
             string bucketName,
+            ServerSideEncryptionMethod serverSideEncryptionMethod,
             string feedSubPath = null,
             bool compress = true)
             : base(cache, root, baseUri)
         {
             _client = client;
             _bucketName = bucketName;
+            _serverSideEncryptionMethod = serverSideEncryptionMethod;
 
             if (!string.IsNullOrEmpty(feedSubPath))
             {
                 FeedSubPath = feedSubPath.Trim('/') + '/';
             }
-            this.compress = compress;
+
+            _compress = compress;
         }
 
         public override async Task<bool> Validate(ILogger log, CancellationToken token)
@@ -62,7 +67,7 @@ namespace Sleet
 
         public override ISleetFileSystemLock CreateLock(ILogger log)
         {
-            return new AmazonS3FileSystemLock(_client, _bucketName, log);
+            return new AmazonS3FileSystemLock(_client, _bucketName, _serverSideEncryptionMethod, log);
         }
 
         public override ISleetFile Get(Uri path)
@@ -83,7 +88,7 @@ namespace Sleet
         private ISleetFile CreateAmazonS3File(SleetUriPair pair)
         {
             var key = GetRelativePath(pair.Root);
-            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, compress);
+            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress);
         }
 
         public override string GetRelativePath(Uri uri)

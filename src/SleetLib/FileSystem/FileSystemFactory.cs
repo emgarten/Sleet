@@ -120,6 +120,7 @@ namespace Sleet
                         var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
                         var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
                         var serviceURL = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serviceURL");
+                        var serverSideEncryptionMethod = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serverSideEncryptionMethod") ?? "None";
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
 
                         if (string.IsNullOrEmpty(bucketName))
@@ -134,6 +135,12 @@ namespace Sleet
                         if (!string.IsNullOrEmpty(region) && !string.IsNullOrEmpty(serviceURL))
                         {
                             throw new ArgumentException("Options 'region' and 'serviceURL' cannot be used together");
+                        }
+
+                        if (serverSideEncryptionMethod != ServerSideEncryptionMethod.None
+                            && serverSideEncryptionMethod != ServerSideEncryptionMethod.AES256)
+                        {
+                            throw new ArgumentException("Only 'None' or 'AES256' are currently supported for serverSideEncryptionMethod");
                         }
 
                         AmazonS3Config config = null;
@@ -226,6 +233,7 @@ namespace Sleet
                             baseUri,
                             amazonS3Client,
                             bucketName,
+                            serverSideEncryptionMethod,
                             feedSubPath,
                             compress);
                     }
