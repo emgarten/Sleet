@@ -137,8 +137,7 @@ namespace Sleet
                             throw new ArgumentException("Options 'region' and 'serviceURL' cannot be used together");
                         }
 
-                        if (serverSideEncryptionMethod != ServerSideEncryptionMethod.None
-                            && serverSideEncryptionMethod != ServerSideEncryptionMethod.AES256)
+                        if (serverSideEncryptionMethod != "None" && serverSideEncryptionMethod != "AES256")
                         {
                             throw new ArgumentException("Only 'None' or 'AES256' are currently supported for serverSideEncryptionMethod");
                         }
