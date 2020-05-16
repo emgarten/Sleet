@@ -1,0 +1,21 @@
+<Project ToolsVersion="15.0">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\test.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TestProject>true</TestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Protocol" Version="$(NuGetPackageVersion)" />
+    <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sleet.Test.Common\Sleet.Test.Common.csproj" />
+  </ItemGroup>
+  <Import Project="$(BuildCommonDirectory)\common.targets" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>
