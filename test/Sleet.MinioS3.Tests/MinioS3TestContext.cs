@@ -20,17 +20,20 @@ namespace Sleet.MinioS3.Tests
 
         private bool cleanupDone = false;
 
+        // private static NetworkCredential proxyCredentials = CredentialCache.DefaultNetworkCredentials;
+
         public MinioS3TestContext()
         {
             BucketName = $"sleet-test-{Guid.NewGuid().ToString()}";
             LocalCache = new LocalCache();
             LocalSettings = new LocalSettings();
+            
 
             var accessKeyId = Environment.GetEnvironmentVariable(EnvAccessKeyId);
             var secretAccessKey = Environment.GetEnvironmentVariable(EnvSecretAccessKey);
             var region = Environment.GetEnvironmentVariable(EnvDefaultRegion) ?? "us-east-1";
             var serviceURL = Environment.GetEnvironmentVariable(EnvServiceURL) ?? "http://localhost:9000";
-            
+
             var config = new AmazonS3Config
             {
                 RegionEndpoint = RegionEndpoint.GetBySystemName(region),
