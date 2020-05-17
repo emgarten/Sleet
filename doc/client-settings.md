@@ -55,6 +55,8 @@ The example file contains a set of sources. If only feed exists in the file slee
 | region | S3 region *[Cannot be used with serviceURL]* |
 | serviceURL | S3 service URL *[Cannot be used with region]* |
 | path | Full URI of the storage bucket. If not specified a default URI will be used. |
+| feedSubPath | Provides a sub directory path within the bucket where the feed should be added. This allows for multiple feeds within a single bucket. |
+| serverSideEncryptionMethod | The encryption to use for uploaded objects. Only `AES256` and `None` are currently supported. Default is `None` |
 | compress | Compress JSON files with GZIP before uploading. Default is *true* |
 
 Either `region` or `serviceURL` should be specified but not both.
