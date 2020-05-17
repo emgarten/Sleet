@@ -78,6 +78,19 @@ namespace Sleet
                     };
                     log.Log(LogLevel.Minimal, "AWS credentials can be specified directly in sleet.json using accessKeyId and secretAccessKey instead of profileName. By default sleet.json is set to use a credentials file profile. To configure keys see: https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file");
                     break;
+                case FileSystemStorageType.MinioS3:
+                    storageTemplateJson = new JObject
+                    {
+                        { "name", "myMinioS3Feed" },
+                        { "type", "minio" },
+                        { "bucketName", "bucketname" },
+                        { "region", "us-east-1" },
+                        { "serviceURL", "http://localhost:9000" },
+                        { "accessKeyId", "MINIO_ACCESS_KEY" },
+                        { "secretAccessKey", "MINIO_SECRET_ACCESS_KEY" }
+                    };
+                    log.Log(LogLevel.Minimal, "MinIO Server credentials can be specified in AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables instead of using accessKeyId and secretAccessKey in sleet.json. By default, sleet.json includes accessKeyId and secretAccessKey.");
+                    break;
                 case FileSystemStorageType.Unspecified:
                     storageTemplateJson = new JObject
                     {

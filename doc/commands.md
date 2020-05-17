@@ -17,6 +17,7 @@ All commands require a *sleet.json* config file to provide source settings. Befo
 | azure | Add a template entry for an azure storage feed. | 
 | s3 | Add a template entry for an Amazon S3 storage feed. |
 | local | Add a template entry for a local folder feed. |
+| minio | Add a template entry for a Minio S3 storage feed. |
 | output | Output path. If not specified the file will be created in the working directory. |
 
 At least one feed type must be specified.

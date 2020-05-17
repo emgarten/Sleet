@@ -17,6 +17,9 @@ namespace Sleet
             var awss3 = cmd.Option("--s3", "Add a template entry for an Amazon S3 storage feed.",
                 CommandOptionType.NoValue);
 
+            var minios3 = cmd.Option("--minio", "Add a template entry for an MinIO S3 storage feed.",
+                CommandOptionType.NoValue);
+
             var azure = cmd.Option("--azure", "Add a template entry for an azure storage feed.",
                 CommandOptionType.NoValue);
 
@@ -38,6 +41,7 @@ namespace Sleet
                 var outputPath = output.HasValue() ? output.Value() : null;
 
                 var storageType = awss3.HasValue() ? FileSystemStorageType.S3 :
+                    minios3.HasValue() ? FileSystemStorageType.MinioS3 :
                     azure.HasValue() ? FileSystemStorageType.Azure :
                     folder.HasValue() ? FileSystemStorageType.Local :
                     FileSystemStorageType.Unspecified;

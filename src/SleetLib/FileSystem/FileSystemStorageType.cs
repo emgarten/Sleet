@@ -6,5 +6,6 @@ namespace Sleet
         Local,
         Azure,
         S3,
+        MinioS3
     }
 }
