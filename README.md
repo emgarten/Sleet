@@ -35,6 +35,7 @@ These provide a walk through on the basics of configuring sleet, creating, and u
 
 * [Setting up an Azure feed](doc/feed-type-azure.md)
 * [Setting up an AWS S3 feed](doc/feed-type-s3.md)
+* [Setting up a Minio S3 feed](doc/feed-type-minio.md)
 * [Setting up a local feed with IIS hosting](doc/feed-type-local.md)
 
 Check out the full getting started guide [here](http://emgarten.com/2016/04/25/how-to-host-a-nuget-v3-feed-on-azure-storage/).
