@@ -207,7 +207,7 @@ namespace Sleet
                 {
                     if (skipExisting)
                     {
-                        await log.LogAsync(LogLevel.Minimal, $"Skip exisiting package: {packageString}");
+                        await log.LogAsync(LogLevel.Minimal, $"Skip existing package: {packageString}");
                         continue;
                     }
                     else if (force)
