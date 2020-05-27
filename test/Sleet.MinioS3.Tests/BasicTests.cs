@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon.S3;
 using FluentAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
@@ -180,7 +181,11 @@ namespace Sleet.MinioS3.Tests
             using (var testContext = new MinioS3TestContext())
             {
                 var baseUri = new Uri("http://tempuri.org/abc/");
-                var fileSystem = new AmazonS3FileSystem(testContext.LocalCache, testContext.Uri, baseUri, testContext.Client, testContext.BucketName);
+                var fileSystem = new AmazonS3FileSystem(
+                        testContext.LocalCache, testContext.Uri, baseUri,
+                        testContext.Client, testContext.BucketName, ServerSideEncryptionMethod.None
+                    );
+                
                 testContext.FileSystem = fileSystem;
 
                 await testContext.InitAsync();

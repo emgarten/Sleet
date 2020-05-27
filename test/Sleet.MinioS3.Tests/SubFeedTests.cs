@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon.S3;
 using FluentAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
@@ -23,8 +24,17 @@ namespace Sleet.MinioS3.Tests
                 var subFeedName2 = "testSubFeedB";
                 var root = UriUtility.GetPath(testContext.Uri, subFeedName);
                 var root2 = UriUtility.GetPath(testContext.Uri, subFeedName2);
-                testContext.FileSystem = new AmazonS3FileSystem(testContext.LocalCache, root, root, testContext.Client, testContext.BucketName, feedSubPath: subFeedName);
-                testContext2.FileSystem = new AmazonS3FileSystem(testContext.LocalCache, root2, root2, testContext.Client, testContext.BucketName, feedSubPath: subFeedName2);
+                testContext.FileSystem = new AmazonS3FileSystem(
+                    testContext.LocalCache, root, root,
+                    testContext.Client, testContext.BucketName,
+                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName
+                    );
+
+                testContext2.FileSystem = new AmazonS3FileSystem(
+                    testContext.LocalCache, root2, root2,
+                    testContext.Client, testContext.BucketName,
+                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName2
+                    );
 
                 await testContext.InitAsync();
                 await testContext2.InitAsync();
@@ -73,7 +83,11 @@ namespace Sleet.MinioS3.Tests
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeed";
                 var root = UriUtility.GetPath(testContext.Uri, subFeedName);
-                testContext.FileSystem = new AmazonS3FileSystem(testContext.LocalCache, root, root, testContext.Client, testContext.BucketName, feedSubPath: subFeedName);
+                testContext.FileSystem = new AmazonS3FileSystem(
+                    testContext.LocalCache, root, root,
+                    testContext.Client, testContext.BucketName,
+                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName
+                    );
 
                 await testContext.InitAsync();
 
@@ -119,7 +133,11 @@ namespace Sleet.MinioS3.Tests
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeed";
                 var root = UriUtility.GetPath(testContext.Uri, subFeedName);
-                testContext.FileSystem = new AmazonS3FileSystem(testContext.LocalCache, root, root, testContext.Client, testContext.BucketName, feedSubPath: subFeedName);
+                testContext.FileSystem = new AmazonS3FileSystem(
+                    testContext.LocalCache, root, root,
+                    testContext.Client, testContext.BucketName,
+                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName
+                    );
 
                 await testContext.InitAsync();
                 await testContext2.InitAsync();
