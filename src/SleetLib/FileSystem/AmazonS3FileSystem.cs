@@ -25,12 +25,6 @@ namespace Sleet
         {
         }
 
-        public AmazonS3FileSystem(LocalCache cache, Uri root, IAmazonS3 client, string bucketName, bool compress = true)
-            : this(cache, root, root, client, bucketName)
-        {
-            this.compress = compress;
-        }
-
         public AmazonS3FileSystem(
             LocalCache cache,
             Uri root,
