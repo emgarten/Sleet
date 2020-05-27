@@ -9,7 +9,7 @@ using Sleet.Test.Common;
 
 namespace Sleet.MinioS3.Tests
 {
-    public class AmazonS3FileSystemTests
+    public class MinioS3FileSystemTests
     {
         [EnvVarExistsFact(MinioS3TestContext.EnvAccessKeyId)]
         public async Task GivenAS3AccountVerifyBucketOperations()

@@ -12,15 +12,14 @@ namespace Sleet.MinioS3.Tests
 {
     public class MinioS3TestContext : IDisposable
     {
-        public const string EnvAccessKeyId = "AWS_ACCESS_KEY_ID";
-        public const string EnvSecretAccessKey = "AWS_SECRET_ACCESS_KEY";
-        public const string EnvDefaultRegion = "AWS_DEFAULT_REGION";
-
+        public const string EnvAccessKeyId = "SLEET_FEED_ACCESSKEYID";
+        public const string EnvSecretAccessKey = "SLEET_FEED_SECRETACCESSKEY";
+        public const string EnvDefaultRegion = "SLEET_FEED_REGION";
         public const string EnvServiceURL = "SLEET_FEED_SERVICEURL";
+        // public const string EnvCompress = "SLEET_FEED_COMPRESS";
+        public const string EnvFeedType = "SLEET_FEED_TYPE";
 
-        private bool cleanupDone = false;
-
-        // private static NetworkCredential proxyCredentials = CredentialCache.DefaultNetworkCredentials;
+        private bool cleanupDone = true;
 
         public MinioS3TestContext()
         {
@@ -29,10 +28,11 @@ namespace Sleet.MinioS3.Tests
             LocalSettings = new LocalSettings();
             
 
-            var accessKeyId = Environment.GetEnvironmentVariable(EnvAccessKeyId);
-            var secretAccessKey = Environment.GetEnvironmentVariable(EnvSecretAccessKey);
+            var accessKeyId = Environment.GetEnvironmentVariable(EnvAccessKeyId) ?? "Q3AM3UQ867SPQQA43P2F";
+            var secretAccessKey = Environment.GetEnvironmentVariable(EnvSecretAccessKey) ?? "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG";
             var region = Environment.GetEnvironmentVariable(EnvDefaultRegion) ?? "us-east-1";
             var serviceURL = Environment.GetEnvironmentVariable(EnvServiceURL) ?? "http://localhost:9000";
+            var compress = false;
 
             var config = new AmazonS3Config
             {
@@ -44,7 +44,8 @@ namespace Sleet.MinioS3.Tests
             Client = new AmazonS3Client(accessKeyId, secretAccessKey, config);
             Uri = MinioS3Utility.GetBucketPath(BucketName, serviceURL);
 
-            FileSystem = new AmazonS3FileSystem(LocalCache, Uri, Client, BucketName);
+            FileSystem = new AmazonS3FileSystem(LocalCache, Uri, Client, BucketName, compress);
+
             Logger = new TestLogger();
         }
 

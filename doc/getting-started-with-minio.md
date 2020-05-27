@@ -28,23 +28,23 @@ Pull the latest image from Dockerhub.
 MinIO needs a persistent volume to store configuration and application data. For testing purposes you can run a MinIO container with an ephemeral filesystem by specifying a directory such as `/data`. This directory gets created in the container filesystem at the time of container start. All the data is lost after container exits. The benefit of this configuration is that cleanup is easy; just destroy the container when you're finished with it!
 
 *Docker*
-``docker run -e "MINIO_ACCESS_KEY=minioadmin" -e "MINIO_SECRET_KEY=1234567890" -p 9000:9000 --name minio1 minio/minio server /data``
+``docker run -e "MINIO_ACCESS_KEY=Q3AM3UQ867SPQQA43P2F" -e "MINIO_SECRET_KEY=zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG" -p 9000:9000 --name minio1 minio/minio server /data``
 
 *NOTE: On Linux, if you are using Docker, you may need to `sudo` unless you have added your user to `docker` group.*
 
 *Podman*
-``podman run -e "MINIO_ACCESS_KEY=minioadmin" -e "MINIO_SECRET_KEY=1234567890" -p 9000:9000 --name minio1 minio/minio server /data``
+``podman run -e "MINIO_ACCESS_KEY=Q3AM3UQ867SPQQA43P2F" -e "MINIO_SECRET_KEY=zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG" -p 9000:9000 --name minio1 minio/minio server /data``
 
 
 ### Run with persistent volume
 To create a MinIO container with persistent storage, you need to map local persistent directories from the host OS to the container path `/data`.
 
 *Docker*
-``docker run -e "MINIO_ACCESS_KEY=minioadmin" -e "MINIO_SECRET_KEY=1234567890" -p 9000:9000 --name minio1 -v /var/containers/minio/data:/data minio/minio server /data``
+``docker run -e "MINIO_ACCESS_KEY=Q3AM3UQ867SPQQA43P2F" -e "MINIO_SECRET_KEY=zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG" -p 9000:9000 --name minio1 -v /var/containers/minio/data:/data minio/minio server /data``
 
 
 *Podman*
-``podman run -e "MINIO_ACCESS_KEY=minioadmin" -e "MINIO_SECRET_KEY=1234567890" -p 9000:9000 --name minio01 -v /var/containers/minio/data:/data:Z minio/minio server``
+``podman run -e "MINIO_ACCESS_KEY=Q3AM3UQ867SPQQA43P2F" -e "MINIO_SECRET_KEY=zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG" -p 9000:9000 --name minio01 -v /var/containers/minio/data:/data:Z minio/minio server``
 
 *WARNING: We are only passing secrets on the CLI for testing purposes only! Never do this in a production environment!*
 

@@ -83,13 +83,14 @@ namespace Sleet
                     {
                         { "name", "myMinioS3Feed" },
                         { "type", "minio" },
+                        { "compress", "false" },
                         { "bucketName", "bucketname" },
                         { "region", "us-east-1" },
                         { "serviceURL", "http://localhost:9000" },
                         { "accessKeyId", "MINIO_ACCESS_KEY" },
                         { "secretAccessKey", "MINIO_SECRET_ACCESS_KEY" }
                     };
-                    log.Log(LogLevel.Minimal, "MinIO Server credentials can be specified in AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables instead of using accessKeyId and secretAccessKey in sleet.json. By default, sleet.json includes accessKeyId and secretAccessKey.");
+                    log.Log(LogLevel.Minimal, "MinIO Server credentials can be specified in AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables instead of using accessKeyId and secretAccessKey in sleet.json. By default, sleet.json includes accessKeyId and secretAccessKey. CAUTION: compress MUST equal 'false'.");
                     break;
                 case FileSystemStorageType.Unspecified:
                     storageTemplateJson = new JObject

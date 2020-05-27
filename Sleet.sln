@@ -23,14 +23,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.Test.Common", "test\S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.Azure.Tests", "test\Sleet.Azure.Tests\Sleet.Azure.Tests.csproj", "{09C24DAF-1671-4396-AADB-800651B3544D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.AmazonS3.Tests", "test\Sleet.AmazonS3.Tests\Sleet.AmazonS3.Tests.csproj", "{81E43CAD-C348-4B60-9982-A2B39798F69A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.MinioS3.Tests", "test\Sleet.MinioS3.Tests\Sleet.MinioS3.Tests.csproj", "{81217A35-D855-4979-A665-2DB32E0A86D4}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{0CE0BE4C-4714-4909-9888-3F573F2311D8}"
 	ProjectSection(SolutionItems) = preProject
 		build\config.props = build\config.props
 	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sleet.AmazonS3.Tests", "test\Sleet.AmazonS3.Tests\Sleet.AmazonS3.Tests.csproj", "{81E43CAD-C348-4B60-9982-A2B39798F69A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sleet.MinioS3.Tests", "test\Sleet.MinioS3.Tests\Sleet.MinioS3.Tests.csproj", "{81217A35-D855-4979-A665-2DB32E0A86D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

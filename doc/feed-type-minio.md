@@ -28,6 +28,7 @@ This configuration strategy specifies the access key id and secret key directly 
     {
       "name": "feed",
       "type": "minio",
+      "compress": "false",
       "serviceURL": "MINIO_SERVER_URL",
       "bucketName": "MINIO_BUCKET_NAME",
       "region": "MINIO_REGION_NAME",
@@ -45,6 +46,7 @@ This configuration strategy specifies the access key id and secret key directly 
     {
       "name": "feed",
       "type": "minio",
+      "compress": "false",
       "serviceURL": "http://localhost:9000",
       "bucketName": "my-bucket-feed",
       "region": "us-east-1",
@@ -65,6 +67,7 @@ To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/usergu
     {
       "name": "feed",
       "type": "minio",
+      "compress": "false",
       "serviceURL": "MINIO_SERVER_URL",
       "bucketName": "MINIO_BUCKET_NAME",
       "region": "MINIO_REGION_NAME"
@@ -85,6 +88,7 @@ export AWS_SECRET_ACCESS_KEY="IAM_SECRET_ACCESS_KEY"
     {
       "name": "feed",
       "type": "minio",
+      "compress": "false",
       "serviceURL": "http://localhost:9000",
       "bucketName": "my-bucket-feed",
       "region": "us-east-1",
@@ -101,6 +105,10 @@ export AWS_SECRET_ACCESS_KEY="zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG"
 
 *NOTE: Setting secrets in environment variables can be a very secure strategy. There are many ways to configure environment variables, some more secure than others.*
 
+### Words of caution
+Currently, `compress` must be explicitly set to `"false"` in `sleet.json` or by setting the `SLEET_FEED_COMPRESS` environment variable to override the default `compress = true`. By default, files are GZip-compressed before being uploaded to the target S3 bucket. Allowing Sleet to compress files stored in an AWS S3 feed store works but it currently does NOT work in a Minio S3 feed store. The issue is that NuGet cannot successfully consume the Gzipped files fetched from a public-read Minio S3 bucket. 
+
+*NOTE: GZip compression for Minio S3 feed stores will be an enhancement in the near future!*
 
 ### Additional feed settings
 
