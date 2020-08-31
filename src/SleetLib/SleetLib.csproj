@@ -30,6 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="compiler\resources\badge.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="$(AWSSDKVersion)" />
     <PackageReference Include="AWSSDK.SecurityToken" Version="3.3.104.74" />
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
