@@ -66,6 +66,11 @@ namespace Sleet
                 result.Add(new SleetStep(new Symbols(context), SleetPerfGroup.Symbols));
             }
 
+            if (context.SourceSettings.BadgesEnabled)
+            {
+                result.Add(new SleetStep(new Badges(context), SleetPerfGroup.Badges));
+            }
+
             result.Add(new SleetStep(new FlatContainer(context), SleetPerfGroup.FlatContainer));
             result.Add(new SleetStep(new AutoComplete(context), SleetPerfGroup.AutoComplete));
             result.Add(new SleetStep(new PackageIndex(context), SleetPerfGroup.PackageIndex));

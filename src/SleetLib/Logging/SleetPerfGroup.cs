@@ -9,6 +9,7 @@ namespace Sleet
         AutoComplete,
         Search,
         Symbols,
-        FlatContainer
+        FlatContainer,
+        Badges
     }
 }

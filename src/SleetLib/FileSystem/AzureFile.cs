@@ -70,6 +70,10 @@ namespace Sleet
                     {
                         _blob.Properties.ContentType = "application/xml";
                     }
+                    else if (_blob.Uri.AbsoluteUri.EndsWith(".svg", StringComparison.Ordinal))
+                    {
+                        _blob.Properties.ContentType = "image/svg+xml";
+                    }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal)
                             || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                     {
