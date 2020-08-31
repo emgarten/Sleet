@@ -185,7 +185,7 @@ namespace Sleet.AmazonS3.Tests
                         testContext.LocalCache, testContext.Uri, baseUri,
                         testContext.Client, testContext.BucketName, ServerSideEncryptionMethod.None
                     );
-                
+
                 testContext.FileSystem = fileSystem;
 
                 await testContext.InitAsync();

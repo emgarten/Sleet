@@ -1,5 +1,8 @@
 # Release Notes
 
+## 3.1.20
+* DefaultWebProxy support for authenticated proxies
+
 ## 3.1.0
 * Package retention commands have been added to support pruning feed packages by version. [PR](https://github.com/emgarten/Sleet/pull/110)
 * Fixed bug in specifying S3 feed type through env vars [PR](https://github.com/emgarten/Sleet/pull/108)

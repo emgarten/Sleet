@@ -191,6 +191,8 @@ Example of defining an azure feed using only environment variables:
 
 To avoid loading up any *sleet.json* files when using env vars pass `--config none` to block it from loading. 
 
+Note that if *sleet.json* is used environment variables will be ignored. It is not possible to mix settings between the two input options.
+
 # Command line properties
 
 Key value pairs can be passed on the command line and are treated the same as environment variables would be.
@@ -205,4 +207,26 @@ In this example a new feed is initialized *without* a sleet.json file. All value
 sleet init --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=feed \
  -p "SLEET_FEED_CONNECTIONSTRING=DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint="
 ```
+
+# Network proxy settings
+
+Authenticated proxy that use windows credentials should enable the following setting in *sleet.json*
+
+```json
+{
+  "proxy": {
+    "useDefaultCredentials": true
+  },
+  "sources": [
+  ]
+}
+```
+
+This setting can be set through an environment variable or command line property if *sleet.json* is not used.
+
+| Property | Value |
+| --- | ------ |
+| `SLEET_FEED_PROXY_USEDEFAULTCREDENTIALS` | `true` |
+
+
 
