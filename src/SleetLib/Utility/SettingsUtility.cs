@@ -58,6 +58,10 @@ namespace Sleet
                 sources.Add(source);
                 json["sources"] = sources;
 
+                var proxy = new JObject();
+                json["proxy"] = proxy;
+                proxy["useDefaultCredentials"] = IsTrue(GetTokenValue($"{EnvVarPrefix}PROXY_USEDEFAULTCREDENTIALS", mappings, string.Empty));
+
                 json["username"] = GetTokenValue($"{EnvVarPrefix}USERNAME", mappings, string.Empty);
                 json["useremail"] = GetTokenValue($"{EnvVarPrefix}USEREMAIL", mappings, string.Empty);
 
@@ -117,6 +121,11 @@ namespace Sleet
                     prop.Value = ResolveTokens(prop.Value.ToString(), mappings);
                 }
             }
+        }
+
+        public static bool IsTrue(string value)
+        {
+            return StringComparer.OrdinalIgnoreCase.Equals(bool.TrueString, value);
         }
 
         public static string GetTokenValue(string tokenName, Dictionary<string, string> mappings, string defaultValue)

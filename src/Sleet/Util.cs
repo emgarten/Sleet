@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
@@ -9,6 +10,15 @@ namespace Sleet
     internal static class Util
     {
         internal static LogLevel DefaultLogLevel = LogLevel.Information;
+
+        internal static void InitNetwork(LocalSettings settings)
+        {
+            var proxySettings = settings?.Json?["proxy"] ?? new JObject();
+            if (proxySettings["useDefaultCredentials"]?.ToObject<bool>() == true)
+            {
+                WebRequest.DefaultWebProxy.Credentials = CredentialCache.DefaultCredentials;
+            }
+        }
 
         internal static async Task<ISleetFileSystem> CreateFileSystemOrThrow(LocalSettings settings, string sourceName, LocalCache cache)
         {
@@ -25,6 +35,10 @@ namespace Sleet
                 }
             }
 
+            // Initialize the network/proxy settings before creating the filesystem
+            InitNetwork(settings);
+
+            // Create
             var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, sourceName);
 
             if (fileSystem == null)
