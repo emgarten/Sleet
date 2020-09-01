@@ -104,6 +104,10 @@ namespace Sleet
                 {
                     contentType = "application/xml";
                 }
+                else if (key.EndsWith(".svg", StringComparison.Ordinal))
+                {
+                    contentType = "image/svg+xml";
+                }
                 else if (key.EndsWith(".json", StringComparison.Ordinal)
                          || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                 {
