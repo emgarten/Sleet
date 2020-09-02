@@ -142,6 +142,13 @@ namespace Sleet
                             throw new ArgumentException("Only 'None' or 'AES256' are currently supported for serverSideEncryptionMethod");
                         }
 
+                        // Use the SDK value
+                        var serverSideEncryptionMethodValue = ServerSideEncryptionMethod.None;
+                        if (serverSideEncryptionMethod == "AES256")
+                        {
+                            serverSideEncryptionMethodValue = ServerSideEncryptionMethod.AES256;
+                        }
+
                         AmazonS3Config config = null;
                         if (serviceURL != null)
                         {
@@ -232,7 +239,7 @@ namespace Sleet
                             baseUri,
                             amazonS3Client,
                             bucketName,
-                            serverSideEncryptionMethod,
+                            serverSideEncryptionMethodValue,
                             feedSubPath,
                             compress);
                     }

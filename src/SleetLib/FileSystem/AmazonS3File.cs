@@ -104,6 +104,15 @@ namespace Sleet
                 {
                     contentType = "application/xml";
                 }
+                else if (key.EndsWith(".svg", StringComparison.Ordinal))
+                {
+                    contentType = "image/svg+xml";
+                    if (compress)
+                    {
+                        contentEncoding = "gzip";
+                        writeStream = await Utility.GZipAsync(cache);
+                    }
+                }
                 else if (key.EndsWith(".json", StringComparison.Ordinal)
                          || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                 {
@@ -111,8 +120,6 @@ namespace Sleet
                     if (compress)
                     {
                         contentEncoding = "gzip";
-                        // Compress content before uploading
-                        log.LogVerbose($"Compressing {absoluteUri}");
                         writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
                     }
                 }

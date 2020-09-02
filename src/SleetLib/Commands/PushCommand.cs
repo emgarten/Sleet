@@ -131,7 +131,9 @@ namespace Sleet
 
             // Push
             var packageIndex = new PackageIndex(context);
-            await PushPackages(packages, context, packageIndex, force, skipExisting, log);
+            var existingPackageSets = await packageIndex.GetPackageSetsAsync();
+
+            await PushPackages(packages, context, existingPackageSets, force, skipExisting, log);
 
             // Prune packages
             await PrunePackages(packages, context);
@@ -169,11 +171,10 @@ namespace Sleet
             }
         }
 
-        private static async Task PushPackages(List<PackageInput> packageInputs, SleetContext context, PackageIndex packageIndex, bool force, bool skipExisting, ILogger log)
+        private static async Task PushPackages(List<PackageInput> packageInputs, SleetContext context, PackageSets existingPackageSets, bool force, bool skipExisting, ILogger log)
         {
             var toAdd = new List<PackageInput>();
             var toRemove = new List<PackageInput>();
-            var existingPackageSets = await packageIndex.GetPackageSetsAsync();
 
             foreach (var package in packageInputs)
             {

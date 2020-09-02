@@ -1,6 +1,7 @@
 #if !SLEETLEGACY
 using System;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
@@ -48,7 +49,10 @@ namespace Sleet
                     result = true;
                 }
             }
-            catch (AmazonS3Exception ex) when (ex.StatusCode != System.Net.HttpStatusCode.Forbidden && ex.StatusCode != System.Net.HttpStatusCode.Unauthorized)
+            catch (AmazonS3Exception ex) when
+                (ex.StatusCode != HttpStatusCode.Forbidden
+                && ex.StatusCode != HttpStatusCode.Unauthorized
+                && ex.StatusCode != HttpStatusCode.BadRequest)
             {
                 // Ignore and retry, there may be a race case writing the lock file.
                 ExceptionUtilsSleetLib.LogException(ex, Log, LogLevel.Verbose);

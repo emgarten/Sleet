@@ -8,7 +8,7 @@
     <CommandLineUtilsVersion>2.0.0</CommandLineUtilsVersion>
     <NuGetTestHelpersVersion>2.0.0</NuGetTestHelpersVersion>
     <PortablePdbVersion>1.5.0</PortablePdbVersion>
-    <AWSSDKVersion>3.3.104.20</AWSSDKVersion>
+    <AWSSDKVersion>3.5.0.7</AWSSDKVersion>
   </PropertyGroup>
 
   <!-- Config -->

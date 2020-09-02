@@ -28,9 +28,13 @@ namespace Sleet
             {
                 BucketName = bucketName,
                 Key = key,
-                ContentBody = contentBody,
-                ServerSideEncryptionMethod = serverSideEncryptionMethod
+                ContentBody = contentBody
             };
+
+            if (serverSideEncryptionMethod != ServerSideEncryptionMethod.None)
+            {
+                putObjectRequest.ServerSideEncryptionMethod = serverSideEncryptionMethod;
+            }
 
             return client.PutObjectAsync(putObjectRequest, token);
         }
@@ -138,9 +142,13 @@ namespace Sleet
                 InputStream = reader,
                 AutoCloseStream = false,
                 AutoResetStreamPosition = false,
-                Headers = { CacheControl = "no-store" },
-                ServerSideEncryptionMethod = serverSideEncryptionMethod
+                Headers = { CacheControl = "no-store" }
             };
+
+            if (serverSideEncryptionMethod != ServerSideEncryptionMethod.None)
+            {
+                request.ServerSideEncryptionMethod = serverSideEncryptionMethod;
+            }
 
             if (contentType != null)
             {

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
@@ -177,7 +178,7 @@ namespace Sleet
                                 success = true;
                             }
                         }
-                        catch (AmazonS3Exception) when (tries < (maxTries - 1))
+                        catch (AmazonS3Exception ex) when (tries < (maxTries - 1) && ex.StatusCode != HttpStatusCode.BadRequest)
                         {
                             // Ignore exceptions until the last exception
                             await Task.Delay(TimeSpan.FromSeconds(tries));

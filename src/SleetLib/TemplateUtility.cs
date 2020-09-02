@@ -2,11 +2,20 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Sleet
 {
     public static class TemplateUtility
     {
+        public static string GetBadgeTemplate()
+        {
+            using (var reader = new StreamReader(GetResource("badge.xml")))
+            {
+                return reader.ReadToEnd();
+            }
+        }
+
         public static async Task<string> LoadTemplate(string name, DateTimeOffset now, Uri baseUri)
         {
             using (var reader = new StreamReader(GetResource($"template{name}.json")))

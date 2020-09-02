@@ -26,5 +26,10 @@ namespace Sleet
         /// Package retention - Maximum number of prerelease versions
         /// </summary>
         public int? RetentionMaxPrereleaseVersions { get; set; }
+
+        /// <summary>
+        /// Version badges, if enabled svg files for the latest versions will be written out.
+        /// </summary>
+        public bool BadgesEnabled { get; set; } = false;
     }
 }

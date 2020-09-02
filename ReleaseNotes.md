@@ -1,7 +1,10 @@
 # Release Notes
 
-## 3.1.20
+## 3.1.26
+* Version badge svg support
 * DefaultWebProxy support for authenticated proxies
+* Updated S3 SDK
+* S3 error handling and encryption fixes
 
 ## 3.1.0
 * Package retention commands have been added to support pruning feed packages by version. [PR](https://github.com/emgarten/Sleet/pull/110)
