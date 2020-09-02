@@ -54,7 +54,7 @@ namespace Sleet
             {
                 using (var stream = new MemoryStream())
                 {
-                    GetBadge(package).Save(stream);
+                    GetBadge(package, preRel).Save(stream);
                     stream.Position = 0;
 
                     await file.Write(stream, context.Log, context.Token);
@@ -68,7 +68,7 @@ namespace Sleet
 
         public static string GetPath(string id, bool preRel)
         {
-            var folder = preRel ? "v" : "vpre";
+            var folder = preRel ? "vpre" : "v";
             return $"badges/{folder}/{id}.svg".ToLowerInvariant();
         }
 
@@ -116,9 +116,9 @@ namespace Sleet
             return max;
         }
 
-        public static XDocument GetBadge(PackageIdentity package)
+        public static XDocument GetBadge(PackageIdentity package, bool includePre)
         {
-            var color = package.Version.IsPrerelease ? COLOR_PRE : COLOR_STABLE;
+            var color = includePre ? COLOR_PRE : COLOR_STABLE;
 
             var templateString = TemplateUtility.GetBadgeTemplate();
             var s = templateString.Replace(COLOR_TOKEN, color)

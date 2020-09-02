@@ -119,6 +119,25 @@ namespace SleetLib.Tests
         }
 
         [Fact]
+        public void BadgeUtility_GetChanges_MultipleAddedInSameId_WithStable_NoPrevious()
+        {
+            var before = new HashSet<PackageIdentity>()
+            {
+            };
+            var after = new HashSet<PackageIdentity>()
+            {
+                new PackageIdentity("a", NuGetVersion.Parse("2.0.0")),
+                new PackageIdentity("a", NuGetVersion.Parse("3.0.0-a"))
+            };
+
+            BadgeUtility.GetChanges(before, after, preRel: false).Count.Should().Be(1);
+            BadgeUtility.GetChanges(before, after, preRel: false).First().Should().Be(new PackageIdentity("a", NuGetVersion.Parse("2.0.0")));
+
+            BadgeUtility.GetChanges(before, after, preRel: true).Count.Should().Be(1);
+            BadgeUtility.GetChanges(before, after, preRel: true).First().Should().Be(new PackageIdentity("a", NuGetVersion.Parse("3.0.0-a")));
+        }
+
+        [Fact]
         public void BadgeUtility_GetChanges_MultipleIds()
         {
             var before = new HashSet<PackageIdentity>()
