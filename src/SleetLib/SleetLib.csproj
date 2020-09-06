@@ -41,6 +41,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" Condition=" '$(UseJsonNet901)' != 'true' " />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" Condition=" '$(UseJsonNet901)' == 'true' " />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
+    <PackageReference Include="DotNetConfig" Version="1.0.0-rc" />
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />

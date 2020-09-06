@@ -27,6 +27,20 @@ Open `sleet.json` using your editor of choice, the file will look like similar t
 }
 ```
 
+For `.netconfig`, just create or edit the file directly in the [desired location](https://dotnetconfig.org/#what):
+
+```gitconfig
+[sleet]
+    username = ""
+    useremail = ""
+
+[sleet "myLocalFeed"]
+    type = local
+    container = feed
+    path = C:\\myFeed
+    baseURI = https://example.com/feed/
+```
+
 Set `path` to the local directory on disk where the feed json files will be written.
 
 Change `baseURI` to the URI the http server will use to serve the feed.
@@ -35,16 +49,18 @@ Change `baseURI` to the URI the http server will use to serve the feed.
 
 Now initialize the feed, this creates the basic files needed to get started.
 
-* The `config` value here corresponds to the filesystem path to the `sleet.json` file.
+* The optional `config` value here corresponds to the filesystem path to the `sleet.json` or `.netconfig`
 * the `source` value here corresponds to the `name` property used in `sleet.json`
 
 ``sleet init --config C:\sleet.json --source myLocalFeed``
+
+``sleet init --config C:\.netconfig --source myLocalFeed``
 
 ## Adding packages
 
 Add packages to the feed with the push command, this can be used with either a path to a single nupkg or a folder of nupkgs.
 
-``sleet push --config C:\sleet.json -s myLocalFeed C:\PackagesFolder``
+``sleet push -s myLocalFeed C:\PackagesFolder``
 
 ## Creating the feed's ASP.NET project
 

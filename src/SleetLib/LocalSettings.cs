@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using DotNetConfig;
 using Newtonsoft.Json.Linq;
 
 namespace Sleet
@@ -55,7 +57,7 @@ namespace Sleet
             {
                 var resolvedPath = SettingsUtility.GetSleetJsonPathOrNull(path);
 
-                if (resolvedPath != null)
+                if (resolvedPath != null && !resolvedPath.EndsWith(".netconfig", StringComparison.Ordinal))
                 {
                     json = JObject.Parse(File.ReadAllText(resolvedPath));
 
@@ -64,10 +66,46 @@ namespace Sleet
 
                     return Load(json, resolvedPath);
                 }
+                else if ((path == null || path.EndsWith(".netconfig", StringComparison.Ordinal)) &&
+                    Config.Build(path) is Config config && config.GetRegex("sleet").Any())
+                {
+                    // Use .netconfig only if at least one sleet setting is found.
+
+                    json = new JObject(new JProperty("config", new JObject()));
+                    if (config.TryGetString("sleet", "username", out var username))
+                        json["username"] = username;
+                    if (config.TryGetString("sleet", "useremail", out var useremail))
+                        json["useremail"] = useremail;
+                    if (config.TryGetNumber("sleet", "feedLockTimeoutMinutes", out var feedLockTimeoutMinutes))
+                        json["config"]["feedLockTimeoutMinutes"] = feedLockTimeoutMinutes;
+                    if (config.TryGetBoolean("sleet", "proxy-useDefaultCredentials", out var useDefaultCredentials))
+                        json["proxy"] = new JObject(new JProperty("useDefaultCredentials", useDefaultCredentials));
+
+                    var sources = new JArray();
+                    json.Add("sources", sources);
+
+                    foreach (var properties in config
+                        .Where(x => x.Section == "sleet" && x.Subsection != null)
+                        .GroupBy(x => x.Subsection))
+                    {
+                        var source = new JObject(properties.Select(x => new JProperty(x.Variable, x.RawValue ?? (object)true)));
+                        source.AddFirst(new JProperty("name", properties.Key));
+                        sources.Add(source);
+                    }
+
+                    // Resolve tokens in the json
+                    SettingsUtility.ResolveTokensInSettingsJson(json, mappings);
+
+                    return Load(json, config.FilePath);
+                }
                 else if (!string.IsNullOrEmpty(path))
                 {
-                    // A path was given but was not found, throw
-                    throw new FileNotFoundException($"Unable to find source settings. File not found '{path}'.");
+                    if (!File.Exists(path))
+                        // A path was given but was not found, throw
+                        throw new FileNotFoundException($"Unable to find source settings. File not found '{path}'.");
+                    else
+                        // A path was given but it has no sleet settings
+                        throw new ArgumentException($"Unable to find source settings in '{path}'.", nameof(path));
                 }
             }
 
