@@ -119,6 +119,7 @@ Function Invoke-DotnetMSBuild {
     $buildArgs += "/nologo"
     $buildArgs += "/v:m"
     $buildArgs += "/nr:false"
+    $buildArgs += "/m:1"
     $buildArgs += $Arguments
 
     Invoke-DotnetExe $RepoRoot $buildArgs

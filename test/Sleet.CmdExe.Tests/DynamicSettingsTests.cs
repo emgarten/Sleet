@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetConfig;
 using FluentAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
@@ -12,6 +13,34 @@ namespace Sleet.CmdExe.Tests
 {
     public class DynamicSettingsTests
     {
+        [WindowsFact]
+        public async Task InitWithEnvVarsWithNonSleetNetConfigVerifyFeedOutput()
+        {
+            using (var testContext = new SleetTestContext())
+            {
+                var dir = Path.Combine(testContext.Root, "sub");
+                var args = $"init -c none";
+
+                Directory.CreateDirectory(dir);
+
+                File.WriteAllText(Path.Combine(dir, Config.FileName), @"
+[config]
+    editor = code
+");
+
+                var envVars = new Dictionary<string, string>()
+                {
+                    { "SLEET_FEED_TYPE", "local" },
+                    { "SLEET_FEED_PATH", dir }
+                };
+
+                var result = await CmdRunner.RunAsync(ExeUtils.SleetExePath, dir, args, envVars);
+
+                result.Success.Should().BeTrue();
+                File.Exists(Path.Combine(dir, "sleet.settings.json")).Should().BeTrue();
+            }
+        }
+
         [WindowsFact]
         public async Task InitWithEnvVarsVerifyFeedOutput()
         {

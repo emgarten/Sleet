@@ -12,6 +12,10 @@ sleet createconfig --azure
 
 The example file contains a set of sources. If only feed exists in the file sleet will automatically use it. Once there two or more sources the ``--source`` parameter will be required to select the correct source.
 
+# .netconfig
+
+Additionally, Sleet supports configuration via [.netconfig](https://dotnetconfig.org) which provides a uniform way of configuring multiple tools with a single file and format. In addition, using `.netconfig` brings support for hierarchical configurations (i.e. reuse source configurations across the entire machine, with a single `.netconfig` in your user profile root directory).
+
 ## Source properties
 
 | Property | Description |
@@ -30,6 +34,7 @@ The example file contains a set of sources. If only feed exists in the file slee
 | path | Full URI of the azure storage container. If specified this value will be verified against the container's URI. |
 | feedSubPath | Provides a sub directory path within the container where the feed should be added. This allows for multiple feeds within a single container. |
 
+`sleet.json`:
 ```json
 {
   "sources": [
@@ -43,6 +48,17 @@ The example file contains a set of sources. If only feed exists in the file slee
   ]
 }
 ```
+
+`.netconfig`:
+
+```gitconfig
+[sleet "feed"]
+    type = azure
+    container = feed
+    connectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint="
+    path = https://yourStorageAccount.blob.core.windows.net/feed/
+```
+
 
 ## Amazon s3 specific properties
 
@@ -63,6 +79,7 @@ Either `region` or `serviceURL` should be specified but not both.
 
 ### Using an AWS credentials file
 
+`sleet.json`:
 ```json
 {
   "sources": [
@@ -78,8 +95,20 @@ Either `region` or `serviceURL` should be specified but not both.
 }
 ```
 
+`.netconfig`:
+
+```gitconfig
+[sleet "feed"]
+    type = s3
+    path = https://s3.amazonaws.com/my-bucket-feed/
+    profileName = sleetProfile
+    bucketName = my-bucket-feed
+    region = us-west-2
+```
+
 ### Using accessKeyId and secretAccessKey in sleet.json
 
+`sleet.json`:
 ```json
 {
   "sources": [
@@ -96,8 +125,20 @@ Either `region` or `serviceURL` should be specified but not both.
 }
 ```
 
+`.netconfig`:
+```gitconfig
+[sleet "feed"]
+    type = s3
+    path = https://s3.amazonaws.com/my-bucket-feed/
+    bucketName = my-bucket-feed
+    region = us-west-2
+    accessKeyId = IAM_ACCESS_KEY_ID
+    secretAccessKey = IAM_SECRET_ACCESS_KEY
+```
+
 ### Using AWS environments
 
+`sleet.json`:
 ```json
 {
   "sources": [
@@ -112,8 +153,18 @@ Either `region` or `serviceURL` should be specified but not both.
 }
 ```
 
+`.netconfig`:
+```gitconfig
+[sleet "feed"]
+    type = s3
+    path = https://s3.amazonaws.com/my-bucket-feed/
+    bucketName = my-bucket-feed
+    region = us-west-2
+```
+
 ### Using serviceURL
 
+`sleet.json`:
 ```json
 {
   "sources": [
@@ -128,6 +179,15 @@ Either `region` or `serviceURL` should be specified but not both.
 }
 ```
 
+`.netconfig`:
+```gitconfig
+[sleet "feed"]
+    type = s3
+    path = https://s3.amazonaws.com/my-bucket-feed/
+    bucketName = my-bucket-feed
+    serviceURL = https://s3.us-east-1.amazonaws.com
+```
+
 
 When running Sleet with [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) leave accessKeyId, secretAccessKey, and profileName blank. If these properties are not set in sleet.json Sleet will try to set up the S3 feed using the environment.
 
@@ -137,6 +197,7 @@ When running Sleet with [AWS environment variables](https://docs.aws.amazon.com/
 | --- | ------ |
 | path | Path is the output directory of the feed. |
 
+`sleet.json`:
 ```json
 {
   "name": "myLocalFeed",
@@ -145,12 +206,20 @@ When running Sleet with [AWS environment variables](https://docs.aws.amazon.com/
 }
 ```
 
-## Tokens in sleet.json
+`.netconfig`:
+```gitconfig
+[sleet "myLocalFeed"]
+    type = local
+    path = C:\\myFeed
+```
 
-Property values in *sleet.json* can be tokenized similar to nuget *.pp* files.
+## Tokens in configuration
+
+Property values in *sleet.json* and *.netconfig* can be tokenized similar to nuget *.pp* files.
 
 Given an environment variable ``myKey`` the following file woudl replace `$myKey$` with the value of the environment variable if it exists.
 
+`sleet.json`:
 ```json
 {
   "sources": [
@@ -164,6 +233,14 @@ Given an environment variable ``myKey`` the following file woudl replace `$myKey
 }
 ```
 
+`.netconfig`:
+```gitconfig
+[sleet "feed"]
+    type = azure
+    container = feed
+    connectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=$myKey$;BlobEndpoint="
+```
+
 Tokens that resolve to a tokenized string will also be resolved, allowing environment variables to point to and combine additional environment variables.
 
 To escape `$` use `$$`.
@@ -173,6 +250,12 @@ To escape `$` use `$$`.
 1. If `--config` was passed the path given will be used.
 1. If no config path was given sleet will search all parent directories starting with the working directory for sleet.json files.
 1. Environment variables will be used if no sleet.json files were found.
+
+## .netconfig loading order
+
+1. If `--config` was passed the path given will be used.
+1. Standard `.netconfig` probing happens next (current directory and all parent directories, plus [global](https://docs.microsoft.com/en-us/dotnet/api/system.environment.specialfolder?view=netstandard-2.0#fields) and [system](https://docs.microsoft.com/en-us/dotnet/api/system.environment.specialfolder?view=netstandard-2.0#fields) locations).
+1. Environment variables will be used if no sleet setting is found.
 
 
 # Environment variables

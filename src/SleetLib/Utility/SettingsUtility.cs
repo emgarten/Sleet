@@ -70,7 +70,11 @@ namespace Sleet
 
                 // load all env vars with SLEET_FEED_ into the source config
                 // prefer mappings over env vars
-                foreach (var pair in GetSleetEnvVars().Concat(mappings))
+                var entries = GetSleetEnvVars();
+                if (mappings != null)
+                    entries = entries.Concat(mappings);
+
+                foreach (var pair in entries)
                 {
                     if (pair.Key.StartsWith(EnvVarPrefix, StringComparison.OrdinalIgnoreCase))
                     {

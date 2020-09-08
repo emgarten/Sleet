@@ -25,6 +25,15 @@ Edit `sleet.json` using your editor of choice to set the url of your storage acc
 }
 ```
 
+For `.netconfig`, just create or edit the file directly in the [desired location](https://dotnetconfig.org/#what):
+
+```gitconfig
+[sleet "feed"]
+    type = azure
+    container = feed
+    connectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint="
+```
+
 ## Adding packages
 
 Add packages to the feed with the push command, this can be used with either a path to a single nupkg or a folder of nupkgs.

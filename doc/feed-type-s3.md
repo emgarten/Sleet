@@ -12,8 +12,11 @@ Edit `sleet.json` using your editor of choice to set the url of your s3 bucket a
 
 ``notepad sleet.json``
 
+For `.netconfig`, just create or edit the file directly in the [desired location](https://dotnetconfig.org/#what).
+
 ### Using an AWS credentials file
 
+`sleet.json`:
 ```json
 {
   "sources": [
@@ -29,10 +32,21 @@ Edit `sleet.json` using your editor of choice to set the url of your s3 bucket a
 }
 ```
 
+`.netconfig`:
+```gitconfig
+[sleet "feed"]
+    type = s3
+    path = https://s3.amazonaws.com/my-bucket-feed/
+    profileName = sleetProfile
+    bucketName = my-bucket-feed
+    region = us-west-2
+```
+
 For details on creating a credentials file go [here](https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file)
 
 ### Using accessKeyId and secretAccessKey in sleet.json
 
+`sleet.json`:
 ```json
 {
   "sources": [
@@ -49,10 +63,22 @@ For details on creating a credentials file go [here](https://docs.aws.amazon.com
 }
 ```
 
-This example specifies the access key id and secret key directly in sleet.json.
+`.netconfig`:
+```gitconfig
+[sleet "feed"]
+    type = s3
+    path = https://s3.amazonaws.com/my-bucket-feed/
+    bucketName = my-bucket-feed
+    region = us-east-1
+    accessKeyId = IAM_ACCESS_KEY_ID
+    secretAccessKey = IAM_SECRET_ACCESS_KEY
+```
+
+This example specifies the access key id and secret key directly in sleet.json/.netconfig.
 
 ### Using an EC2 instance profile
 
+`sleet.json`:
 ```json
 {
   "sources": [
@@ -67,10 +93,20 @@ This example specifies the access key id and secret key directly in sleet.json.
 }
 ```
 
+`.netconfig`:
+```gitconfig
+[sleet "feed"]
+    type = s3
+    path = https://s3.amazonaws.com/my-bucket-feed/
+    bucketName = my-bucket-feed
+    region = us-west-2
+```
+
 To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) create an s3 feed config without an *accessKeyId* or *secretAccessKey*. Sleet will attempt to automatically configure the feed based on the environment.
 
 ### Using S3 compatible storage
 
+`sleet.json`:
 ```json
 {
   "sources": [
@@ -85,6 +121,17 @@ To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/usergu
     }
   ]
 }
+```
+
+`.netconfig`:
+```gitconfig
+[sleet "feed"]
+    type = s3
+    path = https://nupkg.website.yandexcloud.net/
+    bucketName = nupkg
+    serviceURL = https://storage.yandexcloud.net
+    accessKeyId = IAM_ACCESS_KEY_ID
+    secretAccessKey = IAM_SECRET_ACCESS_KEY
 ```
 
 To use S3 compatible storage create an s3 feed config with *serviceURL* instead of *region*.
