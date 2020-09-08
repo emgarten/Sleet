@@ -1,5 +1,8 @@
 # Release Notes
 
+## 3.2.0
+* dotnet config support [PR](https://github.com/emgarten/Sleet/pull/128)
+
 ## 3.1.26
 * Version badge svg support
 * DefaultWebProxy support for authenticated proxies
