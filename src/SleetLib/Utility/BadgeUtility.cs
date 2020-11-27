@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
@@ -46,30 +47,30 @@ namespace Sleet
         /// </summary>
         public static async Task UpdateOrRemoveBadge(SleetContext context, PackageIdentity package, bool preRel)
         {
-            var path = GetPath(package.Id, preRel);
-            var file = context.Source.Get(path);
+            var svgPath = $"badges/{(preRel ? "vpre" : "v")}/{package.Id}.svg".ToLowerInvariant();
+            var jsonPath = $"badges/{(preRel ? "vpre" : "v")}/{package.Id}.json".ToLowerInvariant();
+
+            var svgFile = context.Source.Get(svgPath);
+            var jsonFile = context.Source.Get(jsonPath);
 
             // If the identity doesn't have it version then it should be removed
             if (package.HasVersion)
             {
                 using (var stream = new MemoryStream())
                 {
-                    GetBadge(package, preRel).Save(stream);
+                    GetSvgBadge(package, preRel).Save(stream);
                     stream.Position = 0;
 
-                    await file.Write(stream, context.Log, context.Token);
+                    await svgFile.Write(stream, context.Log, context.Token);
                 }
+
+                await jsonFile.Write(GetJsonBadge(package, preRel), context.Log, context.Token);
             }
             else
             {
-                file.Delete(context.Log, context.Token);
+                svgFile.Delete(context.Log, context.Token);
+                jsonFile.Delete(context.Log, context.Token);
             }
-        }
-
-        public static string GetPath(string id, bool preRel)
-        {
-            var folder = preRel ? "vpre" : "v";
-            return $"badges/{folder}/{id}.svg".ToLowerInvariant();
         }
 
         /// <summary>
@@ -116,7 +117,7 @@ namespace Sleet
             return max;
         }
 
-        public static XDocument GetBadge(PackageIdentity package, bool includePre)
+        public static XDocument GetSvgBadge(PackageIdentity package, bool includePre)
         {
             var color = includePre ? COLOR_PRE : COLOR_STABLE;
 
@@ -126,6 +127,18 @@ namespace Sleet
                 .Replace(VERSION_TOKEN, package.Version.ToNormalizedString());
 
             return XDocument.Parse(s);
+        }
+
+        public static JObject GetJsonBadge(PackageIdentity package, bool includePre)
+        {
+            var color = includePre ? COLOR_PRE : COLOR_STABLE;
+
+            var json = new JObject();
+            json.Add("schemaVersion", 1);
+            json.Add("label", LABEL);
+            json.Add("message", package.Version.ToNormalizedString());
+            json.Add("color", color);
+            return json;
         }
     }
 }
