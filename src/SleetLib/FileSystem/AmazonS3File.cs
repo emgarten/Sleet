@@ -107,17 +107,12 @@ namespace Sleet
                 else if (key.EndsWith(".svg", StringComparison.Ordinal))
                 {
                     contentType = "image/svg+xml";
-                    if (compress)
-                    {
-                        contentEncoding = "gzip";
-                        writeStream = await Utility.GZipAsync(cache);
-                    }
                 }
                 else if (key.EndsWith(".json", StringComparison.Ordinal)
                          || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                 {
                     contentType = "application/json";
-                    if (compress)
+                    if (compress && !SkipCompress())
                     {
                         contentEncoding = "gzip";
                         writeStream = await JsonUtility.GZipAndMinifyAsync(cache);

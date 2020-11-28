@@ -9,6 +9,54 @@ namespace Sleet
     public static class SleetUtility
     {
         /// <summary>
+        /// Find the service from the path.
+        /// </summary>
+        public static ServiceNames GetServiceName(ISleetFile file)
+        {
+            var path = GetRelativePath(file).Trim('/').Split('/')[0].ToLowerInvariant();
+
+            switch (path)
+            {
+                case "badges":
+                    return ServiceNames.Badges;
+                case "registration":
+                    return ServiceNames.Registrations;
+                case "catalog":
+                    return ServiceNames.Catalog;
+                case "autocomplete":
+                    return ServiceNames.AutoComplete;
+                case "search":
+                    return ServiceNames.Search;
+                case "symbols":
+                    return ServiceNames.Symbols;
+                default:
+                    return ServiceNames.Unknown;
+            }
+        }
+
+        /// <summary>
+        /// Get the relative path of a file
+        /// </summary>
+        public static string GetRelativePath(ISleetFile file)
+        {
+            if (file is null)
+            {
+                throw new ArgumentNullException(nameof(file));
+            }
+
+            var fileSystemBase = file.FileSystem as FileSystemBase;
+
+            if (fileSystemBase != null)
+            {
+                return fileSystemBase.GetRelativePath(file.EntityUri);
+            }
+            else
+            {
+                return UriUtility.GetRelativePath(file.FileSystem.BaseURI, file.EntityUri);
+            }
+        }
+
+        /// <summary>
         /// Create a dictionary of packages by id
         /// </summary>
         public static Dictionary<string, List<T>> GetPackageSetsById<T>(IEnumerable<T> packages, Func<T, string> getId)
