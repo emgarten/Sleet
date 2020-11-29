@@ -20,7 +20,7 @@
         <IsDesktop>true</IsDesktop>
       </PropertyGroup>
     </When>
-    <When Condition="$(TargetFramework.Contains('netstandard')) OR $(TargetFramework.Contains('netcoreapp'))">
+    <When Condition="$(TargetFramework.Contains('netstandard')) OR $(TargetFramework.Contains('netcoreapp')) OR $(TargetFramework.Contains('net5'))">
       <PropertyGroup>
         <DefineConstants>$(DefineConstants);IS_CORECLR</DefineConstants>
         <IsCore>true</IsCore>

@@ -7,7 +7,6 @@ namespace Sleet
     public class ConsoleLogger : LoggerBase, IDisposable
     {
         private static readonly object _lockObj = new object();
-        private bool? _cursorVisibleOriginalState;
         private static readonly Lazy<bool> _isValidConsole = new Lazy<bool>(IsValidConsole);
         private static readonly Lazy<bool> _isCITrue = new Lazy<bool>(IsCIMode);
 
@@ -138,15 +137,14 @@ namespace Sleet
 
         private static bool IsValidConsole()
         {
+#if IS_DESKTOP
             try
             {
-#if IS_DESKTOP
                 // For non-interactive console such as on CIs use normal logging.
                 if (!Environment.UserInteractive)
                 {
                     return false;
                 }
-#endif
 
                 // Verify the console is valid and does not throw during any of these operations.
                 // Some web consoles have issues with Console.* properties.
@@ -169,19 +167,9 @@ namespace Sleet
             {
                 // Fall back to normal console out.
             }
+#endif
 
             return false;
-        }
-
-        private void HideCursor()
-        {
-            if (_cursorVisibleOriginalState == null && _isValidConsole.Value)
-            {
-                _cursorVisibleOriginalState = Console.CursorVisible;
-
-                // Hide the cursor to improve overwrites
-                Console.CursorVisible = false;
-            }
         }
     }
 }
