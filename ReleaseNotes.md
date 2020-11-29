@@ -1,5 +1,9 @@
 # Release Notes
 
+## 3.2.1
+* Added badge json for shields.io support [PR](https://github.com/emgarten/Sleet/pull/133)
+* Removed gzip compression for badges
+
 ## 3.2.0
 * dotnet config support [PR](https://github.com/emgarten/Sleet/pull/128)
 

@@ -426,5 +426,13 @@ namespace Sleet
                 throw new InvalidOperationException($"File is out of sync with the file system and cannot be used. This may occur if the file was kept externally while the file system was locked and unlocked between operations. Uri: {EntityUri.AbsoluteUri}");
             }
         }
+
+        /// <summary>
+        /// True if the file should not be compressed by default.
+        /// </summary>
+        protected virtual bool SkipCompress()
+        {
+            return (SleetUtility.GetServiceName(this) == ServiceNames.Badges);
+        }
     }
 }

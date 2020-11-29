@@ -73,15 +73,17 @@ namespace Sleet
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".svg", StringComparison.Ordinal))
                     {
                         _blob.Properties.ContentType = "image/svg+xml";
-                        _blob.Properties.ContentEncoding = "gzip";
-                        writeStream = await Utility.GZipAsync(cache);
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal)
                             || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                     {
                         _blob.Properties.ContentType = "application/json";
-                        _blob.Properties.ContentEncoding = "gzip";
-                        writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
+
+                        if (!SkipCompress())
+                        {
+                            _blob.Properties.ContentEncoding = "gzip";
+                            writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
+                        }
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
                         || _blob.Uri.AbsoluteUri.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
