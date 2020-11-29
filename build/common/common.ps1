@@ -22,7 +22,7 @@ Function Install-DotnetCLI {
 
         wget https://dot.net/v1/dotnet-install.ps1 -OutFile $installDotnet
 
-        & $installDotnet -Runtime dotnet -Version 5.0.0 -i $CLIRoot
+        & $installDotnet -Channel 5.0 -i $CLIRoot
 
         if (-not (Test-Path $DotnetExe)) {
             Write-Log "Missing $DotnetExe"
@@ -134,7 +134,7 @@ Function Install-DotnetTools {
 
     if (-not (Test-Path $toolsPath)) {
         Write-Host "Installing dotnet tools to $toolsPath"
-        $args = @("tool","install","--tool-path",$toolsPath,"--ignore-failed-sources","dotnet-format","--version","3.3.111304")
+        $args = @("tool","install","--tool-path",$toolsPath,"--ignore-failed-sources","dotnet-format","--version","4.1.131201")
 
         Invoke-DotnetExe $RepoRoot $args
     }

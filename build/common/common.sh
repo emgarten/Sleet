@@ -17,7 +17,7 @@ run_standard_tests()
 
     # Run install.sh
     chmod +x .cli/dotnet-install.sh
-    .cli/dotnet-install.sh -i .cli --runtime dotnet --version 5.0.0
+    .cli/dotnet-install.sh -i .cli --channel 5.0
   fi
 
   # Display info
@@ -28,7 +28,7 @@ run_standard_tests()
     echo "Installing dotnet tools"
     mkdir -p .nuget/tools
     
-    $DOTNET tool install --tool-path $DOTNET_TOOLS --ignore-failed-sources dotnet-format --version 3.1.37601
+    $DOTNET tool install --tool-path $DOTNET_TOOLS --ignore-failed-sources dotnet-format --version 4.1.131201
   fi
 
   $DOTNET_FORMAT -w $REPO_ROOT
