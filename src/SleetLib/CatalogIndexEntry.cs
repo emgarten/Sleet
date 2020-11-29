@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
 

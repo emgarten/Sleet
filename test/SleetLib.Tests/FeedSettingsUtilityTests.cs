@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Xunit;
-using Sleet;
-using FluentAssertions;
 using System.Diagnostics;
+using System.Text;
+using FluentAssertions;
 using Newtonsoft.Json.Linq;
+using Sleet;
+using Xunit;
 
 namespace SleetLib.Tests
 {
