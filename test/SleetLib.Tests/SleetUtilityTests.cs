@@ -29,6 +29,6 @@ namespace SleetLib.Tests
                 result.Should().Be(ServiceNames.Unknown);
             }
         }
-        
+
     }
 }

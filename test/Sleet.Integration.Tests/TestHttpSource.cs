@@ -1,4 +1,4 @@
-﻿using NuGet.Protocol;
+using NuGet.Protocol;
 
 namespace Sleet.Integration.Test
 {

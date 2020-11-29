@@ -4,10 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using NuGet.Protocol.Core.Types;
-using NuGet.Protocol;
-using NuGet.Test.Helpers;
 using NuGet.Common;
+using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
+using NuGet.Test.Helpers;
 using Sleet.Test.Common;
 using Xunit;
 

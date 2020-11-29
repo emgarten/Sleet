@@ -13,11 +13,11 @@ run_standard_tests()
   if [ ! -f $DOTNET ]; then
     echo "Installing dotnet"
     mkdir -p .cli
-    curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/sdk/983c8115e6341287a5866ed7be05c663c7e89614/scripts/obtain/dotnet-install.sh
+    curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/install-scripts/f82bb9c90fa6623cf3518539368c2bea80338e99/src/dotnet-install.sh
 
     # Run install.sh
     chmod +x .cli/dotnet-install.sh
-    .cli/dotnet-install.sh -i .cli -c 3.1 -v 3.1.101
+    .cli/dotnet-install.sh -i .cli --channel 5.0
   fi
 
   # Display info
@@ -28,7 +28,7 @@ run_standard_tests()
     echo "Installing dotnet tools"
     mkdir -p .nuget/tools
     
-    $DOTNET tool install --tool-path $DOTNET_TOOLS --ignore-failed-sources dotnet-format --version 3.1.37601
+    $DOTNET tool install --tool-path $DOTNET_TOOLS --ignore-failed-sources dotnet-format --version 4.1.131201
   fi
 
   $DOTNET_FORMAT -w $REPO_ROOT

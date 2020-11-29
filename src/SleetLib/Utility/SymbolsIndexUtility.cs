@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Reflection.PortableExecutable;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.IO;
+using System.Reflection.PortableExecutable;
+using System.Text;
 using NuGet.Packaging.Core;
 
 namespace Sleet

@@ -1,4 +1,4 @@
-﻿namespace Sleet
+namespace Sleet
 {
     public interface IRootIndex
     {
