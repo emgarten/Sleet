@@ -58,18 +58,11 @@ namespace SleetLib.Tests
                 validateOutput.Should().BeTrue();
 
                 // read output
-                var stablePath = Path.Combine(target.Root, "badges/v/a.svg");
-                var prePath = Path.Combine(target.Root, "badges/vpre/a.svg");
-                File.Exists(stablePath).Should().BeTrue();
-                File.Exists(prePath).Should().BeTrue();
-
                 var stablePathJson = Path.Combine(target.Root, "badges/v/a.json");
                 var prePathJson = Path.Combine(target.Root, "badges/vpre/a.json");
                 File.Exists(stablePathJson).Should().BeTrue();
                 File.Exists(prePathJson).Should().BeTrue();
 
-                File.ReadAllText(stablePath).Should().Contain("1.0.0-a");
-                File.ReadAllText(prePath).Should().Contain("1.0.0-a");
                 File.ReadAllText(stablePathJson).Should().Contain("1.0.0-a");
                 File.ReadAllText(prePathJson).Should().Contain("1.0.0-a");
             }
@@ -121,14 +114,6 @@ namespace SleetLib.Tests
                 validateOutput.Should().BeTrue();
 
                 // read output
-                var stablePath = Path.Combine(target.Root, "badges/v/a.svg");
-                var prePath = Path.Combine(target.Root, "badges/vpre/a.svg");
-                File.Exists(stablePath).Should().BeTrue();
-                File.Exists(prePath).Should().BeTrue();
-
-                File.ReadAllText(stablePath).Should().Contain("2.0.0");
-                File.ReadAllText(prePath).Should().Contain("3.0.0-a");
-
                 var stablePathJson = Path.Combine(target.Root, "badges/v/a.json");
                 var prePathJson = Path.Combine(target.Root, "badges/vpre/a.json");
                 File.Exists(stablePathJson).Should().BeTrue();
@@ -188,15 +173,6 @@ namespace SleetLib.Tests
                 validateOutput.Should().BeTrue();
 
                 // read output
-                var stablePath = Path.Combine(target.Root, "badges/v/a.svg");
-                var prePath = Path.Combine(target.Root, "badges/vpre/a.svg");
-                File.Exists(stablePath).Should().BeTrue();
-                File.Exists(prePath).Should().BeTrue();
-
-                File.ReadAllText(stablePath).Should().Contain("1.0.0-a");
-                File.ReadAllText(prePath).Should().Contain("1.0.0-a");
-
-
                 var stablePathJson = Path.Combine(target.Root, "badges/v/a.json");
                 var prePathJson = Path.Combine(target.Root, "badges/vpre/a.json");
                 File.Exists(stablePathJson).Should().BeTrue();

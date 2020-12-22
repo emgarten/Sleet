@@ -432,7 +432,9 @@ namespace Sleet
         /// </summary>
         protected virtual bool SkipCompress()
         {
-            return (SleetUtility.GetServiceName(this) == ServiceNames.Badges);
+            // Example of skipping compression by service
+            // return (SleetUtility.GetServiceName(this) == ServiceNames.Badges);
+            return false;
         }
     }
 }
