@@ -6,10 +6,19 @@ namespace Sleet
 {
     public static class RetentionSettingsCommand
     {
+
         /// <summary>
         /// Enable/Disable retention and commit
         /// </summary>
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, int stableVersionMax, int prereleaseVersionMax, bool disableRetention, ILogger log)
+        public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, int stableVersionMax, int prereleaseVersionMax, bool disableRetention, ILogger log)
+        {
+            return RunAsync(settings, source, stableVersionMax, prereleaseVersionMax, null, disableRetention, log);
+        }
+
+        /// <summary>
+        /// Enable/Disable retention and commit
+        /// </summary>
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, int stableVersionMax, int prereleaseVersionMax, int? releaseLabelCount, bool disableRetention, ILogger log)
         {
             var exitCode = false;
 
@@ -43,7 +52,7 @@ namespace Sleet
                 else if (stableVersionMax > 0 && prereleaseVersionMax > 0)
                 {
                     // Add max version settings
-                    exitCode = await UpdateRetentionSettings(context, stableVersionMax, prereleaseVersionMax);
+                    exitCode = await UpdateRetentionSettings(context, stableVersionMax, prereleaseVersionMax, releaseLabelCount);
                 }
             }
 
@@ -53,7 +62,7 @@ namespace Sleet
         /// <summary>
         /// Enable package retention and update settings.
         /// </summary>
-        public static async Task<bool> UpdateRetentionSettings(SleetContext context, int stableVersionMax, int prereleaseVersionMax)
+        public static async Task<bool> UpdateRetentionSettings(SleetContext context, int stableVersionMax, int prereleaseVersionMax, int? releaseLabelCount)
         {
             var exitCode = true;
             var log = context.Log;
@@ -61,6 +70,7 @@ namespace Sleet
             var feedSettings = context.SourceSettings;
             feedSettings.RetentionMaxStableVersions = stableVersionMax;
             feedSettings.RetentionMaxPrereleaseVersions = prereleaseVersionMax;
+            feedSettings.RetentionGroupByFirstPrereleaseLabelCount = releaseLabelCount;
 
             await FeedSettingsUtility.SaveSettings(context.Source, feedSettings, log, context.Token);
 
@@ -69,7 +79,10 @@ namespace Sleet
 
             if (exitCode)
             {
-                await log.LogAsync(LogLevel.Minimal, $"Successfully updated package retention settings. Stable: {stableVersionMax} Prerelease: {prereleaseVersionMax}.");
+                var releaseLabelsMessage = releaseLabelCount > 0 ? $" Group by release labels: {releaseLabelCount}" : string.Empty;
+
+                await log.LogAsync(LogLevel.Minimal, $"Successfully updated package retention settings. Stable: {stableVersionMax} Prerelease: {prereleaseVersionMax}{releaseLabelsMessage}");
+
                 await log.LogAsync(LogLevel.Minimal, $"Run prune to apply the new settings and remove packages from the feed.");
             }
             else
@@ -91,6 +104,7 @@ namespace Sleet
             var feedSettings = context.SourceSettings;
             feedSettings.RetentionMaxStableVersions = null;
             feedSettings.RetentionMaxPrereleaseVersions = null;
+            feedSettings.RetentionGroupByFirstPrereleaseLabelCount = null;
 
             await FeedSettingsUtility.SaveSettings(context.Source, feedSettings, log, context.Token);
 

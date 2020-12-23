@@ -145,6 +145,7 @@ Package retention commands for pruning and limiting package versions.
 | --- | ------ |
 | stable | Number of stable versions per package id to retain. |
 | prerelease | Number of prerelease versions per package id to retain. |
+| release-labels | Retain *prerelease* versions based on the semantic version release labels. |
 | disable | Disable package retention. |
 
 ### Examples
@@ -168,6 +169,44 @@ Or with package ids to prune only select packages
 Disable automatic package pruning with *--disable*
 
 ``sleet retention settings --disable``
+
+### Retain packages by release labels
+
+Sleet supports advanced pruning on prerelease packages using semantic version release labels.
+
+Example feed packages:
+```
+1.0.0-beta.branch.a.build.100
+1.0.0-beta.branch.a.build.101
+1.0.0-beta.branch.a.build.102
+1.0.0-beta.branch.a.build.103
+1.0.0-beta.branch.z.build.205
+1.0.0-beta.branch.z.build.206
+1.0.0-beta.branch.z.build.207
+1.0.0-rc.branch.a.build.308
+```
+
+To prune packages based on the first 3 release labels run:
+
+``sleet retention prune --stable 3 --prerelease 1 --release-labels 3``
+
+Or apply the setting to the feed for future pushes with:
+
+``sleet retention settings --stable 3 --prerelease 1 --release-labels 3``
+
+Packages will be put into unique groups by `VERSION-FIRST.SECOND.THIRD.*` 
+with only the highest `1` prerelease packages remaining.
+
+After the prune the packages left are:
+```
+1.0.0-beta.branch.a.build.102
+1.0.0-beta.branch.z.build.207
+1.0.0-rc.branch.a.build.308
+```
+
+The major, minor, and patch part of the version are used for ordering versions but are not used
+for determining unique groups. All prerelease packages with `beta.branch.a` will be grouped together
+and only the highest version will be left.
 
 ## Properties and settings
 

@@ -27,6 +27,7 @@ namespace Sleet
 
             var stableVersions = cmd.Option("--stable", "Number of stable versions per package id. If not specified the feed settings will be used.", CommandOptionType.SingleValue);
             var prereleaseVersions = cmd.Option("--prerelease", "Number of prerelease versions per package id. If not specified the feed settings will be used.", CommandOptionType.SingleValue);
+            var releaseLabelsValue = cmd.Option("--release-labels", "Group prerelease packages by the first X release labels. Each group will be pruned to the prerelease max if applied. (optional)", CommandOptionType.SingleValue);
             var packageIds = cmd.Option("--package", "Prune only the given package ids", CommandOptionType.MultipleValue);
             var dryRun = cmd.Option("--dry-run", "Print out all versions that would be deleted without actually removing them.", CommandOptionType.NoValue);
             var propertyOptions = cmd.Option(Constants.PropertyOption, Constants.PropertyDescription, CommandOptionType.MultipleValue);
@@ -55,6 +56,7 @@ namespace Sleet
                         DryRun = dryRun.HasValue(),
                         StableVersionMax = stableVersions.HasValue() ? (int?)int.Parse(stableVersions.Value()) : null,
                         PrereleaseVersionMax = prereleaseVersions.HasValue() ? (int?)int.Parse(prereleaseVersions.Value()) : null,
+                        GroupByFirstPrereleaseLabelCount = releaseLabelsValue.HasValue() ? (int?)int.Parse(releaseLabelsValue.Value()) : null,
                     };
 
                     if (packageIds.HasValue())

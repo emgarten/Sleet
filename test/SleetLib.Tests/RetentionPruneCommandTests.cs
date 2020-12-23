@@ -525,5 +525,71 @@ namespace SleetLib.Tests
                 indexPackages.Contains(new PackageIdentity("b", NuGetVersion.Parse("3.0.0-beta"))).Should().BeTrue();
             }
         }
+
+        [Fact]
+        public async Task RetentionPruneCommand_RemovesAdditionalPackages_BasedOnReleaseLabels()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true,
+                        SymbolsEnabled = true
+                    }
+                };
+
+                var identities = new HashSet<PackageIdentity>()
+                {
+                    new PackageIdentity("a", NuGetVersion.Parse("1.0.0-beta.a.1")),
+                    new PackageIdentity("a", NuGetVersion.Parse("1.0.0-beta.a.2")),
+                    new PackageIdentity("a", NuGetVersion.Parse("1.0.0-beta.b.1")),
+                    new PackageIdentity("a", NuGetVersion.Parse("1.0.0-beta.b.2")),
+                };
+
+                foreach (var id in identities)
+                {
+                    var testPackage = new TestNupkg(id.Id, id.Version.ToFullString());
+                    var zipFile = testPackage.Save(packagesFolder.Root);
+                }
+
+                await InitCommand.InitAsync(context);
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { packagesFolder.Root }, false, false, context.Log);
+
+                var pruneContext = new RetentionPruneCommandContext()
+                {
+                    StableVersionMax = 1024,
+                    PrereleaseVersionMax = 1,
+                    GroupByFirstPrereleaseLabelCount = 2
+                };
+
+                // Run prune
+                await RetentionPruneCommand.PrunePackages(context, pruneContext);
+
+                // Validate
+                var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
+
+                // read output
+                var packageIndex = new PackageIndex(context);
+                var indexPackages = await packageIndex.GetPackagesAsync();
+
+                // Assert
+                indexPackages.Count().Should().Be(2);
+                indexPackages.Contains(new PackageIdentity("a", NuGetVersion.Parse("1.0.0-beta.a.2"))).Should().BeTrue();
+                indexPackages.Contains(new PackageIdentity("a", NuGetVersion.Parse("1.0.0-beta.b.2"))).Should().BeTrue();
+            }
+        }
     }
 }

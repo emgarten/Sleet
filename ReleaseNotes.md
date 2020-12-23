@@ -5,6 +5,7 @@
 * Dropped netcoreapp2.1 and netcoreapp3.1 support
 * Badges are now enabled by default
 * SVG badges have been removed in favor of using shields.io via json files from the feed
+* Added prune by release labels option to package retention
 
 ## 3.2.1
 * Added badge json for shields.io support [PR](https://github.com/emgarten/Sleet/pull/133)
