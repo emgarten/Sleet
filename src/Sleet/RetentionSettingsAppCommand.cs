@@ -27,6 +27,7 @@ namespace Sleet
 
             var stableVersions = cmd.Option("--stable", "Number of stable versions per package id to retain.", CommandOptionType.SingleValue);
             var prereleaseVersions = cmd.Option("--prerelease", "Number of prerelease versions per package id to retain.", CommandOptionType.SingleValue);
+            var releaseLabelsValue = cmd.Option("--release-labels", "Group prerelease packages by the first X release labels. Each group will be pruned to the prerelease max if applied. (optional)", CommandOptionType.SingleValue);
             var disableRetention = cmd.Option("--disable", "Disable package retention.", CommandOptionType.NoValue);
             var propertyOptions = cmd.Option(Constants.PropertyOption, Constants.PropertyDescription, CommandOptionType.MultipleValue);
 
@@ -58,8 +59,14 @@ namespace Sleet
 
                     var stableVersionMax = stableVersions.HasValue() ? int.Parse(stableVersions.Value()) : -1;
                     var prereleaseVersionMax = prereleaseVersions.HasValue() ? int.Parse(prereleaseVersions.Value()) : -1;
+                    int? releaseLabelsCount = null;
 
-                    success = await RetentionSettingsCommand.RunAsync(settings, fileSystem, stableVersionMax, prereleaseVersionMax, disableRetention.HasValue(), log);
+                    if (releaseLabelsValue.HasValue())
+                    {
+                        releaseLabelsCount = int.Parse(releaseLabelsValue.Value());
+                    }
+
+                    success = await RetentionSettingsCommand.RunAsync(settings, fileSystem, stableVersionMax, prereleaseVersionMax, releaseLabelsCount, disableRetention.HasValue(), log);
 
                     return success ? 0 : 1;
                 }

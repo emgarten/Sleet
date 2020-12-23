@@ -85,6 +85,7 @@ namespace Sleet
 
             var stableMax = pruneContext.StableVersionMax == null ? context.SourceSettings.RetentionMaxStableVersions : pruneContext.StableVersionMax;
             var prerelMax = pruneContext.PrereleaseVersionMax == null ? context.SourceSettings.RetentionMaxPrereleaseVersions : pruneContext.PrereleaseVersionMax;
+            var prerelLabelCount = pruneContext.GroupByFirstPrereleaseLabelCount == null ? context.SourceSettings.RetentionGroupByFirstPrereleaseLabelCount : pruneContext.GroupByFirstPrereleaseLabelCount;
 
             if (stableMax == null || stableMax < 1)
             {
@@ -101,7 +102,7 @@ namespace Sleet
                 allPackages.RemoveWhere(e => !pruneContext.PackageIds.Contains(e.Id));
             }
 
-            var toPrune = RetentionUtility.GetPackagesToPrune(allPackages, pruneContext.PinnedPackages, (int)stableMax, (int)prerelMax);
+            var toPrune = RetentionUtility.GetPackagesToPrune(allPackages, pruneContext.PinnedPackages, (int)stableMax, (int)prerelMax, prerelLabelCount);
 
             await RemovePackages(context, existingPackageSets, toPrune, pruneContext.DryRun, context.Log);
 

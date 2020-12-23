@@ -79,6 +79,9 @@ namespace Sleet
                     case "retentionmaxprereleaseversions":
                         settings.RetentionMaxPrereleaseVersions = GetIntOrDefault(pair.Value, defaultValue: -1);
                         break;
+                    case "retentiongroupbyfirstprereleaselabelcount":
+                        settings.RetentionGroupByFirstPrereleaseLabelCount = GetIntOrDefault(pair.Value, defaultValue: -1);
+                        break;
                 }
             }
 
@@ -116,6 +119,11 @@ namespace Sleet
             if (settings.RetentionMaxPrereleaseVersions > 0)
             {
                 values.Add("retentionmaxprereleaseversions", settings.RetentionMaxPrereleaseVersions.ToString());
+            }
+
+            if (settings.RetentionGroupByFirstPrereleaseLabelCount > 0)
+            {
+                values.Add("retentiongroupbyfirstprereleaselabelcount", settings.RetentionGroupByFirstPrereleaseLabelCount.ToString());
             }
 
             return values;

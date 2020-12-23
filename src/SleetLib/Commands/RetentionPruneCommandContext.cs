@@ -13,6 +13,8 @@ namespace Sleet
 
         public int? PrereleaseVersionMax { get; set; }
 
+        public int? GroupByFirstPrereleaseLabelCount { get; set; }
+
         /// <summary>
         /// Filter to only certain package ids.
         /// If empty all packages are processed.

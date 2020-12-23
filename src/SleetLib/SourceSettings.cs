@@ -28,6 +28,13 @@ namespace Sleet
         public int? RetentionMaxPrereleaseVersions { get; set; }
 
         /// <summary>
+        /// Package retention - Number of prelease labels to take when grouping packages.
+        /// Ex: 1.0.0-beta.branch.fox.build.2344 using a count of 3 will allow RetentionMaxPrereleaseVersions
+        /// for all 1.0.0-beta.branch.fox.* packages
+        /// </summary>
+        public int? RetentionGroupByFirstPrereleaseLabelCount { get; set; }
+
+        /// <summary>
         /// Version badges, if enabled svg files for the latest versions will be written out.
         /// </summary>
         public bool BadgesEnabled { get; set; } = false;
