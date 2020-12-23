@@ -2,7 +2,9 @@
 
 ## 4.0.0
 * Added net5.0 support
-* Dropped netcoreapp2.1 and netcoreapp3.1 support 
+* Dropped netcoreapp2.1 and netcoreapp3.1 support
+* Badges are now enabled by default
+* SVG badges have been removed in favor of using shields.io via json files from the feed
 
 ## 3.2.1
 * Added badge json for shields.io support [PR](https://github.com/emgarten/Sleet/pull/133)

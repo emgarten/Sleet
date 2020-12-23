@@ -71,7 +71,7 @@ namespace Sleet
                         settings.SymbolsEnabled = GetBoolOrDefault(pair.Value, defaultValue: false);
                         break;
                     case "badgesenabled":
-                        settings.BadgesEnabled = GetBoolOrDefault(pair.Value, defaultValue: false);
+                        settings.BadgesEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
                         break;
                     case "retentionmaxstableversions":
                         settings.RetentionMaxStableVersions = GetIntOrDefault(pair.Value, defaultValue: -1);

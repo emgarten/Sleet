@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
@@ -15,31 +13,25 @@ namespace Sleet
         private const string COLOR_STABLE = "#007ec6";
         private const string COLOR_PRE = "#dfb317";
         private const string LABEL = "nuget";
-        private const string COLOR_TOKEN = "$COLOR$";
-        private const string LABEL_TOKEN = "$LABEL$";
-        private const string VERSION_TOKEN = "$VERSION$";
 
         /// <summary>
         /// Update all feed badges
         /// </summary>
-        public static async Task UpdateBadges(SleetContext context, ISet<PackageIdentity> before, ISet<PackageIdentity> after)
+        public static Task UpdateBadges(SleetContext context, ISet<PackageIdentity> before, ISet<PackageIdentity> after)
         {
             var stable = GetChanges(before, after, preRel: false);
             var pre = GetChanges(before, after, preRel: true);
 
-            await UpdateBadges(context, stable, preRel: false);
-            await UpdateBadges(context, pre, preRel: true);
+            return Task.WhenAll(UpdateBadges(context, stable, preRel: false), UpdateBadges(context, pre, preRel: true));
         }
 
         /// <summary>
         /// Update feed badges for stable or prerelease
         /// </summary>
-        public static async Task UpdateBadges(SleetContext context, ISet<PackageIdentity> updates, bool preRel)
+        public static Task UpdateBadges(SleetContext context, ISet<PackageIdentity> updates, bool preRel)
         {
-            foreach (var package in updates)
-            {
-                await UpdateOrRemoveBadge(context, package, preRel);
-            }
+            var tasks = new List<Func<Task>>(updates.Select(e => new Func<Task>(() => UpdateOrRemoveBadge(context, e, preRel))));
+            return TaskUtils.RunAsync(tasks);
         }
 
         /// <summary>
@@ -56,15 +48,7 @@ namespace Sleet
             // If the identity doesn't have it version then it should be removed
             if (package.HasVersion)
             {
-                using (var stream = new MemoryStream())
-                {
-                    GetSvgBadge(package, preRel).Save(stream);
-                    stream.Position = 0;
-
-                    await svgFile.Write(stream, context.Log, context.Token);
-                }
-
-                await jsonFile.Write(GetJsonBadge(package, preRel), context.Log, context.Token);
+                await jsonFile.Write(GetJsonBadge(package), context.Log, context.Token);
             }
             else
             {
@@ -117,28 +101,23 @@ namespace Sleet
             return max;
         }
 
-        public static XDocument GetSvgBadge(PackageIdentity package, bool includePre)
+        public static JObject GetJsonBadge(PackageIdentity package)
         {
-            var color = includePre ? COLOR_PRE : COLOR_STABLE;
+            var color = package.Version.IsPrerelease ? COLOR_PRE : COLOR_STABLE;
 
-            var templateString = TemplateUtility.GetBadgeTemplate();
-            var s = templateString.Replace(COLOR_TOKEN, color)
-                .Replace(LABEL_TOKEN, LABEL)
-                .Replace(VERSION_TOKEN, package.Version.ToNormalizedString());
-
-            return XDocument.Parse(s);
+            var json = new JObject
+            {
+                { "schemaVersion", 1 },
+                { "label", LABEL },
+                { "message", GetBadgeVersion(package.Version) },
+                { "color", color }
+            };
+            return json;
         }
 
-        public static JObject GetJsonBadge(PackageIdentity package, bool includePre)
+        private static string GetBadgeVersion(NuGetVersion version)
         {
-            var color = includePre ? COLOR_PRE : COLOR_STABLE;
-
-            var json = new JObject();
-            json.Add("schemaVersion", 1);
-            json.Add("label", LABEL);
-            json.Add("message", package.Version.ToNormalizedString());
-            json.Add("color", color);
-            return json;
+            return $"v{version.ToNormalizedString()}";
         }
     }
 }
