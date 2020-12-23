@@ -1,11 +1,6 @@
 # Badges
 
-Sleet supports generating package version badges similar to [shields.io](https://shields.io/) as of version 3.1.26
-
-## How to enable badges on sleet
-Badges can be enabled in the feed settings using the following command
-
-`sleet feed-settings --set badgesenabled:true`
+Sleet supports generating package version badges using [shields.io](https://shields.io/)
 
 ## Badge URLs
 
@@ -16,7 +11,7 @@ Badges can be enabled in the feed settings using the following command
 
 ## Badge URLs using shields.io
 
-Badges can also be generated from a json file on the feed using *shields.io* and customized.
+Badges are generated from a json file on the feed using *shields.io*
 
 | version | url format |
 | ------- | --- |
@@ -24,3 +19,12 @@ Badges can also be generated from a json file on the feed using *shields.io* and
 | prerelease |  `https://img.shields.io/endpoint?url={feed url}/badges/vpre/{package id}.json` |
 
 See [shields.io](https://shields.io/) for further options on customizing the badge style.
+
+Note that the feed url must include the S3 bucket or Azure container name in additional to the base url.
+
+## How to disable badges on sleet
+Badges can be disabled in the feed settings using the following command
+
+`sleet feed-settings --set badgesenabled:false`
+
+Badges are enabled by default for new feeds.
