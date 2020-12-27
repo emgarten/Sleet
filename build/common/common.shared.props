@@ -54,6 +54,9 @@
   <Import Project="$(CIRootDirectory)common\*.props" />
   <Import Project="$(CIRootDirectory)$(RepositoryName)\*.props" />
 
+  <!-- Default nuspec props -->
+  <Import Project="$(BuildCommonDirectory)nuspec.props" />
+
   <!-- MSBuild generated props -->
   <Import Project="$(MSBuildArtifactsDirectory)*.props" />
 </Project>

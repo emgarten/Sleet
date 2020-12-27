@@ -74,18 +74,18 @@ namespace Sleet
         /// <summary>
         /// Create a PackageDetails page that contains all the package information.
         /// </summary>
-        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Uri nupkgUri, Guid commitId, bool writeFileList)
+        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Uri nupkgUri, Uri iconUri, Guid commitId, bool writeFileList)
         {
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
             var rootUri = UriUtility.GetPath(catalogBaseURI, $"data/{pageId}.json");
 
-            return CreatePackageDetailsWithExactUriAsync(packageInput, rootUri, nupkgUri, commitId, writeFileList);
+            return CreatePackageDetailsWithExactUriAsync(packageInput, rootUri, nupkgUri, iconUri, commitId, writeFileList);
         }
 
         /// <summary>
         /// Create a PackageDetails page that contains all the package information and an exact uri.
         /// </summary>
-        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Uri nupkgUri, Guid commitId, bool writeFileList)
+        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Uri nupkgUri, Uri iconUri, Guid commitId, bool writeFileList)
         {
             var now = DateTimeOffset.UtcNow;
             var nuspecReader = packageInput.Nuspec;
@@ -109,7 +109,6 @@ namespace Sleet
                 "authors",
                 "copyright",
                 "description",
-                "iconUrl",
                 "projectUrl",
                 "licenseUrl",
                 "language",
@@ -122,6 +121,10 @@ namespace Sleet
             {
                 json.Add(CreateProperty(propertyName, propertyName, nuspecReader));
             }
+
+            // Override the icon url with a url pointing to the feed icon if one exists in the package
+            // Ignore the old external icon url in the nuspec, it has been deprecated and leaks the user's ip
+            json.Add("iconUrl", iconUri == null ? string.Empty : iconUri.AbsoluteUri);
 
             json.Add("isPrerelease", packageInput.Identity.Version.IsPrerelease);
 

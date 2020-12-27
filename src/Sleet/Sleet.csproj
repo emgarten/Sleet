@@ -23,14 +23,6 @@
     <PublishProject>true</PublishProject>
     <SkipDocs>true</SkipDocs>
 
-    <Authors>emgarten</Authors>
-    <PackageLicenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</PackageLicenseUrl>
-    <PackageIconUrl>https://emgartenstatic.blob.core.windows.net/nupkgs/icons/sleet.png</PackageIconUrl>
-    <ProjectUrl>https://github.com/emgarten/Sleet</ProjectUrl>
-    <Copyright>Copyright © 2019 Justin Emgarten</Copyright>
-    <PackageTags>nuget nugetserver nugetfeed</PackageTags>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>$(ProjectUrl)</RepositoryUrl>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
   </PropertyGroup>
 

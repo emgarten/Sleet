@@ -101,9 +101,10 @@ namespace SleetLib.Tests
                 {
                     var input = PackageInput.Create(zipFile.FullName);
                     var nupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0-alpha.1/packageA.1.0.0-alpha.1.nupkg");
+                    var iconUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/icon");
 
                     // Act
-                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, nupkgUri, context.CommitId, writeFileList: true);
+                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, nupkgUri, iconUri, context.CommitId, writeFileList: true);
 
                     var dependencyGroups = actual["dependencyGroups"] as JArray;
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;
@@ -114,7 +115,7 @@ namespace SleetLib.Tests
                     Assert.Equal(testPackage.Nuspec.Authors, actual["authors"].ToString());
                     Assert.Equal(testPackage.Nuspec.Copyright, actual["copyright"].ToString());
                     Assert.Equal(testPackage.Nuspec.Description, actual["description"].ToString());
-                    Assert.Equal(testPackage.Nuspec.IconUrl, actual["iconUrl"].ToString());
+                    Assert.Equal(iconUri.AbsoluteUri, actual["iconUrl"].ToString());
                     Assert.Equal(testPackage.Nuspec.LicenseUrl, actual["licenseUrl"].ToString());
                     Assert.Equal(testPackage.Nuspec.MinClientVersion, actual["minClientVersion"].ToString());
                     Assert.Equal(testPackage.Nuspec.ProjectUrl, actual["projectUrl"].ToString());
@@ -182,9 +183,10 @@ namespace SleetLib.Tests
                 {
                     var input = PackageInput.Create(zipFile.FullName);
                     var nupkgUri = UriUtility.CreateUri("http://tempuri.org/flatcontainer/packageA/1.0.0/packageA.1.0.0.nupkg");
+                    Uri iconUri = null;
 
                     // Act
-                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, nupkgUri, context.CommitId, writeFileList: true);
+                    var actual = await CatalogUtility.CreatePackageDetailsAsync(input, catalog.CatalogBaseURI, nupkgUri, iconUri, context.CommitId, writeFileList: true);
 
                     var dependencyGroups = actual["dependencyGroups"] as JArray;
                     var frameworkAssemblyGroups = actual["frameworkAssemblyGroup"] as JArray;
