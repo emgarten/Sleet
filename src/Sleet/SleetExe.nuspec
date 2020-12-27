@@ -6,17 +6,20 @@
     <authors>emgarten</authors>
     <owners>emgarten</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <licenseUrl>https://github.com/emgarten/Sleet/blob/master/LICENSE.md</licenseUrl>
-    <projectUrl>https://github.com/emgarten/Sleet/</projectUrl>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>icon.png</icon>
+    <projectUrl>https://github.com/emgarten/Sleet</projectUrl>
     <description>Sleet is a static feed generator for NuGet package feeds. This package contains Sleet.exe, an alternative to the dotnet tool.</description>
-    <copyright>Copyright © 2019 Justin Emgarten</copyright>
-    <tags>nuget nugetserver nugetfeed</tags>
+    <copyright>Copyright © 2021 Justin Emgarten</copyright>
+    <tags>nuget nugetserver nugetfeed sleet</tags>
     <repository type="git" url="https://github.com/emgarten/Sleet" branch="$branch$" commit="$commit$" />
     <developmentDependency>true</developmentDependency>
-    <iconUrl>https://emgartenstatic.blob.core.windows.net/nupkgs/icons/sleet.png</iconUrl>
+    <icon>icon.png</icon>
   </metadata>
   <files>
     <file src="..\..\artifacts\publish\*.exe" target="tools\" />
     <file src="..\..\build\nupkgIncludes\Sleet.props" target="build\net46\Sleet.props" />
+    <file src="..\..\build\common\icon.png" target="" />
   </files>
 </package>

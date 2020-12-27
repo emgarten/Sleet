@@ -335,6 +335,7 @@ namespace Sleet.Integration.Test
                         Authors = "author",
                         Description = "desc",
                         IconUrl = "http://www.tempuri.org/",
+                        Icon = "icon.png",
                         Language = "en-us",
                         MinClientVersion = "1.0.0",
                         Title = "title",
@@ -346,6 +347,10 @@ namespace Sleet.Integration.Test
                         Owners = "owners",
                         Copyright = "copyright",
                         RequireLicenseAcceptance = "true"
+                    },
+                    Files = new List<TestNupkgFile>()
+                    {
+                        new TestNupkgFile("icon.png")
                     }
                 };
 
@@ -358,6 +363,7 @@ namespace Sleet.Integration.Test
                         Authors = "author2",
                         Description = "desc2",
                         IconUrl = "http://www.tempuri2.org/",
+                        Icon = "icon.png",
                         Language = "en-us",
                         MinClientVersion = "1.0.0",
                         Title = "title2",
@@ -369,6 +375,10 @@ namespace Sleet.Integration.Test
                         Owners = "owners2",
                         Copyright = "copyright2",
                         RequireLicenseAcceptance = "true"
+                    },
+                    Files = new List<TestNupkgFile>()
+                    {
+                        new TestNupkgFile("icon.png")
                     }
                 };
 
@@ -403,7 +413,7 @@ namespace Sleet.Integration.Test
                 Assert.Equal(testPackage.Nuspec.Authors, resultArray[0].Authors);
                 Assert.Equal(testPackage.Nuspec.Description, resultArray[0].Description);
                 Assert.Null(resultArray[0].DownloadCount);
-                Assert.Equal(testPackage.Nuspec.IconUrl, resultArray[0].IconUrl.AbsoluteUri);
+                Assert.Equal("https://localhost:8080/testFeed/flatcontainer/packagea/1.0.0/icon", resultArray[0].IconUrl.AbsoluteUri);
                 Assert.Equal(testPackage.Nuspec.Id, resultArray[0].Identity.Id);
                 Assert.Equal(testPackage.Nuspec.Version.ToString(), resultArray[0].Identity.Version.ToString());
                 Assert.Equal(testPackage.Nuspec.LicenseUrl, resultArray[0].LicenseUrl.AbsoluteUri);
@@ -419,7 +429,7 @@ namespace Sleet.Integration.Test
                 Assert.Equal(testPackage2.Nuspec.Authors, resultArray[1].Authors);
                 Assert.Equal(testPackage2.Nuspec.Description, resultArray[1].Description);
                 Assert.Null(resultArray[1].DownloadCount);
-                Assert.Equal(testPackage2.Nuspec.IconUrl, resultArray[1].IconUrl.AbsoluteUri);
+                Assert.Equal("https://localhost:8080/testFeed/flatcontainer/packagea/2.0.0/icon", resultArray[1].IconUrl.AbsoluteUri);
                 Assert.Equal(testPackage2.Nuspec.Id, resultArray[1].Identity.Id);
                 Assert.Equal(testPackage2.Nuspec.Version.ToString(), resultArray[1].Identity.Version.ToString());
                 Assert.Equal(testPackage2.Nuspec.LicenseUrl, resultArray[1].LicenseUrl.AbsoluteUri);
@@ -457,6 +467,7 @@ namespace Sleet.Integration.Test
                         Authors = "author",
                         Description = "desc",
                         IconUrl = "http://www.tempuri.org",
+                        Icon = "images/icon.png",
                         Language = "en-us",
                         MinClientVersion = "1.0.0",
                         Title = "title",
@@ -468,6 +479,10 @@ namespace Sleet.Integration.Test
                         Owners = "owners",
                         Copyright = "copyright",
                         RequireLicenseAcceptance = "true"
+                    },
+                    Files = new List<TestNupkgFile>()
+                    {
+                        new TestNupkgFile("images/icon.png")
                     }
                 };
 
@@ -480,6 +495,7 @@ namespace Sleet.Integration.Test
                         Authors = "author2",
                         Description = "desc2",
                         IconUrl = "http://www.tempuri2.org/",
+                        Icon = "images/icon.png",
                         Language = "en-us",
                         MinClientVersion = "1.0.0",
                         Title = "title2",
@@ -491,6 +507,10 @@ namespace Sleet.Integration.Test
                         Owners = "owners2",
                         Copyright = "copyright2",
                         RequireLicenseAcceptance = "true"
+                    },
+                    Files = new List<TestNupkgFile>()
+                    {
+                        new TestNupkgFile("images/icon.png")
                     }
                 };
 
@@ -527,7 +547,7 @@ namespace Sleet.Integration.Test
                 Assert.Equal(testPackage2.Nuspec.Authors, result.Authors);
                 Assert.Equal(testPackage2.Nuspec.Description, result.Description);
                 Assert.Equal(0, result.DownloadCount);
-                Assert.Equal(testPackage2.Nuspec.IconUrl, result.IconUrl.AbsoluteUri);
+                Assert.Equal("https://localhost:8080/testFeed/flatcontainer/packagea/2.0.0/icon", result.IconUrl.AbsoluteUri);
                 Assert.Equal(testPackage2.Nuspec.Id, result.Identity.Id);
                 Assert.Equal(testPackage2.Nuspec.Version.ToString(), result.Identity.Version.ToString());
                 Assert.Equal(testPackage2.Nuspec.LicenseUrl, result.LicenseUrl.AbsoluteUri);

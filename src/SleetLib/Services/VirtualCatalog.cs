@@ -83,7 +83,8 @@ namespace Sleet
         {
             // Create a a details page and assign it to the input
             var nupkgUri = packageInput.GetNupkgUri(_context);
-            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, nupkgUri, _context.CommitId, writeFileList: false);
+            var iconUri = packageInput.GetIconUri(_context);
+            var packageDetails = await CatalogUtility.CreatePackageDetailsAsync(packageInput, CatalogBaseURI, nupkgUri, iconUri, _context.CommitId, writeFileList: false);
             packageInput.PackageDetails = packageDetails;
         }
 

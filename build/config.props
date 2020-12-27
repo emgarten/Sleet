@@ -6,7 +6,7 @@
     <MicrosoftAzureStorageBlobVersion>11.2.2</MicrosoftAzureStorageBlobVersion>
     <JsonVersion>12.0.3</JsonVersion>
     <CommandLineUtilsVersion>2.0.0</CommandLineUtilsVersion>
-    <NuGetTestHelpersVersion>2.0.0</NuGetTestHelpersVersion>
+    <NuGetTestHelpersVersion>2.1.11</NuGetTestHelpersVersion>
     <PortablePdbVersion>1.5.0</PortablePdbVersion>
     <AWSSDKVersion>3.5.0.7</AWSSDKVersion>
   </PropertyGroup>
@@ -18,10 +18,9 @@
 
   <!-- Nuspec defaults -->
   <PropertyGroup>
-    <Authors>emgarten</Authors>
     <PackageProjectUrl>https://github.com/emgarten/Sleet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/emgarten/Sleet</RepositoryUrl>
-    <PackageTags>nuget nugetserver nugetfeed</PackageTags>
+    <PackageTags>nuget nugetserver nugetfeed sleet</PackageTags>
     <Description>A static nuget feed generator for Azure Storage, AWS S3, and more.</Description>
   </PropertyGroup>
 

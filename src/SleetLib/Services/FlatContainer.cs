@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
@@ -59,6 +60,10 @@ namespace Sleet
             var nuspecPath = $"{package.Id}.nuspec".ToLowerInvariant();
             var nuspecFile = _context.Source.Get(GetZipFileUri(package, nuspecPath));
             nuspecFile.Delete(_context.Log, _context.Token);
+
+            // Icon
+            var iconFile = _context.Source.Get(GetIconPath(package));
+            iconFile.Delete(_context.Log, _context.Token);
         }
 
         public Uri GetNupkgPath(PackageIdentity package)
@@ -72,6 +77,19 @@ namespace Sleet
             var version = package.Version.ToIdentityString();
 
             return context.Source.GetPath($"/flatcontainer/{id}/{version}/{id}.{version}.nupkg".ToLowerInvariant());
+        }
+
+        public Uri GetIconPath(PackageIdentity package)
+        {
+            return GetIconPath(_context, package);
+        }
+
+        public static Uri GetIconPath(SleetContext context, PackageIdentity package)
+        {
+            var id = package.Id;
+            var version = package.Version.ToIdentityString();
+
+            return context.Source.GetPath($"/flatcontainer/{id}/{version}/icon".ToLowerInvariant());
         }
 
         public Uri GetIndexUri(string id)
@@ -162,7 +180,8 @@ namespace Sleet
             return Task.WhenAll(new[]
             {
                 AddNuspecAsync(packageInput),
-                AddNupkgAsync(packageInput)
+                AddNupkgAsync(packageInput),
+                AddIconAsync(packageInput)
             });
         }
 
@@ -184,6 +203,27 @@ namespace Sleet
             using (var nuspecStream = packageInput.Nuspec.Xml.AsMemoryStream())
             {
                 await entryFile.Write(nuspecStream, _context.Log, _context.Token);
+            }
+        }
+
+        private async Task AddIconAsync(PackageInput packageInput)
+        {
+            // Find icon path in package from nuspec
+            var iconPath = packageInput.Nuspec.GetIcon();
+
+            if (!string.IsNullOrWhiteSpace(iconPath))
+            {
+                iconPath = PathUtility.StripLeadingDirectorySeparators(iconPath).Trim();
+
+                using (var zip = packageInput.CreateZip())
+                {
+                    var entry = zip.GetEntry(iconPath);
+                    if (entry != null)
+                    {
+                        var entryFile = _context.Source.Get(GetIconPath(packageInput.Identity));
+                        await entryFile.Write(entry.Open(), _context.Log, _context.Token);
+                    }
+                }
             }
         }
     }

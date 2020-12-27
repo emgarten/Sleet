@@ -105,8 +105,8 @@
   </PropertyGroup>
 
   <!-- Include default pack items -->
-  <ItemGroup>
-    <None Include="$(BuildCommonDirectory)icon.png" Pack="true" Visible="false" PackagePath="" />
+  <ItemGroup Condition=" '$(PackageIconPath)' != '' ">
+    <None Include="$(PackageIconPath)" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
   <!--

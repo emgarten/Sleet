@@ -60,6 +60,26 @@ namespace Sleet
         }
 
         /// <summary>
+        /// Returns the nupkg icon URI.. 
+        /// </summary>
+        public Uri GetIconUri(SleetContext context)
+        {
+            Uri result = null;
+
+            // Ignore symbol packages, icons from these are not used
+            if (!IsSymbolsPackage)
+            {
+                // Ignore legacy iconURL nuspec properties
+                if (!string.IsNullOrEmpty(Nuspec.GetIcon()))
+                {
+                    result = FlatContainer.GetIconPath(context, Identity);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Creates a new zip archive on each call. This must be disposed of.
         /// </summary>
         public ZipArchive CreateZip()
