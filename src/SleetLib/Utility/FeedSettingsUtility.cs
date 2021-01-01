@@ -82,6 +82,9 @@ namespace Sleet
                     case "retentiongroupbyfirstprereleaselabelcount":
                         settings.RetentionGroupByFirstPrereleaseLabelCount = GetIntOrDefault(pair.Value, defaultValue: -1);
                         break;
+                    case "externalsearch":
+                        settings.ExternalSearch = GetStringOrDefault(pair.Value, null);
+                        break;
                 }
             }
 
@@ -126,6 +129,11 @@ namespace Sleet
                 values.Add("retentiongroupbyfirstprereleaselabelcount", settings.RetentionGroupByFirstPrereleaseLabelCount.ToString());
             }
 
+            if (!string.IsNullOrWhiteSpace(settings.ExternalSearch))
+            {
+                values.Add("externalsearch", settings.ExternalSearch);
+            }
+
             return values;
         }
 
@@ -147,6 +155,16 @@ namespace Sleet
             if (int.TryParse(s, out var result))
             {
                 return result;
+            }
+
+            return defaultValue;
+        }
+
+        private static string GetStringOrDefault(string s, string defaultValue)
+        {
+            if (!string.IsNullOrWhiteSpace(s))
+            {
+                return s;
             }
 
             return defaultValue;
@@ -220,6 +238,16 @@ namespace Sleet
             json["value"] = setting.Value;
 
             return json;
+        }
+
+        public static Dictionary<string, IFeedSettingHandler> GetSettingHandlers(SleetContext context)
+        {
+            var search = new ExternalSearchHandler(context);
+
+            return new Dictionary<string, IFeedSettingHandler>()
+            {
+                { search.Name, search }
+            };
         }
     }
 }

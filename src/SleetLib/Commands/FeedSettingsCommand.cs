@@ -34,7 +34,20 @@ namespace Sleet
                 // Validate source
                 await UpgradeUtility.EnsureCompatibility(source, log, token);
 
-                var success = await ApplySettingsAsync(source, unsetAll, getAll, getSettings, unsetSettings, setSettings, log, token);
+                // Get sleet.settings.json
+                var sourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
+
+                // Settings context used for all operations
+                var context = new SleetContext()
+                {
+                    LocalSettings = settings,
+                    SourceSettings = sourceSettings,
+                    Log = log,
+                    Source = source,
+                    Token = token
+                };
+
+                var success = await ApplySettingsAsync(context, unsetAll, getAll, getSettings, unsetSettings, setSettings);
 
                 log.LogMinimal($"Run 'recreate' to rebuild the feed with the new settings.");
 
@@ -43,15 +56,18 @@ namespace Sleet
         }
 
         public static async Task<bool> ApplySettingsAsync(
-            ISleetFileSystem source,
+            SleetContext context,
             bool unsetAll,
             bool getAll,
             IEnumerable<string> getSettings,
             IEnumerable<string> unsetSettings,
-            IEnumerable<string> setSettings,
-            ILogger log,
-            CancellationToken token)
+            IEnumerable<string> setSettings)
         {
+            var log = context.Log;
+            var token = context.Token;
+            var source = context.Source;
+
+            var settingHandlers = FeedSettingsUtility.GetSettingHandlers(context);
             var feedSettings = FeedSettingsUtility.GetSettingsFileFromFeed(source);
             var feedSettingsJson = await feedSettings.GetJson(log, CancellationToken.None);
 
@@ -98,6 +114,12 @@ namespace Sleet
                 if (settings.ContainsKey(key))
                 {
                     settings.Remove(key);
+
+                    // Allow handlers to perform additional work
+                    if (settingHandlers.TryGetValue(key, out var handler))
+                    {
+                        await handler.UnSet();
+                    }
                 }
             }
 
@@ -128,6 +150,12 @@ namespace Sleet
                 else
                 {
                     settings.Add(key, value);
+                }
+
+                // Allow handlers to perform additional work
+                if (settingHandlers.TryGetValue(key, out var handler))
+                {
+                    await handler.Set(value);
                 }
             }
 

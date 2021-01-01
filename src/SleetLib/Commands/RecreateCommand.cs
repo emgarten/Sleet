@@ -71,6 +71,9 @@ namespace Sleet
                         return false;
                     }
 
+                    // Apply settings
+                    await ApplySettingHandlers(settings, source, log, feedSettings, token);
+
                     // Skip pushing for empty feeds
                     if (Directory.GetFiles(localCache.Root.FullName, "*.*", SearchOption.AllDirectories).Length > 0)
                     {
@@ -125,6 +128,27 @@ namespace Sleet
             }
 
             return success;
+        }
+
+        /// <summary>
+        /// Apply setting handlers
+        /// </summary>
+        private static async Task ApplySettingHandlers(LocalSettings settings, ISleetFileSystem source, ILogger log, FeedSettings feedSettings, CancellationToken token)
+        {
+            if (feedSettings.ExternalSearch != null)
+            {
+                var context = new SleetContext()
+                {
+                    LocalSettings = settings,
+                    SourceSettings = feedSettings,
+                    Log = log,
+                    Source = source,
+                    Token = token
+                };
+
+                var searchHandler = new ExternalSearchHandler(context);
+                await searchHandler.Set(feedSettings.ExternalSearch);
+            }
         }
     }
 }
