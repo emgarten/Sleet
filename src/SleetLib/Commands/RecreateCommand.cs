@@ -137,6 +137,8 @@ namespace Sleet
         {
             if (feedSettings.ExternalSearch != null)
             {
+                log.LogMinimal($"Setting external search url: {feedSettings.ExternalSearch}");
+
                 var context = new SleetContext()
                 {
                     LocalSettings = settings,
@@ -148,6 +150,8 @@ namespace Sleet
 
                 var searchHandler = new ExternalSearchHandler(context);
                 await searchHandler.Set(feedSettings.ExternalSearch);
+
+                await source.Commit(log, token);
             }
         }
     }

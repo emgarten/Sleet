@@ -130,13 +130,15 @@ namespace Sleet
             {
                 var parts = input.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 
-                if (parts.Length != 2 || string.IsNullOrEmpty(parts[0]?.Trim()) || string.IsNullOrEmpty(parts[1]?.Trim()))
+                if (parts.Length < 2 || string.IsNullOrEmpty(parts[0]?.Trim()) || string.IsNullOrEmpty(parts[1]?.Trim()))
                 {
                     throw new ArgumentException("Value must be in the form {key}:{value}. Invalid: '" + input + "'");
                 }
 
                 var key = parts[0].Trim().ToLowerInvariant();
-                var value = parts[1].Trim();
+
+                // Allow : in the value, not the key
+                var value = input.Substring(key.Length + 1);
 
                 if (!setKeysSeen.Add(key))
                 {
