@@ -90,6 +90,10 @@ namespace Sleet
                     {
                         _blob.Properties.ContentType = "application/octet-stream";
                     }
+                    else if (_blob.Uri.AbsoluteUri.EndsWith("/icon"))
+                    {
+                        _blob.Properties.ContentType = "image/png";
+                    }
                     else
                     {
                         log.LogWarning($"Unknown file type: {_blob.Uri.AbsoluteUri}");
