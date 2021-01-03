@@ -38,5 +38,10 @@ namespace Sleet
         /// Version badges, if enabled svg files for the latest versions will be written out.
         /// </summary>
         public bool BadgesEnabled { get; set; } = false;
+
+        /// <summary>
+        /// External search URI
+        /// </summary>
+        public string ExternalSearch { get; set; } = null;
     }
 }
