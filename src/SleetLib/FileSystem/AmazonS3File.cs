@@ -123,6 +123,10 @@ namespace Sleet
                 {
                     contentType = "application/octet-stream";
                 }
+                else if (absoluteUri.AbsoluteUri.EndsWith("/icon"))
+                {
+                    contentType = "image/png";
+                }
                 else
                 {
                     log.LogWarning($"Unknown file type: {absoluteUri}");
