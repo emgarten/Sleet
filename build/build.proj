@@ -14,31 +14,13 @@
           DependsOnTargets="Build;Publish"
           BeforeTargets="Pack">
 
-    <PropertyGroup>
-      <MergeFile>Sleet.exe</MergeFile>
-      <ILRepackExePath>$(PackagesConfigDirectory)ILRepack.2.0.12\tools\ILRepack.exe</ILRepackExePath>
-      <MergeDirectory>$(PublishOutputDirectory)net472\</MergeDirectory>
-      <MergeMainAssembly>$(MergeDirectory)$(MergeFile)</MergeMainAssembly>
-      <MergeOutputPath>$(PublishOutputDirectory)$(MergeFile)</MergeOutputPath>
-      <MergeJsonNetDir>$(PackagesConfigDirectory)Newtonsoft.Json.6.0.8\lib\net45</MergeJsonNetDir>
-      <MergeLogPath>$(LogOutputDirectory)mergelog.txt</MergeLogPath>
-      <MergeMainExists Condition="Exists($(MergeMainAssembly))">true</MergeMainExists>
-    </PropertyGroup>
-
     <!-- Build command -->
     <PropertyGroup>
-      <MergeExeCommand>$(ILRepackExePath) $(MergeMainAssembly) $(MergeDirectory)*.dll /lib:$(MergeDirectory) /lib:$(MergeJsonNetDir) /out:$(MergeOutputPath) /log:$(MergeLogPath) /parallel /wildcards /internalize</MergeExeCommand>
-      <MergeExeCommand Condition=" '$(SignKeyPath)' != '' ">$(MergeExeCommand) /keyfile:$(SignKeyPath)</MergeExeCommand>
+      <PublishSleetExeCommand>$(DotnetExePath) publish -r win-x64 -p:PublishSingleFile=true --self-contained true -f net5.0 -o $(PublishOutputDirectory)  $(RepositoryRootDirectory)\src\Sleet\Sleet.csproj</PublishSleetExeCommand>
     </PropertyGroup>
-
-    <!-- Verify files exist -->
-    <Error Condition=" '$(MergeMainExists)' != 'true' " Text="$(MergeMainAssembly) does not exist! Build first!" />
-
-    <!-- Create output directories -->
-    <MakeDir Directories="$(PublishOutputDirectory);$(LogOutputDirectory)" />
     
     <!-- Run command -->
-    <Exec Command="$(MergeExeCommand)" ContinueOnError="false" StandardOutputImportance="low" />
+    <Exec Command="$(PublishSleetExeCommand)" ContinueOnError="false" StandardOutputImportance="low" />
   </Target>
 
   <!--

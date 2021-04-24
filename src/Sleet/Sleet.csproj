@@ -2,10 +2,7 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
-  <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(IsXPlat)' == 'true' OR '$(PackSleetDotnetTool)' == 'true' ">
+  <PropertyGroup>
     <TargetFrameworks>net5.0</TargetFrameworks>
   </PropertyGroup>
 
@@ -24,6 +21,16 @@
     <SkipDocs>true</SkipDocs>
 
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+  </PropertyGroup>
+
+  <!-- Sleet.exe settings -->
+  <PropertyGroup Condition=" '$(PublishSingleFile)' == 'true' ">
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishTrimmed>true</PublishTrimmed>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
