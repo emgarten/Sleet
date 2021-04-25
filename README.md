@@ -58,4 +58,4 @@ Cold static packages from the cloud. ☁️ + 📦 = ❄️
 
 ## License
 
-[MIT License](https://github.com/emgarten/Sleet/blob/master/LICENSE.md)
+[MIT License](https://github.com/emgarten/Sleet/blob/main/LICENSE.md)
