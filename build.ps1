@@ -56,6 +56,9 @@ Invoke-DotnetFormat $RepoRoot
 Remove-Artifacts $RepoRoot
 Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Clean;WriteGitInfo", "/p:Configuration=$Configuration")
 
+# Build Exe
+Invoke-DotnetExe $RepoRoot ("publish", "-r", "win-x64", "-p:PublishSingleFile=true", "--self-contained", "true", "-f", "net5.0", "-o", (Join-Path $RepoRoot "artifacts\publish"), (Join-Path $RepoRoot "\src\Sleet\Sleet.csproj"))
+
 # Restore
 Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Restore", "/p:Configuration=$Configuration")
 

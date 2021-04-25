@@ -4,40 +4,4 @@
   
   <!-- Add custom targets and overrides here -->
 
-  <!--
-    ============================================================
-    ILRepack assemblies for the tool exe
-    ============================================================
-  -->
-  <Target Name="PublishArtifacts"
-          Condition=" '$(SkipPublishArtifacts)' != 'true' AND '$(IsXPlat)' != 'true' "
-          DependsOnTargets="Build;Publish"
-          BeforeTargets="Pack">
-
-    <!-- Build command -->
-    <PropertyGroup>
-      <PublishSleetExeCommand>$(DotnetExePath) publish -r win-x64 -p:PublishSingleFile=true --self-contained true -f net5.0 -o $(PublishOutputDirectory)  $(RepositoryRootDirectory)\src\Sleet\Sleet.csproj</PublishSleetExeCommand>
-    </PropertyGroup>
-    
-    <!-- Run command -->
-    <Exec Command="$(PublishSleetExeCommand)" ContinueOnError="false" StandardOutputImportance="low" />
-  </Target>
-
-  <!--
-    ============================================================
-    Remove desktop dependencies from Sleet package.
-    ============================================================
-  -->
-  <Target Name="RemoveDesktopDependencies"
-        Condition=" '$(SkipPublishArtifacts)' != 'true' AND '$(IsXPlat)' != 'true' "
-        AfterTargets="Pack">
-
-    <PropertyGroup>
-      <NupkgWrenchExePath>$(PackagesConfigDirectory)NupkgWrenchExe.1.4.25\tools\NupkgWrench.exe</NupkgWrenchExePath>
-      <WrenchExeCommand>$(NupkgWrenchExePath) nuspec dependencies remove --id Sleet $(NupkgOutputDirectory)</WrenchExeCommand>
-    </PropertyGroup>
-
-    <Exec Command="$(WrenchExeCommand)" ContinueOnError="false" StandardOutputImportance="low" />
-  </Target>
-
 </Project>
