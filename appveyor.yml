@@ -3,7 +3,7 @@ init:
   - git config --global core.autocrlf input
 branches:
   only:
-    - master
+    - main
 build_script:
   - build.cmd
 clone_depth: 1

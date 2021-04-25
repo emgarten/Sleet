@@ -134,7 +134,7 @@ Function Install-DotnetTools {
 
     if (-not (Test-Path $toolsPath)) {
         Write-Host "Installing dotnet tools to $toolsPath"
-        $args = @("tool","install","--tool-path",$toolsPath,"--ignore-failed-sources","dotnet-format","--version","4.1.131201 ")
+        $args = @("tool","install","--tool-path",$toolsPath,"--ignore-failed-sources","dotnet-format","--version","5.0.211103")
 
         Invoke-DotnetExe $RepoRoot $args
     }
@@ -157,7 +157,7 @@ Function Invoke-DotnetFormat {
 
     $formatExe = Join-Path $RepoRoot ".nuget/tools/dotnet-format.exe"
 
-    $args = @("-w",$RepoRoot)
+    $args = @("--fix-whitespace","--fix-style", "warn", "--fix-analyzers", "warn")
 
     # On CI builds run a check instead of making code changes
     if ($env:CI -eq "True") 

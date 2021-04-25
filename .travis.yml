@@ -10,7 +10,7 @@ os:
 osx_image: xcode7.1
 branches:
   only:
-    - master
+    - main
 script:
   - ./build.sh
 addons:

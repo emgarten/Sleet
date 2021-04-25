@@ -28,10 +28,10 @@ run_standard_tests()
     echo "Installing dotnet tools"
     mkdir -p .nuget/tools
     
-    $DOTNET tool install --tool-path $DOTNET_TOOLS --ignore-failed-sources dotnet-format --version 4.1.131201
+    $DOTNET tool install --tool-path $DOTNET_TOOLS --ignore-failed-sources dotnet-format --version 5.0.211103
   fi
 
-  $DOTNET_FORMAT -w $REPO_ROOT
+  $DOTNET_FORMAT --fix-whitespace --fix-style warn --fix-analyzers warn
 
   # clean
   rm -r -f $(pwd)/artifacts
