@@ -2,17 +2,9 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\test.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
-  <PropertyGroup Condition=" '$(IsXPlat)' != 'true' ">
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(IsXPlat)' == 'true' ">
+  <PropertyGroup>
     <TargetFrameworks>net5.0</TargetFrameworks>
   </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Net.Http" />
-  </ItemGroup>
   
   <PropertyGroup>
     <TestProject>true</TestProject>
