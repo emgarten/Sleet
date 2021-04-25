@@ -1,5 +1,9 @@
 # Release Notes
 
+## 4.1.0
+* Sleet.exe is now produced by dotnet publish as a standalone file instead of by ILMerge
+* Removed net472 support from SleetLib
+
 ## 4.0.0
 * Added net5.0 support
 * Dropped netcoreapp2.1 and netcoreapp3.1 support
