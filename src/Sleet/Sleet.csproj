@@ -69,7 +69,7 @@
     <!-- Pack Sleet -->
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Properties="Configuration=$(Configuration);PackageOutputPath=$(NupkgOutputDirectory);PackSleetDotnetTool=true" />
     <!-- Pack Sleet Exe -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack"  Properties="Configuration=$(Configuration);PackageOutputPath=$(NupkgOutputDirectory);NoPackageAnalysis=true;IncludeSymbols=false;NuspecFile=$(MSBuildProjectDirectory)\SleetExe.nuspec;NuspecProperties=$(NuspecProperties);PackageId=SleetExe" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Condition=" '$(MergedExePathExists)' == 'true' " Properties="Configuration=$(Configuration);PackageOutputPath=$(NupkgOutputDirectory);NoPackageAnalysis=true;IncludeSymbols=false;NuspecFile=$(MSBuildProjectDirectory)\SleetExe.nuspec;NuspecProperties=$(NuspecProperties);PackageId=SleetExe" />
   </Target>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
