@@ -127,7 +127,7 @@ namespace SleetLib.Tests
                 // Change index.json
                 var indexJsonPath = Path.Combine(target.Root, "index.json");
                 var json = JObject.Parse(File.ReadAllText(indexJsonPath));
-                json["sleet:requiredVersion"] = "4.1.0";
+                json["sleet:requiredVersion"] = "99.1.0";
                 File.WriteAllText(indexJsonPath, json.ToString());
 
                 Exception ex = null;
@@ -142,7 +142,7 @@ namespace SleetLib.Tests
                 }
 
                 ex.Should().NotBeNull();
-                ex.Message.Should().Contain("requires Sleet version: (>= 4.1.0)  Upgrade your Sleet client to work with this feed.");
+                ex.Message.Should().Contain("requires Sleet version: (>= 99.1.0)  Upgrade your Sleet client to work with this feed.");
             }
         }
 
