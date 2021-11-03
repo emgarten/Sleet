@@ -54,7 +54,7 @@ namespace Sleet
                     {
                         { "name", "myLocalFeed" },
                         { "type", "local" },
-                        { "path", Path.Combine(Directory.GetCurrentDirectory(), "myFeed") },
+                        { "path", Path.Combine(Directory.GetCurrentDirectory(), "myfeed") },
                         { "baseURI", "https://example.com/feed/" }
                     };
                     break;
