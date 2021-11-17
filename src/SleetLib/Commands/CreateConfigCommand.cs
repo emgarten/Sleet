@@ -63,7 +63,7 @@ namespace Sleet
                     {
                         { "name", "myAzureFeed" },
                         { "type", "azure" },
-                        { "container", "myFeed" },
+                        { "container", "myfeed" },
                         { "connectionString", AzureFileSystem.AzureEmptyConnectionString }
                     };
                     break;
