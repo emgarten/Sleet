@@ -10,6 +10,7 @@
     <PortablePdbVersion>1.5.0</PortablePdbVersion>
     <AWSSDKVersion>3.7.4.9</AWSSDKVersion>
     <AWSSDKTokenVersion>3.7.1.92</AWSSDKTokenVersion>
+    <DotNetConfigVersion>1.0.6</DotNetConfigVersion>
   </PropertyGroup>
 
   <!-- Config -->

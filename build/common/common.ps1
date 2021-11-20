@@ -155,25 +155,23 @@ Function Invoke-DotnetFormat {
         [string]$RepoRoot
     )
 
-    $formatExe = Join-Path $RepoRoot ".nuget/tools/dotnet-format.exe"
-
-    $args = @("--fix-whitespace","--fix-style", "warn")
-
-    # On CI builds run a check instead of making code changes
-    if ($env:CI -eq "True") 
+    # Only run in local dev envs
+    if ($env:CI -ne "True") 
     {
-        $args += "--check"
-    }
+        $formatExe = Join-Path $RepoRoot ".nuget/tools/dotnet-format.exe"
 
-    $command = "$formatExe $args"
-    Write-Host "[EXEC] $command" -ForegroundColor Cyan
+        $args = @("--fix-whitespace", "--fix-style", "warn")
 
-    & $formatExe $args
+        $command = "$formatExe $args"
+        Write-Host "[EXEC] $command" -ForegroundColor Cyan
 
-    if (-not $?) {
-        Write-Warning "dotnet-format failed. Please fix the style errors!"
+        & $formatExe $args
 
-        # Currently dotnet-format fails on CIs but not locally in some scenarios
-        # exit 1
+        if (-not $?) {
+            Write-Warning "dotnet-format failed. Please fix the style errors!"
+
+            # Currently dotnet-format fails on CIs but not locally in some scenarios
+            # exit 1
+        }
     }
 }
