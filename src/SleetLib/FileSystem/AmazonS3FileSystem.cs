@@ -1,4 +1,3 @@
-#if !SLEETLEGACY
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -216,4 +215,3 @@ namespace Sleet
         }
     }
 }
-#endif

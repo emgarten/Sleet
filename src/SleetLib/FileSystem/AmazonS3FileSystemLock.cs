@@ -1,4 +1,3 @@
-#if !SLEETLEGACY
 using System;
 using System.IO;
 using System.Net;
@@ -101,4 +100,3 @@ namespace Sleet
 
     }
 }
-#endif

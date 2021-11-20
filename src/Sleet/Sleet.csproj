@@ -19,7 +19,7 @@
     <PackProject>true</PackProject>
     <PublishProject>true</PublishProject>
     <SkipDocs>true</SkipDocs>
-
+    <PublishTrimmed>false</PublishTrimmed>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
   </PropertyGroup>
 

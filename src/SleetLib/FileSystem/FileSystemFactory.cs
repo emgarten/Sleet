@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-#if !SLEETLEGACY
 using Amazon;
 using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
@@ -11,7 +10,6 @@ using Amazon.S3;
 using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
 using Microsoft.Azure.Storage;
-#endif
 using Newtonsoft.Json.Linq;
 using NuGetUriUtility = NuGet.Common.UriUtility;
 
@@ -111,7 +109,6 @@ namespace Sleet
 
                         result = new AzureFileSystem(cache, pathUri, baseUri, azureAccount, container, feedSubPath);
                     }
-#if !SLEETLEGACY
                     else if (type == "s3")
                     {
                         var profileName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "profileName");
@@ -243,7 +240,6 @@ namespace Sleet
                             feedSubPath,
                             compress);
                     }
-#endif
                 }
             }
 
