@@ -3,7 +3,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(PackSleetDotnetTool)' == 'true' ">
@@ -19,7 +19,7 @@
     <PackProject>true</PackProject>
     <PublishProject>true</PublishProject>
     <SkipDocs>true</SkipDocs>
-
+    <PublishTrimmed>false</PublishTrimmed>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
   </PropertyGroup>
 

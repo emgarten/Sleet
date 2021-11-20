@@ -20,9 +20,9 @@ Function Install-DotnetCLI {
 
         Write-Host "Fetching $installDotnet"
 
-        wget https://raw.githubusercontent.com/dotnet/install-scripts/f82bb9c90fa6623cf3518539368c2bea80338e99/src/dotnet-install.ps1 -OutFile $installDotnet
+        wget https://raw.githubusercontent.com/dotnet/install-scripts/781752509a890ca7520f1182e8bae71f9a53d754/src/dotnet-install.ps1 -OutFile $installDotnet
 
-        & $installDotnet -Channel 5.0 -i $CLIRoot
+        & $installDotnet -Channel 6.0 -i $CLIRoot
 
         if (-not (Test-Path $DotnetExe)) {
             Write-Log "Missing $DotnetExe"
@@ -71,7 +71,7 @@ Function Install-NuGetExe {
         $nugetDir = Split-Path $nugetExe
         New-Item -ItemType Directory -Force -Path $nugetDir
 
-        wget https://dist.nuget.org/win-x86-commandline/v5.3.0/nuget.exe -OutFile $nugetExe
+        wget https://dist.nuget.org/win-x86-commandline/v6.0.0/nuget.exe -OutFile $nugetExe
     }
 }
 
@@ -134,7 +134,7 @@ Function Install-DotnetTools {
 
     if (-not (Test-Path $toolsPath)) {
         Write-Host "Installing dotnet tools to $toolsPath"
-        $args = @("tool","install","--tool-path",$toolsPath,"--ignore-failed-sources","dotnet-format","--version","5.0.211103")
+        $args = @("tool","install","--tool-path",$toolsPath,"--ignore-failed-sources","dotnet-format","--version","5.1.250801")
 
         Invoke-DotnetExe $RepoRoot $args
     }
@@ -157,7 +157,7 @@ Function Invoke-DotnetFormat {
 
     $formatExe = Join-Path $RepoRoot ".nuget/tools/dotnet-format.exe"
 
-    $args = @("--fix-whitespace","--fix-style", "warn", "--fix-analyzers", "warn")
+    $args = @("--fix-whitespace","--fix-style", "warn")
 
     # On CI builds run a check instead of making code changes
     if ($env:CI -eq "True") 

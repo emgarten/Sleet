@@ -118,18 +118,9 @@ namespace Sleet
             using (var jsonWriter = new JsonTextWriter(writer))
             {
                 jsonWriter.Formatting = Formatting.None;
-#if USEJSONNET901
-                json.WriteTo(jsonWriter);
-#else
                 await json.WriteToAsync(jsonWriter);
-#endif
                 await writer.FlushAsync();
-#if USEJSONNET901
-                jsonWriter.Flush();
-#else
                 await jsonWriter.FlushAsync();
-#endif
-
             }
 
             if (stream.CanSeek)
@@ -184,12 +175,7 @@ namespace Sleet
             using (var jsonReader = new JsonTextReader(reader))
             {
                 jsonReader.DateParseHandling = DateParseHandling.None;
-
-#if USEJSONNET901
-                var json = await Task.FromResult(JObject.Load(jsonReader, _jsonLoadSettings));
-#else
                 var json = await JObject.LoadAsync(jsonReader, _jsonLoadSettings);
-#endif
                 return json;
             }
         }
