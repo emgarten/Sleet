@@ -24,7 +24,7 @@
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="$(MicrosoftAzureStorageBlobVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
-    <PackageReference Include="DotNetConfig" Version="1.0.0-rc" />
+    <PackageReference Include="DotNetConfig" Version="$(DotNetConfigVersion)" />
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />

@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
-    <PackageReference Include="DotNetConfig" Version="1.0.0-rc" />
+    <PackageReference Include="DotNetConfig" Version="$(DotNetConfigVersion)" />
   </ItemGroup>
 
   <ItemGroup>

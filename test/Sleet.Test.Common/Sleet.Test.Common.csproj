@@ -14,10 +14,6 @@
     <PackageReference Include="Xunit" Version="$(XunitVersion)" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' != 'net472' ">
-    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\SleetLib\SleetLib.csproj" />
   </ItemGroup>
