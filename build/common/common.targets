@@ -10,6 +10,9 @@
   <!-- Defaults -->
   <PropertyGroup>
     <SkipSourceLink>true</SkipSourceLink>
+    <!-- <Nullable>enable</Nullable> -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>10.0</LangVersion>
   </PropertyGroup>
 
   <!-- Compiler flags -->
@@ -20,7 +23,7 @@
         <IsDesktop>true</IsDesktop>
       </PropertyGroup>
     </When>
-    <When Condition="$(TargetFramework.Contains('netstandard')) OR $(TargetFramework.Contains('netcoreapp')) OR $(TargetFramework.Contains('net5'))">
+    <When Condition="$(TargetFramework.Contains('netstandard')) OR $(TargetFramework.Contains('netcoreapp')) OR $(TargetFramework.Contains('net5')) OR $(TargetFramework.Contains('net6'))">
       <PropertyGroup>
         <DefineConstants>$(DefineConstants);IS_CORECLR</DefineConstants>
         <IsCore>true</IsCore>
@@ -37,10 +40,10 @@
   <PropertyGroup>
     <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">4.19.4</FluentAssertionsVersion>
     <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.5.0</ToStringWithoutOverrideAnalyzerVersion>
-    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">16.7.1</TestSDKVersion>
+    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">16.11.0</TestSDKVersion>
     <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.4.1</XunitVersion>
     <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">2.4.3</XunitRunnerVisualStudioVersion>
-
+    <CoverletCollectorVersion Condition=" '$(CoverletCollectorVersion)' == '' ">3.1.0</CoverletCollectorVersion>
     <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">1.0.0</SourceLinkVersion>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -48,7 +51,7 @@
 
   <!-- Verify that the framework was identified above -->
   <Target Name="VerifyTargetFrameworkPlatform" BeforeTargets="Build;Rebuild" Condition=" '$(IsFrameworkInvalid)' == 'true' ">
-    <Error Message="Unknown target framework: $(TargetFramework), update build scripts." />
+    <Error Text="Unknown target framework: $(TargetFramework), update build scripts." />
   </Target>
 
   <!-- Symbols -->
@@ -91,6 +94,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSDKVersion)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitRunnerVisualStudioVersion)" />
     <PackageReference Include="xunit" Version="$(XunitVersion)" />
+    <PackageReference Include="coverlet.collector" Version="$(CoverletCollectorVersion)" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TestProject)' != 'true' ">

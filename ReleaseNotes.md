@@ -1,5 +1,9 @@
 # Release Notes
 
+## 5.0.0
+* Added net6.0 for LTS support, removed net5.0
+* Changed azure container default name to lowercase [PR](https://github.com/emgarten/Sleet/pull/156)
+
 ## 4.1.0
 * Sleet.exe is now produced by dotnet publish as a standalone file instead of by ILMerge
 * Removed net472 support from SleetLib

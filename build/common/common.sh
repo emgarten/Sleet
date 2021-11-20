@@ -13,11 +13,11 @@ run_standard_tests()
   if [ ! -f $DOTNET ]; then
     echo "Installing dotnet"
     mkdir -p .cli
-    curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/install-scripts/f82bb9c90fa6623cf3518539368c2bea80338e99/src/dotnet-install.sh
+    curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/install-scripts/1b98b94a6f6d81cc4845eb88e0195fac67caa0a6/src/dotnet-install.sh
 
     # Run install.sh
     chmod +x .cli/dotnet-install.sh
-    .cli/dotnet-install.sh -i .cli --channel 5.0
+    .cli/dotnet-install.sh -i .cli --channel 6.0
   fi
 
   # Display info
@@ -28,10 +28,10 @@ run_standard_tests()
     echo "Installing dotnet tools"
     mkdir -p .nuget/tools
     
-    $DOTNET tool install --tool-path $DOTNET_TOOLS --ignore-failed-sources dotnet-format --version 5.0.211103
+    $DOTNET tool install --tool-path $DOTNET_TOOLS --ignore-failed-sources dotnet-format --version 5.1.250801
   fi
 
-  $DOTNET_FORMAT --fix-whitespace --fix-style warn --fix-analyzers warn
+  $DOTNET_FORMAT --fix-whitespace --fix-style warn
 
   # clean
   rm -r -f $(pwd)/artifacts
