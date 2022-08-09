@@ -193,7 +193,15 @@ namespace Sleet
         {
             if (await HasBucket(log, token))
             {
-                await _client.DeleteBucketAsync(_bucketName, token);
+                try 
+                {
+                    await _client.DeleteBucketAsync(_bucketName, token);
+                }
+                catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+                {
+                    // Ignore the NotFound exception when deleting the bucket
+                    log.LogWarning($"Transient error may happen during deletion. S3 bucket does not exist any more: {ex.Message}.");
+                }
             }
             _hasBucket = false;
         }
