@@ -193,7 +193,7 @@ namespace Sleet
         {
             if (await HasBucket(log, token))
             {
-                try 
+                try
                 {
                     await _client.DeleteBucketAsync(_bucketName, token);
                 }

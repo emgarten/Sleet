@@ -1,5 +1,9 @@
 # Release Notes
 
+## 5.0.6
+* Updated NuGet.* packages to 6.2.1
+* Fixed deleted AWS bucket handling [PR](https://github.com/emgarten/Sleet/pull/161)
+
 ## 5.0.0
 * Added net6.0 for LTS support, removed net5.0
 * Changed azure container default name to lowercase [PR](https://github.com/emgarten/Sleet/pull/156)
