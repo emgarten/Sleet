@@ -151,6 +151,7 @@ namespace Sleet
                         {
                             config = new AmazonS3Config()
                             {
+                                Timeout = TimeSpan.FromSeconds(10),
                                 ServiceURL = serviceURL,
                                 ProxyCredentials = CredentialCache.DefaultNetworkCredentials
                             };
@@ -159,6 +160,7 @@ namespace Sleet
                         {
                             config = new AmazonS3Config()
                             {
+                                Timeout = TimeSpan.FromSeconds(10),
                                 RegionEndpoint = RegionEndpoint.GetBySystemName(region),
                                 ProxyCredentials = CredentialCache.DefaultNetworkCredentials
                             };
