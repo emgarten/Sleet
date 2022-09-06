@@ -119,7 +119,15 @@ namespace Sleet
             if (!await HasBucket(log, token))
             {
                 log.LogInformation($"Creating new bucket: {_bucketName}");
-                await _client.EnsureBucketExistsAsync(_bucketName);
+                try 
+                {
+                    await _client.EnsureBucketExistsAsync(_bucketName);
+                }
+                catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+                {
+                    // Ignore the Conflict exception when creating the bucket
+                    log.LogWarning($"Transient error may happen during creation. Bucket already created: {ex.Message}.");
+                }
 
                 var tries = 0;
                 var maxTries = 30;
