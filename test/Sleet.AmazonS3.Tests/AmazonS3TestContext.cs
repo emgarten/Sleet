@@ -27,7 +27,12 @@ namespace Sleet.AmazonS3.Tests
             var accessKeyId = Environment.GetEnvironmentVariable(EnvAccessKeyId);
             var secretAccessKey = Environment.GetEnvironmentVariable(EnvSecretAccessKey);
             var region = Environment.GetEnvironmentVariable(EnvDefaultRegion) ?? "us-east-1";
-            Client = new AmazonS3Client(accessKeyId, secretAccessKey, RegionEndpoint.GetBySystemName(region));
+            AmazonS3Config config = new AmazonS3Config()
+                {
+                    Timeout = TimeSpan.FromSeconds(100),
+                    RegionEndpoint = RegionEndpoint.GetBySystemName(region)
+                };
+            Client = new AmazonS3Client(accessKeyId, secretAccessKey, config);
             Uri = AmazonS3Utility.GetBucketPath(BucketName, region);
 
             FileSystem = new AmazonS3FileSystem(LocalCache, Uri, Client, BucketName);
