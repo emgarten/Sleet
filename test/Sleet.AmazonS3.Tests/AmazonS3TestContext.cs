@@ -29,7 +29,7 @@ namespace Sleet.AmazonS3.Tests
             var region = Environment.GetEnvironmentVariable(EnvDefaultRegion) ?? "us-east-1";
             AmazonS3Config config = new AmazonS3Config()
                 {
-                    Timeout = TimeSpan.FromSeconds(10),
+                    Timeout = TimeSpan.FromSeconds(100),
                     RegionEndpoint = RegionEndpoint.GetBySystemName(region)
                 };
             Client = new AmazonS3Client(accessKeyId, secretAccessKey, config);
