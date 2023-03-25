@@ -119,7 +119,7 @@ namespace Sleet
             if (!await HasBucket(log, token))
             {
                 log.LogInformation($"Creating new bucket: {_bucketName}");
-                try 
+                try
                 {
                     await _client.EnsureBucketExistsAsync(_bucketName);
                 }
