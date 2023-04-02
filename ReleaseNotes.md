@@ -3,6 +3,7 @@
 ## 5.1.0
 * Added net7.0 support
 * Update AWS SDK
+* Added AWS SSO profile support
 
 ## 5.0.6
 * Updated NuGet.* packages to 6.2.1

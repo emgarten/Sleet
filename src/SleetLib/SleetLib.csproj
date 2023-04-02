@@ -20,6 +20,8 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="$(AWSSDKVersion)" />
     <PackageReference Include="AWSSDK.SecurityToken" Version="$(AWSSDKTokenVersion)" />
+    <PackageReference Include="AWSSDK.SSO" Version="$(AWSSDKSSOVersion)" />
+    <PackageReference Include="AWSSDK.SSOOIDC" Version="$(AWSSDKSSOOIDCVersion)" />
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="$(MicrosoftAzureStorageBlobVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" />

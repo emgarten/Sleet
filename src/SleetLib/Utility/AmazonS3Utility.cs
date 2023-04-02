@@ -1,5 +1,3 @@
-using System;
-
 namespace Sleet
 {
     public static class AmazonS3Utility

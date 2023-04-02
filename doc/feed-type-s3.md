@@ -44,6 +44,17 @@ For `.netconfig`, just create or edit the file directly in the [desired location
 
 For details on creating a credentials file go [here](https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file)
 
+#### Using SSO profiles
+
+If you are using an SSO profile, you must first log in using the AWS CLI before running sleet to allow SSO profiles to be used.
+
+Sleet will not prompt for SSO login.
+
+```
+aws sso login --profile my-sso-profile
+```
+
+
 ### Using accessKeyId and secretAccessKey in sleet.json
 
 `sleet.json`:
