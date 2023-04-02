@@ -5,19 +5,20 @@ run_standard_tests()
   pushd $(pwd)
 
   # Download dotnet cli
-  REPO_ROOT="$(pwd)"
-  DOTNET="$(pwd)/.cli/dotnet"
-  DOTNET_TOOLS="$(pwd)/.nuget/tools"
-  DOTNET_FORMAT="$(DOTNET_TOOLS)/dotnet-format"
+  REPO_ROOT=$(pwd)
+  DOTNET=$(pwd)/.cli/dotnet
+  DOTNET_TOOLS=$(pwd)/.nuget/tools
+  DOTNET_FORMAT=$DOTNET_TOOLS/dotnet-format
 
   if [ ! -f $DOTNET ]; then
     echo "Installing dotnet"
     mkdir -p .cli
-    curl -o .cli/dotnet-install.sh https://raw.githubusercontent.com/dotnet/install-scripts/1b98b94a6f6d81cc4845eb88e0195fac67caa0a6/src/dotnet-install.sh
+    curl -L -o .cli/dotnet-install.sh https://dot.net/v1/dotnet-install.sh
 
     # Run install.sh
     chmod +x .cli/dotnet-install.sh
     .cli/dotnet-install.sh -i .cli --channel 6.0
+    .cli/dotnet-install.sh -i .cli --channel 7.0
   fi
 
   # Display info
