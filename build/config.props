@@ -4,12 +4,12 @@
   <PropertyGroup>
     <NuGetPackageVersion>6.2.1</NuGetPackageVersion>
     <MicrosoftAzureStorageBlobVersion>11.2.3</MicrosoftAzureStorageBlobVersion>
-    <JsonVersion>13.0.1</JsonVersion>
+    <JsonVersion>13.0.3</JsonVersion>
     <CommandLineUtilsVersion>2.0.0</CommandLineUtilsVersion>
     <NuGetTestHelpersVersion>2.1.23</NuGetTestHelpersVersion>
     <PortablePdbVersion>1.5.0</PortablePdbVersion>
-    <AWSSDKVersion>3.7.4.9</AWSSDKVersion>
-    <AWSSDKTokenVersion>3.7.1.92</AWSSDKTokenVersion>
+    <AWSSDKVersion>3.7.103.40</AWSSDKVersion>
+    <AWSSDKTokenVersion>3.7.101.38</AWSSDKTokenVersion>
     <DotNetConfigVersion>1.0.6</DotNetConfigVersion>
   </PropertyGroup>
 

@@ -59,7 +59,7 @@ namespace Sleet.AmazonS3.Tests
         {
             cleanupDone = true;
 
-            if (await Client.DoesS3BucketExistAsync(BucketName))
+            if (await Amazon.S3.Util.AmazonS3Util.DoesS3BucketExistV2Async(Client, BucketName))
             {
                 var s3Objects = (await AmazonS3FileSystemAbstraction
                     .GetFilesAsync(Client, BucketName, CancellationToken.None))
