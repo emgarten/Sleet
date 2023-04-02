@@ -1,5 +1,9 @@
 # Release Notes
 
+## 5.1.0
+* Added net7.0 support
+* Update AWS SDK
+
 ## 5.0.6
 * Updated NuGet.* packages to 6.2.1
 * Fixed deleted AWS bucket handling [PR](https://github.com/emgarten/Sleet/pull/161)
