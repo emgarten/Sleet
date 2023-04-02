@@ -1,4 +1,6 @@
 using System;
+using Amazon.Runtime;
+using Amazon.Runtime.CredentialManagement;
 
 namespace Sleet
 {
@@ -12,6 +14,15 @@ namespace Sleet
             }
 
             return new Uri($"https://s3-{region}.amazonaws.com/{bucketName}/");
+        }
+
+        public static AWSCredentials LoadSsoCredentials()
+        {
+            var chain = new CredentialProfileStoreChain();
+            if (!chain.TryGetAWSCredentials("my-sso-profile", out var credentials))
+                throw new Exception("Failed to find the my-sso-profile profile");
+
+            return credentials;
         }
     }
 }

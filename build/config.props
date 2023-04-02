@@ -10,6 +10,8 @@
     <PortablePdbVersion>1.5.0</PortablePdbVersion>
     <AWSSDKVersion>3.7.103.40</AWSSDKVersion>
     <AWSSDKTokenVersion>3.7.101.38</AWSSDKTokenVersion>
+    <AWSSDKSSOVersion>3.7.100.103</AWSSDKSSOVersion>
+    <AWSSDKSSOOIDCVersion>$(AWSSDKSSOVersion)</AWSSDKSSOOIDCVersion>
     <DotNetConfigVersion>1.0.6</DotNetConfigVersion>
   </PropertyGroup>
 

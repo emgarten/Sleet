@@ -172,9 +172,18 @@ namespace Sleet
                         if (!string.IsNullOrWhiteSpace(profileName))
                         {
                             var credFile = new SharedCredentialsFile();
+                            var chain = new CredentialProfileStoreChain();
+
                             if (credFile.TryGetProfile(profileName, out var profile))
                             {
+                                // Successfully created the credentials using the profile
                                 amazonS3Client = new AmazonS3Client(profile.GetAWSCredentials(profileSource: null), config);
+                            }
+                            else if (chain.TryGetAWSCredentials(profileName, out var credentials))
+                            {
+                                // Successfully created the credentials using a profile with SSO
+                                // This works for identities outside of AWS such as Azure AD and Okta
+                                amazonS3Client = new AmazonS3Client(credentials, config);
                             }
                             else
                             {
