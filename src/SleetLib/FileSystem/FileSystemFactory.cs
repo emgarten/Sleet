@@ -146,24 +146,20 @@ namespace Sleet
                             serverSideEncryptionMethodValue = ServerSideEncryptionMethod.AES256;
                         }
 
-                        AmazonS3Config config = null;
+                        AmazonS3Config config = new AmazonS3Config()
+                        {
+                            Timeout = TimeSpan.FromSeconds(100),
+                            ProxyCredentials = CredentialCache.DefaultNetworkCredentials
+                        };
+
+
                         if (serviceURL != null)
                         {
-                            config = new AmazonS3Config()
-                            {
-                                Timeout = TimeSpan.FromSeconds(100),
-                                ServiceURL = serviceURL,
-                                ProxyCredentials = CredentialCache.DefaultNetworkCredentials
-                            };
+                          config.ServiceURL = serviceURL;
                         }
                         else
                         {
-                            config = new AmazonS3Config()
-                            {
-                                Timeout = TimeSpan.FromSeconds(100),
-                                RegionEndpoint = RegionEndpoint.GetBySystemName(region),
-                                ProxyCredentials = CredentialCache.DefaultNetworkCredentials
-                            };
+                            config.RegionEndpoint = RegionEndpoint.GetBySystemName(region);
                         }
 
                         AmazonS3Client amazonS3Client = null;
