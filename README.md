@@ -1,8 +1,8 @@
 ## Build Status
 
-| AppVeyor | Azure Pipelines |
-| --- | --- |
-| [![AppVeyor](https://ci.appveyor.com/api/projects/status/cuhdeq60c3ogy7pa?svg=true)](https://ci.appveyor.com/project/emgarten/sleet) | [![VSO](https://hackamore.visualstudio.com/_apis/public/build/definitions/abbff132-0981-4267-a80d-a6e7682a75a9/2/badge)](https://github.com/emgarten/sleet) |
+| AppVeyor | Azure Pipelines | Github |
+| --- | --- | --- |
+| [![AppVeyor](https://ci.appveyor.com/api/projects/status/cuhdeq60c3ogy7pa?svg=true)](https://ci.appveyor.com/project/emgarten/sleet) | [![VSO](https://hackamore.visualstudio.com/_apis/public/build/definitions/abbff132-0981-4267-a80d-a6e7682a75a9/2/badge)](https://github.com/emgarten/sleet) | [![.NET test](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml) |
 
 # What is Sleet?
 
