@@ -2,7 +2,7 @@
 
   <!-- Dependency versions -->
   <PropertyGroup>
-    <NuGetPackageVersion>6.2.1</NuGetPackageVersion>
+    <NuGetPackageVersion>6.8.0</NuGetPackageVersion>
     <MicrosoftAzureStorageBlobVersion>11.2.3</MicrosoftAzureStorageBlobVersion>
     <JsonVersion>13.0.3</JsonVersion>
     <CommandLineUtilsVersion>2.0.0</CommandLineUtilsVersion>

@@ -146,7 +146,7 @@ namespace Sleet
                             serverSideEncryptionMethodValue = ServerSideEncryptionMethod.AES256;
                         }
 
-                        AmazonS3Config config = new AmazonS3Config()
+                        var config = new AmazonS3Config()
                         {
                             Timeout = TimeSpan.FromSeconds(100),
                             ProxyCredentials = CredentialCache.DefaultNetworkCredentials
@@ -155,7 +155,7 @@ namespace Sleet
 
                         if (serviceURL != null)
                         {
-                          config.ServiceURL = serviceURL;
+                            config.ServiceURL = serviceURL;
                         }
                         else
                         {

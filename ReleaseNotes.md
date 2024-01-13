@@ -1,5 +1,9 @@
 # Release Notes
 
+## 5.2.0
+* Added net8.0 support, removed net7.0
+* Updated NuGet.* packages to 6.8.0
+
 ## 5.1.0
 * Added net7.0 support
 * Update AWS SDK
