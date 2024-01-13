@@ -6,7 +6,7 @@
     <MicrosoftAzureStorageBlobVersion>11.2.3</MicrosoftAzureStorageBlobVersion>
     <JsonVersion>13.0.3</JsonVersion>
     <CommandLineUtilsVersion>2.0.0</CommandLineUtilsVersion>
-    <NuGetTestHelpersVersion>2.1.23</NuGetTestHelpersVersion>
+    <NuGetTestHelpersVersion>2.1.35</NuGetTestHelpersVersion>
     <PortablePdbVersion>1.5.0</PortablePdbVersion>
     <AWSSDKVersion>3.7.103.40</AWSSDKVersion>
     <AWSSDKTokenVersion>3.7.101.38</AWSSDKTokenVersion>
