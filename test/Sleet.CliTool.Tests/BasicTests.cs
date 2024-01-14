@@ -50,7 +50,7 @@ namespace Sleet.CliTool.Tests
                 var result = await CmdRunner.RunAsync(dotnetExe, testContext.Root, $"tool install sleet --version {sleetVersion} --add-source {nupkgsFolder} --tool-path {dir}");
                 result.Success.Should().BeTrue(result.AllOutput);
 
-                var sleetDllPath = Path.Combine(dir, ".store", "sleet", sleetVersion, "sleet", sleetVersion, "tools", "net6.0", "any", "Sleet.dll");
+                var sleetDllPath = Path.Combine(dir, ".store", "sleet", sleetVersion, "sleet", sleetVersion, "tools", "net8.0", "any", "Sleet.dll");
 
                 if (!File.Exists(sleetDllPath))
                 {
