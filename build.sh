@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# No options are needed to run a basic build and unit tests
+# To run functional tests against azure and or aws, use the following options:
 VALID_ARGS=$(getopt -o : --long azure-conn:,aws-key:,aws-secret:,aws-region: -- "$@")
 if [[ $? -ne 0 ]]; then
     exit 1;
@@ -29,8 +31,6 @@ while [ : ]; do
         ;;
   esac
 done
-
-echo "Azure: $SLEET_TEST_ACCOUNT"
 
 RESULTCODE=0
 pushd $(pwd)
