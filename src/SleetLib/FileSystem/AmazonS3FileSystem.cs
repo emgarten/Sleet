@@ -302,7 +302,8 @@ namespace Sleet
                             return;
                         }
 
-                        if (DateTime.UtcNow > start.Add(maxTime)) {
+                        if (DateTime.UtcNow > start.Add(maxTime))
+                        {
                             throw new InvalidOperationException("Unable to initialize lock for new bucket.");
                         }
                     }

@@ -18,6 +18,7 @@
   <!-- Config -->
   <PropertyGroup>
     <RepositoryName>Sleet</RepositoryName>
+    <PackageIconPath>$(MSBuildThisFileDirectory)/icons/icon.png</PackageIconPath>
   </PropertyGroup>
 
   <!-- Nuspec defaults -->
