@@ -284,17 +284,14 @@ namespace Sleet
         // Create and release a lock to ensure it will work after the bucket is created.
         private async Task CreateAndReleaseLock(ILogger log, CancellationToken token)
         {
-            var tries = 0;
-            var success = false;
-            var maxTries = 30;
+            var start = DateTime.UtcNow;
+            var maxTime = TimeSpan.FromMinutes(2);
 
             // Pass the null logger to avoid noise
             using (var feedLock = CreateLock(NullLogger.Instance))
             {
-                while (tries < maxTries && !success)
+                while (true)
                 {
-                    tries++;
-
                     try
                     {
                         // Attempt to get the lock, since this is a new container it will be available.
@@ -302,13 +299,17 @@ namespace Sleet
                         if (await feedLock.GetLock(TimeSpan.FromMinutes(1), "Container create lock test", token))
                         {
                             feedLock.Release();
-                            success = true;
+                            return;
+                        }
+
+                        if (DateTime.UtcNow > start.Add(maxTime)) {
+                            throw new InvalidOperationException("Unable to initialize lock for new bucket.");
                         }
                     }
-                    catch (AmazonS3Exception ex) when (tries < (maxTries - 1) && ex.StatusCode != HttpStatusCode.BadRequest && ex.StatusCode != HttpStatusCode.Forbidden)
+                    catch (AmazonS3Exception ex) when (DateTime.UtcNow < start.Add(maxTime) && CanRetry(ex))
                     {
                         // Ignore exceptions until the last exception
-                        await Task.Delay(TimeSpan.FromSeconds(Math.Max(tries, 5)));
+                        await Task.Delay(TimeSpan.FromMilliseconds(500), token);
                     }
                 }
             }
