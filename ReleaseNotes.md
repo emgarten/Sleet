@@ -3,6 +3,8 @@
 ## 5.2.0
 * Added net8.0 support, removed net7.0
 * Updated NuGet.* packages to 6.8.0
+* Updated AWS SDK
+* Fixed AWS S3 bucket public policy for new bucket creation [PR](https://github.com/emgarten/Sleet/pull/181)
 
 ## 5.1.0
 * Added net7.0 support
