@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
@@ -119,6 +120,7 @@ namespace Sleet
             if (!await HasBucket(log, token))
             {
                 log.LogInformation($"Creating new bucket: {_bucketName}");
+
                 try
                 {
                     await _client.EnsureBucketExistsAsync(_bucketName);
@@ -126,72 +128,31 @@ namespace Sleet
                 catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.Conflict)
                 {
                     // Ignore the Conflict exception when creating the bucket
-                    log.LogWarning($"Transient error may happen during creation. Bucket already created: {ex.Message}.");
+                    log.LogWarning($"Transient errors may happen during creation. Bucket already created: {ex.Message}.");
                 }
 
-                var tries = 0;
-                var maxTries = 30;
-                var success = false;
+                log.LogInformation($"Adding policy for public read access to bucket: ${_bucketName}");
 
-                while (tries < maxTries && !success)
-                {
-                    tries++;
+                // As of 2023-04 additional settings are needed to allow a public policy
+                // https://stackoverflow.com/questions/39085360/why-is-uploading-a-file-to-s3-via-the-c-sharp-aws-sdk-giving-a-permission-denied
 
-                    try
-                    {
-                        var policyRequest = new PutBucketPolicyRequest()
-                        {
-                            BucketName = _bucketName,
-                            Policy = GetReadOnlyPolicy(_bucketName).ToString()
-                        };
+                // Account wide settings can also block public access, users must update their accounts manually for this
+                // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-publicaccessblockconfiguration.html
 
-                        log.LogInformation($"Adding policy for public read access to bucket: ${_bucketName}");
-                        await _client.PutBucketPolicyAsync(policyRequest);
-                        success = true;
-                    }
-                    catch (AmazonS3Exception ex) when (tries < (maxTries - 1))
-                    {
-                        log.LogWarning($"Failed to update policy for bucket: {ex.Message} Trying again.");
-                        await Task.Delay(TimeSpan.FromSeconds(tries));
-                    }
-                }
+                // Remove all public access blocks for this bucket
+                await Retry(SetPublicAccessBlocks, log, token);
 
-                if (tries >= maxTries)
-                {
-                    throw new InvalidOperationException("Unable to create bucket");
-                }
+                // Set ownership preference to ensure we can set a public policy
+                await Retry(SetOwnership, log, token);
+
+                // Set the public policy to public read-only
+                await Retry(SetBucketPolicy, log, token);
 
                 // Get and release the lock to ensure that everything will work for the next operation.
                 // In the E2E tests there are often failures due to the bucket saying it is not available
                 // even though the above checks passed. To work around this wait until a file can be
                 // successfully created in the bucket before returning.
-                tries = 0;
-                success = false;
-
-                // Pass the null logger to avoid noise
-                using (var feedLock = CreateLock(NullLogger.Instance))
-                {
-                    while (tries < maxTries && !success)
-                    {
-                        tries++;
-
-                        try
-                        {
-                            // Attempt to get the lock, since this is a new container it will be available.
-                            // This will fail if the bucket it not yet ready.
-                            if (await feedLock.GetLock(TimeSpan.FromMinutes(1), "Container create lock test", token))
-                            {
-                                feedLock.Release();
-                                success = true;
-                            }
-                        }
-                        catch (AmazonS3Exception ex) when (tries < (maxTries - 1) && ex.StatusCode != HttpStatusCode.BadRequest)
-                        {
-                            // Ignore exceptions until the last exception
-                            await Task.Delay(TimeSpan.FromSeconds(tries));
-                        }
-                    }
-                }
+                await CreateAndReleaseLock(log, token);
 
                 _hasBucket = true;
             }
@@ -212,6 +173,147 @@ namespace Sleet
                 }
             }
             _hasBucket = false;
+        }
+
+        // Set ObjectOwnership to BucketOwnerPreferred to allow for setting the public access policy.
+        private Task SetOwnership(ILogger log, CancellationToken token)
+        {
+            var ownerReq = new PutBucketOwnershipControlsRequest()
+            {
+                BucketName = _bucketName,
+                OwnershipControls = new OwnershipControls()
+                {
+                    Rules = new List<OwnershipControlsRule>
+                            {
+                                new() {
+                                    ObjectOwnership = ObjectOwnership.BucketOwnerPreferred
+                                }
+                            }
+                }
+            };
+
+            return _client.PutBucketOwnershipControlsAsync(ownerReq, token);
+        }
+
+        // Remove public access blocks to allow public policies.
+        private Task SetPublicAccessBlocks(ILogger log, CancellationToken token)
+        {
+            var blockReq = new PutPublicAccessBlockRequest()
+            {
+                BucketName = _bucketName,
+                PublicAccessBlockConfiguration = new PublicAccessBlockConfiguration()
+                {
+                    IgnorePublicAcls = false,
+                    RestrictPublicBuckets = false,
+                    BlockPublicAcls = false,
+                    BlockPublicPolicy = false,
+                }
+            };
+
+            return _client.PutPublicAccessBlockAsync(blockReq, token);
+        }
+
+        // Set bucket policy to public ready-only
+        private Task SetBucketPolicy(ILogger log, CancellationToken token)
+        {
+            var policyRequest = new PutBucketPolicyRequest()
+            {
+                BucketName = _bucketName,
+                Policy = GetReadOnlyPolicy(_bucketName).ToString(),
+            };
+
+
+            return _client.PutBucketPolicyAsync(policyRequest, token);
+        }
+
+        // Retry S3 exceptions except for auth errors and bad requests
+        private static async Task Retry(Func<ILogger, CancellationToken, Task> func, ILogger log, CancellationToken token)
+        {
+            var start = DateTime.UtcNow;
+            var maxTime = TimeSpan.FromMinutes(2);
+            var failures = 0;
+
+            while (true)
+            {
+                try
+                {
+                    await func(log, token);
+
+                    // end
+                    return;
+                }
+                catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    // Forbidden indicates that the account info is correct, but the account lacks permissions, or the public access policy is blocking the change.
+                    // The user may not need AmazonS3FullAccess if they set a specific policy, but for diagnostics purposes it is the easiest way to help them rule out S3 access problems.
+                    log.LogWarning("Unable to update S3 bucket. Ensure that the login info used has AmazonS3FullAccess and that the AWS account allows public access buckets: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-publicaccessblockconfiguration.html");
+                    log.LogWarning($"Failed to update S3 bucket. Status code: {ex.StatusCode} error: {ex.Message}");
+                    throw;
+                }
+                catch (AmazonS3Exception ex) when (DateTime.UtcNow < start.Add(maxTime) && CanRetry(ex))
+                {
+                    // Only show the warning once.
+                    // The last exception will throw.
+                    if (failures == 0)
+                    {
+                        log.LogWarning($"Failed to update S3 bucket. Trying again. Status code: {ex.StatusCode} error: {ex.Message}");
+                    }
+
+                    failures++;
+
+                    // Ignore exceptions until the last exception
+                    await Task.Delay(TimeSpan.FromMilliseconds(500), token);
+                }
+            }
+        }
+
+        // True if the exception should be retried
+        private static bool CanRetry(AmazonS3Exception ex)
+        {
+            switch (ex.StatusCode)
+            {
+                case HttpStatusCode.BadRequest:
+                case HttpStatusCode.Forbidden:
+                case HttpStatusCode.Unauthorized:
+                    return false;
+                default:
+                    return true;
+            }
+        }
+
+        // Create and release a lock to ensure it will work after the bucket is created.
+        private async Task CreateAndReleaseLock(ILogger log, CancellationToken token)
+        {
+            var start = DateTime.UtcNow;
+            var maxTime = TimeSpan.FromMinutes(2);
+
+            // Pass the null logger to avoid noise
+            using (var feedLock = CreateLock(NullLogger.Instance))
+            {
+                while (true)
+                {
+                    try
+                    {
+                        // Attempt to get the lock, since this is a new container it will be available.
+                        // This will fail if the bucket it not yet ready.
+                        if (await feedLock.GetLock(TimeSpan.FromMinutes(1), "Container create lock test", token))
+                        {
+                            feedLock.Release();
+                            return;
+                        }
+
+                        if (DateTime.UtcNow > start.Add(maxTime))
+                        {
+                            throw new InvalidOperationException("Unable to initialize lock for new bucket.");
+                        }
+                    }
+                    catch (AmazonS3Exception ex) when (DateTime.UtcNow < start.Add(maxTime) && CanRetry(ex))
+                    {
+                        // Ignore exceptions until the last exception
+                        await Task.Delay(TimeSpan.FromMilliseconds(500), token);
+                    }
+                }
+            }
         }
 
         private static JObject GetReadOnlyPolicy(string bucketName)
