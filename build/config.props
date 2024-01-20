@@ -8,10 +8,10 @@
     <CommandLineUtilsVersion>2.0.0</CommandLineUtilsVersion>
     <NuGetTestHelpersVersion>2.1.35</NuGetTestHelpersVersion>
     <PortablePdbVersion>1.5.0</PortablePdbVersion>
-    <AWSSDKVersion>3.7.305.11</AWSSDKVersion>
-    <AWSSDKTokenVersion>3.7.101.38</AWSSDKTokenVersion>
-    <AWSSDKSSOVersion>3.7.100.103</AWSSDKSSOVersion>
-    <AWSSDKSSOOIDCVersion>$(AWSSDKSSOVersion)</AWSSDKSSOOIDCVersion>
+    <AWSSDKVersion>3.7.305.14</AWSSDKVersion>
+    <AWSSDKTokenVersion>3.7.300.40</AWSSDKTokenVersion>
+    <AWSSDKSSOVersion>3.7.300.39</AWSSDKSSOVersion>
+    <AWSSDKSSOOIDCVersion>3.7.301.34</AWSSDKSSOOIDCVersion>
     <DotNetConfigVersion>1.0.6</DotNetConfigVersion>
   </PropertyGroup>
 
