@@ -176,7 +176,7 @@ Add the feed as a source to your `NuGet.Config` file. In the example above the p
 
 Private feeds can be created by creating a lambda function to authenticate clients. 
 
-For help setting up S3 go [here](http://kynatro.com/blog/2018/01/03/a-step-by-step-guide-to-creating-a-password-protected-s3-bucket/)
+For help setting up S3 go [here](private-feed-s3.md)
 
 In *sleet.json* set *baseURI* for the feed to the CloudFront address, this will write the CloudFront URI to the feed json files instead of the restricted S3 bucket which the client cannot access.
 
