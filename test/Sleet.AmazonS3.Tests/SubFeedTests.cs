@@ -66,6 +66,9 @@ namespace Sleet.AmazonS3.Tests
                     testContext.FileSystem,
                     testContext.Logger);
 
+                // Validate feed 2 is removed
+                var feed2Files = await testContext2.FileSystem.GetFiles(testContext2.Logger, CancellationToken.None);
+                feed2Files.Should().BeEmpty();
 
                 result.Should().BeTrue();
 
