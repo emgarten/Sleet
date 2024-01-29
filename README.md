@@ -43,6 +43,7 @@ These provide a walk through on the basics of configuring sleet, creating, and u
 * [Setting up an AWS S3 feed](doc/feed-type-s3.md)
 * [Setting up a local feed with IIS hosting](doc/feed-type-local.md)
 * [Integration with CI Server](doc/ci-server.md)
+* [Setting up a private feed on AWS using S3 + CloudFront + Lambdas](doc/private-feed-s3.md)
 
 Check out the full getting started guide [here](http://emgarten.com/2016/04/25/how-to-host-a-nuget-v3-feed-on-azure-storage/).
 
