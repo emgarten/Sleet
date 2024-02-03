@@ -80,10 +80,38 @@ namespace Sleet
 
         public override async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
         {
-            return (await GetFilesAsync(_client, _bucketName, token))
-                .Where(x => !x.Key.Equals(AmazonS3FileSystemLock.LockFile))
-                .Select(x => Get(GetPath(x.Key)))
-                .ToList();
+            var sleetFiles = new List<ISleetFile>();
+            var files = await GetFilesAsync(_client, _bucketName, token);
+
+            foreach (var file in files)
+            {
+                var hasSubPath = !string.IsNullOrEmpty(FeedSubPath) && file.Key.StartsWith(FeedSubPath, StringComparison.Ordinal);
+
+                // Filter to the feed sub path if one exists
+                if (string.IsNullOrEmpty(FeedSubPath) || hasSubPath)
+                {
+                    var relPath = file.Key;
+
+                    // Remove sub path if it exists on the relative path, GetPath will add the sub path.
+                    if (hasSubPath)
+                    {
+                        relPath = relPath.Substring(FeedSubPath.Length);
+                    }
+
+                    // Get the URI including the bucket uri
+                    var fileUri = GetPath(relPath);
+
+                    // Skip the lock file
+                    if (!fileUri.AbsoluteUri.EndsWith($"/{AmazonS3FileSystemLock.LockFile}", StringComparison.Ordinal))
+                    {
+                        // Get the ISleetFile
+                        var sleetFile = Get(fileUri);
+                        sleetFiles.Add(sleetFile);
+                    }
+                }
+            }
+
+            return sleetFiles;
         }
 
         private ISleetFile CreateAmazonS3File(SleetUriPair pair)

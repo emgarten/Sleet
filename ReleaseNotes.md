@@ -1,5 +1,8 @@
 # Release Notes
 
+## 5.2.11
+* AWS S3 feeds with sub paths are now fully removed during destroy.
+
 ## 5.2.6
 * Updated all AWS SDKs to the latest
 
