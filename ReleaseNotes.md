@@ -1,5 +1,8 @@
 # Release Notes
 
+## 5.2.12
+* Update NuGet.* packages to 6.9.1 to address CVE-2024-0057 [Issue](https://github.com/emgarten/Sleet/issues/189)
+
 ## 5.2.11
 * AWS S3 feeds with sub paths are now fully removed during destroy.
 
