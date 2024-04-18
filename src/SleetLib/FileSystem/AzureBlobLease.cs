@@ -1,18 +1,20 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 
 namespace Sleet
 {
+    using Azure.Storage.Blobs.Specialized;
+
     public class AzureBlobLease : IDisposable
     {
         private static readonly TimeSpan _leaseTime = new TimeSpan(0, 1, 0);
-        private readonly CloudBlockBlob _blob;
+        private readonly BlobClient _blob;
         private readonly string _leaseId;
 
-        public AzureBlobLease(CloudBlockBlob blob)
+        public AzureBlobLease(BlobClient blob)
         {
             _blob = blob;
             _leaseId = Guid.NewGuid().ToString();
@@ -30,7 +32,7 @@ namespace Sleet
 
             try
             {
-                actualLease = await _blob.AcquireLeaseAsync(_leaseTime, _leaseId);
+                actualLease = (await _blob.GetBlobLeaseClient(_leaseId).AcquireAsync(_leaseTime)).Value.LeaseId;
             }
             catch (Exception ex)
             {
@@ -44,7 +46,7 @@ namespace Sleet
         {
             try
             {
-                await _blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(_leaseId));
+                await _blob.GetBlobLeaseClient(_leaseId).RenewAsync();
             }
             catch (Exception ex)
             {
@@ -63,7 +65,8 @@ namespace Sleet
         {
             try
             {
-                _blob.ReleaseLeaseAsync(AccessCondition.GenerateLeaseCondition(_leaseId)).Wait(TimeSpan.FromSeconds(60));
+
+                _blob.GetBlobLeaseClient(_leaseId).ReleaseAsync().Wait(TimeSpan.FromSeconds(60));
             }
             catch (Exception ex)
             {

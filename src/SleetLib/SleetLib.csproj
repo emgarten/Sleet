@@ -23,7 +23,7 @@
     <PackageReference Include="AWSSDK.SSO" Version="$(AWSSDKSSOVersion)" />
     <PackageReference Include="AWSSDK.SSOOIDC" Version="$(AWSSDKSSOOIDCVersion)" />
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
-    <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="$(MicrosoftAzureStorageBlobVersion)" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="$(AzureStorageBlobsVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
     <PackageReference Include="DotNetConfig" Version="$(DotNetConfigVersion)" />

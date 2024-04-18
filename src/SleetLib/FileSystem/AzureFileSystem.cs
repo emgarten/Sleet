@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using NuGet.Common;
+using Azure.Storage.Blobs.Models;
 
 namespace Sleet
 {
@@ -13,21 +14,19 @@ namespace Sleet
     {
         public static readonly string AzureEmptyConnectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint=";
 
-        private readonly CloudStorageAccount _azureAccount;
-        private readonly CloudBlobClient _client;
-        private readonly CloudBlobContainer _container;
+        private readonly BlobServiceClient _blobServiceClient;
+        private readonly BlobContainerClient _container;
 
-        public AzureFileSystem(LocalCache cache, Uri root, CloudStorageAccount azureAccount, string container)
-            : this(cache, root, root, azureAccount, container)
+        public AzureFileSystem(LocalCache cache, Uri root, BlobServiceClient blobServiceClient, string container)
+            : this(cache, root, root, blobServiceClient, container)
         {
         }
 
-        public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, CloudStorageAccount azureAccount, string container, string feedSubPath = null)
+        public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, BlobServiceClient blobServiceClient, string container, string feedSubPath = null)
             : base(cache, root, baseUri, feedSubPath)
         {
-            _azureAccount = azureAccount;
-            _client = _azureAccount.CreateCloudBlobClient();
-            _container = _client.GetContainerReference(container);
+            _blobServiceClient = blobServiceClient;
+            _container = _blobServiceClient.GetBlobContainerClient(container);
 
             var containerUri = UriUtility.EnsureTrailingSlash(_container.Uri);
             var expectedPath = UriUtility.EnsureTrailingSlash(root);
@@ -63,7 +62,7 @@ namespace Sleet
                     pair.Root,
                     pair.BaseURI,
                     LocalCache.GetNewTempPath(),
-                    _container.GetBlockBlobReference(GetRelativePath(path))));
+                    _container.GetBlobClient(GetRelativePath(path))));
         }
 
         public override async Task<bool> Validate(ILogger log, CancellationToken token)
@@ -86,34 +85,32 @@ namespace Sleet
         public override ISleetFileSystemLock CreateLock(ILogger log)
         {
             // Create blobs
-            var blob = _container.GetBlockBlobReference(GetRelativePath(GetPath(AzureFileSystemLock.LockFile)));
-            var messageBlob = _container.GetBlockBlobReference(GetRelativePath(GetPath(AzureFileSystemLock.LockFileMessage)));
+            var blob = _container.GetBlobClient(GetRelativePath(GetPath(AzureFileSystemLock.LockFile)));
+            var messageBlob = _container.GetBlobClient(GetRelativePath(GetPath(AzureFileSystemLock.LockFileMessage)));
             return new AzureFileSystemLock(blob, messageBlob, log);
         }
 
         public override async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
         {
-            string prefix = null;
-            var useFlatBlobListing = true;
-            var blobListingDetails = BlobListingDetails.All;
-            int? maxResults = null;
+            var results = _container.GetBlobsAsync();
+            var pages = results.AsPages();
+            var blobs = new List<ISleetFile>();
 
-            // Return all files except feedlock
-            var blobs = new List<IListBlobItem>();
-
-            BlobResultSegment result = null;
-            do
+            await foreach (var page in pages)
             {
-                result = await _container.ListBlobsSegmentedAsync(prefix, useFlatBlobListing, blobListingDetails, maxResults, result?.ContinuationToken, options: null, operationContext: null);
-                blobs.AddRange(result.Results);
+                // process page
+                blobs.AddRange(
+                    page.Values
+                        .Where(item => !item.Name.EndsWith(AzureFileSystemLock.LockFile, StringComparison.Ordinal))
+                        .Where(item =>
+                            string.IsNullOrEmpty(FeedSubPath) ||
+                            item.Name.StartsWith(FeedSubPath, StringComparison.Ordinal))
+                        .Select(item =>
+                            Get(new BlobUriBuilder(_container.Uri) { BlobName = item.Name }.ToUri())
+                            ));
             }
-            while (result.ContinuationToken != null);
 
-            // Skip the feed lock, and limit this to the current sub feed.
-            return blobs.Where(e => !e.Uri.AbsoluteUri.EndsWith($"/{AzureFileSystemLock.LockFile}"))
-                 .Where(e => string.IsNullOrEmpty(FeedSubPath) || e.Uri.AbsoluteUri.StartsWith(UriUtility.EnsureTrailingSlash(BaseURI).AbsoluteUri, StringComparison.Ordinal))
-                 .Select(e => Get(e.Uri))
-                 .ToList();
+            return blobs;
         }
 
         public override string GetRelativePath(Uri uri)
@@ -128,19 +125,19 @@ namespace Sleet
             return relativePath;
         }
 
-        public override Task<bool> HasBucket(ILogger log, CancellationToken token)
+        public override async Task<bool> HasBucket(ILogger log, CancellationToken token)
         {
-            return _container.ExistsAsync(token);
+            return await _container.ExistsAsync(token);
         }
 
         public override async Task CreateBucket(ILogger log, CancellationToken token)
         {
-            await _container.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Blob, null, null, token);
+            await _container.CreateIfNotExistsAsync(PublicAccessType.BlobContainer, null, null, token);
         }
 
         public override async Task DeleteBucket(ILogger log, CancellationToken token)
         {
-            await _container.DeleteIfExistsAsync(token);
+            await _container.DeleteIfExistsAsync(cancellationToken: token);
         }
     }
 }

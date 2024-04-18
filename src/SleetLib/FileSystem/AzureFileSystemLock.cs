@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage.Blobs;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 
@@ -12,13 +12,13 @@ namespace Sleet
         public const string LockFile = "feedlock";
         public const string LockFileMessage = "feedlock-message";
         private readonly AzureBlobLease _lease;
-        private readonly CloudBlockBlob _blob;
-        private readonly CloudBlockBlob _messageBlob;
+        private readonly BlobClient _blob;
+        private readonly BlobClient _messageBlob;
         private Task _keepLockTask = null;
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
         private Task _updateLockMessage;
 
-        public AzureFileSystemLock(CloudBlockBlob blob, CloudBlockBlob messageBlob, ILogger log)
+        public AzureFileSystemLock(BlobClient blob, BlobClient messageBlob, ILogger log)
             : base(log)
         {
             _blob = blob ?? throw new ArgumentNullException(nameof(blob));
@@ -40,12 +40,12 @@ namespace Sleet
                 // Keep the lease
                 if (_keepLockTask == null)
                 {
-                    _keepLockTask = Task.Run(async () => await KeepLock());
+                    _keepLockTask = Task.Run(async () => await KeepLock(), token);
                 }
 
                 // For azure blobs the message goes into a separate file.
                 var json = GetMessageJson(lockMessage);
-                _updateLockMessage = _messageBlob.UploadTextAsync(json.ToString());
+                _updateLockMessage = _messageBlob.UploadAsync(BinaryData.FromString(json.ToString()), overwrite: true, token);
 
                 // The message is not needed for success
                 return Tuple.Create(result, new JObject());
@@ -64,7 +64,7 @@ namespace Sleet
             if (!exists)
             {
                 // Create the feed lock blob if it doesn't exist
-                await _blob.UploadTextAsync("{}");
+                await _blob.UploadAsync(BinaryData.FromString("{}"));
             }
         }
 
@@ -72,7 +72,8 @@ namespace Sleet
         {
             try
             {
-                var text = await _messageBlob.DownloadTextAsync();
+                var blobDownloadContent = await _messageBlob.DownloadContentAsync();
+                var text = blobDownloadContent.Value.Content.ToString();
                 return JObject.Parse(text);
             }
             catch (Exception ex)
@@ -135,7 +136,7 @@ namespace Sleet
             catch (Exception ex)
             {
                 // Ignore
-                Log.LogWarning("Unable to clear lock messsage");
+                Log.LogWarning("Unable to clear lock message");
                 ExceptionUtilsSleetLib.LogException(ex, Log, LogLevel.Warning);
             }
         }

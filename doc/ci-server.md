@@ -10,7 +10,7 @@ Github Action is free and common CI/CD tools to developer.
 
 Now we take example to publish some nuget package in Github Action.
 
-You can make it ok with other CI/CD tools like Jeknins, Gitlab Jobs and etc.
+You can make it ok with other CI/CD tools like Jeknins, Gitlab Jobs, etc.
 
 Now, we are going to publish nuget package to Azure by Github Action.
 
@@ -60,10 +60,10 @@ It means:
 
 1. It will run CI action in ubuntu-latest OS
 2. Step named `pack` will `cd` to the `src` directory and try to pack nuget packages versioned `1.0.0`
-3. Step named `Push nuget package to Azure storage` will publish packages placed in `pkgs` diretocy to azure
+3. Step named `Push nuget package to Azure storage` will publish packages placed in `pkgs` directory to azure
 4. \${{secrets.SLEET_CONNECTIONSTRING}} is a secret, you can add it in you repository settings tab.
 
-Put it togather as below:
+Put it together as below:
 
 ```yml
 name: Publish dev nuget package to azure
@@ -99,7 +99,7 @@ jobs:
 
 ### Some tips
 
-#### Please pack nuget package to out it to specfic directory
+#### Please pack nuget package to out it to specific directory
 
 Maybe you publish nuget package via `dotnet` or `nuget` command as script below:
 
@@ -109,4 +109,4 @@ dotnet nuget push **/*.nupkg
 
 Unfortunately, It is not support to publish package via `sleet push **/*.nupkg`.
 
-So, please pack your nuget package to some directory like `pkg` as exmaple above.
+So, please pack your nuget package to some directory like `pkg` as example above.

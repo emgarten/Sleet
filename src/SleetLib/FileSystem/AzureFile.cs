@@ -3,16 +3,18 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage.Blobs;
 using NuGet.Common;
 
 namespace Sleet
 {
+    using Azure.Storage.Blobs.Models;
+
     public class AzureFile : FileBase
     {
-        private readonly CloudBlockBlob _blob;
+        private readonly BlobClient _blob;
 
-        internal AzureFile(AzureFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile, CloudBlockBlob blob)
+        internal AzureFile(AzureFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile, BlobClient blob)
             : base(fileSystem, rootPath, displayPath, localCacheFile, fileSystem.LocalCache.PerfTracker)
         {
             _blob = blob;
@@ -28,11 +30,12 @@ namespace Sleet
 
                 using (var cache = File.OpenWrite(LocalCacheFile.FullName))
                 {
-                    await _blob.DownloadToStreamAsync(cache);
+                    await _blob.DownloadToAsync(cache, token);
                 }
 
                 // If the blob is compressed it needs to be decompressed locally before it can be used
-                if (_blob.Properties.ContentEncoding?.Equals("gzip", StringComparison.OrdinalIgnoreCase) == true)
+                var blobProperties = await _blob.GetPropertiesAsync(cancellationToken: token);
+                if (blobProperties.HasValue && blobProperties.Value.ContentEncoding.Equals("gzip", StringComparison.OrdinalIgnoreCase))
                 {
                     log.LogVerbose($"Decompressing {_blob.Uri.AbsoluteUri}");
 
@@ -60,61 +63,56 @@ namespace Sleet
                 using (var cache = LocalCacheFile.OpenRead())
                 {
                     Stream writeStream = cache;
+                    var blobHeaders = new BlobHttpHeaders();
+                    blobHeaders.CacheControl = "no-store";
 
                     if (_blob.Uri.AbsoluteUri.EndsWith(".nupkg", StringComparison.Ordinal))
                     {
-                        _blob.Properties.ContentType = "application/zip";
+                        blobHeaders.ContentType = "application/zip";
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".xml", StringComparison.Ordinal)
                         || _blob.Uri.AbsoluteUri.EndsWith(".nuspec", StringComparison.Ordinal))
                     {
-                        _blob.Properties.ContentType = "application/xml";
+                        blobHeaders.ContentType = "application/xml";
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".svg", StringComparison.Ordinal))
                     {
-                        _blob.Properties.ContentType = "image/svg+xml";
+                        blobHeaders.ContentType = "image/svg+xml";
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal)
                             || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                     {
-                        _blob.Properties.ContentType = "application/json";
+                        blobHeaders.ContentType = "application/json";
 
                         if (!SkipCompress())
                         {
-                            _blob.Properties.ContentEncoding = "gzip";
+                            blobHeaders.ContentEncoding = "gzip";
                             writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
                         }
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
                         || _blob.Uri.AbsoluteUri.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
                     {
-                        _blob.Properties.ContentType = "application/octet-stream";
+                        blobHeaders.ContentType = "application/octet-stream";
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith("/icon"))
                     {
-                        _blob.Properties.ContentType = "image/png";
+                        blobHeaders.ContentType = "image/png";
                     }
                     else
                     {
                         log.LogWarning($"Unknown file type: {_blob.Uri.AbsoluteUri}");
                     }
 
-                    await _blob.UploadFromStreamAsync(writeStream);
+                    await _blob.UploadAsync(writeStream, blobHeaders, cancellationToken: token);
 
                     writeStream.Dispose();
                 }
-
-                _blob.Properties.CacheControl = "no-store";
-
-                // TODO: re-enable this once it works again.
-                _blob.Properties.ContentMD5 = null;
-
-                await _blob.SetPropertiesAsync();
             }
-            else if (await _blob.ExistsAsync())
+            else if (await _blob.ExistsAsync(token))
             {
                 log.LogVerbose($"Removing {_blob.Uri.AbsoluteUri}");
-                await _blob.DeleteAsync();
+                await _blob.DeleteAsync(cancellationToken: token);
             }
             else
             {
@@ -122,9 +120,9 @@ namespace Sleet
             }
         }
 
-        protected override Task<bool> RemoteExists(ILogger log, CancellationToken token)
+        protected override async Task<bool> RemoteExists(ILogger log, CancellationToken token)
         {
-            return _blob.ExistsAsync();
+            return await _blob.ExistsAsync(token);
         }
     }
 }
