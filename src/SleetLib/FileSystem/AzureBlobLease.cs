@@ -1,7 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
-using Azure.Storage;
 using Azure.Storage.Blobs;
 
 namespace Sleet

@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
