@@ -1,16 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Azure.Storage.Blob;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
-using Xunit;
 
 namespace Sleet.Azure.Tests
 {
+    using global::Azure.Storage.Blobs;
+
     public class SubFeedTests
     {
         [EnvVarExistsFact(AzureTestContext.EnvVarName)]
@@ -102,7 +97,6 @@ namespace Sleet.Azure.Tests
 
                 result.Should().BeTrue();
 
-                var token = new BlobContinuationToken();
                 var files = await GetFiles(testContext.Container);
 
                 files.Where(e => e.AbsoluteUri.IndexOf(subFeedName, StringComparison.OrdinalIgnoreCase) < 0).Should().BeEmpty();
@@ -176,26 +170,23 @@ namespace Sleet.Azure.Tests
         /// <summary>
         /// Read all files from a container.
         /// </summary>
-        private static async Task<List<Uri>> GetFiles(CloudBlobContainer container)
+        private async Task<List<Uri>> GetFiles(BlobContainerClient container)
         {
-            string prefix = null;
-            var useFlatBlobListing = true;
-            var blobListingDetails = BlobListingDetails.All;
-            int? maxResults = null;
+            var results = container.GetBlobsAsync();
+            var pages = results.AsPages();
+            var blobs = new List<Uri>();
 
-            // Return all files except feedlock
-            var blobs = new List<IListBlobItem>();
-
-            BlobResultSegment result = null;
-            do
+            await foreach (var page in pages)
             {
-                result = await container.ListBlobsSegmentedAsync(prefix, useFlatBlobListing, blobListingDetails, maxResults, result?.ContinuationToken, options: null, operationContext: null);
-                blobs.AddRange(result.Results);
+                // process page
+                blobs.AddRange(
+                    page.Values
+                        .Select(item =>
+                            new BlobUriBuilder(container.Uri) { BlobName = item.Name }.ToUri())
+                        );
             }
-            while (result.ContinuationToken != null);
 
-            // Skip the feed lock, and limit this to the current sub feed.
-            return blobs.Select(e => e.Uri).ToList();
+            return blobs;
         }
     }
 }

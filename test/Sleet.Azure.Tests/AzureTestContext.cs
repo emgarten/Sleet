@@ -1,12 +1,10 @@
-using System;
-using System.Threading.Tasks;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage.Blobs;
 using NuGet.Common;
 using NuGet.Test.Helpers;
 
 namespace Sleet.Azure.Tests
 {
+
     public class AzureTestContext : IDisposable
     {
         public LocalSettings LocalSettings { get; }
@@ -17,13 +15,11 @@ namespace Sleet.Azure.Tests
 
         public LocalCache LocalCache { get; }
 
-        public CloudBlobContainer Container { get; }
+        public BlobContainerClient Container { get; }
 
         public Uri Uri => Container.Uri;
 
-        public CloudStorageAccount StorageAccount { get; }
-
-        public CloudBlobClient BlobClient { get; }
+        public BlobServiceClient StorageAccount { get; }
 
         public ILogger Logger { get; }
 
@@ -32,9 +28,8 @@ namespace Sleet.Azure.Tests
         public AzureTestContext()
         {
             ContainerName = $"sleet-test-{Guid.NewGuid().ToString()}";
-            StorageAccount = CloudStorageAccount.Parse(GetConnectionString());
-            BlobClient = StorageAccount.CreateCloudBlobClient();
-            Container = BlobClient.GetContainerReference(ContainerName);
+            StorageAccount = new BlobServiceClient(GetConnectionString());
+            Container = StorageAccount.GetBlobContainerClient(ContainerName);
             LocalCache = new LocalCache();
             LocalSettings = new LocalSettings();
             FileSystem = new AzureFileSystem(LocalCache, Uri, StorageAccount, ContainerName);
