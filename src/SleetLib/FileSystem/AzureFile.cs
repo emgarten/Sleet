@@ -17,7 +17,7 @@ namespace Sleet
 
         protected override async Task CopyFromSource(ILogger log, CancellationToken token)
         {
-            if (await _blob.ExistsAsync())
+            if (await _blob.ExistsAsync(token))
             {
                 log.LogVerbose($"GET {_blob.Uri.AbsoluteUri}");
 
@@ -58,8 +58,10 @@ namespace Sleet
                 using (var cache = LocalCacheFile.OpenRead())
                 {
                     Stream writeStream = cache;
-                    var blobHeaders = new BlobHttpHeaders();
-                    blobHeaders.CacheControl = "no-store";
+                    var blobHeaders = new BlobHttpHeaders
+                    {
+                        CacheControl = "no-store"
+                    };
 
                     if (_blob.Uri.AbsoluteUri.EndsWith(".nupkg", StringComparison.Ordinal))
                     {

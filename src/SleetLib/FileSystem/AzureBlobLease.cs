@@ -8,15 +8,14 @@ namespace Sleet
     {
         private static readonly TimeSpan _leaseTime = new TimeSpan(0, 1, 0);
         private readonly BlobClient _blob;
-        private readonly string _leaseId;
 
         public AzureBlobLease(BlobClient blob)
         {
             _blob = blob;
-            _leaseId = Guid.NewGuid().ToString();
+            LeaseId = Guid.NewGuid().ToString();
         }
 
-        public string LeaseId => _leaseId;
+        public string LeaseId { get; }
 
         /// <summary>
         /// Makes a single attempt to get a lease.
@@ -28,21 +27,21 @@ namespace Sleet
 
             try
             {
-                actualLease = (await _blob.GetBlobLeaseClient(_leaseId).AcquireAsync(_leaseTime)).Value.LeaseId;
+                actualLease = (await _blob.GetBlobLeaseClient(LeaseId).AcquireAsync(_leaseTime)).Value.LeaseId;
             }
             catch (Exception ex)
             {
                 Debug.Fail($"GetLease failed: {ex}");
             }
 
-            return StringComparer.Ordinal.Equals(_leaseId, actualLease);
+            return StringComparer.Ordinal.Equals(LeaseId, actualLease);
         }
 
         public async Task Renew()
         {
             try
             {
-                await _blob.GetBlobLeaseClient(_leaseId).RenewAsync();
+                await _blob.GetBlobLeaseClient(LeaseId).RenewAsync();
             }
             catch (Exception ex)
             {
@@ -62,7 +61,7 @@ namespace Sleet
             try
             {
 
-                _blob.GetBlobLeaseClient(_leaseId).ReleaseAsync().Wait(TimeSpan.FromSeconds(60));
+                _blob.GetBlobLeaseClient(LeaseId).ReleaseAsync().Wait(TimeSpan.FromSeconds(60));
             }
             catch (Exception ex)
             {

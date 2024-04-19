@@ -8,7 +8,6 @@ namespace Sleet
     {
         public static readonly string AzureEmptyConnectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint=";
 
-        private readonly BlobServiceClient _blobServiceClient;
         private readonly BlobContainerClient _container;
 
         public AzureFileSystem(LocalCache cache, Uri root, BlobServiceClient blobServiceClient, string container)
@@ -19,8 +18,7 @@ namespace Sleet
         public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, BlobServiceClient blobServiceClient, string container, string feedSubPath = null)
             : base(cache, root, baseUri, feedSubPath)
         {
-            _blobServiceClient = blobServiceClient;
-            _container = _blobServiceClient.GetBlobContainerClient(container);
+            _container = blobServiceClient.GetBlobContainerClient(container);
 
             var containerUri = UriUtility.EnsureTrailingSlash(_container.Uri);
             var expectedPath = UriUtility.EnsureTrailingSlash(root);
@@ -63,7 +61,7 @@ namespace Sleet
         {
             log.LogInformation($"Verifying {_container.Uri.AbsoluteUri} exists.");
 
-            if (await _container.ExistsAsync())
+            if (await _container.ExistsAsync(token))
             {
                 log.LogInformation($"Found {_container.Uri.AbsoluteUri}");
             }
