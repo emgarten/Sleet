@@ -31,7 +31,7 @@ namespace Sleet
 
                 // If the blob is compressed it needs to be decompressed locally before it can be used
                 var blobProperties = await _blob.GetPropertiesAsync(cancellationToken: token);
-                if (blobProperties.HasValue && blobProperties.Value.ContentEncoding.Equals("gzip", StringComparison.OrdinalIgnoreCase))
+                if (blobProperties.Value.ContentEncoding != null && blobProperties.Value.ContentEncoding.Equals("gzip", StringComparison.OrdinalIgnoreCase))
                 {
                     log.LogVerbose($"Decompressing {_blob.Uri.AbsoluteUri}");
 
