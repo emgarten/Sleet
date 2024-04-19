@@ -1,10 +1,9 @@
-using System.Diagnostics;
+using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Blobs;
+using System.Diagnostics;
 
 namespace Sleet
 {
-    using Azure.Storage.Blobs.Specialized;
-
     public class AzureBlobLease : IDisposable
     {
         private static readonly TimeSpan _leaseTime = new TimeSpan(0, 1, 0);

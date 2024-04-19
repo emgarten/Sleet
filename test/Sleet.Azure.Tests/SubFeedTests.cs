@@ -1,11 +1,10 @@
+using Azure.Storage.Blobs;
 using FluentAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
 
 namespace Sleet.Azure.Tests
 {
-    using global::Azure.Storage.Blobs;
-
     public class SubFeedTests
     {
         [EnvVarExistsFact(AzureTestContext.EnvVarName)]

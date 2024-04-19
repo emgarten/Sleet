@@ -1,11 +1,10 @@
-using System.IO.Compression;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs;
 using NuGet.Common;
+using System.IO.Compression;
 
 namespace Sleet
 {
-    using Azure.Storage.Blobs.Models;
-
     public class AzureFile : FileBase
     {
         private readonly BlobClient _blob;
