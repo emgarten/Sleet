@@ -9,12 +9,14 @@ using Amazon.Runtime.CredentialManagement;
 using Amazon.S3;
 using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
-using Microsoft.Azure.Storage;
+using Azure.Storage;
 using Newtonsoft.Json.Linq;
 using NuGetUriUtility = NuGet.Common.UriUtility;
 
 namespace Sleet
 {
+    using Azure.Storage.Blobs;
+
     public static class FileSystemFactory
     {
         /// <summary>
@@ -94,12 +96,13 @@ namespace Sleet
                             throw new ArgumentException("Missing container for azure account.");
                         }
 
-                        var azureAccount = CloudStorageAccount.Parse(connectionString);
+
+                        var blobServiceClient = new BlobServiceClient(connectionString);
 
                         if (pathUri == null)
                         {
                             // Get the default url from the container
-                            pathUri = AzureUtility.GetContainerPath(azureAccount, container);
+                            pathUri = AzureUtility.GetContainerPath(blobServiceClient, container);
                         }
 
                         if (baseUri == null)
@@ -107,7 +110,7 @@ namespace Sleet
                             baseUri = pathUri;
                         }
 
-                        result = new AzureFileSystem(cache, pathUri, baseUri, azureAccount, container, feedSubPath);
+                        result = new AzureFileSystem(cache, pathUri, baseUri, blobServiceClient, container, feedSubPath);
                     }
                     else if (type == "s3")
                     {
