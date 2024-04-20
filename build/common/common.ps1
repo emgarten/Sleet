@@ -126,21 +126,6 @@ Function Invoke-DotnetMSBuild {
     Invoke-DotnetExe $RepoRoot $buildArgs
 }
 
-Function Install-DotnetTools {
-    param(
-        [string]$RepoRoot
-    )
-
-    $toolsPath = Join-Path $RepoRoot ".nuget/tools"
-
-    if (-not (Test-Path $toolsPath)) {
-        Write-Host "Installing dotnet tools to $toolsPath"
-        $args = @("tool","install","--tool-path",$toolsPath,"--ignore-failed-sources","dotnet-format","--version","5.1.250801")
-
-        Invoke-DotnetExe $RepoRoot $args
-    }
-}
-
 Function Install-CommonBuildTools {
     param(
         [string]$RepoRoot
@@ -148,31 +133,4 @@ Function Install-CommonBuildTools {
 
     Install-DotnetCLI $RepoRoot
     Install-NuGetExe $RepoRoot
-    Install-DotnetTools $RepoRoot
-}
-
-Function Invoke-DotnetFormat {
-    param(
-        [string]$RepoRoot
-    )
-
-    # Only run in local dev envs
-    if ($env:CI -ne "True") 
-    {
-        $formatExe = Join-Path $RepoRoot ".nuget/tools/dotnet-format.exe"
-
-        $args = @("--fix-whitespace", "--fix-style", "warn")
-
-        $command = "$formatExe $args"
-        Write-Host "[EXEC] $command" -ForegroundColor Cyan
-
-        & $formatExe $args
-
-        if (-not $?) {
-            Write-Warning "dotnet-format failed. Please fix the style errors!"
-
-            # Currently dotnet-format fails on CIs but not locally in some scenarios
-            # exit 1
-        }
-    }
 }

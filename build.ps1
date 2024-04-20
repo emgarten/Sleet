@@ -49,9 +49,6 @@ if ($AWSDefaultRegion) {
 # Download tools
 Install-CommonBuildTools $RepoRoot
 
-# Run dotnet-format to apply style fixes or fail on CI builds
-Invoke-DotnetFormat $RepoRoot
-
 # Clean and write git info
 Remove-Artifacts $RepoRoot
 Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Clean;WriteGitInfo", "/p:Configuration=$Configuration")
