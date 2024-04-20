@@ -14,12 +14,6 @@ on:
     paths-ignore:
       - 'doc/**'
       - '*.md'
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to run on'
-        required: true
-        default: 'main'
 
 jobs:
   build-linux:
