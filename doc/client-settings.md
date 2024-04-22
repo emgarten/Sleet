@@ -27,6 +27,11 @@ Additionally, Sleet supports configuration via [.netconfig](https://dotnetconfig
 
 ## Azure specific properties
 
+By default, the sleet will use the credentials types specified by [DefaultAzureCredential](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential?view=azure-dotnet).
+If you need to use a service principal credential type, set the `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, and `AZURE_CLIENT_CERTIFICATE_PATH` environment variables for the [EnvironmentalCredential](https://learn.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet).
+More options can be found in the [Azure.Identity README](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/README.md#environment-variables).
+
+
 | Property | Description |
 | --- | ------ |
 | container | Name of an existing container in the storage account. *[Required]*                                                                           |
@@ -56,7 +61,6 @@ Additionally, Sleet supports configuration via [.netconfig](https://dotnetconfig
     container = feed
     path = https://yourStorageAccount.blob.core.windows.net/feed/
 ```
-
 
 ## Amazon s3 specific properties
 
