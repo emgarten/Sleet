@@ -12,7 +12,7 @@ This guide will walk through how to create a private feed with basic authenticat
 
 ## S3 bucket creation
 
-First we will need to create a bucket to store the feed in. By default Sleet will create a bucket with a public ACL so that clients can access it directly.
+First we will need to create a bucket to store the feed in. By default, Sleet will create a bucket with a public ACL so that clients can access it directly.
 
 Since we are making a private feed we need to create the bucket ourselves and ensure that it has a private ACL. You can do this using the S3 console, AWS CLI, or [AWS CloudShell](https://aws.amazon.com/cloudshell/).
 
@@ -44,7 +44,7 @@ Create a CloudFront distribution using the AWS console.
 
 ## Update s3 bucket policy
 
-Creating the distrubution will tell you that you need to update the s3 bucket policy. The AWS console will guide you through this process if you follow the instructions it provides when creating the distribution.
+Creating the distribution will tell you that you need to update the s3 bucket policy. The AWS console will guide you through this process if you follow the instructions it provides when creating the distribution.
 
 1. Copy the policy given by the CloudFront distribution.
 1. Open the s3 bucket in the AWS console.
@@ -63,7 +63,7 @@ Create a Lambda function using the AWS console.
 1. Choose `Use a blueprint` at the top
 1. Under *Blueprint name* search for `cloudfront` and select `Modify HTTP response header`
 1. Name the function `sleet-private-feed-basic-auth`
-1. Under *Excecution role* select `Create a new role from AWS policy templates`
+1. Under *Execution role* select `Create a new role from AWS policy templates`
 1. Name the role `sleet-private-feed-basic-auth-role`
 1. `Basic Lamdba@Edge permissions` should be automatically added as part of the template
 
@@ -91,10 +91,10 @@ export const handler = async(event, context, callback) => {
     // Get cloudfront request and headers
     const request = event.Records[0].cf.request;
     const headers = request.headers;
- 
+
     // Construct the Basic Auth string
     const authString = 'Basic ' + new Buffer(authUser + ':' + authPass).toString('base64');
- 
+
     // Require Basic authentication to match the credentials above
     if (typeof headers.authorization == 'undefined' || headers.authorization[0].value != authString) {
         const body = 'Unauthorized';
@@ -114,7 +114,7 @@ export const handler = async(event, context, callback) => {
 };
 ```
 
-### Credentials as environment variables 
+### Credentials as environment variables
 
 Once you get the basics working the username and password should be moved to lambda environment variables to secure them.
 
@@ -134,7 +134,7 @@ Follow the steps from *Create lambda functions* and create a 2nd lambda function
 export const handler = async(event, context, callback) => {
     // Read response from S3
     const response = event.Records[0].cf.response;
-    
+
     // Check if the response is a 403
     if (response.status == 403)
     {
@@ -192,13 +192,13 @@ If you do not see an entry under behaviors you can create a new behavior and add
 
 ### Finding the cloudfront url
 
-In the AWS console under `CloudFront > Distrubutions` find the `Domain name` for your distribution. 
+In the AWS console under `CloudFront > Distrubutions` find the `Domain name` for your distribution.
 
-If you have added an alternatte domain name you can use that instead.
+If you have added an alternate domain name you can use that instead.
 
 This guide uses the cloudfront url `https://d1cdxzxbqv5kg2.cloudfront.net/` **Replace this with your own cloudfront url.**
 
-### Create the sleet config 
+### Create the sleet config
 
 Create a sleet.json config file to reference the bucket that we just created. There are many ways to configure the feed and credentials, below is a basic example to help understand the settings. For the full list of options see [S3 feeds](feed-type-s3.md).
 
@@ -214,8 +214,8 @@ The CloudFront domain is added under `baseURI`. Sleet will rewrite all urls to u
         "bucketName": "sleet-private-feed",
         "region": "us-east-1",
         "baseURI": "https://d1cdxzxbqv5kg2.cloudfront.net/",
-        "accessKeyId": <your access key id>,
-        "secretAccessKey": <your secret access key>
+        "accessKeyId": "<your access key id>",
+        "secretAccessKey": "<your secret access key>"
       }
     ]
   }
@@ -230,7 +230,7 @@ $ sleet init -c sleet.json
 # Output
 Initializing https://d1cdxzxbqv5kg2.cloudfront.net/
 Verifying sleet-private-feed exists.
-Successfully initialized https://d1cdxzxbqv5kg2.cloudfront.net/ 
+Successfully initialized https://d1cdxzxbqv5kg2.cloudfront.net/
 ```
 
 ### Push a package
@@ -282,7 +282,7 @@ Create a `test.proj` file with a package that doesn't exist. This will ensure we
   <ItemGroup>
     <PackageReference Include="SleetTestDoesNotExist" Version="10.0.5" />
   </ItemGroup>
-  
+
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
 ```
@@ -334,7 +334,7 @@ An invalid domain error may also occur if the wrong domain or sleet settings wer
 
 ### Success
 
-If everything is successful you will see an error saying the package does not exist 
+If everything is successful you will see an error saying the package does not exist
 `error NU1101: Unable to find package SleetTestDoesNotExist`
 
 When pushing a real package to the sleet feed it should restore successfully.

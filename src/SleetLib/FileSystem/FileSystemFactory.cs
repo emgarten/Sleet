@@ -1,28 +1,25 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Amazon;
-using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
+using Amazon.Runtime;
 using Amazon.S3;
-using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
-using Azure.Storage;
+using Amazon.SecurityToken;
+using Amazon;
+using Azure.Storage.Blobs;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
+using System.Net;
 using NuGetUriUtility = NuGet.Common.UriUtility;
 
 namespace Sleet
 {
-    using Azure.Storage.Blobs;
+    using Azure.Identity;
 
     public static class FileSystemFactory
     {
         /// <summary>
         /// Parses sleet.json to find the source and constructs it.
         /// </summary>
-        public static async Task<ISleetFileSystem> CreateFileSystemAsync(LocalSettings settings, LocalCache cache, string source)
+        public static async Task<ISleetFileSystem> CreateFileSystemAsync(LocalSettings settings, LocalCache cache, string source, ILogger log)
         {
             ISleetFileSystem result = null;
 
@@ -81,14 +78,19 @@ namespace Sleet
                         var connectionString = JsonUtility.GetValueCaseInsensitive(sourceEntry, "connectionString");
                         var container = JsonUtility.GetValueCaseInsensitive(sourceEntry, "container");
 
-                        if (string.IsNullOrEmpty(connectionString))
+                        if (!string.IsNullOrEmpty(connectionString))
                         {
-                            throw new ArgumentException("Missing connectionString for azure account.");
+                            await log.LogAsync(LogLevel.Warning, "connectionString is deprecated for azure account. Use path instead.");
+
+                            if (connectionString.Equals(AzureFileSystem.AzureEmptyConnectionString, StringComparison.OrdinalIgnoreCase))
+                            {
+                                throw new ArgumentException("Invalid connectionString for azure account.");
+                            }
                         }
 
-                        if (connectionString.Equals(AzureFileSystem.AzureEmptyConnectionString, StringComparison.OrdinalIgnoreCase))
+                        if (pathUri == null)
                         {
-                            throw new ArgumentException("Invalid connectionString for azure account.");
+                            throw new AggregateException("Path is required for azure account.");
                         }
 
                         if (string.IsNullOrEmpty(container))
@@ -96,19 +98,7 @@ namespace Sleet
                             throw new ArgumentException("Missing container for azure account.");
                         }
 
-
-                        var blobServiceClient = new BlobServiceClient(connectionString);
-
-                        if (pathUri == null)
-                        {
-                            // Get the default url from the container
-                            pathUri = AzureUtility.GetContainerPath(blobServiceClient, container);
-                        }
-
-                        if (baseUri == null)
-                        {
-                            baseUri = pathUri;
-                        }
+                        var blobServiceClient = new BlobServiceClient(new Uri(pathUri.GetLeftPart(UriPartial.Authority)), new DefaultAzureCredential());
 
                         result = new AzureFileSystem(cache, pathUri, baseUri, blobServiceClient, container, feedSubPath);
                     }

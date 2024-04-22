@@ -49,7 +49,7 @@ namespace Sleet
                 {
                     // Load settings and file system.
                     var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values));
-                    var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
+                    var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache, log);
 
                     // Download packages
                     var success = await DownloadCommand.RunAsync(settings, fileSystem, outputPath.Value(), ignoreErrors.HasValue(), noLock.HasValue(), skipExisting.HasValue(), log);

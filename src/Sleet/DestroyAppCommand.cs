@@ -36,7 +36,7 @@ namespace Sleet
                 {
                     // Load settings and file system.
                     var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values));
-                    var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache);
+                    var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache, log);
 
                     // Delete files
                     var success = await DestroyCommand.RunAsync(settings, fileSystem, log);

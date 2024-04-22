@@ -27,6 +27,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
     <PackageReference Include="DotNetConfig" Version="$(DotNetConfigVersion)" />
+    <PackageReference Include="Azure.Identity" Version="$(AzureIdentityVersion)" />
   </ItemGroup>
 
   <Import Project="$(BuildCommonDirectory)\common.targets" />

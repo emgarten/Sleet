@@ -13,6 +13,7 @@
     <AWSSDKSSOVersion>3.7.300.39</AWSSDKSSOVersion>
     <AWSSDKSSOOIDCVersion>3.7.301.34</AWSSDKSSOOIDCVersion>
     <DotNetConfigVersion>1.0.6</DotNetConfigVersion>
+    <AzureIdentityVersion>1.11.2</AzureIdentityVersion>
   </PropertyGroup>
 
   <!-- Config -->
