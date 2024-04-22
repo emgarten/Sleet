@@ -4,6 +4,7 @@ using Amazon.S3;
 using Amazon.SecurityToken.Model;
 using Amazon.SecurityToken;
 using Amazon;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
@@ -12,7 +13,6 @@ using NuGetUriUtility = NuGet.Common.UriUtility;
 
 namespace Sleet
 {
-    using Azure.Identity;
 
     public static class FileSystemFactory
     {
@@ -90,7 +90,7 @@ namespace Sleet
 
                         if (pathUri == null)
                         {
-                            throw new AggregateException("Path is required for azure account.");
+                            throw new ArgumentException("Path is required for azure account.");
                         }
 
                         if (string.IsNullOrEmpty(container))

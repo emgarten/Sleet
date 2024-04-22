@@ -27,8 +27,8 @@ Additionally, Sleet supports configuration via [.netconfig](https://dotnetconfig
 
 ## Azure specific properties
 
-| Property | Description                                                                                                                                  |
-| --- |----------------------------------------------------------------------------------------------------------------------------------------------|
+| Property | Description |
+| --- | ------ |
 | container | Name of an existing container in the storage account. *[Required]*                                                                           |
 | connectionString | Azure storage connection string. *[Deprecated]*                                                                                              |
 | path | Full URI of the azure storage container. If specified this value will be verified against the container's URI *[Required]*.                  |
@@ -42,7 +42,7 @@ Additionally, Sleet supports configuration via [.netconfig](https://dotnetconfig
       "name": "feed",
       "type": "azure",
       "container": "feed",
-      "path": "https://yourStorageAccount.blob.core.windows.net/"
+      "path": "https://yourStorageAccount.blob.core.windows.net/feed"
     }
   ]
 }
