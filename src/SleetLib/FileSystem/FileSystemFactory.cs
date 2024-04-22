@@ -98,7 +98,9 @@ namespace Sleet
                             throw new ArgumentException("Missing container for azure account.");
                         }
 
-                        var blobServiceClient = new BlobServiceClient(new Uri(pathUri.GetLeftPart(UriPartial.Authority)), new DefaultAzureCredential());
+                        var blobServiceClient = string.IsNullOrWhiteSpace(connectionString)
+                            ? new BlobServiceClient(new Uri(pathUri.GetLeftPart(UriPartial.Authority)), new DefaultAzureCredential())
+                            : new BlobServiceClient(connectionString);
 
                         result = new AzureFileSystem(cache, pathUri, baseUri, blobServiceClient, container, feedSubPath);
                     }
@@ -244,6 +246,15 @@ namespace Sleet
             }
 
             return result;
+        }
+
+        private static BlobServiceClient GetBlobServiceClient(
+            string connectionString,
+            Uri pathUri)
+        {
+            return !string.IsNullOrEmpty(connectionString) ?
+                new BlobServiceClient(connectionString) :
+                new BlobServiceClient(new Uri(pathUri.GetLeftPart(UriPartial.Authority)), new DefaultAzureCredential());
         }
     }
 }
