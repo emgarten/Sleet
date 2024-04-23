@@ -3,7 +3,7 @@
 ## Help
 The help parameter may be applied to any command to see a description of all parameters.
 
-``sleet.exe --help`` 
+``sleet.exe --help``
 
 ## CreateConfig
 All commands require a *sleet.json* config file to provide source settings. Before creating a new source the *createconfig* command may be used to output a *sleet.json* template file that may be filled in with your own settings.
@@ -14,7 +14,7 @@ All commands require a *sleet.json* config file to provide source settings. Befo
 
 | Parameter | Description |
 | --- | ------ |
-| azure | Add a template entry for an azure storage feed. | 
+| azure | Add a template entry for an azure storage feed. |
 | s3 | Add a template entry for an Amazon S3 storage feed. |
 | local | Add a template entry for a local folder feed. |
 | output | Output path. If not specified the file will be created in the working directory. |
@@ -33,14 +33,14 @@ After running this command you will have a complete feed with zero packages.
 
 | Parameter | Description |
 | --- | ------ |
-| config | Optional path to *sleet.json* where the source information is contained. | 
+| config | Optional path to *sleet.json* where the source information is contained. |
 | source | Source name from *sleet.json*. *Required* |
 | with-catalog | Enable the feed catalog and all change history tracking. |
 | with-symbols | Enable symbols server. |
 
 ## Push
 
-Push adds packages to your feed. It can used to add individual packages or complete directories of packages.
+Push adds packages to your feed. It can be used to add individual packages or complete directories of packages.
 
 ``Usage: sleet push [nupkg or folder paths] [options]``
 
@@ -48,7 +48,7 @@ Push adds packages to your feed. It can used to add individual packages or compl
 
 | Parameter | Description |
 | --- | ------ |
-| config | Optional path to *sleet.json* where the source information is contained. | 
+| config | Optional path to *sleet.json* where the source information is contained. |
 | source | Source name from *sleet.json*. *Required* |
 | force | Overwrite existing packages. Defaults to *false* |
 
@@ -75,7 +75,7 @@ Delete removes packages from your feed. It can be used to remove a single versio
 | id | Package id to delete from the feed. |
 | version | Package version to delete. If not specified all versions will be deleted. |
 | reason | Reason for deleting the package(s). This will be stored in the catalog. |
-| config | Optional path to *sleet.json* where the source information is contained. | 
+| config | Optional path to *sleet.json* where the source information is contained. |
 | source | Source name from *sleet.json*. *Required* |
 | force | Ignore missing packages. Defaults to *false* |
 
@@ -99,12 +99,12 @@ Stats provides a count of the number of packages on the feed.
 
 | Parameter | Description |
 | --- | ------ |
-| config | Optional path to *sleet.json* where the source information is contained. | 
+| config | Optional path to *sleet.json* where the source information is contained. |
 | source | Source name from *sleet.json*. *Required* |
 
 ## Validate
 
-Validate is a built in helper to verify that all packages contained in the index exist for all resources. If you are running into any issues such as an extra package showing up, or a missing package this is a good way to start troubleshooting.
+Validate is a built-in helper to verify that all packages contained in the index exist for all resources. If you are running into any issues such as an extra package showing up, or a missing package this is a good way to start troubleshooting.
 
 ``Usage: sleet validate [options]``
 
@@ -112,7 +112,7 @@ Validate is a built in helper to verify that all packages contained in the index
 
 | Parameter | Description |
 | --- | ------ |
-| config | Optional path to *sleet.json* where the source information is contained. | 
+| config | Optional path to *sleet.json* where the source information is contained. |
 | source | Source name from *sleet.json*. *Required* |
 
 ## Download
@@ -125,7 +125,7 @@ Downloads all packages and symbols packages from the feed to a local folder.
 
 | Parameter | Description |
 | --- | ------ |
-| config | Optional path to *sleet.json* where the source information is contained. | 
+| config | Optional path to *sleet.json* where the source information is contained. |
 | source | Source name from *sleet.json*. *Required* |
 | skip-existing | Skip packages that already exist in the output folder. |
 | no-lock | Skip locking the feed and verifying the client version. |
@@ -194,7 +194,7 @@ Or apply the setting to the feed for future pushes with:
 
 ``sleet retention settings --stable 3 --prerelease 1 --release-labels 3``
 
-Packages will be put into unique groups by `VERSION-FIRST.SECOND.THIRD.*` 
+Packages will be put into unique groups by `VERSION-FIRST.SECOND.THIRD.*`
 with only the highest `1` prerelease packages remaining.
 
 After the prune the packages left are:
@@ -212,4 +212,4 @@ and only the highest version will be left.
 
 All feed related commands allow passing *--property* to specify properties on the command line. These properties can be used to override env vars or populate tokens in sleet.json.
 
-For more information see [setting](settings.md)
+For more information see [client settings](client-settings.md)

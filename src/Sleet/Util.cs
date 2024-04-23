@@ -20,7 +20,7 @@ namespace Sleet
             }
         }
 
-        internal static async Task<ISleetFileSystem> CreateFileSystemOrThrow(LocalSettings settings, string sourceName, LocalCache cache)
+        internal static async Task<ISleetFileSystem> CreateFileSystemOrThrow(LocalSettings settings, string sourceName, LocalCache cache, ILogger log)
         {
             var sourceNamePassed = !string.IsNullOrEmpty(sourceName);
 
@@ -39,7 +39,7 @@ namespace Sleet
             InitNetwork(settings);
 
             // Create
-            var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, sourceName);
+            var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, sourceName, log);
 
             if (fileSystem == null)
             {

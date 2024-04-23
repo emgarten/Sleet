@@ -39,7 +39,7 @@ namespace Sleet.Integration.Test
                 await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
 
                 // Act
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
@@ -88,7 +88,7 @@ namespace Sleet.Integration.Test
                 await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 // push 100 packages
@@ -140,7 +140,7 @@ namespace Sleet.Integration.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 // Act
@@ -183,7 +183,7 @@ namespace Sleet.Integration.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 // Act
@@ -233,7 +233,7 @@ namespace Sleet.Integration.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 // Act
@@ -288,7 +288,7 @@ namespace Sleet.Integration.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
                 fileSystem.Reset();
 
@@ -391,7 +391,7 @@ namespace Sleet.Integration.Test
                 var zipFile2 = testPackage2.Save(packagesFolder.Root);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 // Act
@@ -523,7 +523,7 @@ namespace Sleet.Integration.Test
                 var zipFile2 = testPackage2.Save(packagesFolder.Root);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 // Act
@@ -600,7 +600,7 @@ namespace Sleet.Integration.Test
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
                 var settings = LocalSettings.Load(sleetConfigPath);
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
                 var success = await InitCommand.RunAsync(settings, fileSystem, log);
 
                 // Act

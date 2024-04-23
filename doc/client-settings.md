@@ -20,19 +20,24 @@ Additionally, Sleet supports configuration via [.netconfig](https://dotnetconfig
 
 | Property | Description |
 | --- | ------ |
-| name | Feed name used for ``--source`` *[Required]* | 
+| name | Feed name used for ``--source`` *[Required]* |
 | type | Feed type *[Required]*  |
 | baseURI | Specify a URI to write to the feed json files instead of the container's URI. Useful if serving up the content from a different endpoint. |
 
 
 ## Azure specific properties
 
-| Property | Description |
-| --- | ------ |
-| container | Name of an existing container in the storage account. *[Required]* |
-| connectionString | Azure storage connection string. *[Required]* |
-| path | Full URI of the azure storage container. If specified this value will be verified against the container's URI. |
-| feedSubPath | Provides a sub directory path within the container where the feed should be added. This allows for multiple feeds within a single container. |
+By default, the sleet will use the credentials types specified by [DefaultAzureCredential](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential?view=azure-dotnet).
+If you need to use a service principal credential type, set the `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, and `AZURE_CLIENT_CERTIFICATE_PATH` environment variables for the [EnvironmentalCredential](https://learn.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet).
+More options can be found in the [Azure.Identity README](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/README.md#environment-variables).
+
+
+| Property | Description                                                                                                                                                                               |
+| --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| container | Name of an existing container in the storage account. *[Required]*                                                                                                                        |
+| connectionString | Azure storage connection string. Note, either connectionString or path *must* be specified. *[Discouraged]*                                                                               |
+| path | Full URI of the azure storage container. If specified this value will be verified against the container's URI. None, either connectionString or path *must* be specified. *[Encouraged]*. |
+| feedSubPath | Provides a sub directory path within the container where the feed should be added. This allows for multiple feeds within a single container.                                              |
 
 `sleet.json`:
 ```json
@@ -42,8 +47,7 @@ Additionally, Sleet supports configuration via [.netconfig](https://dotnetconfig
       "name": "feed",
       "type": "azure",
       "container": "feed",
-      "path": "https://yourStorageAccount.blob.core.windows.net/feed/",
-      "connectionString": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint="
+      "path": "https://yourStorageAccount.blob.core.windows.net/feed"
     }
   ]
 }
@@ -55,10 +59,8 @@ Additionally, Sleet supports configuration via [.netconfig](https://dotnetconfig
 [sleet "feed"]
     type = azure
     container = feed
-    connectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint="
     path = https://yourStorageAccount.blob.core.windows.net/feed/
 ```
-
 
 ## Amazon s3 specific properties
 
@@ -217,7 +219,7 @@ When running Sleet with [AWS environment variables](https://docs.aws.amazon.com/
 
 Property values in *sleet.json* and *.netconfig* can be tokenized similar to nuget *.pp* files.
 
-Given an environment variable ``myKey`` the following file woudl replace `$myKey$` with the value of the environment variable if it exists.
+Given an environment variable ``myKey`` the following file would replace `$myKey$` with the value of the environment variable if it exists.
 
 `sleet.json`:
 ```json
@@ -272,7 +274,7 @@ Example of defining an azure feed using only environment variables:
 | `SLEET_FEED_CONTAINER` | `feed` |
 | `SLEET_FEED_CONNECTIONSTRING` | `DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint=` |
 
-To avoid loading up any *sleet.json* files when using env vars pass `--config none` to block it from loading. 
+To avoid loading up any *sleet.json* files when using env vars pass `--config none` to block it from loading.
 
 Note that if *sleet.json* is used environment variables will be ignored. It is not possible to mix settings between the two input options.
 
@@ -310,6 +312,3 @@ This setting can be set through an environment variable or command line property
 | Property | Value |
 | --- | ------ |
 | `SLEET_FEED_PROXY_USEDEFAULTCREDENTIALS` | `true` |
-
-
-

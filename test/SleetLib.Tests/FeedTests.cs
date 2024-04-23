@@ -131,12 +131,13 @@ namespace SleetLib.Tests
 
             using (var cache = new LocalCache())
             {
+                var log = new TestLogger();
                 var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                 var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputPath, baseUri.AbsoluteUri);
 
                 var settings = LocalSettings.Load(sleetConfig, configPath);
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local") as PhysicalFileSystem;
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log) as PhysicalFileSystem;
 
                 Assert.NotNull(fileSystem);
                 Assert.Equal(expectedFull, fileSystem.LocalRoot);
@@ -152,12 +153,13 @@ namespace SleetLib.Tests
             {
                 using (var cache = new LocalCache())
                 {
+                    var log = new TestLogger();
                     var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
 
                     var sleetConfig = TestUtility.CreateConfigWithLocal("local", "relativePath", baseUri.AbsoluteUri);
 
                     var settings = LocalSettings.Load(sleetConfig, null);
-                    await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local");
+                    await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
                 }
             }
             catch (Exception e)
