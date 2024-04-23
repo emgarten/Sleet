@@ -32,12 +32,12 @@ If you need to use a service principal credential type, set the `AZURE_TENANT_ID
 More options can be found in the [Azure.Identity README](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/README.md#environment-variables).
 
 
-| Property | Description |
-| --- | ------ |
-| container | Name of an existing container in the storage account. *[Required]*                                                                           |
-| connectionString | Azure storage connection string. *[Deprecated]*                                                                                              |
-| path | Full URI of the azure storage container. If specified this value will be verified against the container's URI *[Required]*.                  |
-| feedSubPath | Provides a sub directory path within the container where the feed should be added. This allows for multiple feeds within a single container. |
+| Property | Description                                                                                                                                                                               |
+| --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| container | Name of an existing container in the storage account. *[Required]*                                                                                                                        |
+| connectionString | Azure storage connection string. Note, either connectionString or path *must* be specified. *[Discouraged]*                                                                               |
+| path | Full URI of the azure storage container. If specified this value will be verified against the container's URI. None, either connectionString or path *must* be specified. *[Encouraged]*. |
+| feedSubPath | Provides a sub directory path within the container where the feed should be added. This allows for multiple feeds within a single container.                                              |
 
 `sleet.json`:
 ```json
