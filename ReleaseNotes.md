@@ -1,5 +1,9 @@
 # Release Notes
 
+## 6.0.0
+* Moved from Microsoft.Azure.Storage.Blob to Azure.Storage.Blobs [PR](https://github.com/emgarten/Sleet/pull/191)
+* Added support for Managed Identity and DefaultAzureCredential with Azure storage accounts [PR](https://github.com/emgarten/Sleet/pull/195)
+
 ## 5.2.12
 * Update NuGet.* packages to 6.9.1 to address CVE-2024-0057 [Issue](https://github.com/emgarten/Sleet/issues/189)
 
