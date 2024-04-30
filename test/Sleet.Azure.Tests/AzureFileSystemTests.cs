@@ -47,34 +47,32 @@ namespace Sleet.Azure.Tests
                 await testContext.InitAsync();
 
                 var settings = LocalSettings.Load(new JObject(
-                    new JProperty("name", "azure"),
-                    new JProperty("type", "azure"),
-                    new JProperty("container", testContext.ContainerName),
-                    new JProperty("connectionString", AzureTestContext.GetConnectionString())));
+                    new JProperty("sources",
+                        new JArray(
+                            new JObject(
+                                new JProperty("name", "azure"),
+                                new JProperty("type", "azure"),
+                                new JProperty("container", testContext.ContainerName),
+                                new JProperty("connectionString", AzureTestContext.GetConnectionString()))))));
 
                 var fs = await FileSystemFactory.CreateFileSystemAsync(settings, testContext.LocalCache, "azure", testContext.Logger);
                 fs.GetPath("test.txt").AbsolutePath.Should().Contain("/test.txt");
 
-                await testContext.CleanupAsync();
-            }
-        }
+                // Verify at the start
+                (await fs.HasBucket(testContext.Logger, CancellationToken.None)).Should().BeFalse();
+                (await fs.Validate(testContext.Logger, CancellationToken.None)).Should().BeFalse();
 
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
-        public async Task GivenAStorageAccountWithSPVerifyFileSystemFactoryCreatesFS()
-        {
-            using (var testContext = new AzureTestContext())
-            {
-                testContext.CreateContainerOnInit = false;
-                await testContext.InitAsync();
+                // Create
+                await fs.CreateBucket(testContext.Logger, CancellationToken.None);
 
-                var settings = LocalSettings.Load(new JObject(
-                    new JProperty("name", "azure"),
-                    new JProperty("type", "azure"),
-                    new JProperty("container", testContext.ContainerName),
-                    new JProperty("path", testContext.Uri.AbsoluteUri)));
+                (await fs.HasBucket(testContext.Logger, CancellationToken.None)).Should().BeTrue();
+                (await fs.Validate(testContext.Logger, CancellationToken.None)).Should().BeTrue();
 
-                var fs = await FileSystemFactory.CreateFileSystemAsync(settings, testContext.LocalCache, "azure", testContext.Logger);
-                fs.GetPath("test.txt").AbsolutePath.Should().Contain("/test.txt");
+                // Delete
+                await fs.DeleteBucket(testContext.Logger, CancellationToken.None);
+
+                (await fs.HasBucket(testContext.Logger, CancellationToken.None)).Should().BeFalse();
+                (await fs.Validate(testContext.Logger, CancellationToken.None)).Should().BeFalse();
 
                 await testContext.CleanupAsync();
             }
