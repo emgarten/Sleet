@@ -63,7 +63,7 @@ namespace Sleet.Azure.Tests
 
         public const string EnvVarName = "SLEET_TEST_ACCOUNT";
 
-        private static string GetConnectionString()
+        public static string GetConnectionString()
         {
             // Use a real azure storage account
             var s = Environment.GetEnvironmentVariable(EnvVarName);

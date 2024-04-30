@@ -78,9 +78,14 @@ namespace Sleet
                         var connectionString = JsonUtility.GetValueCaseInsensitive(sourceEntry, "connectionString");
                         var container = JsonUtility.GetValueCaseInsensitive(sourceEntry, "container");
 
-                        var blobServiceClient = await GetBlobServiceClient(log, connectionString, pathUri);
+                        var blobServiceClient = await GetBlobServiceClient(log, connectionString, pathUri, container);
 
-                        pathUri ??= blobServiceClient.Uri;
+                        if (pathUri == null)
+                        {
+                            // Get the default url from the container
+                            pathUri = AzureUtility.GetContainerPath(blobServiceClient, container);
+                        }
+
                         baseUri ??= pathUri;
 
                         result = new AzureFileSystem(cache, pathUri, baseUri, blobServiceClient, container, feedSubPath);
@@ -232,32 +237,35 @@ namespace Sleet
         private static async Task<BlobServiceClient> GetBlobServiceClient(
             ILogger log,
             string connectionString,
-            Uri pathUri)
+            Uri pathUri,
+            string container)
         {
-            if (pathUri is not null && connectionString is not null)
-            {
-                throw new ArgumentException("path (recommended) and connectionString (discouraged) are mutually exclusive for azure account. Chose one or the other.");
-            }
-
-            if (pathUri is not null)
+            // Path can be used with a connection string.
+            // If the path is set and the connection string is not, use the default creds.
+            if (pathUri is not null && connectionString is null)
             {
                 return new BlobServiceClient(new Uri(pathUri.GetLeftPart(UriPartial.Authority)), new DefaultAzureCredential());
             }
 
-            if (connectionString is null)
+            // Continue with connection string
+            if (string.IsNullOrEmpty(connectionString))
             {
-                throw new ArgumentException("Missing path (recommended) or connectionString (discouraged) for azure account.");
+                throw new ArgumentException("Missing connectionString for azure account.");
             }
-
-            await log.LogAsync(LogLevel.Warning,
-                "connectionString (with access key) is not recommended for azure account. More information here: https://learn.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal#protect-your-access-keys" + Environment.NewLine +
-                "Use path instead.");
-
 
             if (connectionString.Equals(AzureFileSystem.AzureEmptyConnectionString, StringComparison.OrdinalIgnoreCase))
             {
                 throw new ArgumentException("Invalid connectionString for azure account.");
             }
+
+            if (string.IsNullOrEmpty(container))
+            {
+                throw new ArgumentException("Missing container for azure account.");
+            }
+
+            await log.LogAsync(LogLevel.Verbose,
+                "connectionString (with access key) is not recommended for azure account. More information here: https://learn.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal#protect-your-access-keys" + Environment.NewLine +
+                "Use path instead.");
 
             return new BlobServiceClient(connectionString);
         }
