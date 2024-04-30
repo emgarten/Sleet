@@ -1,5 +1,8 @@
 # Release Notes
 
+## 6.0.2
+* Fixed a bug where Azure feeds failed when path was not set to the full container URI [Issue](https://github.com/emgarten/Sleet/issues/197)
+
 ## 6.0.0
 * Moved from Microsoft.Azure.Storage.Blob to Azure.Storage.Blobs [PR](https://github.com/emgarten/Sleet/pull/191)
 * Added support for Managed Identity and DefaultAzureCredential with Azure storage accounts [PR](https://github.com/emgarten/Sleet/pull/195)
