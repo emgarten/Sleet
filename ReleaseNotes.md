@@ -1,5 +1,9 @@
 # Release Notes
 
+## 6.1.0
+* Updated AWS SDK packages to improve support for non AWS S3 storage
+* Updated Azure Storage and Azure Identity packages to fix vulnerability
+
 ## 6.0.2
 * Fixed a bug where Azure feeds failed when path was not set to the full container URI [Issue](https://github.com/emgarten/Sleet/issues/197)
 

@@ -182,10 +182,13 @@ namespace Sleet
                             amazonS3Client = new AmazonS3Client(new EnvironmentVariablesAWSCredentials(), config);
                         }
                         // Load credentials from an ECS docker container
+                        // Check if the env var GenericContainerCredentials.RelativeURIEnvVariable exists
+                        // Previously this used ECSTaskCredentials.RelativeURIEnvVariable but that was 
+                        // deprecated and the property is now internal on GenericContainerCredentials
                         else if (
-                            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(ECSTaskCredentials.ContainerCredentialsURIEnvVariable)))
+                            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")))
                         {
-                            amazonS3Client = new AmazonS3Client(new ECSTaskCredentials(), config);
+                            amazonS3Client = new AmazonS3Client(new GenericContainerCredentials(), config);
                         }
                         // Assume IAM role
                         else
