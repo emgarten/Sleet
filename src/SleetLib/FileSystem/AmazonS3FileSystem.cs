@@ -20,6 +20,7 @@ namespace Sleet
         private readonly IAmazonS3 _client;
         private readonly bool _compress;
         private readonly ServerSideEncryptionMethod _serverSideEncryptionMethod;
+        private readonly string _defaultAcl;
 
         private bool? _hasBucket;
 
@@ -28,20 +29,21 @@ namespace Sleet
         {
         }
 
-        public AmazonS3FileSystem(
-            LocalCache cache,
+        public AmazonS3FileSystem(LocalCache cache,
             Uri root,
             Uri baseUri,
             IAmazonS3 client,
             string bucketName,
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             string feedSubPath = null,
-            bool compress = true)
+            bool compress = true,
+            string defaultAcl = null)
             : base(cache, root, baseUri)
         {
             _client = client;
             _bucketName = bucketName;
             _serverSideEncryptionMethod = serverSideEncryptionMethod;
+            _defaultAcl = defaultAcl;
 
             if (!string.IsNullOrEmpty(feedSubPath))
             {
@@ -117,7 +119,7 @@ namespace Sleet
         private ISleetFile CreateAmazonS3File(SleetUriPair pair)
         {
             var key = GetRelativePath(pair.Root);
-            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress);
+            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress, _defaultAcl);
         }
 
         public override string GetRelativePath(Uri uri)

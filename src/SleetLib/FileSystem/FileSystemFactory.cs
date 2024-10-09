@@ -100,6 +100,7 @@ namespace Sleet
                         var serviceURL = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serviceURL");
                         var serverSideEncryptionMethod = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serverSideEncryptionMethod") ?? "None";
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
+                        var defaultAcl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "defaultAcl");
 
                         if (string.IsNullOrEmpty(bucketName))
                         {
@@ -183,7 +184,7 @@ namespace Sleet
                         }
                         // Load credentials from an ECS docker container
                         // Check if the env var GenericContainerCredentials.RelativeURIEnvVariable exists
-                        // Previously this used ECSTaskCredentials.RelativeURIEnvVariable but that was 
+                        // Previously this used ECSTaskCredentials.RelativeURIEnvVariable but that was
                         // deprecated and the property is now internal on GenericContainerCredentials
                         else if (
                             !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")))
@@ -229,7 +230,9 @@ namespace Sleet
                             bucketName,
                             serverSideEncryptionMethodValue,
                             feedSubPath,
-                            compress);
+                            compress,
+                            defaultAcl
+                        );
                     }
                 }
             }

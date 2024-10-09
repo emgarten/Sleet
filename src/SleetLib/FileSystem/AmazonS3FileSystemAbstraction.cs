@@ -131,6 +131,7 @@ namespace Sleet
             string contentEncoding,
             Stream reader,
             ServerSideEncryptionMethod serverSideEncryptionMethod,
+            string defaultAcl,
             CancellationToken token)
         {
             var transferUtility = new TransferUtility(client);
@@ -157,6 +158,15 @@ namespace Sleet
 
             if (contentEncoding != null)
                 request.Headers.ContentEncoding = contentEncoding;
+
+            if (defaultAcl != null)
+            {
+                var cannedAcl = S3CannedACL.FindValue(defaultAcl);
+                if (cannedAcl != null)
+                {
+                    request.CannedACL = cannedAcl;
+                }
+            }
 
             using (transferUtility)
                 await transferUtility.UploadAsync(request, token).ConfigureAwait(false);
