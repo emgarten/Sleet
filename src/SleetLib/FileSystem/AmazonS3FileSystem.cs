@@ -20,7 +20,7 @@ namespace Sleet
         private readonly IAmazonS3 _client;
         private readonly bool _compress;
         private readonly ServerSideEncryptionMethod _serverSideEncryptionMethod;
-        private readonly string _defaultAcl;
+        private readonly string _acl;
 
         private bool? _hasBucket;
 
@@ -37,13 +37,13 @@ namespace Sleet
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             string feedSubPath = null,
             bool compress = true,
-            string defaultAcl = null)
+            string acl = null)
             : base(cache, root, baseUri)
         {
             _client = client;
             _bucketName = bucketName;
             _serverSideEncryptionMethod = serverSideEncryptionMethod;
-            _defaultAcl = defaultAcl;
+            _acl = acl;
 
             if (!string.IsNullOrEmpty(feedSubPath))
             {
@@ -119,7 +119,7 @@ namespace Sleet
         private ISleetFile CreateAmazonS3File(SleetUriPair pair)
         {
             var key = GetRelativePath(pair.Root);
-            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress, _defaultAcl);
+            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress, _acl);
         }
 
         public override string GetRelativePath(Uri uri)
@@ -178,6 +178,12 @@ namespace Sleet
                 // Set the public policy to public read-only
                 await Retry(SetBucketPolicy, log, token);
 
+                // Set the default acl of the bucket. Must not conflict with the public access policy.
+                if (_acl != null)
+                {
+                    await Retry(SetBucketAcl, log, token);
+                }
+
                 // Get and release the lock to ensure that everything will work for the next operation.
                 // In the E2E tests there are often failures due to the bucket saying it is not available
                 // even though the above checks passed. To work around this wait until a file can be
@@ -223,6 +229,18 @@ namespace Sleet
             };
 
             return _client.PutBucketOwnershipControlsAsync(ownerReq, token);
+        }
+
+        // Set the default acl of the bucket.
+        private Task SetBucketAcl(ILogger log, CancellationToken token)
+        {
+            var aclReq = new PutACLRequest()
+            {
+                BucketName = _bucketName,
+                CannedACL = S3CannedACL.FindValue(_acl)
+            };
+
+            return _client.PutACLAsync(aclReq, token);
         }
 
         // Remove public access blocks to allow public policies.

@@ -16,7 +16,7 @@ namespace Sleet
         private readonly string key;
         private readonly bool compress = true;
         private readonly ServerSideEncryptionMethod serverSideEncryptionMethod;
-        private readonly string defaultAcl;
+        private readonly string acl;
 
         internal AmazonS3File(
             AmazonS3FileSystem fileSystem,
@@ -28,7 +28,7 @@ namespace Sleet
             string key,
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             bool compress = true,
-            string defaultAcl = null)
+            string acl = null)
             : base(fileSystem, rootPath, displayPath, localCacheFile, fileSystem.LocalCache.PerfTracker)
         {
             this.client = client;
@@ -36,7 +36,7 @@ namespace Sleet
             this.key = key;
             this.compress = compress;
             this.serverSideEncryptionMethod = serverSideEncryptionMethod;
-            this.defaultAcl = defaultAcl;
+            this.acl = acl;
         }
 
         protected override async Task CopyFromSource(ILogger log, CancellationToken token)
@@ -134,7 +134,7 @@ namespace Sleet
                     log.LogWarning($"Unknown file type: {absoluteUri}");
                 }
 
-                await UploadFileAsync(client, bucketName, key, contentType, contentEncoding, writeStream, serverSideEncryptionMethod, defaultAcl, token)
+                await UploadFileAsync(client, bucketName, key, contentType, contentEncoding, writeStream, serverSideEncryptionMethod, acl, token)
                     .ConfigureAwait(false);
 
                 writeStream.Dispose();
