@@ -18,7 +18,7 @@ namespace Sleet.AmazonS3.Tests
 
         private bool cleanupDone = false;
 
-        public AmazonS3TestContext()
+        public AmazonS3TestContext(string acl = null)
         {
             BucketName = $"sleet-test-{Guid.NewGuid().ToString()}";
             LocalCache = new LocalCache();
@@ -35,7 +35,7 @@ namespace Sleet.AmazonS3.Tests
             Client = new AmazonS3Client(accessKeyId, secretAccessKey, config);
             Uri = AmazonS3Utility.GetBucketPath(BucketName, region);
 
-            FileSystem = new AmazonS3FileSystem(LocalCache, Uri, Client, BucketName);
+            FileSystem = new AmazonS3FileSystem(LocalCache, Uri, Client, BucketName, acl);
             Logger = new TestLogger();
         }
 

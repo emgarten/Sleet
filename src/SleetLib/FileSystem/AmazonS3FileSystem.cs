@@ -24,8 +24,8 @@ namespace Sleet
 
         private bool? _hasBucket;
 
-        public AmazonS3FileSystem(LocalCache cache, Uri root, IAmazonS3 client, string bucketName)
-            : this(cache, root, root, client, bucketName, ServerSideEncryptionMethod.None)
+        public AmazonS3FileSystem(LocalCache cache, Uri root, IAmazonS3 client, string bucketName, string acl)
+            : this(cache, root, root, client, bucketName, ServerSideEncryptionMethod.None, acl: acl)
         {
         }
 
