@@ -127,8 +127,6 @@ namespace Sleet
                             resolvedAcl = S3CannedACL.FindValue(acl);
                         }
 
-                        Console.WriteLine($"raw: {acl}, resolved: {(resolvedAcl == null ? "null" : resolvedAcl.Value)}");
-
                         // Use the SDK value
                         var serverSideEncryptionMethodValue = ServerSideEncryptionMethod.None;
                         if (serverSideEncryptionMethod == "AES256")
