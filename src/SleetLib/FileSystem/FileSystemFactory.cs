@@ -121,6 +121,14 @@ namespace Sleet
                             throw new ArgumentException("Only 'None' or 'AES256' are currently supported for serverSideEncryptionMethod");
                         }
 
+                        S3CannedACL resolvedAcl = null;
+                        if (acl != null)
+                        {
+                            resolvedAcl = S3CannedACL.FindValue(acl);
+                        }
+
+                        Console.WriteLine($"raw: {acl}, resolved: {(resolvedAcl == null ? "null" : resolvedAcl.Value)}");
+
                         // Use the SDK value
                         var serverSideEncryptionMethodValue = ServerSideEncryptionMethod.None;
                         if (serverSideEncryptionMethod == "AES256")
@@ -231,7 +239,7 @@ namespace Sleet
                             serverSideEncryptionMethodValue,
                             feedSubPath,
                             compress,
-                            acl
+                            resolvedAcl
                         );
                     }
                 }

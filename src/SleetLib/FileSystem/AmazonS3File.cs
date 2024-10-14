@@ -16,7 +16,7 @@ namespace Sleet
         private readonly string key;
         private readonly bool compress = true;
         private readonly ServerSideEncryptionMethod serverSideEncryptionMethod;
-        private readonly string acl;
+        private readonly S3CannedACL acl;
 
         internal AmazonS3File(
             AmazonS3FileSystem fileSystem,
@@ -28,7 +28,7 @@ namespace Sleet
             string key,
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             bool compress = true,
-            string acl = null)
+            S3CannedACL acl = null)
             : base(fileSystem, rootPath, displayPath, localCacheFile, fileSystem.LocalCache.PerfTracker)
         {
             this.client = client;

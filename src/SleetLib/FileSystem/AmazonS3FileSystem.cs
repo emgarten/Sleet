@@ -20,7 +20,7 @@ namespace Sleet
         private readonly IAmazonS3 _client;
         private readonly bool _compress;
         private readonly ServerSideEncryptionMethod _serverSideEncryptionMethod;
-        private readonly string _acl;
+        private readonly S3CannedACL _acl;
 
         private bool? _hasBucket;
 
@@ -37,7 +37,7 @@ namespace Sleet
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             string feedSubPath = null,
             bool compress = true,
-            string acl = null)
+            S3CannedACL acl = null)
             : base(cache, root, baseUri)
         {
             _client = client;
@@ -237,7 +237,7 @@ namespace Sleet
             var aclReq = new PutACLRequest()
             {
                 BucketName = _bucketName,
-                CannedACL = S3CannedACL.FindValue(_acl)
+                CannedACL = _acl
             };
 
             return _client.PutACLAsync(aclReq, token);
