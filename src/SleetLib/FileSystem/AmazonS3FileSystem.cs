@@ -20,28 +20,30 @@ namespace Sleet
         private readonly IAmazonS3 _client;
         private readonly bool _compress;
         private readonly ServerSideEncryptionMethod _serverSideEncryptionMethod;
+        private readonly S3CannedACL _acl;
 
         private bool? _hasBucket;
 
-        public AmazonS3FileSystem(LocalCache cache, Uri root, IAmazonS3 client, string bucketName)
-            : this(cache, root, root, client, bucketName, ServerSideEncryptionMethod.None)
+        public AmazonS3FileSystem(LocalCache cache, Uri root, IAmazonS3 client, string bucketName, string acl)
+            : this(cache, root, root, client, bucketName, ServerSideEncryptionMethod.None, acl: acl)
         {
         }
 
-        public AmazonS3FileSystem(
-            LocalCache cache,
+        public AmazonS3FileSystem(LocalCache cache,
             Uri root,
             Uri baseUri,
             IAmazonS3 client,
             string bucketName,
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             string feedSubPath = null,
-            bool compress = true)
+            bool compress = true,
+            S3CannedACL acl = null)
             : base(cache, root, baseUri)
         {
             _client = client;
             _bucketName = bucketName;
             _serverSideEncryptionMethod = serverSideEncryptionMethod;
+            _acl = acl;
 
             if (!string.IsNullOrEmpty(feedSubPath))
             {
@@ -117,7 +119,7 @@ namespace Sleet
         private ISleetFile CreateAmazonS3File(SleetUriPair pair)
         {
             var key = GetRelativePath(pair.Root);
-            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress);
+            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress, _acl);
         }
 
         public override string GetRelativePath(Uri uri)
@@ -176,6 +178,12 @@ namespace Sleet
                 // Set the public policy to public read-only
                 await Retry(SetBucketPolicy, log, token);
 
+                // Set the default acl of the bucket. Must not conflict with the public access policy.
+                if (_acl != null)
+                {
+                    await Retry(SetBucketAcl, log, token);
+                }
+
                 // Get and release the lock to ensure that everything will work for the next operation.
                 // In the E2E tests there are often failures due to the bucket saying it is not available
                 // even though the above checks passed. To work around this wait until a file can be
@@ -221,6 +229,18 @@ namespace Sleet
             };
 
             return _client.PutBucketOwnershipControlsAsync(ownerReq, token);
+        }
+
+        // Set the default acl of the bucket.
+        private Task SetBucketAcl(ILogger log, CancellationToken token)
+        {
+            var aclReq = new PutACLRequest()
+            {
+                BucketName = _bucketName,
+                CannedACL = _acl
+            };
+
+            return _client.PutACLAsync(aclReq, token);
         }
 
         // Remove public access blocks to allow public policies.

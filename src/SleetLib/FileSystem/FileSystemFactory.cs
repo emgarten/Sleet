@@ -100,6 +100,7 @@ namespace Sleet
                         var serviceURL = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serviceURL");
                         var serverSideEncryptionMethod = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serverSideEncryptionMethod") ?? "None";
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
+                        var acl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "acl");
 
                         if (string.IsNullOrEmpty(bucketName))
                         {
@@ -118,6 +119,12 @@ namespace Sleet
                         if (serverSideEncryptionMethod != "None" && serverSideEncryptionMethod != "AES256")
                         {
                             throw new ArgumentException("Only 'None' or 'AES256' are currently supported for serverSideEncryptionMethod");
+                        }
+
+                        S3CannedACL resolvedAcl = null;
+                        if (acl != null)
+                        {
+                            resolvedAcl = S3CannedACL.FindValue(acl);
                         }
 
                         // Use the SDK value
@@ -183,7 +190,7 @@ namespace Sleet
                         }
                         // Load credentials from an ECS docker container
                         // Check if the env var GenericContainerCredentials.RelativeURIEnvVariable exists
-                        // Previously this used ECSTaskCredentials.RelativeURIEnvVariable but that was 
+                        // Previously this used ECSTaskCredentials.RelativeURIEnvVariable but that was
                         // deprecated and the property is now internal on GenericContainerCredentials
                         else if (
                             !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")))
@@ -229,7 +236,9 @@ namespace Sleet
                             bucketName,
                             serverSideEncryptionMethodValue,
                             feedSubPath,
-                            compress);
+                            compress,
+                            resolvedAcl
+                        );
                     }
                 }
             }
