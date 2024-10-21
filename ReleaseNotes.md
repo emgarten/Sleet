@@ -1,5 +1,8 @@
 # Release Notes
 
+## 6.2.0
+* S3 support for setting an ACL on upload. Feeds using scaleway object storage can now make files public during push.
+
 ## 6.1.0
 * Updated AWS SDK packages to improve support for non AWS S3 storage
 * Updated Azure Storage and Azure Identity packages to fix vulnerability
@@ -111,7 +114,7 @@
 ## 2.3.35
 * Performance improvements, packages are added in batch to reduce the number of file read/writes.
 * Add/removes within a service are done in parallel where possible.
-* nupkg files are read in parallel before locking the feed to reduce the amount of time spent in the lock. 
+* nupkg files are read in parallel before locking the feed to reduce the amount of time spent in the lock.
 
 ## 2.3.33
 * Local feeds will contian baseURI by default when using createconfig.
