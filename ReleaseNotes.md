@@ -1,5 +1,9 @@
 # Release Notes
 
+## 6.3.0
+* Added net9.0 support
+* Updated NuGet.* packages to 6.12.1
+
 ## 6.2.0
 * S3 support for setting an ACL on upload. Feeds using scaleway object storage can now make files public during push.
 

@@ -3,22 +3,22 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <TestProject>true</TestProject>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="NuGet.Protocol" Version="$(NuGetPackageVersion)" />
     <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\Sleet.Test.Common\Sleet.Test.Common.csproj" />
   </ItemGroup>
-  
+
   <Import Project="$(BuildCommonDirectory)\common.targets" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

@@ -3,7 +3,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(PackSleetDotnetTool)' == 'true' ">
@@ -61,7 +61,7 @@
 
     <Error Condition=" '$(IsXPlat)' != 'true' AND '$(MergedExePathExists)' != 'true' " Text="Missing $(MergedExePath)" />
 
-    <!-- This project packs both the dotnet tool package: Sleet and the exe package: SleetExe. 
+    <!-- This project packs both the dotnet tool package: Sleet and the exe package: SleetExe.
          NuGet pack currently rejects dotnet tool packages with desktop framework TFMs, to get
          around this we pass PackAsTool=true only during the dotnet tool pack, and exclude the
          desktop framework at that time. -->
