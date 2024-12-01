@@ -3,7 +3,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -13,11 +13,11 @@
   <ItemGroup>
     <EmbeddedResource Include="compiler\resources\**\*" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\Sleet.Test.Common\Sleet.Test.Common.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Folder Include="compiler\resources\" />
   </ItemGroup>

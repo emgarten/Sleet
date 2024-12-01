@@ -23,7 +23,7 @@
         <IsDesktop>true</IsDesktop>
       </PropertyGroup>
     </When>
-    <When Condition="$(TargetFramework.Contains('netstandard')) OR $(TargetFramework.Contains('netcoreapp')) OR $(TargetFramework.Contains('net5')) OR $(TargetFramework.Contains('net6')) OR $(TargetFramework.Contains('net7')) OR $(TargetFramework.Contains('net8'))">
+    <When Condition="$(TargetFramework.Contains('netstandard')) OR $(TargetFramework.Contains('netcoreapp')) OR $(TargetFramework.Contains('net5')) OR $(TargetFramework.Contains('net6')) OR $(TargetFramework.Contains('net7')) OR $(TargetFramework.Contains('net8')) OR $(TargetFramework.Contains('net9'))">
       <PropertyGroup>
         <DefineConstants>$(DefineConstants);IS_CORECLR</DefineConstants>
         <IsCore>true</IsCore>
@@ -69,7 +69,7 @@
   <PropertyGroup Condition=" '$(PackProject)' == 'true' ">
     <IsPackable>true</IsPackable>
     <IncludeSymbols Condition=" '$(IncludeSymbols)' == '' AND '$(DebugType)' != 'embedded' ">true</IncludeSymbols>
-    <SymbolPackageFormat Condition=" '$(IncludeSymbols)' == '' AND '$(DebugType)' != 'embedded' ">snupkg</SymbolPackageFormat> 
+    <SymbolPackageFormat Condition=" '$(IncludeSymbols)' == '' AND '$(DebugType)' != 'embedded' ">snupkg</SymbolPackageFormat>
     <PackageOutputPath>$(NupkgOutputDirectory)</PackageOutputPath>
     <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
@@ -255,7 +255,7 @@
       <ToolEntryPoint Condition=" '$(ToolEntryPoint)' == '' ">$(AssemblyName).dll</ToolEntryPoint>
       <ToolOutputPath>$(PublishOutputDirectory)$(TargetFramework)\DotnetToolSettings.xml</ToolOutputPath>
     </PropertyGroup>
-    
+
     <!-- Run publish -->
     <MSBuild Projects="$(MSBuildProjectFullPath)"
              Targets="WriteToolSettingsFile"

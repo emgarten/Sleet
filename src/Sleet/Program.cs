@@ -76,6 +76,7 @@ namespace Sleet
 
         private static void Configure()
         {
+#if NET6_0 || NET8_0
             // Set connection limit
             if (!RuntimeEnvironmentHelper.IsMono)
             {
@@ -92,6 +93,7 @@ namespace Sleet
                 SecurityProtocolType.Tls |
                 SecurityProtocolType.Tls11 |
                 SecurityProtocolType.Tls12;
+#endif
         }
     }
 }
