@@ -5,7 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
+using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
+using NuGet.Versioning;
 using Sleet;
 using Xunit;
 
@@ -208,6 +210,59 @@ namespace SleetLib.Tests
                     tmpFolder.RootDirectory.FullName,
                     false,
                     context.Log);
+
+                success.Should().BeTrue();
+
+                var indexJsonPath = Path.Combine(target.RootDirectory.FullName, "index.json");
+                var entry = GetSearchEntry(indexJsonPath);
+                var value = entry["@id"].ToObject<string>();
+
+                value.Should().Be("https://example.org/search/query");
+            }
+        }
+
+        [Fact]
+        public async Task VerifyPushKeepsExternalSearch()
+        {
+            using (var tmpFolder = new TestFolder())
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var outputFolder = new TestFolder())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                };
+
+                var success = await InitCommand.RunAsync(settings, fileSystem, log);
+
+                success &= await FeedSettingsCommand.RunAsync(
+                    settings,
+                    fileSystem,
+                    unsetAll: false,
+                    getAll: false,
+                    getSettings: Array.Empty<string>(),
+                    unsetSettings: Array.Empty<string>(),
+                    setSettings: new string[] { "externalsearch:https://example.org/search/query" },
+                    log: log,
+                    token: context.Token);
+
+                // Push a package
+                var testPackage = new TestNupkg("packageA", "1.0.0");
+                var packageIdentity = new PackageIdentity(testPackage.Nuspec.Id, NuGetVersion.Parse(testPackage.Nuspec.Version));
+                var zipFile = testPackage.Save(packagesFolder.Root);
+
+                await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
+                var validateOutput = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
 
                 success.Should().BeTrue();
 
