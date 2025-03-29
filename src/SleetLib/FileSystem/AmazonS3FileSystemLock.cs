@@ -17,13 +17,15 @@ namespace Sleet
         private readonly string bucketName;
         private readonly IAmazonS3 client;
         private readonly ServerSideEncryptionMethod serverSideEncryptionMethod;
+        private readonly bool disablePayloadSigning;
 
-        public AmazonS3FileSystemLock(IAmazonS3 client, string bucketName, ServerSideEncryptionMethod serverSideEncryptionMethod, ILogger log)
+        public AmazonS3FileSystemLock(IAmazonS3 client, string bucketName, ServerSideEncryptionMethod serverSideEncryptionMethod, bool disablePayloadSigning, ILogger log)
             : base(log)
         {
             this.client = client;
             this.bucketName = bucketName;
             this.serverSideEncryptionMethod = serverSideEncryptionMethod;
+            this.disablePayloadSigning = disablePayloadSigning;
         }
 
         protected override async Task<Tuple<bool, JObject>> TryObtainLockAsync(string lockMessage, CancellationToken token)
@@ -43,7 +45,7 @@ namespace Sleet
                     // Create a new lock
                     json = GetMessageJson(lockMessage);
 
-                    await CreateFileAsync(client, bucketName, LockFile, json.ToString(), serverSideEncryptionMethod, token).ConfigureAwait(false);
+                    await CreateFileAsync(client, bucketName, LockFile, json.ToString(), serverSideEncryptionMethod, disablePayloadSigning, token).ConfigureAwait(false);
 
                     result = true;
                 }
