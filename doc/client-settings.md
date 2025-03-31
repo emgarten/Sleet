@@ -77,6 +77,7 @@ More options can be found in the [Azure.Identity README](https://github.com/Azur
 | serverSideEncryptionMethod | The encryption to use for uploaded objects. Only `AES256` and `None` are currently supported. Default is `None`                                                                                                                                                                                                              |
 | compress                   | Compress JSON files with GZIP before uploading. Default is *true*                                                                                                                                                                                                                                                            |
 | acl                        | A acl can be set for uploaded files. By default, no specific canned acl is set and bucket defaults and/or policies are in effect. If the bucket is created by sleet and an acl is set, then the default bucket acl will be set to that acl. |
+|disablePayloadSigning                       | S3 payload signing is a requirement of AWS SigV4, some S3 compatible storage providers do not implement this. Default is `false`
 
 Either `region` or `serviceURL` should be specified but not both.
 
