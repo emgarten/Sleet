@@ -101,6 +101,8 @@ namespace Sleet
                         var serverSideEncryptionMethod = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serverSideEncryptionMethod") ?? "None";
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
                         var acl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "acl");
+                        var disablePayloadSigning = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "disablePayloadSigning", false);
+
 
                         if (string.IsNullOrEmpty(bucketName))
                         {
@@ -237,7 +239,8 @@ namespace Sleet
                             serverSideEncryptionMethodValue,
                             feedSubPath,
                             compress,
-                            resolvedAcl
+                            resolvedAcl,
+                            disablePayloadSigning
                         );
                     }
                 }

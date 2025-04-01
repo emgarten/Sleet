@@ -21,13 +21,15 @@ namespace Sleet
             string key,
             string contentBody,
             ServerSideEncryptionMethod serverSideEncryptionMethod,
+            bool disablePayloadSigning,
             CancellationToken token)
         {
             var putObjectRequest = new PutObjectRequest
             {
                 BucketName = bucketName,
                 Key = key,
-                ContentBody = contentBody
+                ContentBody = contentBody,
+                DisablePayloadSigning = disablePayloadSigning
             };
 
             if (serverSideEncryptionMethod != ServerSideEncryptionMethod.None)
@@ -132,6 +134,7 @@ namespace Sleet
             Stream reader,
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             S3CannedACL acl,
+            bool disablePayloadSigning,
             CancellationToken token)
         {
             var transferUtility = new TransferUtility(client);
@@ -142,7 +145,8 @@ namespace Sleet
                 InputStream = reader,
                 AutoCloseStream = false,
                 AutoResetStreamPosition = false,
-                Headers = { CacheControl = "no-store" }
+                Headers = { CacheControl = "no-store" },
+                DisablePayloadSigning = disablePayloadSigning
             };
 
             if (serverSideEncryptionMethod != ServerSideEncryptionMethod.None)

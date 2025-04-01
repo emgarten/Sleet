@@ -21,11 +21,13 @@ namespace Sleet
         private readonly bool _compress;
         private readonly ServerSideEncryptionMethod _serverSideEncryptionMethod;
         private readonly S3CannedACL _acl;
+        private readonly bool _disablePayloadSigning;
 
         private bool? _hasBucket;
 
-        public AmazonS3FileSystem(LocalCache cache, Uri root, IAmazonS3 client, string bucketName, string acl)
-            : this(cache, root, root, client, bucketName, ServerSideEncryptionMethod.None, acl: acl)
+
+        public AmazonS3FileSystem(LocalCache cache, Uri root, IAmazonS3 client, string bucketName, string acl, bool disablePayloadSigning = false)
+            : this(cache, root, root, client, bucketName, ServerSideEncryptionMethod.None, acl: acl, disablePayloadSigning: disablePayloadSigning)
         {
         }
 
@@ -37,13 +39,15 @@ namespace Sleet
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             string feedSubPath = null,
             bool compress = true,
-            S3CannedACL acl = null)
+            S3CannedACL acl = null,
+            bool disablePayloadSigning = false)
             : base(cache, root, baseUri)
         {
             _client = client;
             _bucketName = bucketName;
             _serverSideEncryptionMethod = serverSideEncryptionMethod;
             _acl = acl;
+            _disablePayloadSigning = disablePayloadSigning;
 
             if (!string.IsNullOrEmpty(feedSubPath))
             {
@@ -70,7 +74,7 @@ namespace Sleet
 
         public override ISleetFileSystemLock CreateLock(ILogger log)
         {
-            return new AmazonS3FileSystemLock(_client, _bucketName, _serverSideEncryptionMethod, log);
+            return new AmazonS3FileSystemLock(_client, _bucketName, _serverSideEncryptionMethod, _disablePayloadSigning, log);
         }
 
         public override ISleetFile Get(Uri path)
@@ -119,7 +123,7 @@ namespace Sleet
         private ISleetFile CreateAmazonS3File(SleetUriPair pair)
         {
             var key = GetRelativePath(pair.Root);
-            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress, _acl);
+            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress, _acl, _disablePayloadSigning);
         }
 
         public override string GetRelativePath(Uri uri)
@@ -254,7 +258,7 @@ namespace Sleet
                     IgnorePublicAcls = false,
                     RestrictPublicBuckets = false,
                     BlockPublicAcls = false,
-                    BlockPublicPolicy = false,
+                    BlockPublicPolicy = false
                 }
             };
 

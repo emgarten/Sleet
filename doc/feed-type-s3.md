@@ -128,7 +128,8 @@ To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/usergu
       "bucketName": "nupkg",
       "serviceURL": "https://storage.yandexcloud.net",
       "accessKeyId": "IAM_ACCESS_KEY_ID",
-      "secretAccessKey": "IAM_SECRET_ACCESS_KEY"
+      "secretAccessKey": "IAM_SECRET_ACCESS_KEY",
+      "disablePayloadSigning": false, // set to true if SigV4 is not supported by provider (such as Cloudflare R2)
     }
   ]
 }
