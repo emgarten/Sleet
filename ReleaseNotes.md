@@ -1,5 +1,8 @@
 # Release Notes
 
+## 6.4.0
+* Added disablePayloadSigning option for S3 feeds [PR](https://github.com/emgarten/Sleet/pull/211)
+
 ## 6.3.0
 * Added net9.0 support
 * Updated NuGet.* packages to 6.12.1
