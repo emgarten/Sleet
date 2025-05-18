@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 # No options are needed to run a basic build and unit tests
 # To run functional tests against azure and or aws, use the following options:
@@ -26,18 +27,14 @@ while [ : ]; do
         export AWS_DEFAULT_REGION=$2
         shift 2
         ;;
-    --) shift; 
-        break 
+    --) shift;
+        break
         ;;
   esac
 done
 
-RESULTCODE=0
 pushd $(pwd)
 
 # Download dotnet cli and run tests
 . build/common/common.sh
 run_standard_tests
-
-popd
-exit $RESULTCODE
