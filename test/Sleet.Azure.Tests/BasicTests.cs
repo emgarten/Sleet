@@ -137,7 +137,36 @@ namespace Sleet.Azure.Tests
             {
                 await testContext.InitAsync();
 
-                var testPackage = new TestNupkg("packageA", "1.0.0");
+                var testPackage = new TestNupkg()
+                {
+                    Nuspec = new TestNuspec()
+                    {
+                        Id = "packageA",
+                        Version = "1.0.0",
+                        Authors = "author",
+                        Description = "desc",
+                        IconUrl = "http://www.tempuri.org",
+                        Icon = "images/icon.png",
+                        Readme = "README.md",
+                        Language = "en-us",
+                        MinClientVersion = "1.0.0",
+                        Title = "title",
+                        Tags = "a b d",
+                        Summary = "summary",
+                        LicenseUrl = "http://www.tempuri.org/lic",
+                        ProjectUrl = "http://www.tempuri.org/proj",
+                        ReleaseNotes = "notes",
+                        Owners = "owners",
+                        Copyright = "copyright",
+                        RequireLicenseAcceptance = "true"
+                    },
+                    Files = new List<TestNupkgFile>()
+                    {
+                        new("README.md"),
+                        new("images/icon.png")
+                    }
+                };
+
                 var zipFile = testPackage.Save(packagesFolder.Root);
 
                 var result = await InitCommand.RunAsync(testContext.LocalSettings,

@@ -389,6 +389,77 @@ namespace SleetLib.Tests
             }
         }
 
+        [Fact]
+        public async Task AddRemove_AddAndRemovePackageWithReadme()
+        {
+            // Arrange
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var context = new SleetContext()
+                {
+                    Token = CancellationToken.None,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = new FeedSettings()
+                    {
+                        CatalogEnabled = true
+                    }
+                };
+
+                var testPackage = new TestNupkg()
+                {
+                    Nuspec = new TestNuspec()
+                    {
+                        Id = "packageA",
+                        Version = "1.0.0",
+                        Authors = "author",
+                        Description = "desc",
+                        IconUrl = "http://www.tempuri.org",
+                        Readme = "README.md",
+                        Language = "en-us",
+                        MinClientVersion = "1.0.0",
+                        Title = "title",
+                        Tags = "a b d",
+                        Summary = "summary",
+                        LicenseUrl = "http://www.tempuri.org/lic",
+                        ProjectUrl = "http://www.tempuri.org/proj",
+                        ReleaseNotes = "notes",
+                        Owners = "owners",
+                        Copyright = "copyright",
+                        RequireLicenseAcceptance = "true"
+                    },
+                    Files = new List<TestNupkgFile>()
+                    {
+                        new("README.md")
+                    }
+                };
+
+                var zipFile = testPackage.Save(packagesFolder.Root);
+                using (var zip = new ZipArchive(File.OpenRead(zipFile.FullName), ZipArchiveMode.Read, false))
+                {
+                    var input = PackageInput.Create(zipFile.FullName);
+
+                    await InitCommand.InitAsync(context);
+                    await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
+
+                    var file = fileSystem.Get(fileSystem.GetPath("flatcontainer/packagea/1.0.0/readme"));
+                    Assert.True(await file.Exists(context.Log, context.Token));
+
+                    await DeleteCommand.RunAsync(context.LocalSettings, context.Source, "packageA", "1.0.0", string.Empty, false, context.Log);
+
+                    file = fileSystem.Get(fileSystem.GetPath("flatcontainer/packagea/1.0.0/readme"));
+                    Assert.False(await file.Exists(context.Log, context.Token));
+                }
+            }
+        }
+
         // Verify DeletePackagesAsync method
         [Fact]
         public async Task AddRemove_AddAndDeletePackagesAsync()

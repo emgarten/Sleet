@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 
@@ -95,6 +96,7 @@ namespace Sleet
             AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
             AddServiceIndexEntry(source.BaseURI, "", "ReportAbuseUriTemplate/3.0.0", "Report abuse template.", serviceIndexJson);
             AddServiceIndexEntry(source.BaseURI, "flatcontainer/", "PackageBaseAddress/3.0.0", "Packages used by project.json", serviceIndexJson);
+            AddServiceIndexEntry(source.BaseURI, "flatcontainer/{lower_id}/{lower_version}/readme", "ReadmeUriTemplate/6.13.0", "URI template used by NuGet Client to construct a URL for downloading a package's README.", serviceIndexJson);
 
             // Add symbols feed if enabled
             if (feedSettings.SymbolsEnabled)
@@ -151,10 +153,15 @@ namespace Sleet
         private static JObject GetServiceIndexEntry(Uri baseUri, string relativeFilePath, string type, string comment)
         {
             var id = UriUtility.GetPath(baseUri, relativeFilePath);
+            var url = id.AbsoluteUri;
+
+            // Remove encoding for templates
+            url = url.Replace("%7Blower_id%7D", "{lower_id}");
+            url = url.Replace("%7Blower_version%7D", "{lower_version}");
 
             var json = new JObject
             {
-                ["@id"] = id.AbsoluteUri,
+                ["@id"] = url,
                 ["@type"] = type,
                 ["comment"] = comment
             };

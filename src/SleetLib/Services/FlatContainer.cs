@@ -64,6 +64,10 @@ namespace Sleet
             // Icon
             var iconFile = _context.Source.Get(GetIconPath(package));
             iconFile.Delete(_context.Log, _context.Token);
+
+            // Readme
+            var readmeFile = _context.Source.Get(GetReadmePath(package));
+            readmeFile.Delete(_context.Log, _context.Token);
         }
 
         public Uri GetNupkgPath(PackageIdentity package)
@@ -90,6 +94,19 @@ namespace Sleet
             var version = package.Version.ToIdentityString();
 
             return context.Source.GetPath($"/flatcontainer/{id}/{version}/icon".ToLowerInvariant());
+        }
+
+        public Uri GetReadmePath(PackageIdentity package)
+        {
+            return GetReadmePath(_context, package);
+        }
+
+        public static Uri GetReadmePath(SleetContext context, PackageIdentity package)
+        {
+            var id = package.Id;
+            var version = package.Version.ToIdentityString();
+
+            return context.Source.GetPath($"/flatcontainer/{id}/{version}/readme".ToLowerInvariant());
         }
 
         public Uri GetIndexUri(string id)
@@ -181,7 +198,8 @@ namespace Sleet
             {
                 AddNuspecAsync(packageInput),
                 AddNupkgAsync(packageInput),
-                AddIconAsync(packageInput)
+                AddIconAsync(packageInput),
+                AddReadmeAsync(packageInput)
             });
         }
 
@@ -206,22 +224,40 @@ namespace Sleet
             }
         }
 
-        private async Task AddIconAsync(PackageInput packageInput)
+        private Task AddIconAsync(PackageInput packageInput)
         {
             // Find icon path in package from nuspec
-            var iconPath = packageInput.Nuspec.GetIcon();
+            var path = packageInput.Nuspec.GetIcon();
+            var feedPath = GetIconPath(packageInput.Identity);
 
-            if (!string.IsNullOrWhiteSpace(iconPath))
+            return AddFileAsync(packageInput, path, feedPath);
+        }
+
+        private Task AddReadmeAsync(PackageInput packageInput)
+        {
+            // Find readme path in package from nuspec
+            var path = packageInput.Nuspec.GetReadme();
+            var feedPath = GetReadmePath(packageInput.Identity);
+
+            return AddFileAsync(packageInput, path, feedPath);
+        }
+
+        private async Task AddFileAsync(PackageInput packageInput, string nupkgPath, Uri feedPath)
+        {
+            if (!string.IsNullOrWhiteSpace(nupkgPath))
             {
-                iconPath = PathUtility.StripLeadingDirectorySeparators(iconPath).Trim();
+                nupkgPath = PathUtility.StripLeadingDirectorySeparators(nupkgPath).Trim();
 
-                using (var zip = packageInput.CreateZip())
+                if (!string.IsNullOrWhiteSpace(nupkgPath))
                 {
-                    var entry = zip.GetEntry(iconPath);
-                    if (entry != null)
+                    using (var zip = packageInput.CreateZip())
                     {
-                        var entryFile = _context.Source.Get(GetIconPath(packageInput.Identity));
-                        await entryFile.Write(entry.Open(), _context.Log, _context.Token);
+                        var entry = zip.GetEntry(nupkgPath);
+                        if (entry != null)
+                        {
+                            var entryFile = _context.Source.Get(feedPath);
+                            await entryFile.Write(entry.Open(), _context.Log, _context.Token);
+                        }
                     }
                 }
             }

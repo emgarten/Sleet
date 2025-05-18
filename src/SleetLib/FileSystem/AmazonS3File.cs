@@ -132,6 +132,10 @@ namespace Sleet
                 {
                     contentType = "image/png";
                 }
+                else if (absoluteUri.AbsoluteUri.EndsWith("/readme"))
+                {
+                    contentType = "text/markdown";
+                }
                 else
                 {
                     log.LogWarning($"Unknown file type: {absoluteUri}");
