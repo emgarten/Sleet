@@ -1,7 +1,7 @@
 # Release Notes
 
 ## 6.5.0
-* Added README support. Flatcontainer will now place the README along side the icon and nuspec files. Visual Studio package search will display README files the same as it does for nuget.org.
+* Added README support. Flatcontainer will now place the README alongside the icon and nuspec files. Visual Studio package search will display README files the same as it does for nuget.org.
 
 ## 6.4.0
 * Added disablePayloadSigning option for S3 feeds [PR](https://github.com/emgarten/Sleet/pull/211)
