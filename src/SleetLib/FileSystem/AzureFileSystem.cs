@@ -24,7 +24,7 @@ namespace Sleet
             var expectedPath = UriUtility.EnsureTrailingSlash(root);
 
             // Verify that the provided path is sane.
-            if (!expectedPath.AbsoluteUri.StartsWith(expectedPath.AbsoluteUri, StringComparison.Ordinal))
+            if (!expectedPath.AbsoluteUri.StartsWith(containerUri.AbsoluteUri, StringComparison.Ordinal))
             {
                 throw new ArgumentException($"Invalid feed path. Azure container {container} resolved to {containerUri.AbsoluteUri} which does not match the provided URI of {expectedPath}  Update path in sleet.json or remove the path property to auto resolve the value if using a connection string.");
             }

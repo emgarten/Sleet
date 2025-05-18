@@ -16,7 +16,10 @@ namespace Sleet
             var proxySettings = settings?.Json?["proxy"] ?? new JObject();
             if (proxySettings["useDefaultCredentials"]?.ToObject<bool>() == true)
             {
-                WebRequest.DefaultWebProxy.Credentials = CredentialCache.DefaultCredentials;
+                if (WebRequest.DefaultWebProxy != null)
+                {
+                    WebRequest.DefaultWebProxy.Credentials = CredentialCache.DefaultCredentials;
+                }
             }
         }
 
