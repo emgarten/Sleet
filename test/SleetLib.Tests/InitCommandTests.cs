@@ -118,6 +118,7 @@ namespace SleetLib.Tests
                 rootJson.ToString().Should().Contain("catalog/index.json");
                 rootJson.ToString().Should().Contain("Catalog/3.0.0");
                 rootJson.ToString().Should().Contain("symbols/packages/index.json");
+                rootJson.ToString().Should().Contain("ReadmeUriTemplate/6.13.0");
             }
         }
 
