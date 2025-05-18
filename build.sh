@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # No options are needed to run a basic build and unit tests
 # To run functional tests against azure and or aws, use the following options:
@@ -32,7 +33,6 @@ while [ : ]; do
   esac
 done
 
-RESULTCODE=0
 pushd $(pwd)
 
 # Download dotnet cli and run tests
@@ -40,4 +40,3 @@ pushd $(pwd)
 run_standard_tests
 
 popd
-exit $RESULTCODE
