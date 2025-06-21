@@ -8,7 +8,7 @@ namespace Sleet
     {
         public static void Register(CommandLineApplication cmdApp, ILogger log)
         {
-            cmdApp.Command("settings", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
+            cmdApp.Command("settings", cmd => Run(cmd, log));
         }
 
         private static void Run(CommandLineApplication cmd, ILogger log)
@@ -33,7 +33,7 @@ namespace Sleet
 
             var required = new List<CommandOption>() { stableVersions, prereleaseVersions };
 
-            cmd.OnExecute(async () =>
+            cmd.OnExecuteAsync(async _ =>
             {
                 // Validate parameters
                 // Disable must be used by itself
@@ -52,7 +52,7 @@ namespace Sleet
                 using (var cache = new LocalCache())
                 {
                     // Load settings and file system.
-                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values));
+                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values.ToList()));
                     var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache, log);
 
                     var success = false;

@@ -7,7 +7,7 @@ namespace Sleet
     {
         public static void Register(CommandLineApplication cmdApp, ILogger log)
         {
-            cmdApp.Command("createconfig", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
+            cmdApp.Command("createconfig", cmd => Run(cmd, log));
         }
 
         private static void Run(CommandLineApplication cmd, ILogger log)
@@ -30,7 +30,7 @@ namespace Sleet
 
             cmd.HelpOption(Constants.HelpOption);
 
-            cmd.OnExecute(async () =>
+            cmd.OnExecuteAsync(async _ =>
             {
                 // Init logger
                 Util.SetVerbosity(log, verbose.HasValue());

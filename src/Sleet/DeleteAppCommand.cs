@@ -8,7 +8,7 @@ namespace Sleet
     {
         public static void Register(CommandLineApplication cmdApp, ILogger log)
         {
-            cmdApp.Command("delete", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
+            cmdApp.Command("delete", cmd => Run(cmd, log));
         }
 
         private static void Run(CommandLineApplication cmd, ILogger log)
@@ -41,7 +41,7 @@ namespace Sleet
                 packageId
             };
 
-            cmd.OnExecute(async () =>
+            cmd.OnExecuteAsync(async _ =>
             {
                 // Validate parameters
                 CmdUtils.VerifyRequiredOptions(required.ToArray());
@@ -53,7 +53,7 @@ namespace Sleet
                 using (var cache = new LocalCache(new PerfTracker()))
                 {
                     // Load settings and file system.
-                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values));
+                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values.ToList()));
                     var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache, log);
 
                     var success = await DeleteCommand.RunAsync(settings, fileSystem, packageId.Value(), version.Value(), reason.Value(), force.HasValue(), log);
