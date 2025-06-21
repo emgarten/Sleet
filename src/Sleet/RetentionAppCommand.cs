@@ -7,7 +7,7 @@ namespace Sleet
     {
         public static void Register(CommandLineApplication cmdApp, ILogger log)
         {
-            var parentCommand = cmdApp.Command("retention", (cmd) => Run(cmd, log), throwOnUnexpectedArg: true);
+            var parentCommand = cmdApp.Command("retention", cmd => Run(cmd, log));
 
             RetentionSettingsAppCommand.Register(parentCommand, log);
             RetentionPruneAppCommand.Register(parentCommand, log);
