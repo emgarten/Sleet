@@ -12,7 +12,7 @@ namespace Sleet
         {
             using (var reader = new StreamReader(GetResource($"template{name}.json")))
             {
-                var data = await reader.ReadToEndAsync();
+                var data = await reader.ReadToEndAsync().ConfigureAwait(false);
 
                 return data
                     .Replace("$SLEETVERSION$", AssemblyVersionHelper.GetVersion().ToFullVersionString())

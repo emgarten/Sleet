@@ -8,7 +8,7 @@ namespace Sleet
 {
     public class Program
     {
-        public static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             var logLevel = Util.DefaultLogLevel;
 
@@ -19,8 +19,7 @@ namespace Sleet
 
             using (var log = new ConsoleLogger(logLevel))
             {
-                var task = MainCore(args, log);
-                return task.Result;
+                return await MainCore(args, log).ConfigureAwait(false);
             }
         }
 

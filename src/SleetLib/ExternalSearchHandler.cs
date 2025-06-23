@@ -37,10 +37,10 @@ namespace Sleet
         private async Task SetSearchUri(string value)
         {
             var indexFile = _context.Source.Get("index.json");
-            var json = await indexFile.GetJson(_context.Log, _context.Token);
+            var json = await indexFile.GetJson(_context.Log, _context.Token).ConfigureAwait(false);
             var searchEntry = GetSearchEntry(json);
             searchEntry["@id"] = value;
-            await indexFile.Write(json, _context.Log, _context.Token);
+            await indexFile.Write(json, _context.Log, _context.Token).ConfigureAwait(false);
         }
 
         private JObject GetSearchEntry(JObject serviceIndex)

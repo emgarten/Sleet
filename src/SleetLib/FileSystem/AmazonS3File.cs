@@ -100,6 +100,8 @@ namespace Sleet
             {
                 Stream writeStream = cache;
                 string contentType = null, contentEncoding = null;
+                bool disposeWriteStream = false;
+                
                 if (key.EndsWith(".nupkg", StringComparison.Ordinal))
                 {
                     contentType = "application/zip";
@@ -121,6 +123,7 @@ namespace Sleet
                     {
                         contentEncoding = "gzip";
                         writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
+                        disposeWriteStream = true;
                     }
                 }
                 else if (key.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
@@ -141,10 +144,18 @@ namespace Sleet
                     log.LogWarning($"Unknown file type: {absoluteUri}");
                 }
 
-                await UploadFileAsync(client, bucketName, key, contentType, contentEncoding, writeStream, serverSideEncryptionMethod, acl, disablePayloadSigning, token)
-                    .ConfigureAwait(false);
-
-                writeStream.Dispose();
+                try
+                {
+                    await UploadFileAsync(client, bucketName, key, contentType, contentEncoding, writeStream, serverSideEncryptionMethod, acl, disablePayloadSigning, token)
+                        .ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (disposeWriteStream && writeStream != cache)
+                    {
+                        writeStream.Dispose();
+                    }
+                }
             }
         }
 
