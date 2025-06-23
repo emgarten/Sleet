@@ -58,6 +58,7 @@ namespace Sleet
                 using (var cache = LocalCacheFile.OpenRead())
                 {
                     Stream writeStream = cache;
+                    bool disposeWriteStream = false;
                     var blobHeaders = new BlobHttpHeaders
                     {
                         CacheControl = "no-store"
@@ -85,6 +86,7 @@ namespace Sleet
                         {
                             blobHeaders.ContentEncoding = "gzip";
                             writeStream = await JsonUtility.GZipAndMinifyAsync(cache);
+                            disposeWriteStream = true;
                         }
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
@@ -105,9 +107,17 @@ namespace Sleet
                         log.LogWarning($"Unknown file type: {_blob.Uri.AbsoluteUri}");
                     }
 
-                    await _blob.UploadAsync(writeStream, blobHeaders, cancellationToken: token);
-
-                    writeStream.Dispose();
+                    try
+                    {
+                        await _blob.UploadAsync(writeStream, blobHeaders, cancellationToken: token);
+                    }
+                    finally
+                    {
+                        if (disposeWriteStream && writeStream != cache)
+                        {
+                            writeStream.Dispose();
+                        }
+                    }
                 }
             }
             else if (await _blob.ExistsAsync(token))

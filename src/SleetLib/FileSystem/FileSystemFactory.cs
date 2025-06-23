@@ -34,7 +34,7 @@ namespace Sleet
             {
                 var sourceName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "name");
 
-                if (source.Equals(sourceName, StringComparison.OrdinalIgnoreCase))
+                if (source?.Equals(sourceName, StringComparison.OrdinalIgnoreCase) == true)
                 {
                     var path = JsonUtility.GetValueCaseInsensitive(sourceEntry, "path");
                     var baseURIString = JsonUtility.GetValueCaseInsensitive(sourceEntry, "baseURI");
