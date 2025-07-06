@@ -55,7 +55,7 @@ namespace Sleet
         {
             return RunAsync(
                 tasks: tasks.Select(GetFuncWithReturnValue),
-                useTaskRun: false,
+                useTaskRun: useTaskRun,
                 token: token);
         }
 
@@ -66,7 +66,7 @@ namespace Sleet
         {
             return RunAsync(
                 tasks: tasks.Select(GetFuncWithReturnValue),
-                useTaskRun: false,
+                useTaskRun: useTaskRun,
                 maxThreads: maxThreads,
                 token: token);
         }
