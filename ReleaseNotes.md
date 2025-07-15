@@ -1,5 +1,10 @@
 # Release Notes
 
+## 6.5.10 
+* Fixed json parsing error on push for S3 [PR](https://github.com/emgarten/Sleet/pull/221)
+* Updated McMaster.CommandLineUtils to the 4.1.1 and made several improvements to command line error handling
+* Misc bug fixes
+
 ## 6.5.0
 * Added README support. Flatcontainer will now place the README alongside the icon and nuspec files. Visual Studio package search will display README files the same as it does for nuget.org.
 
