@@ -115,6 +115,14 @@ namespace Sleet
                 {
                     contentType = "image/svg+xml";
                 }
+                else if (absoluteUri.AbsoluteUri.EndsWith("/icon"))
+                {
+                    contentType = "image/png";
+                }
+                else if (absoluteUri.AbsoluteUri.EndsWith("/readme"))
+                {
+                    contentType = "text/markdown";
+                }
                 else if (key.EndsWith(".json", StringComparison.Ordinal)
                          || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                 {
@@ -130,14 +138,6 @@ namespace Sleet
                          || key.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
                 {
                     contentType = "application/octet-stream";
-                }
-                else if (absoluteUri.AbsoluteUri.EndsWith("/icon"))
-                {
-                    contentType = "image/png";
-                }
-                else if (absoluteUri.AbsoluteUri.EndsWith("/readme"))
-                {
-                    contentType = "text/markdown";
                 }
                 else
                 {
