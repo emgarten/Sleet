@@ -1,6 +1,9 @@
 # Release Notes
 
-## 6.5.10 
+## 6.5.13
+* Update Azure.Identity to 1.15.0
+
+## 6.5.10
 * Fixed json parsing error on push for S3 [PR](https://github.com/emgarten/Sleet/pull/221)
 * Updated McMaster.CommandLineUtils to the 4.1.1 and made several improvements to command line error handling
 * Misc bug fixes
