@@ -18,7 +18,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+      with:
+        fetch-tags: true
+        fetch-depth: 0
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -37,7 +40,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+      with:
+        fetch-tags: true
+        fetch-depth: 0
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
