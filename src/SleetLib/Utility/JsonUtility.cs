@@ -52,7 +52,7 @@ namespace Sleet
                 { "@id", new JValue(id.AbsoluteUri) }
             };
 
-            JToken typeValue = null;
+            JToken? typeValue = null;
 
             if (types.Count() > 1)
             {
@@ -154,14 +154,10 @@ namespace Sleet
         {
             Debug.Assert(File.Exists(path), "File must exist");
 
-            JObject json = null;
-
             using (var stream = File.OpenRead(path))
             {
-                json = await LoadJsonAsync(stream);
+                return await LoadJsonAsync(stream);
             }
-
-            return json;
         }
 
         public static async Task<JObject> LoadJsonAsync(Stream stream)
@@ -183,7 +179,7 @@ namespace Sleet
         public static async Task<JObject> GetContextAsync(string name)
         {
             var json = await LoadJsonAsync(TemplateUtility.GetResource($"context{name}.json"));
-            return (JObject)json["@context"];
+            return (JObject)json["@context"]!;
         }
 
         /// <summary>
@@ -218,7 +214,7 @@ namespace Sleet
 
                 if (sourceProperty != null)
                 {
-                    var array = new JArray(sourceProperty.Value.ToObject<string>().Split(delimiter).Select(s => s.Trim()));
+                    var array = new JArray(sourceProperty.Value.ToObject<string>()!.Split(delimiter).Select(s => s.Trim()));
 
                     destination.Add(fieldName, array);
                 }
@@ -252,7 +248,7 @@ namespace Sleet
         /// </summary>
         public static Uri GetIdUri(JObject json)
         {
-            var s = json["@id"].ToObject<string>();
+            var s = json["@id"]!.ToObject<string>()!;
             return UriUtility.CreateUri(s);
         }
 
@@ -274,7 +270,7 @@ namespace Sleet
             return result;
         }
 
-        public static string GetValueCaseInsensitive(JObject obj, string name)
+        public static string? GetValueCaseInsensitive(JObject? obj, string name)
         {
             if (obj != null)
             {

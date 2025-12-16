@@ -17,7 +17,7 @@ namespace Sleet
         /// <summary>
         /// Absolute path of the sleet.json file
         /// </summary>
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
         /// <summary>
         /// Feed lock wait time.
@@ -28,14 +28,14 @@ namespace Sleet
         /// <summary>
         /// Message written to feedback. This will be shown to waiting clients.
         /// </summary>
-        public string FeedLockMessage { get; set; }
+        public string? FeedLockMessage { get; set; }
 
         public static LocalSettings Load(JObject json)
         {
             return Load(json, null);
         }
 
-        public static LocalSettings Load(JObject json, string path)
+        public static LocalSettings Load(JObject json, string? path)
         {
             return new LocalSettings()
             {
@@ -45,9 +45,9 @@ namespace Sleet
             };
         }
 
-        public static LocalSettings Load(string path, Dictionary<string, string> mappings)
+        public static LocalSettings Load(string? path, Dictionary<string, string>? mappings)
         {
-            JObject json = null;
+            JObject? json = null;
 
             // Look up the file or search parent directories
             // None is a special keyword to skip config resolution
@@ -77,7 +77,7 @@ namespace Sleet
                     if (config.TryGetString("sleet", "useremail", out var useremail))
                         json["useremail"] = useremail;
                     if (config.TryGetNumber("sleet", "feedLockTimeoutMinutes", out var feedLockTimeoutMinutes))
-                        json["config"]["feedLockTimeoutMinutes"] = feedLockTimeoutMinutes;
+                        json["config"]!["feedLockTimeoutMinutes"] = feedLockTimeoutMinutes;
                     if (config.TryGetBoolean("sleet", "proxy-useDefaultCredentials", out var useDefaultCredentials))
                         json["proxy"] = new JObject(new JProperty("useDefaultCredentials", useDefaultCredentials));
 
@@ -120,7 +120,7 @@ namespace Sleet
             throw new InvalidOperationException($"Unable to find source settings. Specify the path to a sleet.json settings file.");
         }
 
-        public static LocalSettings Load(string path)
+        public static LocalSettings Load(string? path)
         {
             return Load(path, mappings: null);
         }
@@ -158,7 +158,7 @@ namespace Sleet
 
                     if (StringComparer.OrdinalIgnoreCase.Equals(sourceName, name))
                     {
-                        return sourceEntry as JObject;
+                        return sourceEntry as JObject ?? new JObject();
                     }
                 }
             }

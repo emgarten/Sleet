@@ -8,7 +8,7 @@ namespace Sleet
 {
     public static class CreateConfigCommand
     {
-        public static async Task<bool> RunAsync(FileSystemStorageType storageType, string output, ILogger log)
+        public static async Task<bool> RunAsync(FileSystemStorageType storageType, string? output, ILogger log)
         {
             var outputPath = Directory.GetCurrentDirectory();
 
@@ -30,9 +30,10 @@ namespace Sleet
                 return false;
             }
 
-            if (!Directory.Exists(Path.GetDirectoryName(outputPath)))
+            var outputDir = Path.GetDirectoryName(outputPath);
+            if (outputDir is null || !Directory.Exists(outputDir))
             {
-                log.LogError($"Directory does not exist {Path.GetDirectoryName(outputPath)}");
+                log.LogError($"Directory does not exist {outputDir}");
                 return false;
             }
 
@@ -46,7 +47,7 @@ namespace Sleet
             var sourcesArray = new JArray();
             json.Add("sources", sourcesArray);
 
-            JObject storageTemplateJson = null;
+            JObject? storageTemplateJson = null;
             switch (storageType)
             {
                 case FileSystemStorageType.Local:

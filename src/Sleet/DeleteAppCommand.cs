@@ -53,10 +53,10 @@ namespace Sleet
                 using (var cache = new LocalCache(new PerfTracker()))
                 {
                     // Load settings and file system.
-                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values.ToList()));
+                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(CmdUtils.FilterNullValues(propertyOptions.Values)));
                     var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache, log);
 
-                    var success = await DeleteCommand.RunAsync(settings, fileSystem, packageId.Value(), version.Value(), reason.Value(), force.HasValue(), log);
+                    var success = await DeleteCommand.RunAsync(settings, fileSystem, packageId.Value()!, version.Value(), reason.Value(), force.HasValue(), log);
 
                     return success ? 0 : 1;
                 }

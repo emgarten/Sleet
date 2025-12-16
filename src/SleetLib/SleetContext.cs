@@ -6,13 +6,13 @@ namespace Sleet
 {
     public class SleetContext
     {
-        public ISleetFileSystem Source { get; set; }
+        public ISleetFileSystem Source { get; set; } = null!;
 
-        public FeedSettings SourceSettings { get; set; }
+        public FeedSettings SourceSettings { get; set; } = null!;
 
-        public LocalSettings LocalSettings { get; set; }
+        public LocalSettings LocalSettings { get; set; } = null!;
 
-        public ILogger Log { get; set; }
+        public ILogger Log { get; set; } = null!;
 
         public CancellationToken Token { get; set; }
 

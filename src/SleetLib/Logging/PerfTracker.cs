@@ -20,14 +20,14 @@ namespace Sleet
         {
             await log.LogAsync(LogLevel.Information, Environment.NewLine + "====== Performance Summary ======");
 
-            var filesLookup = GetDictionary(_perfEntries.Select(e => e as PerfFileEntry).Where(e => e != null));
+            var filesLookup = GetDictionary(_perfEntries.OfType<PerfFileEntry>());
             var files = new List<PerfFileEntry>(filesLookup.Count);
             foreach (var set in filesLookup.Values)
             {
                 files.Add(PerfFileEntry.Merge(set));
             }
 
-            var summariesLookup = GetDictionary(_perfEntries.Select(e => e as PerfSummaryEntry).Where(e => e != null));
+            var summariesLookup = GetDictionary(_perfEntries.OfType<PerfSummaryEntry>());
             var summaries = new List<PerfSummaryEntry>(summariesLookup.Count);
             foreach (var set in summariesLookup.Values)
             {
@@ -60,8 +60,7 @@ namespace Sleet
             foreach (var entry in entries)
             {
                 var key = entry.Key;
-                List<T> list = null;
-                if (!dict.TryGetValue(key, out list))
+                if (!dict.TryGetValue(key, out var list))
                 {
                     list = new List<T>() { entry };
                     dict.Add(key, list);

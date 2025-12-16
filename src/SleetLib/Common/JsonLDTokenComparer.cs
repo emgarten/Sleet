@@ -43,8 +43,21 @@ namespace Sleet
             return json;
         }
 
-        public int Compare(JToken x, JToken y)
+        public int Compare(JToken? x, JToken? y)
         {
+            if (x == null && y == null)
+            {
+                return 0;
+            }
+            if (x == null)
+            {
+                return -1;
+            }
+            if (y == null)
+            {
+                return 1;
+            }
+
             var xProp = x as JProperty;
             var yProp = y as JProperty;
 

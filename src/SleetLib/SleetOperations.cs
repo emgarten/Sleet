@@ -15,22 +15,22 @@ namespace Sleet
         /// <summary>
         /// Packages to add.
         /// </summary>
-        public List<PackageInput> ToAdd { get; set; }
+        public List<PackageInput> ToAdd { get; set; } = null!;
 
         /// <summary>
         /// Packages to remove.
         /// </summary>
-        public List<PackageInput> ToRemove { get; set; }
+        public List<PackageInput> ToRemove { get; set; } = null!;
 
         /// <summary>
         /// Index before changes.
         /// </summary>
-        public PackageSets OriginalIndex { get; set; }
+        public PackageSets OriginalIndex { get; set; } = null!;
 
         /// <summary>
         /// Index with changes applied.
         /// </summary>
-        public PackageSets UpdatedIndex { get; set; }
+        public PackageSets UpdatedIndex { get; set; } = null!;
 
         public SleetOperations()
         {

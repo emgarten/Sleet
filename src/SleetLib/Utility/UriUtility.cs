@@ -153,7 +153,7 @@ namespace Sleet
         /// <summary>
         /// Returns the file name from a Uri or null if this is a directory.
         /// </summary>
-        public static string GetFileName(Uri uri)
+        public static string? GetFileName(Uri uri)
         {
             var absolute = uri.AbsoluteUri;
 

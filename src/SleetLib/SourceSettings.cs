@@ -42,6 +42,6 @@ namespace Sleet
         /// <summary>
         /// External search URI
         /// </summary>
-        public string ExternalSearch { get; set; } = null;
+        public string? ExternalSearch { get; set; } = null;
     }
 }

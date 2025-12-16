@@ -300,11 +300,11 @@ namespace Sleet
 
                 foreach (var assembly in assemblyFiles)
                 {
-                    string assemblyHash = null;
-                    string pdbHash = null;
-                    ZipArchiveEntry pdbEntry = null;
+                    string? assemblyHash = null;
+                    string? pdbHash = null;
+                    ZipArchiveEntry? pdbEntry = null;
                     var valid = false;
-                    MemoryStream assemblyStream = null;
+                    MemoryStream? assemblyStream = null;
 
                     try
                     {
@@ -332,7 +332,7 @@ namespace Sleet
                         await _context.Log.LogAsync(message);
                     }
 
-                    if (valid)
+                    if (valid && assemblyHash != null && assemblyStream != null)
                     {
                         // Add .dll
                         var fileInfo = new FileInfo(assembly.FullName);
@@ -346,7 +346,7 @@ namespace Sleet
                         }
 
                         // Add .pdb
-                        if (pdbEntry != null)
+                        if (pdbEntry != null && pdbHash != null)
                         {
                             var pdbFileInfo = new FileInfo(pdbEntry.FullName);
                             var pdbFile = _context.Source.Get(SymbolsIndexUtility.GetAssemblyFilePath(pdbFileInfo.Name, pdbHash));

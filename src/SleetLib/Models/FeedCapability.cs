@@ -4,9 +4,9 @@ namespace Sleet
 {
     public class FeedCapability
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
-        public SemanticVersion Version { get; set; }
+        public SemanticVersion Version { get; set; } = null!;
 
         public override string ToString()
         {

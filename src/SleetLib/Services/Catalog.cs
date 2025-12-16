@@ -141,7 +141,7 @@ namespace Sleet
 
             if (latest != null)
             {
-                if (latest["count"].ToObject<int>() < _context.SourceSettings.CatalogPageSize)
+                if (latest["count"]!.ToObject<int>() < _context.SourceSettings.CatalogPageSize)
                 {
                     return JsonUtility.GetIdUri(latest);
                 }
@@ -172,15 +172,18 @@ namespace Sleet
 
             if (catalogIndexJson != null)
             {
-                var items = (JArray)catalogIndexJson["items"];
+                var items = (JArray?)catalogIndexJson["items"];
 
-                foreach (var item in items)
+                if (items != null)
                 {
-                    var itemUrl = item["@id"].ToObject<Uri>();
+                    foreach (var item in items)
+                    {
+                        var itemUrl = item["@id"]!.ToObject<Uri>()!;
 
                     var itemFile = _context.Source.Get(itemUrl);
 
-                    pageTasks.Add(itemFile.GetJson(_context.Log, _context.Token));
+                        pageTasks.Add(itemFile.GetJson(_context.Log, _context.Token));
+                    }
                 }
 
                 await Task.WhenAll(pageTasks);
@@ -212,7 +215,7 @@ namespace Sleet
         /// <summary>
         /// Latest index entry for the package. This could be an add or remove.
         /// </summary>
-        public async Task<CatalogIndexEntry> GetLatestEntryAsync(PackageIdentity package)
+        public async Task<CatalogIndexEntry?> GetLatestEntryAsync(PackageIdentity package)
         {
             var entries = await GetRolledUpIndexAsync();
 
@@ -223,9 +226,9 @@ namespace Sleet
         /// Returns the json of the latest package details page. If the package does
         /// not exist or has been removed this will be null.
         /// </summary>
-        public async Task<JObject> GetLatestPackageDetailsAsync(PackageIdentity package)
+        public async Task<JObject?> GetLatestPackageDetailsAsync(PackageIdentity package)
         {
-            JObject json = null;
+            JObject? json = null;
             var latestEntry = await GetLatestEntryAsync(package);
 
             if (latestEntry != null && latestEntry.Operation == SleetOperation.Add)
@@ -287,7 +290,7 @@ namespace Sleet
 
         private static DateTimeOffset GetCommitTime(JObject json)
         {
-            return json["commitTimeStamp"].ToObject<DateTimeOffset>();
+            return json["commitTimeStamp"]!.ToObject<DateTimeOffset>();
         }
 
         private static CatalogIndexEntry GetIndexEntry(JObject json)
@@ -299,12 +302,12 @@ namespace Sleet
                 version: identity.Version,
                 commitTime: GetCommitTime(json),
                 operation: GetOperation(json),
-                packageDetailsUrl: json["@id"].ToObject<Uri>());
+                packageDetailsUrl: json["@id"]!.ToObject<Uri>()!);
         }
 
         private static SleetOperation GetOperation(JObject json)
         {
-            var value = json["sleet:operation"].ToObject<string>();
+            var value = json["sleet:operation"]!.ToObject<string>()!;
 
             switch (value.ToLowerInvariant())
             {
@@ -320,7 +323,7 @@ namespace Sleet
 
         private static PackageIdentity GetIdentity(JObject json)
         {
-            return new PackageIdentity(json["nuget:id"].ToString(), NuGetVersion.Parse(json["nuget:version"].ToString()));
+            return new PackageIdentity(json["nuget:id"]!.ToString(), NuGetVersion.Parse(json["nuget:version"]!.ToString()));
         }
 
         /// <summary>
@@ -351,8 +354,8 @@ namespace Sleet
             {
                 var newPageEntry = CatalogUtility.CreateCatalogIndexPageEntry(currentPageUri, _context.CommitId);
 
-                var pageArray = (JArray)catalogIndexJson["items"];
-                pageArray.Add(newPageEntry);
+                var pageArray = (JArray?)catalogIndexJson["items"];
+                pageArray?.Add(newPageEntry);
 
                 // Update pages
                 pages = JsonUtility.GetItems(catalogIndexJson);

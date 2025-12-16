@@ -12,13 +12,13 @@ namespace Sleet
     {
         public static Task<ISleetFileSystemLock> VerifyInitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
         {
-            return VerifyInitAndLock(settings, fileSystem, lockMessage: null, log: log, token: token);
+            return VerifyInitAndLock(settings, fileSystem, lockMessage: null!, log: log, token: token);
         }
 
         /// <summary>
         /// Verify a feed is valid and lock it. This will not automatically create the feed or initialize a new feed.
         /// </summary>
-        public static Task<ISleetFileSystemLock> VerifyInitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, string lockMessage, ILogger log, CancellationToken token)
+        public static Task<ISleetFileSystemLock> VerifyInitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, string? lockMessage, ILogger log, CancellationToken token)
         {
             return InitAndLock(settings, fileSystem, lockMessage, autoCreateBucket: false, autoInit: false, log: log, token: token);
         }
@@ -30,9 +30,9 @@ namespace Sleet
         /// <param name="lockMessage">Optional message to display when the feed is locked.</param>
         /// <param name="autoCreateBucket">Automatically create the folder/container/bucket without files.</param>
         /// <param name="autoInit">Automatically initialize the files in the feed.</param>
-        public static async Task<ISleetFileSystemLock> InitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, string lockMessage, bool autoCreateBucket, bool autoInit, ILogger log, CancellationToken token)
+        public static async Task<ISleetFileSystemLock> InitAndLock(LocalSettings settings, ISleetFileSystem fileSystem, string? lockMessage, bool autoCreateBucket, bool autoInit, ILogger log, CancellationToken token)
         {
-            ISleetFileSystemLock feedLock = null;
+            ISleetFileSystemLock? feedLock = null;
 
             // Validate URI path
             ValidateFileSystem(fileSystem);
@@ -49,7 +49,7 @@ namespace Sleet
                 var lockInfoMessage = string.IsNullOrEmpty(settings.FeedLockMessage) ? lockMessage : settings.FeedLockMessage;
 
                 // Get lock
-                var isLocked = await feedLock.GetLock(settings.FeedLockTimeout, lockInfoMessage, token);
+                var isLocked = await feedLock.GetLock(settings.FeedLockTimeout, lockInfoMessage ?? string.Empty, token);
 
                 if (!isLocked)
                 {
@@ -142,7 +142,8 @@ namespace Sleet
             var indexPath = fileSystem.Get("index.json");
             var json = await indexPath.GetJson(log, token);
             var settingsUrl = json.GetJObjectArray("resources").Select(e => e.GetString("@id"))
-                .First(e => e != null && e.EndsWith(settingsFileName, StringComparison.Ordinal));
+                .First(e => e != null && e.EndsWith(settingsFileName, StringComparison.Ordinal))
+                ?? throw new InvalidOperationException("Unable to find settings URL in index.json");
 
             // Get the base url
             settingsUrl = settingsUrl.Substring(0, settingsUrl.Length - settingsFileName.Length);

@@ -227,8 +227,10 @@ namespace Sleet
         public JObject CreatePage(Uri indexUri, List<JObject> packageDetails)
         {
             var versionSet = new HashSet<NuGetVersion>(packageDetails.Select(GetPackageVersion));
-            var lower = versionSet.Min().ToIdentityString().ToLowerInvariant();
-            var upper = versionSet.Max().ToIdentityString().ToLowerInvariant();
+            var minVersion = versionSet.Min() ?? throw new InvalidOperationException("No versions found in package details");
+            var maxVersion = versionSet.Max() ?? throw new InvalidOperationException("No versions found in package details");
+            var lower = minVersion.ToIdentityString().ToLowerInvariant();
+            var upper = maxVersion.ToIdentityString().ToLowerInvariant();
 
             var json = JsonUtility.Create(indexUri, $"page/{lower}/{upper}", "catalog:CatalogPage");
 
@@ -250,8 +252,9 @@ namespace Sleet
 
         public static NuGetVersion GetPackageVersion(JObject packageDetails)
         {
-            var catalogEntry = (JObject)packageDetails["catalogEntry"];
-            var version = NuGetVersion.Parse(catalogEntry.Property("version").Value.ToString());
+            var catalogEntry = packageDetails["catalogEntry"] as JObject ?? throw new InvalidOperationException("Missing catalogEntry in package details");
+            var versionProperty = catalogEntry.Property("version") ?? throw new InvalidOperationException("Missing version property in catalogEntry");
+            var version = NuGetVersion.Parse(versionProperty.Value.ToString());
 
             return version;
         }
@@ -302,7 +305,7 @@ namespace Sleet
         /// <summary>
         /// Retrieve the PackageDetails from a package blob.
         /// </summary>
-        public async Task<JObject> GetCatalogEntryFromPackageBlob(PackageIdentity package)
+        public async Task<JObject?> GetCatalogEntryFromPackageBlob(PackageIdentity package)
         {
             var uri = GetPackageUri(package);
 
@@ -324,7 +327,7 @@ namespace Sleet
             var json = JsonUtility.Create(rootUri, new string[] { "Package", "http://schema.nuget.org/catalog#Permalink" });
 
             json.Add("catalogEntry", packageInput.PackageDetails.GetIdUri().AbsoluteUri);
-            json.Add("packageContent", packageInput.PackageDetails["packageContent"].ToString());
+            json.Add("packageContent", packageInput.PackageDetails["packageContent"]?.ToString() ?? string.Empty);
             json.Add("registration", GetIndexUri(packageInput.Identity));
 
             var copyProperties = new List<string>()
@@ -335,7 +338,7 @@ namespace Sleet
 
             JsonUtility.CopyProperties(packageInput.PackageDetails, json, copyProperties, skipEmpty: true);
 
-            // Copy the catalog entry into the package blob. This allows the feed to 
+            // Copy the catalog entry into the package blob. This allows the feed to
             // save this info even if the catalog is disabled.
             // Note that this is different from NuGet.org, so the sleet: namespace is used.
             var catalogEntry = (JObject)packageInput.PackageDetails.DeepClone();
@@ -362,7 +365,7 @@ namespace Sleet
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
             json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
 
-            json.Add("packageContent", packageInput.PackageDetails["packageContent"].ToString());
+            json.Add("packageContent", packageInput.PackageDetails["packageContent"]?.ToString() ?? string.Empty);
             json.Add("registration", GetIndexUri(packageInput.Identity));
 
             var copyProperties = new List<string>()

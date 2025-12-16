@@ -39,7 +39,10 @@ namespace Sleet
             if (json != null)
             {
                 var data = json["data"] as JArray;
-                ids.UnionWith(data.Select(e => e.ToObject<string>()).Where(s => !string.IsNullOrEmpty(s)));
+                if (data != null)
+                {
+                    ids.UnionWith(data.Select(e => e.ToObject<string>()).Where(s => !string.IsNullOrEmpty(s))!);
+                }
             }
 
             return ids;

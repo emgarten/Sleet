@@ -81,7 +81,7 @@ namespace Sleet
             string bucketName,
             CancellationToken token)
         {
-            List<S3Object> s3Objects = null;
+            List<S3Object>? s3Objects = null;
             var listObjectsRequest = new ListObjectsV2Request
             {
                 BucketName = bucketName,
@@ -129,11 +129,11 @@ namespace Sleet
             IAmazonS3 client,
             string bucketName,
             string key,
-            string contentType,
-            string contentEncoding,
+            string? contentType,
+            string? contentEncoding,
             Stream reader,
             ServerSideEncryptionMethod serverSideEncryptionMethod,
-            S3CannedACL acl,
+            S3CannedACL? acl,
             bool disablePayloadSigning,
             CancellationToken token)
         {

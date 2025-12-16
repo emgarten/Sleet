@@ -175,8 +175,12 @@ namespace Sleet
 
                 foreach (var versionEntry in versions)
                 {
-                    var packageVersion = NuGetVersion.Parse(versionEntry.ToObject<string>());
-                    result.Index.Add(new PackageIdentity(id, packageVersion));
+                    var versionString = versionEntry.ToObject<string>();
+                    if (versionString != null)
+                    {
+                        var packageVersion = NuGetVersion.Parse(versionString);
+                        result.Index.Add(new PackageIdentity(id, packageVersion));
+                    }
                 }
             }
 

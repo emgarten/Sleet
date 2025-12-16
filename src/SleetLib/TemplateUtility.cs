@@ -31,7 +31,7 @@ namespace Sleet
                 {
                     var stream = typeof(TemplateUtility).GetTypeInfo().Assembly.GetManifestResourceStream(foundPath);
 
-                    return stream;
+                    return stream ?? throw new InvalidOperationException($"Unable to load embedded resource: {path}");
                 }
             }
 

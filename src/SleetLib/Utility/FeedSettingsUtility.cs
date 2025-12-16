@@ -116,17 +116,17 @@ namespace Sleet
 
             if (settings.RetentionMaxStableVersions > 0)
             {
-                values.Add("retentionmaxstableversions", settings.RetentionMaxStableVersions.ToString());
+                values.Add("retentionmaxstableversions", settings.RetentionMaxStableVersions.Value.ToString());
             }
 
             if (settings.RetentionMaxPrereleaseVersions > 0)
             {
-                values.Add("retentionmaxprereleaseversions", settings.RetentionMaxPrereleaseVersions.ToString());
+                values.Add("retentionmaxprereleaseversions", settings.RetentionMaxPrereleaseVersions.Value.ToString());
             }
 
             if (settings.RetentionGroupByFirstPrereleaseLabelCount > 0)
             {
-                values.Add("retentiongroupbyfirstprereleaselabelcount", settings.RetentionGroupByFirstPrereleaseLabelCount.ToString());
+                values.Add("retentiongroupbyfirstprereleaselabelcount", settings.RetentionGroupByFirstPrereleaseLabelCount.Value.ToString());
             }
 
             if (!string.IsNullOrWhiteSpace(settings.ExternalSearch))
@@ -160,7 +160,7 @@ namespace Sleet
             return defaultValue;
         }
 
-        private static string GetStringOrDefault(string s, string defaultValue)
+        private static string? GetStringOrDefault(string s, string? defaultValue)
         {
             if (!string.IsNullOrWhiteSpace(s))
             {
@@ -223,7 +223,9 @@ namespace Sleet
 
         private static KeyValuePair<string, string> ParseSettingEntry(JObject entry)
         {
-            return new KeyValuePair<string, string>(entry["key"].ToObject<string>(), entry["value"].ToObject<string>());
+            var key = entry["key"]?.ToObject<string>() ?? string.Empty;
+            var value = entry["value"]?.ToObject<string>() ?? string.Empty;
+            return new KeyValuePair<string, string>(key, value);
         }
 
         private static JObject CreateSettingEntry(Uri settingsUri, KeyValuePair<string, string> setting)

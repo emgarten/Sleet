@@ -166,9 +166,9 @@ namespace Sleet
         /// <summary>
         /// Retrieve json file if it exists.
         /// </summary>
-        public async Task<JObject> GetJsonOrNull(ILogger log, CancellationToken token)
+        public async Task<JObject?> GetJsonOrNull(ILogger log, CancellationToken token)
         {
-            JObject json = null;
+            JObject? json = null;
 
             if (await ExistsWithFetch(log, token))
             {
@@ -342,7 +342,7 @@ namespace Sleet
             if (File.Exists(LocalCacheFile.FullName))
             {
                 // Create the parent dir
-                pathInfo.Directory.Create();
+                pathInfo.Directory?.Create();
 
                 // Copy the file
                 LocalCacheFile.CopyTo(pathInfo.FullName, overwrite);

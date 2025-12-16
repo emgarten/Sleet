@@ -2,6 +2,8 @@
 <Project ToolsVersion="15.0">
   <PropertyGroup>
     <TestProject>true</TestProject>
+    <!-- Disable nullable warnings in test projects -->
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <!-- Load config -->

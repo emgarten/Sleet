@@ -19,9 +19,9 @@ namespace Sleet
         /// <summary>
         /// Parses sleet.json to find the source and constructs it.
         /// </summary>
-        public static async Task<ISleetFileSystem> CreateFileSystemAsync(LocalSettings settings, LocalCache cache, string source, ILogger log)
+        public static async Task<ISleetFileSystem?> CreateFileSystemAsync(LocalSettings settings, LocalCache cache, string source, ILogger log)
         {
-            ISleetFileSystem result = null;
+            ISleetFileSystem? result = null;
 
             var sources = settings.Json["sources"] as JArray;
 
@@ -41,7 +41,7 @@ namespace Sleet
                     var feedSubPath = JsonUtility.GetValueCaseInsensitive(sourceEntry, "feedSubPath");
                     var type = JsonUtility.GetValueCaseInsensitive(sourceEntry, "type")?.ToLowerInvariant();
 
-                    string absolutePath;
+                    string? absolutePath;
                     if (path != null && type == "local")
                     {
                         if (settings.Path == null && !Path.IsPathRooted(NuGetUriUtility.GetLocalPath(path)))
@@ -61,7 +61,7 @@ namespace Sleet
                         absolutePath = path;
                     }
 
-                    var pathUri = absolutePath != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(absolutePath)) : null;
+                    var pathUri = absolutePath != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(absolutePath)) : (Uri?)null;
                     var baseUri = baseURIString != null ? UriUtility.EnsureTrailingSlash(UriUtility.CreateUri(baseURIString)) : pathUri;
 
                     if (type == "local")
@@ -71,12 +71,17 @@ namespace Sleet
                             throw new ArgumentException("Missing path for account.");
                         }
 
-                        result = new PhysicalFileSystem(cache, pathUri, baseUri);
+                        result = new PhysicalFileSystem(cache, pathUri, baseUri ?? pathUri);
                     }
                     else if (type == "azure")
                     {
                         var connectionString = JsonUtility.GetValueCaseInsensitive(sourceEntry, "connectionString");
                         var container = JsonUtility.GetValueCaseInsensitive(sourceEntry, "container");
+
+                        if (string.IsNullOrEmpty(container))
+                        {
+                            throw new ArgumentException("Missing container for azure account.");
+                        }
 
                         var blobServiceClient = await GetBlobServiceClient(log, connectionString, pathUri, container);
 
@@ -123,7 +128,7 @@ namespace Sleet
                             throw new ArgumentException("Only 'None' or 'AES256' are currently supported for serverSideEncryptionMethod");
                         }
 
-                        S3CannedACL resolvedAcl = null;
+                        S3CannedACL? resolvedAcl = null;
                         if (acl != null)
                         {
                             resolvedAcl = S3CannedACL.FindValue(acl);
@@ -152,7 +157,7 @@ namespace Sleet
                             config.RegionEndpoint = RegionEndpoint.GetBySystemName(region);
                         }
 
-                        AmazonS3Client amazonS3Client = null;
+                        AmazonS3Client? amazonS3Client = null;
 
                         // Load credentials from the current profile
                         if (!string.IsNullOrWhiteSpace(profileName))
@@ -251,9 +256,9 @@ namespace Sleet
 
         private static async Task<BlobServiceClient> GetBlobServiceClient(
             ILogger log,
-            string connectionString,
-            Uri pathUri,
-            string container)
+            string? connectionString,
+            Uri? pathUri,
+            string? container)
         {
             // Path can be used with a connection string.
             // If the path is set and the connection string is not, use the default creds.

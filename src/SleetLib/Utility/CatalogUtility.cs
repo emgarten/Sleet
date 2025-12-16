@@ -59,8 +59,8 @@ namespace Sleet
             json.Add("items", itemArray);
 
             foreach (var entry in packageDetails
-                .OrderBy(e => e["commitTimeStamp"].ToObject<DateTimeOffset>())
-                .ThenBy(e => e["@id"].ToString()))
+                .OrderBy(e => e["commitTimeStamp"]!.ToObject<DateTimeOffset>())
+                .ThenBy(e => e["@id"]!.ToString()))
             {
                 itemArray.Add(entry);
             }
@@ -74,7 +74,7 @@ namespace Sleet
         /// <summary>
         /// Create a PackageDetails page that contains all the package information.
         /// </summary>
-        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Uri nupkgUri, Uri iconUri, Guid commitId, bool writeFileList)
+        public static Task<JObject> CreatePackageDetailsAsync(PackageInput packageInput, Uri catalogBaseURI, Uri nupkgUri, Uri? iconUri, Guid commitId, bool writeFileList)
         {
             var pageId = Guid.NewGuid().ToString().ToLowerInvariant();
             var rootUri = UriUtility.GetPath(catalogBaseURI, $"data/{pageId}.json");
@@ -85,7 +85,7 @@ namespace Sleet
         /// <summary>
         /// Create a PackageDetails page that contains all the package information and an exact uri.
         /// </summary>
-        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Uri nupkgUri, Uri iconUri, Guid commitId, bool writeFileList)
+        public static async Task<JObject> CreatePackageDetailsWithExactUriAsync(PackageInput packageInput, Uri detailsUri, Uri nupkgUri, Uri? iconUri, Guid commitId, bool writeFileList)
         {
             var now = DateTimeOffset.UtcNow;
             var nuspecReader = packageInput.Nuspec;

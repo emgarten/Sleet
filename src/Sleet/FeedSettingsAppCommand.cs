@@ -47,7 +47,7 @@ namespace Sleet
                 using (var cache = new LocalCache())
                 {
                     // Load settings and file system.
-                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values.ToList()));
+                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(CmdUtils.FilterNullValues(propertyOptions.Values)));
                     var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache, log);
 
                     var success = await FeedSettingsCommand.RunAsync(
@@ -55,9 +55,9 @@ namespace Sleet
                         fileSystem,
                         unsetAll.HasValue(),
                         getAll.HasValue(),
-                        getSetting.Values,
-                        unset.Values,
-                        setSetting.Values,
+                        CmdUtils.FilterNullValues(getSetting.Values),
+                        CmdUtils.FilterNullValues(unset.Values),
+                        CmdUtils.FilterNullValues(setSetting.Values),
                         log,
                         CancellationToken.None);
 

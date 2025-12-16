@@ -10,7 +10,9 @@
   <!-- Defaults -->
   <PropertyGroup>
     <SkipSourceLink>true</SkipSourceLink>
-    <Nullable>enable</Nullable>
+    <!-- Enable nullable for non-test projects, disable for test projects -->
+    <Nullable Condition=" '$(TestProject)' != 'true' ">enable</Nullable>
+    <Nullable Condition=" '$(TestProject)' == 'true' ">disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>14.0</LangVersion>
   </PropertyGroup>

@@ -11,15 +11,15 @@ namespace Sleet
 {
     public class PackageInput : IComparable<PackageInput>, IEquatable<PackageInput>
     {
-        public string PackagePath { get; }
+        public string PackagePath { get; } = null!;
 
         public PackageIdentity Identity { get; }
 
-        public NuspecReader Nuspec { get; }
+        public NuspecReader Nuspec { get; } = null!;
 
-        public JObject PackageDetails { get; set; }
+        public JObject PackageDetails { get; set; } = null!;
 
-        public Uri RegistrationUri { get; set; }
+        public Uri RegistrationUri { get; set; } = null!;
 
         /// <summary>
         /// True if the package is a .symbols.nupkg
@@ -60,11 +60,11 @@ namespace Sleet
         }
 
         /// <summary>
-        /// Returns the nupkg icon URI.. 
+        /// Returns the nupkg icon URI..
         /// </summary>
-        public Uri GetIconUri(SleetContext context)
+        public Uri? GetIconUri(SleetContext context)
         {
-            Uri result = null;
+            Uri? result = null;
 
             // Ignore symbol packages, icons from these are not used
             if (!IsSymbolsPackage)
@@ -100,7 +100,7 @@ namespace Sleet
         }
 
         // Order by identity, then by symbols package last.
-        public int CompareTo(PackageInput other)
+        public int CompareTo(PackageInput? other)
         {
             if (other == null)
             {
@@ -133,7 +133,7 @@ namespace Sleet
             return x;
         }
 
-        public bool Equals(PackageInput other)
+        public bool Equals(PackageInput? other)
         {
             if (ReferenceEquals(this, other))
             {
@@ -149,7 +149,7 @@ namespace Sleet
                 && PackageIdentityComparer.Default.Equals(Identity, other.Identity);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as PackageInput);
         }
@@ -164,7 +164,7 @@ namespace Sleet
             return combiner.CombinedHash;
         }
 
-        public static bool operator ==(PackageInput left, PackageInput right)
+        public static bool operator ==(PackageInput? left, PackageInput? right)
         {
             if (ReferenceEquals(left, null))
             {
@@ -174,27 +174,27 @@ namespace Sleet
             return left.Equals(right);
         }
 
-        public static bool operator !=(PackageInput left, PackageInput right)
+        public static bool operator !=(PackageInput? left, PackageInput? right)
         {
             return !(left == right);
         }
 
-        public static bool operator <(PackageInput left, PackageInput right)
+        public static bool operator <(PackageInput? left, PackageInput? right)
         {
             return ReferenceEquals(left, null) ? !ReferenceEquals(right, null) : left.CompareTo(right) < 0;
         }
 
-        public static bool operator <=(PackageInput left, PackageInput right)
+        public static bool operator <=(PackageInput? left, PackageInput? right)
         {
             return ReferenceEquals(left, null) || left.CompareTo(right) <= 0;
         }
 
-        public static bool operator >(PackageInput left, PackageInput right)
+        public static bool operator >(PackageInput? left, PackageInput? right)
         {
             return !ReferenceEquals(left, null) && left.CompareTo(right) > 0;
         }
 
-        public static bool operator >=(PackageInput left, PackageInput right)
+        public static bool operator >=(PackageInput? left, PackageInput? right)
         {
             return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;
         }
@@ -204,7 +204,7 @@ namespace Sleet
         /// </summary>
         public static PackageInput Create(string file)
         {
-            PackageInput result = null;
+            PackageInput? result = null;
 
             using (var zip = new ZipArchive(File.OpenRead(file), ZipArchiveMode.Read, leaveOpen: false))
             using (var reader = new PackageArchiveReader(file))

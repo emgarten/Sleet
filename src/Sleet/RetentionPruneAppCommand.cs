@@ -46,7 +46,7 @@ namespace Sleet
                 using (var cache = new LocalCache())
                 {
                     // Load settings and file system.
-                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values.ToList()));
+                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(CmdUtils.FilterNullValues(propertyOptions.Values)));
                     var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache, log);
 
                     var success = false;
@@ -54,14 +54,14 @@ namespace Sleet
                     var pruneContext = new RetentionPruneCommandContext()
                     {
                         DryRun = dryRun.HasValue(),
-                        StableVersionMax = stableVersions.HasValue() ? (int?)int.Parse(stableVersions.Value()) : null,
-                        PrereleaseVersionMax = prereleaseVersions.HasValue() ? (int?)int.Parse(prereleaseVersions.Value()) : null,
-                        GroupByFirstPrereleaseLabelCount = releaseLabelsValue.HasValue() ? (int?)int.Parse(releaseLabelsValue.Value()) : null,
+                        StableVersionMax = stableVersions.HasValue() ? (int?)int.Parse(stableVersions.Value()!) : null,
+                        PrereleaseVersionMax = prereleaseVersions.HasValue() ? (int?)int.Parse(prereleaseVersions.Value()!) : null,
+                        GroupByFirstPrereleaseLabelCount = releaseLabelsValue.HasValue() ? (int?)int.Parse(releaseLabelsValue.Value()!) : null,
                     };
 
                     if (packageIds.HasValue())
                     {
-                        pruneContext.PackageIds.UnionWith(packageIds.Values);
+                        pruneContext.PackageIds.UnionWith(CmdUtils.FilterNullValues(packageIds.Values));
                     }
 
                     success = await RetentionPruneCommand.RunAsync(settings, fileSystem, pruneContext, log);

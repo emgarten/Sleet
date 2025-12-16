@@ -15,17 +15,21 @@ namespace Sleet
         public static readonly string EnvVarPrefix = "SLEET_FEED_";
         public static readonly string EnvVarFeedType = "SLEET_FEED_TYPE";
 
-        public static Dictionary<string, string> GetPropertyMappings(List<string> options)
+        public static Dictionary<string, string> GetPropertyMappings(List<string>? options)
         {
             var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             if (options != null)
             {
-                foreach (var pair in options.Select(ParseProperty))
+                foreach (var option in options)
                 {
-                    if (!result.ContainsKey(pair.Key))
+                    if (option != null)
                     {
-                        result.Add(pair.Key, pair.Value);
+                        var pair = ParseProperty(option);
+                        if (!result.ContainsKey(pair.Key))
+                        {
+                            result.Add(pair.Key, pair.Value);
+                        }
                     }
                 }
             }
@@ -45,9 +49,9 @@ namespace Sleet
             return new KeyValuePair<string, string>(parts[0], string.Join("=", parts.Skip(1)));
         }
 
-        public static JObject GetConfigFromEnv(Dictionary<string, string> mappings)
+        public static JObject? GetConfigFromEnv(Dictionary<string, string>? mappings)
         {
-            JObject json = null;
+            JObject? json = null;
             var feedType = SourceUtility.GetFeedType(GetTokenValue(EnvVarFeedType, mappings, null));
 
             if (feedType != FileSystemStorageType.Unspecified)
@@ -82,7 +86,7 @@ namespace Sleet
 
                         if (innerKey.Length > 0 && innerKey != "name")
                         {
-                            source[innerKey] = ResolveTokens(pair.Value, mappings) ?? string.Empty;
+                            source[innerKey] = ResolveTokens(pair.Value, mappings);
                         }
                     }
                 }
@@ -112,7 +116,7 @@ namespace Sleet
         /// <summary>
         /// Replace string property values in a json file with $token$
         /// </summary>
-        public static void ResolveTokensInSettingsJson(JObject json, Dictionary<string, string> mappings)
+        public static void ResolveTokensInSettingsJson(JObject json, Dictionary<string, string>? mappings)
         {
             var properties = json.Descendants().Where(e => e.Type == JTokenType.Property)
                 .Select(e => (JProperty)e)
@@ -132,17 +136,17 @@ namespace Sleet
             return StringComparer.OrdinalIgnoreCase.Equals(bool.TrueString, value);
         }
 
-        public static string GetTokenValue(string tokenName, Dictionary<string, string> mappings, string defaultValue)
+        public static string GetTokenValue(string tokenName, Dictionary<string, string>? mappings, string? defaultValue)
         {
-            if (TryResolveToken(tokenName, mappings, out var value))
+            if (TryResolveToken(tokenName, mappings, out var value) && value != null)
             {
                 return value;
             }
 
-            return defaultValue;
+            return defaultValue ?? string.Empty;
         }
 
-        public static bool TryResolveToken(string input, Dictionary<string, string> mappings, out string value)
+        public static bool TryResolveToken(string input, Dictionary<string, string>? mappings, out string? value)
         {
             value = null;
 
@@ -167,20 +171,20 @@ namespace Sleet
             return false;
         }
 
-        public static string ResolveToken(string input, Dictionary<string, string> mappings, int depth)
+        public static string ResolveToken(string input, Dictionary<string, string>? mappings, int depth)
         {
             // Look up the value
             if (TryResolveToken(input, mappings, out var resolvedValue))
             {
                 // resolve further
-                return ResolveTokens(resolvedValue, mappings, depth);
+                return ResolveTokens(resolvedValue, mappings, depth) ?? string.Empty;
             }
 
             // Not found, return as it was
             return "$" + input + "$";
         }
 
-        public static string ResolveTokens(string input, Dictionary<string, string> mappings, int depth = 0)
+        public static string? ResolveTokens(string? input, Dictionary<string, string>? mappings, int depth = 0)
         {
             // noop if possible
             // avoid circular token resolution
@@ -216,7 +220,7 @@ namespace Sleet
         /// <summary>
         /// Find sleet.json at the given path or search upwards from the current directory.
         /// </summary>
-        public static string GetSleetJsonPathOrNull(string path)
+        public static string? GetSleetJsonPathOrNull(string? path)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -236,7 +240,7 @@ namespace Sleet
         /// <summary>
         /// Search a dir and all parents for a file.
         /// </summary>
-        private static string FindFileInParents(string root, string fileName)
+        private static string? FindFileInParents(string root, string fileName)
         {
             var dir = new DirectoryInfo(root);
 

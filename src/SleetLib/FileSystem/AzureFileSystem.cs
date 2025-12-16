@@ -15,7 +15,7 @@ namespace Sleet
         {
         }
 
-        public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, BlobServiceClient blobServiceClient, string container, string feedSubPath = null)
+        public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, BlobServiceClient blobServiceClient, string container, string? feedSubPath = null)
             : base(cache, root, baseUri, feedSubPath)
         {
             _container = blobServiceClient.GetBlobContainerClient(container);

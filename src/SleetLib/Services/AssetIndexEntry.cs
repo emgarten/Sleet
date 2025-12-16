@@ -23,7 +23,7 @@ namespace Sleet
             PackageIndex = packageIndex ?? throw new ArgumentNullException(nameof(packageIndex));
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as AssetIndexEntry);
         }
@@ -33,7 +33,7 @@ namespace Sleet
             return HashCodeCombiner.GetHashCode(Asset, PackageIndex);
         }
 
-        public bool Equals(AssetIndexEntry other)
+        public bool Equals(AssetIndexEntry? other)
         {
             if (other == null)
             {
@@ -49,8 +49,12 @@ namespace Sleet
                 && PackageIndex.Equals(other.PackageIndex);
         }
 
-        public int CompareTo(AssetIndexEntry other)
+        public int CompareTo(AssetIndexEntry? other)
         {
+            if (other == null)
+            {
+                return 1;
+            }
             return StringComparer.Ordinal.Compare(Asset.AbsoluteUri, other.Asset.AbsoluteUri);
         }
 

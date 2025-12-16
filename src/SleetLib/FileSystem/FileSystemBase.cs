@@ -25,7 +25,7 @@ namespace Sleet
 
         public ConcurrentDictionary<Uri, ISleetFile> Files { get; private set; } = new ConcurrentDictionary<Uri, ISleetFile>();
 
-        public string FeedSubPath { get; protected set; }
+        public string? FeedSubPath { get; protected set; }
 
         private readonly string[] _roots;
 
@@ -34,7 +34,7 @@ namespace Sleet
         {
         }
 
-        protected FileSystemBase(LocalCache cache, Uri root, Uri baseUri, string feedSubPath = null)
+        protected FileSystemBase(LocalCache cache, Uri root, Uri baseUri, string? feedSubPath = null)
         {
             BaseURI = baseUri ?? throw new ArgumentNullException(nameof(baseUri));
             LocalCache = cache ?? throw new ArgumentNullException(nameof(cache));
@@ -75,7 +75,7 @@ namespace Sleet
             {
                 var bytes = withChanges.Select(e => e as FileBase)
                     .Where(e => e != null)
-                    .Sum(e => e.LocalFileSizeIfExists);
+                    .Sum(e => e!.LocalFileSizeIfExists);
 
                 // Create tasks to run in parallel
                 var tasks = withChanges.Select(e => GetCommitFileFunc(e, log, token));
