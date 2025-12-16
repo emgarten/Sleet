@@ -276,7 +276,7 @@ Create a `test.proj` file with a package that doesn't exist. This will ensure we
 ```xml
 <Project ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks>net10.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

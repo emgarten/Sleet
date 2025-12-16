@@ -54,10 +54,10 @@ Remove-Artifacts $RepoRoot
 Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Clean;WriteGitInfo", "/p:Configuration=$Configuration")
 
 # Build Exe
-Invoke-DotnetExe $RepoRoot ("publish", "--force", "-r", "win-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=false", "--self-contained", "true", "-f", "net8.0", "-o", (Join-Path $RepoRoot "artifacts\publish"), (Join-Path $RepoRoot "\src\Sleet\Sleet.csproj"))
+# Invoke-DotnetExe $RepoRoot ("publish", "--force", "-r", "win-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=false", "--self-contained", "true", "-f", "net10.0", "-o", (Join-Path $RepoRoot "artifacts\publish"), (Join-Path $RepoRoot "\src\Sleet\Sleet.csproj"))
 
 # Restore
-Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Restore", "/p:Configuration=$Configuration")
+Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Restore", "/p:Configuration=$Configuration", "/v:d")
 
 # Run main build
 $buildTargets = "Build"
@@ -74,6 +74,6 @@ if (-not $SkipTests)
 
 # Run build.proj
 Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:$buildTargets", "/p:Configuration=$Configuration")
- 
+
 popd
 Write-Host "Success!"
