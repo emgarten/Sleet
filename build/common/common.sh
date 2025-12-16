@@ -15,9 +15,9 @@ run_standard_tests()
 
     # Run install.sh
     chmod +x .cli/dotnet-install.sh
-    .cli/dotnet-install.sh -i .cli --channel 6.0
-    .cli/dotnet-install.sh -i .cli --channel 8.0
+      .cli/dotnet-install.sh -i .cli --channel 8.0
     .cli/dotnet-install.sh -i .cli --channel 9.0
+    .cli/dotnet-install.sh -i .cli --channel 10.0
   fi
 
   # Display info

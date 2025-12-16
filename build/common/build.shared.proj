@@ -75,12 +75,13 @@
     </PropertyGroup>
 
     <!-- Run tests as a batch -->
+    <!-- Note: TestProjectPaths must be escaped because it contains semicolons which would otherwise be interpreted as property separators -->
     <MSBuild
         Projects="$(MSBuildThisFileFullPath)"
         Targets="RunTestsOnProjects"
         Properties="$(CommonMSBuildProperties);
                     TestResultsFileName=$(TestResultsFileName);
-                    TestProjectPaths=$(TestProjectPaths)" />
+                    TestProjectPaths=$([MSBuild]::Escape($(TestProjectPaths)))" />
   </Target>
 
   <!--
@@ -119,8 +120,9 @@
   <Target Name="RunTestsOnProjects">
     <Message Text="Running $(TestResultsFileName)" Importance="high" />
 
+    <!-- Unescape the TestProjectPaths property to restore semicolons as item separators -->
     <ItemGroup>
-      <TestProjectToSearch Include="$(TestProjectPaths)" />
+      <TestProjectToSearch Include="$([MSBuild]::Unescape($(TestProjectPaths)))" />
     </ItemGroup>
 
     <MSBuild
@@ -140,38 +142,24 @@
     <MakeDir Directories="$(TestResultsDirectory)" />
 
     <PropertyGroup>
-      <!-- Sort assemblies -->
-      <DesktopInputTestAssemblies>@(TestAssemblyPath->WithMetadataValue("IsDesktop", "true"))</DesktopInputTestAssemblies>
-      <DesktopInputTestAssembliesSpaced>$(DesktopInputTestAssemblies.Replace(';', ' '))</DesktopInputTestAssembliesSpaced>
-      <CoreInputTestAssemblies>@(TestAssemblyPath->WithMetadataValue("IsCore", "true"))</CoreInputTestAssemblies>
-      <CoreInputTestAssembliesSpaced>$(CoreInputTestAssemblies.Replace(';', ' '))</CoreInputTestAssembliesSpaced>
+      <!-- All test assemblies run via dotnet vstest -->
+      <TestInputAssemblies>@(TestAssemblyPath)</TestInputAssemblies>
+      <TestInputAssembliesSpaced>$(TestInputAssemblies.Replace(';', ' '))</TestInputAssembliesSpaced>
 
-      <!-- Build exe commands -->
-      <TestResultsHtml Condition=" '$(TestResultsFileName)' != '' ">$(TestResultsDirectory)$(TestResultsFileName).html</TestResultsHtml>
-      <VSTestCommand>$(DotnetExePath) vstest $(CoreInputTestAssembliesSpaced)</VSTestCommand>
-      <DesktopTestCommand>$(XunitConsoleExePath) $(DesktopInputTestAssembliesSpaced)</DesktopTestCommand>
-      <DesktopTestCommand Condition=" '$(TestResultsHtml)' != '' ">$(DesktopTestCommand) -html $(TestResultsHtml)</DesktopTestCommand>
+      <!-- Build vstest command -->
+      <VSTestCommand>$(DotnetExePath) vstest $(TestInputAssembliesSpaced)</VSTestCommand>
     </PropertyGroup>
 
-    <!-- Desktop -->
-    <Exec Command="$(DesktopTestCommand)"
-          ContinueOnError="true"
-          Condition=" '$(DesktopInputTestAssemblies)' != '' AND '$(SkipDesktopTests)' != 'true' ">
-      <Output TaskParameter="ExitCode" PropertyName="DesktopTestErrorCode"/>
-    </Exec>
-
-    <!-- VSTest/NETCore -->
+    <!-- Run all tests via VSTest -->
     <Exec Command="$(VSTestCommand)"
           ContinueOnError="true"
-          Condition=" '$(CoreInputTestAssemblies)' != '' AND '$(SkipCoreTests)' != 'true' ">
+          Condition=" '$(TestInputAssemblies)' != '' ">
       <Output TaskParameter="ExitCode" PropertyName="VSTestErrorCode"/>
     </Exec>
 
-    <Error Text="NETFramework $(TestResultsFileName) tests failed! Results: $(TestResultsHtml)" Condition=" '$(DesktopTestErrorCode)' != '0' AND '$(DesktopTestErrorCode)' != '' " />
-    <Error Text="NETCoreApp $(TestResultsFileName) tests failed!" Condition=" '$(VSTestErrorCode)' != '0' AND '$(VSTestErrorCode)' != '' " />
+    <Error Text="$(TestResultsFileName) tests failed!" Condition=" '$(VSTestErrorCode)' != '0' AND '$(VSTestErrorCode)' != '' " />
 
-    <Message Text="NETFramework $(TestResultsFileName) tests passed!" Condition=" '$(DesktopTestErrorCode)' == '0' " />
-    <Message Text="NETCoreApp $(TestResultsFileName) tests passed!" Condition=" '$(VSTestErrorCode)' == '0' " />
+    <Message Text="$(TestResultsFileName) tests passed!" Condition=" '$(VSTestErrorCode)' == '0' " />
   </Target>
 
   <!--
@@ -186,7 +174,7 @@
       <CICommonPackagesConfig>$(CIRootDirectory)common\packages.common.config</CICommonPackagesConfig>
       <CIPackagesConfig>$(CIRootDirectory)common\packages.config</CIPackagesConfig>
     </PropertyGroup>
-    
+
     <Exec Command="$(NuGetExePath) restore $(CommonPackagesConfig) -PackagesDirectory $(PackagesConfigDirectory)" Condition="Exists($(CommonPackagesConfig))" />
     <Exec Command="$(NuGetExePath) restore $(RepoPackagesConfig) -PackagesDirectory $(PackagesConfigDirectory)" Condition="Exists($(RepoPackagesConfig))" />
     <Exec Command="$(NuGetExePath) restore $(CICommonPackagesConfig) -PackagesDirectory $(PackagesConfigDirectory)" Condition="Exists($(CICommonPackagesConfig))" />
