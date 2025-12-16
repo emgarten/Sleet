@@ -35,13 +35,13 @@
 
   <!-- Default package versions -->
   <PropertyGroup>
-    <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">4.19.4</FluentAssertionsVersion>
-    <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.5.0</ToStringWithoutOverrideAnalyzerVersion>
-    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">16.11.0</TestSDKVersion>
-    <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.4.1</XunitVersion>
-    <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">2.4.3</XunitRunnerVisualStudioVersion>
-    <CoverletCollectorVersion Condition=" '$(CoverletCollectorVersion)' == '' ">3.1.0</CoverletCollectorVersion>
-    <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">1.0.0</SourceLinkVersion>
+    <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">8.8.0</FluentAssertionsVersion>
+    <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.6.0</ToStringWithoutOverrideAnalyzerVersion>
+    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">18.0.1</TestSDKVersion>
+    <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.9.3</XunitVersion>
+    <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">3.1.5</XunitRunnerVisualStudioVersion>
+    <CoverletCollectorVersion Condition=" '$(CoverletCollectorVersion)' == '' ">6.0.4</CoverletCollectorVersion>
+    <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">8.0.0</SourceLinkVersion>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
