@@ -16,7 +16,7 @@ namespace Sleet
         /// </summary>
         internal static void LogException(Exception ex, ILogger logger)
         {
-            LogException(ex, logger, logLevel: LogLevel.Error, showType: true, message: null);
+            LogException(ex, logger, logLevel: LogLevel.Error, showType: true, message: null!);
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Sleet
         /// </summary>
         internal static void LogException(Exception ex, ILogger logger, LogLevel logLevel)
         {
-            LogException(ex, logger, logLevel, showType: true, message: null);
+            LogException(ex, logger, logLevel, showType: true, message: null!);
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Sleet
         /// </summary>
         internal static void LogException(Exception ex, ILogger logger, LogLevel logLevel, bool showType)
         {
-            LogException(ex, logger, logLevel, showType, message: null);
+            LogException(ex, logger, logLevel, showType, message: null!);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Sleet
         /// </summary>
         internal static string GetExceptionMessage(Exception ex)
         {
-            return GetExceptionMessage(ex, showType: true, message: null);
+            return GetExceptionMessage(ex, showType: true, message: null!);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Sleet
         /// </summary>
         internal static string GetExceptionMessage(Exception ex, bool showType)
         {
-            return GetExceptionMessage(ex, showType, message: null);
+            return GetExceptionMessage(ex, showType, message: null!);
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace Sleet
         /// <summary>
         /// Return the root exception thrown.
         /// </summary>
-        internal static Exception Unwrap(Exception ex)
+        internal static Exception? Unwrap(Exception ex)
         {
             return GetExceptions(ex, includeInner: false).FirstOrDefault();
         }
@@ -140,7 +140,7 @@ namespace Sleet
         /// <summary>
         /// Flatten AggregateExceptions
         /// </summary>
-        internal static IEnumerable<Exception> GetExceptions(Exception ex, bool includeInner)
+        internal static IEnumerable<Exception> GetExceptions(Exception? ex, bool includeInner)
         {
             if (ex != null)
             {

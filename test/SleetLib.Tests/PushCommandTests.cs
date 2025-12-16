@@ -82,8 +82,8 @@ namespace SleetLib.Tests
 
                     // Assert
                     Assert.True(validateOutput);
-                    Assert.Equal(1, catalogEntries.Count);
-                    Assert.Equal(1, indexPackages.Count);
+                    Assert.Single(catalogEntries);
+                    Assert.Single(indexPackages);
                 }
             }
         }
@@ -127,7 +127,7 @@ namespace SleetLib.Tests
                 var indexPackages = await packageIndex.GetPackagesAsync();
 
                 // Assert
-                Assert.Equal(1, indexPackages.Count);
+                Assert.Single(indexPackages);
             }
         }
 
@@ -172,7 +172,7 @@ namespace SleetLib.Tests
                 var indexPackages = await packageIndex.GetPackagesAsync();
 
                 // Assert
-                Assert.Equal(1, indexPackages.Count);
+                Assert.Single(indexPackages);
             }
         }
     }

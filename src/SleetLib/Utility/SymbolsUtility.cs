@@ -35,7 +35,8 @@ namespace Sleet
         /// </summary>
         public static string GetSymbolHashFromAssembly(PEReader peReader)
         {
-            var size = peReader.PEHeaders.PEHeader.SizeOfImage;
+            var peHeader = peReader.PEHeaders.PEHeader ?? throw new InvalidOperationException("PE header is missing");
+            var size = peHeader.SizeOfImage;
             var time = peReader.PEHeaders.CoffHeader.TimeDateStamp;
 
             var timeHash = string.Format("{0:X}", time).ToUpperInvariant();
@@ -47,9 +48,9 @@ namespace Sleet
         /// <summary>
         /// Returns the hash of the PDB from the DLL file.
         /// </summary>
-        public static string GetPDBHashFromAssembly(PEReader peReader)
+        public static string? GetPDBHashFromAssembly(PEReader peReader)
         {
-            string hash = null;
+            string? hash = null;
 
             foreach (var entry in peReader.ReadDebugDirectory())
             {

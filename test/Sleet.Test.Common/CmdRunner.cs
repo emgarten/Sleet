@@ -45,7 +45,7 @@ namespace Sleet.Test.Common
             string workingDirectory,
             string arguments)
         {
-            return RunAsync(exePath, workingDirectory, arguments, envVars: null);
+            return RunAsync(exePath, workingDirectory, arguments, envVars: null!);
         }
 
         /// <summary>

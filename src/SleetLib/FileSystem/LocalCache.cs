@@ -16,7 +16,7 @@ namespace Sleet
         }
 
         public LocalCache(string path)
-            : this(path, perfTracker: null)
+            : this(path, perfTracker: null!)
         {
         }
 

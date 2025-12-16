@@ -28,7 +28,7 @@ namespace Sleet
             EnsureLocalRoot(root);
         }
 
-        public PhysicalFileSystem(LocalCache cache, Uri root, Uri baseUri, string feedSubPath = null)
+        public PhysicalFileSystem(LocalCache cache, Uri root, Uri baseUri, string? feedSubPath = null)
             : base(cache, root, baseUri, feedSubPath)
         {
             EnsureLocalRoot(root);

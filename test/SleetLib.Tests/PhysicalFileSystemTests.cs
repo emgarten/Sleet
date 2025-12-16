@@ -299,7 +299,7 @@ namespace SleetLib.Tests
 
                 var results = await fileSystem2.GetFiles(log, CancellationToken.None);
 
-                results.Select(e => Path.GetFileName(e.EntityUri.LocalPath)).ShouldBeEquivalentTo(new[] { "a.txt" });
+                results.Select(e => Path.GetFileName(e.EntityUri.LocalPath)).Should().BeEquivalentTo(new[] { "a.txt" });
             }
         }
 

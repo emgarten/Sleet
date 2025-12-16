@@ -16,15 +16,15 @@ namespace Sleet
     {
         private const int MaxThreads = 8;
 
-        public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string outputPath, bool ignoreErrors, ILogger log)
+        public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string? outputPath, bool ignoreErrors, ILogger log)
         {
             return RunAsync(settings, source, outputPath, ignoreErrors, noLock: false, skipExisting: false, log: log);
         }
 
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string outputPath, bool ignoreErrors, bool noLock, bool skipExisting, ILogger log)
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string? outputPath, bool ignoreErrors, bool noLock, bool skipExisting, ILogger log)
         {
             var token = CancellationToken.None;
-            ISleetFileSystemLock feedLock = null;
+            ISleetFileSystemLock? feedLock = null;
             var success = true;
             var perfTracker = source.LocalCache.PerfTracker;
 
@@ -59,7 +59,7 @@ namespace Sleet
         /// <summary>
         /// Download packages. This method does not lock the feed or verify the client version.
         /// </summary>
-        public static Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string outputPath, bool ignoreErrors, ILogger log, CancellationToken token)
+        public static Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string? outputPath, bool ignoreErrors, ILogger log, CancellationToken token)
         {
             return DownloadPackages(settings, source, outputPath, ignoreErrors, skipExisting: false, log: log, token: token);
         }
@@ -67,7 +67,7 @@ namespace Sleet
         /// <summary>
         /// Download packages. This method does not lock the feed or verify the client version.
         /// </summary>
-        public static async Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string outputPath, bool ignoreErrors, bool skipExisting, ILogger log, CancellationToken token)
+        public static async Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string? outputPath, bool ignoreErrors, bool skipExisting, ILogger log, CancellationToken token)
         {
             if (string.IsNullOrEmpty(outputPath))
             {
@@ -146,7 +146,7 @@ namespace Sleet
             var package = pair.Key;
             var nupkgFile = pair.Value;
 
-            var fileName = UriUtility.GetFileName(nupkgFile.EntityUri);
+            var fileName = UriUtility.GetFileName(nupkgFile.EntityUri)!;
 
             // id/id.version.nupkg or id/id.version.symbols.nupkg
             var outputNupkgPath = Path.Combine(outputPath,

@@ -67,8 +67,7 @@ namespace Sleet
             {
                 var id = getId(package);
 
-                List<T> list = null;
-                if (!result.TryGetValue(id, out list))
+                if (!result.TryGetValue(id, out var list))
                 {
                     list = new List<T>(1);
                     result.Add(id, list);
@@ -204,19 +203,16 @@ namespace Sleet
         /// </summary>
         private static ISleetService GetCatalogService(SleetContext context)
         {
-            ISleetService catalog = null;
             if (context.SourceSettings.CatalogEnabled)
             {
                 // Full catalog that is written to the feed
-                catalog = new Catalog(context);
+                return new Catalog(context);
             }
             else
             {
                 // In memory catalog that is not written to the feed
-                catalog = new VirtualCatalog(context);
+                return new VirtualCatalog(context);
             }
-
-            return catalog;
         }
     }
 }

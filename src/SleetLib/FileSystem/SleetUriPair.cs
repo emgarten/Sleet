@@ -7,11 +7,11 @@ namespace Sleet
         /// <summary>
         /// Actual root URI in container or on local disk
         /// </summary>
-        public Uri Root { get; set; }
+        public Uri Root { get; set; } = null!;
 
         /// <summary>
         /// Display URI
         /// </summary>
-        public Uri BaseURI { get; set; }
+        public Uri BaseURI { get; set; } = null!;
     }
 }

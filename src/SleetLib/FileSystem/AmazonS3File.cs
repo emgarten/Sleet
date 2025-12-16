@@ -16,7 +16,7 @@ namespace Sleet
         private readonly string key;
         private readonly bool compress = true;
         private readonly ServerSideEncryptionMethod serverSideEncryptionMethod;
-        private readonly S3CannedACL acl;
+        private readonly S3CannedACL? acl;
         private readonly bool disablePayloadSigning;
 
         internal AmazonS3File(
@@ -29,7 +29,7 @@ namespace Sleet
             string key,
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             bool compress = true,
-            S3CannedACL acl = null,
+            S3CannedACL? acl = null,
             bool disablePayloadSigning = false)
             : base(fileSystem, rootPath, displayPath, localCacheFile, fileSystem.LocalCache.PerfTracker)
         {
@@ -99,9 +99,9 @@ namespace Sleet
             using (var cache = LocalCacheFile.OpenRead())
             {
                 Stream writeStream = cache;
-                string contentType = null, contentEncoding = null;
-                bool disposeWriteStream = false;
-                
+                string? contentType = null, contentEncoding = null;
+                var disposeWriteStream = false;
+
                 if (key.EndsWith(".nupkg", StringComparison.Ordinal))
                 {
                     contentType = "application/zip";

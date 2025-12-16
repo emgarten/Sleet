@@ -58,7 +58,7 @@ namespace Sleet
                 using (var cache = LocalCacheFile.OpenRead())
                 {
                     Stream writeStream = cache;
-                    bool disposeWriteStream = false;
+                    var disposeWriteStream = false;
                     var blobHeaders = new BlobHttpHeaders
                     {
                         CacheControl = "no-store"

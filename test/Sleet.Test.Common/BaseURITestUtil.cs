@@ -59,18 +59,22 @@ namespace Sleet.Test.Common
 
                     if (prop.Name != "@context")
                     {
-                        if (prop.Value is JObject jObj)
+                    if (prop.Value is JObject jObj)
+                    {
+                        foreach (var desc in jObj.DescendantsAndSelf())
                         {
-                            foreach (var desc in jObj.DescendantsAndSelf())
-                            {
-                                var descProp = (JProperty)node;
+                            var descProp = (JProperty)node;
 
-                                if (descProp.Name == "@id")
+                            if (descProp.Name == "@id")
+                            {
+                                var value = descProp.Value.ToObject<string>();
+                                if (value != null)
                                 {
-                                    yield return descProp.Value.ToObject<string>();
+                                    yield return value;
                                 }
                             }
                         }
+                    }
                     }
                 }
             }

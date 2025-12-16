@@ -14,20 +14,25 @@ namespace Sleet
     /// 2) Misc files such as package details pages and catalog entry pages.
     /// 3) index.json files
     /// 4) Search page
-    /// 
+    ///
     /// </summary>
     public class SleetFileComparer : IComparer<ISleetFile>
     {
-        public int Compare(ISleetFile x, ISleetFile y)
+        public int Compare(ISleetFile? x, ISleetFile? y)
         {
+            if (x == null && y == null)
+            {
+                return 0;
+            }
+
             if (x == null)
             {
-                throw new ArgumentNullException(nameof(x));
+                return -1;
             }
 
             if (y == null)
             {
-                throw new ArgumentNullException(nameof(y));
+                return 1;
             }
 
             var priX = GetPriority(x);

@@ -91,8 +91,8 @@ namespace Sleet
             {
                 foreach (var child in packages.Select(e => (JObject)e))
                 {
-                    var asset = new Uri(child["asset"].Value<string>(), UriKind.Absolute);
-                    var packageIndex = new Uri(child["packageIndex"].Value<string>(), UriKind.Absolute);
+                    var asset = new Uri(child["asset"]!.Value<string>()!, UriKind.Absolute);
+                    var packageIndex = new Uri(child["packageIndex"]!.Value<string>()!, UriKind.Absolute);
 
                     assets.Add(new AssetIndexEntry(asset, packageIndex));
                 }

@@ -36,7 +36,7 @@ namespace SleetLib.Tests
                 await file.AddPackageAsync(input);
 
                 var packages = await file.GetPackagesAsync();
-                packages.ShouldBeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
+                packages.Should().BeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
 
                 var symbols = await file.GetSymbolsPackagesAsync();
                 symbols.Should().BeEmpty();
@@ -57,7 +57,7 @@ namespace SleetLib.Tests
                 await file.RemovePackageAsync(inputA.Identity);
 
                 var packages = await file.GetPackagesAsync();
-                packages.ShouldBeEquivalentTo(new[] { new PackageIdentity("b", NuGetVersion.Parse("1.0.0")) });
+                packages.Should().BeEquivalentTo(new[] { new PackageIdentity("b", NuGetVersion.Parse("1.0.0")) });
 
                 var symbols = await file.GetSymbolsPackagesAsync();
                 symbols.Should().BeEmpty();
@@ -121,7 +121,7 @@ namespace SleetLib.Tests
                 await file.AddSymbolsPackageAsync(input);
 
                 var packages = await file.GetSymbolsPackagesAsync();
-                packages.ShouldBeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
+                packages.Should().BeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
 
                 var nonSymbols = await file.GetPackagesAsync();
                 nonSymbols.Should().BeEmpty();
@@ -142,7 +142,7 @@ namespace SleetLib.Tests
                 await file.RemoveSymbolsPackageAsync(inputA.Identity);
 
                 var packages = await file.GetSymbolsPackagesAsync();
-                packages.ShouldBeEquivalentTo(new[] { new PackageIdentity("b", NuGetVersion.Parse("1.0.0")) });
+                packages.Should().BeEquivalentTo(new[] { new PackageIdentity("b", NuGetVersion.Parse("1.0.0")) });
 
                 var nonSymbols = await file.GetPackagesAsync();
                 nonSymbols.Should().BeEmpty();

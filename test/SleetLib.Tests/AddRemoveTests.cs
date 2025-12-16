@@ -232,12 +232,12 @@ namespace SleetLib.Tests
 
                     // Assert
                     Assert.True(validateOutput);
-                    Assert.Equal(1, catalogEntries.Count);
-                    Assert.Equal(1, catalogExistingEntries.Count);
-                    Assert.Equal(1, regPackages.Count);
-                    Assert.Equal(1, indexPackages.Count);
-                    Assert.Equal(1, searchPackages.Count);
-                    Assert.Equal(1, autoCompletePackages.Count);
+                    Assert.Single(catalogEntries);
+                    Assert.Single(catalogExistingEntries);
+                    Assert.Single(regPackages);
+                    Assert.Single(indexPackages);
+                    Assert.Single(searchPackages);
+                    Assert.Single(autoCompletePackages);
 
                     Assert.Equal("packageA", catalogLatest.Id);
                     Assert.Equal("1.0.0", catalogLatest.Version.ToIdentityString());
@@ -304,11 +304,11 @@ namespace SleetLib.Tests
                     // Assert
                     Assert.True(validateOutput);
                     Assert.Equal(2, catalogEntries.Count);
-                    Assert.Equal(0, catalogExistingEntries.Count);
-                    Assert.Equal(0, regPackages.Count);
-                    Assert.Equal(0, indexPackages.Count);
-                    Assert.Equal(0, searchPackages.Count);
-                    Assert.Equal(0, autoCompletePackages.Count);
+                    Assert.Empty(catalogExistingEntries);
+                    Assert.Empty(regPackages);
+                    Assert.Empty(indexPackages);
+                    Assert.Empty(searchPackages);
+                    Assert.Empty(autoCompletePackages);
 
                     Assert.Equal("packageA", catalogLatest.Id);
                     Assert.Equal("1.0.0", catalogLatest.Version.ToIdentityString());
@@ -508,7 +508,7 @@ namespace SleetLib.Tests
 
                 // Assert
                 Assert.True(validateOutput);
-                Assert.Equal(1, indexPackages.Count);
+                Assert.Single(indexPackages);
                 Assert.Equal("packageA", indexPackages.First().Id);
                 Assert.Equal("2.0.0", indexPackages.First().Version.ToNormalizedString());
             }
@@ -569,12 +569,12 @@ namespace SleetLib.Tests
 
                     // Assert
                     Assert.True(validateOutput);
-                    Assert.Equal(1, catalogEntries.Count);
-                    Assert.Equal(1, catalogExistingEntries.Count);
-                    Assert.Equal(1, regPackages.Count);
-                    Assert.Equal(1, indexPackages.Count);
-                    Assert.Equal(1, searchPackages.Count);
-                    Assert.Equal(1, autoCompletePackages.Count);
+                    Assert.Single(catalogEntries);
+                    Assert.Single(catalogExistingEntries);
+                    Assert.Single(regPackages);
+                    Assert.Single(indexPackages);
+                    Assert.Single(searchPackages);
+                    Assert.Single(autoCompletePackages);
 
                     Assert.Equal("packageA", catalogLatest.Id);
                     Assert.Equal("1.0.0", catalogLatest.Version.ToIdentityString());
@@ -868,7 +868,7 @@ namespace SleetLib.Tests
                     Assert.Equal(2, regPackages.Count);
                     Assert.Equal(2, indexPackages.Count);
                     Assert.Equal(2, searchPackages.Count);
-                    Assert.Equal(1, autoCompletePackages.Count);
+                    Assert.Single(autoCompletePackages);
                 }
             }
         }
@@ -934,7 +934,7 @@ namespace SleetLib.Tests
                     Assert.True(validateOutput);
                     Assert.Equal(2, catalogEntries.Count);
                     Assert.Equal(2, catalogExistingEntries.Count);
-                    Assert.Equal(1, regPackages.Count);
+                    Assert.Single(regPackages);
                     Assert.Equal(2, indexPackages.Count);
                     Assert.Equal(2, searchPackages.Count);
                     Assert.Equal(2, autoCompletePackages.Count);

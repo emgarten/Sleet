@@ -11,13 +11,13 @@ namespace Sleet
     /// </summary>
     public static class RecreateCommand
     {
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string tmpPath, bool force, ILogger log)
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string? tmpPath, bool force, ILogger log)
         {
             var success = true;
             var cleanNupkgs = true;
 
             var token = CancellationToken.None;
-            LocalCache localCache = null;
+            LocalCache? localCache = null;
 
             // Use the tmp path if provided
             if (string.IsNullOrEmpty(tmpPath))

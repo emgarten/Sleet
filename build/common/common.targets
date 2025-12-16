@@ -10,9 +10,11 @@
   <!-- Defaults -->
   <PropertyGroup>
     <SkipSourceLink>true</SkipSourceLink>
-    <!-- <Nullable>enable</Nullable> -->
+    <!-- Enable nullable for non-test projects, disable for test projects -->
+    <Nullable Condition=" '$(TestProject)' != 'true' ">enable</Nullable>
+    <Nullable Condition=" '$(TestProject)' == 'true' ">disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>14.0</LangVersion>
   </PropertyGroup>
 
   <!-- Compiler flags -->
@@ -23,28 +25,26 @@
         <IsDesktop>true</IsDesktop>
       </PropertyGroup>
     </When>
-    <When Condition="$(TargetFramework.Contains('netstandard')) OR $(TargetFramework.Contains('netcoreapp')) OR $(TargetFramework.Contains('net5')) OR $(TargetFramework.Contains('net6')) OR $(TargetFramework.Contains('net7')) OR $(TargetFramework.Contains('net8')) OR $(TargetFramework.Contains('net9'))">
+    <Otherwise>
       <PropertyGroup>
         <DefineConstants>$(DefineConstants);IS_CORECLR</DefineConstants>
         <IsCore>true</IsCore>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <IsFrameworkInvalid Condition=" '$(TargetFramework)' != '' ">true</IsFrameworkInvalid>
       </PropertyGroup>
     </Otherwise>
   </Choose>
 
   <!-- Default package versions -->
   <PropertyGroup>
-    <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">4.19.4</FluentAssertionsVersion>
-    <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.5.0</ToStringWithoutOverrideAnalyzerVersion>
-    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">16.11.0</TestSDKVersion>
-    <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.4.1</XunitVersion>
-    <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">2.4.3</XunitRunnerVisualStudioVersion>
-    <CoverletCollectorVersion Condition=" '$(CoverletCollectorVersion)' == '' ">3.1.0</CoverletCollectorVersion>
-    <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">1.0.0</SourceLinkVersion>
+    <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">7.2.0</FluentAssertionsVersion>
+    <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.6.0</ToStringWithoutOverrideAnalyzerVersion>
+    <MicrosoftCodeAnalysisNetAnalyzersVersion Condition=" '$(MicrosoftCodeAnalysisNetAnalyzersVersion)' == '' ">10.0.101</MicrosoftCodeAnalysisNetAnalyzersVersion>
+    <RoslynatorAnalyzersVersion Condition=" '$(RoslynatorAnalyzersVersion)' == '' ">4.15.0</RoslynatorAnalyzersVersion>
+    <MeziantouAnalyzerVersion Condition=" '$(MeziantouAnalyzerVersion)' == '' ">false</MeziantouAnalyzerVersion>
+    <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">18.0.1</TestSDKVersion>
+    <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.9.3</XunitVersion>
+    <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">3.1.5</XunitRunnerVisualStudioVersion>
+    <CoverletCollectorVersion Condition=" '$(CoverletCollectorVersion)' == '' ">6.0.4</CoverletCollectorVersion>
+    <SourceLinkVersion Condition=" '$(SourceLinkVersion)' == '' ">8.0.0</SourceLinkVersion>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
@@ -98,7 +98,14 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TestProject)' != 'true' ">
-    <PackageReference Include="ToStringWithoutOverrideAnalyzer" Version="$(ToStringWithoutOverrideAnalyzerVersion)" PrivateAssets="all" />
+    <!-- Analyze to string -->
+    <PackageReference Include="ToStringWithoutOverrideAnalyzer" Version="$(ToStringWithoutOverrideAnalyzerVersion)" PrivateAssets="all" Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' != 'false' " />
+    <!-- Official Microsoft analyzers (CAxxxx rules) -->
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" PrivateAssets="all" Condition=" '$(MicrosoftCodeAnalysisNetAnalyzersVersion)' != 'false' " />
+    <!-- Practical C# best-practice analyzers + refactorings -->
+    <PackageReference Include="Roslynator.Analyzers" Version="$(RoslynatorAnalyzersVersion)" PrivateAssets="all" Condition=" '$(RoslynatorAnalyzersVersion)' != 'false' " />
+    <!-- High-signal performance, security, and correctness analyzers -->
+    <PackageReference Include="Meziantou.Analyzer" Version="$(MeziantouAnalyzerVersion)" PrivateAssets="all" Condition=" '$(MeziantouAnalyzerVersion)' != 'false' " />
   </ItemGroup>
 
   <!-- Sign -->
@@ -191,10 +198,7 @@
     </ConvertToAbsolutePath>
 
     <ItemGroup>
-      <TestAssemblyPath Include="$(AbsoluteTestAssemblyPath)">
-        <IsDesktop Condition=" '$(IsDesktop)' == 'true' ">true</IsDesktop>
-        <IsCore Condition=" '$(IsDesktop)' != 'true' ">true</IsCore>
-      </TestAssemblyPath>
+      <TestAssemblyPath Include="$(AbsoluteTestAssemblyPath)" />
     </ItemGroup>
   </Target>
 

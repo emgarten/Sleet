@@ -15,7 +15,7 @@ namespace Sleet
         /// </summary>
         /// <param name="packageId"></param>
         /// <param name="version">If empty all versions will be deleted.</param>
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string packageId, string version, string reason, bool force, ILogger log)
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string packageId, string? version, string? reason, bool force, ILogger log)
         {
             var success = true;
 

@@ -6,15 +6,15 @@ namespace Sleet
 {
     public static class AssemblyVersionHelper
     {
-        private static volatile SemanticVersion _versionOverride;
-        private static volatile SemanticVersion _version;
+        private static volatile SemanticVersion? _versionOverride;
+        private static volatile SemanticVersion? _version;
         private static readonly object _lock = new object();
 
         /// <summary>
         /// Set this to override the assembly version.
         /// </summary>
-        public static SemanticVersion VersionOverride 
-        { 
+        public static SemanticVersion? VersionOverride
+        {
             get => _versionOverride;
             set => _versionOverride = value;
         }
@@ -37,7 +37,7 @@ namespace Sleet
                     if (_version == null)
                     {
                         // Read the assembly
-                        var assemblyVersion = typeof(AssemblyVersionHelper).GetTypeInfo().Assembly.GetName().Version;
+                        var assemblyVersion = typeof(AssemblyVersionHelper).GetTypeInfo().Assembly.GetName().Version!;
 
                         // Avoid going lower than 3.0.0. This can happen in some build environments and will fail tests.
                         var lowestPossible = new SemanticVersion(3, 0, 0);

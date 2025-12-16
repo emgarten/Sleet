@@ -10,8 +10,16 @@ using NuGet.Common;
 
 namespace Sleet
 {
-    internal static class CmdUtils
+    public static class CmdUtils
     {
+        /// <summary>
+        /// Filters null values from a list and returns a non-nullable list.
+        /// </summary>
+        public static List<string> FilterNullValues(IEnumerable<string?> values)
+        {
+            return values.Where(v => v != null).Select(v => v!).ToList();
+        }
+
         private static readonly object _consoleLock = new object();
 
         /// <summary>
@@ -129,7 +137,7 @@ namespace Sleet
         /// </summary>
         internal static string GetAssemblyName()
         {
-            return GetAssembly().GetName().Name;
+            return GetAssembly().GetName().Name ?? "Unknown";
         }
 
         /// <summary>
@@ -137,7 +145,7 @@ namespace Sleet
         /// </summary>
         internal static Version GetAssemblyVersion()
         {
-            return GetAssembly().GetName().Version;
+            return GetAssembly().GetName().Version ?? new Version(0, 0, 0, 0);
         }
 
         /// <summary>
@@ -154,7 +162,7 @@ namespace Sleet
         [Conditional("DEBUG")]
         internal static void LaunchDebuggerIfSet(ref string[] args, ILogger logger)
         {
-            if (string.Equals("--debug", args?.FirstOrDefault(), StringComparison.OrdinalIgnoreCase))
+            if (args != null && string.Equals("--debug", args.FirstOrDefault(), StringComparison.OrdinalIgnoreCase))
             {
                 args = args.Skip(1).ToArray();
 

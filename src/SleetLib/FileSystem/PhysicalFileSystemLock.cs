@@ -37,7 +37,11 @@ namespace Sleet
                 else
                 {
                     // Obtain the lock
-                    Directory.CreateDirectory(Path.GetDirectoryName(LockPath));
+                    var lockDir = Path.GetDirectoryName(LockPath);
+                    if (lockDir is not null)
+                    {
+                        Directory.CreateDirectory(lockDir);
+                    }
 
                     json = GetMessageJson(lockMessage);
                     json.Add(new JProperty("pid", Process.GetCurrentProcess().Id));

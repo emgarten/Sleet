@@ -7,13 +7,13 @@ namespace Sleet.Test.Common
     public sealed class WindowsFactAttribute
         : FactAttribute
     {
-        public override string Skip => RuntimeEnvironmentHelper.IsWindows ? null : "Windows only test";
+        public override string? Skip => RuntimeEnvironmentHelper.IsWindows ? null : "Windows only test";
     }
 
     public sealed class WindowsTheoryAttribute
     : TheoryAttribute
     {
-        public override string Skip => RuntimeEnvironmentHelper.IsWindows ? null : "Windows only test";
+        public override string? Skip => RuntimeEnvironmentHelper.IsWindows ? null : "Windows only test";
     }
 
     public sealed class EnvVarExistsFactAttribute
@@ -26,6 +26,6 @@ namespace Sleet.Test.Common
             _envVar = envVar;
         }
 
-        public override string Skip => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(_envVar)) ? null : $"Set env var: {_envVar} to run this test. This can be ignored for non CI scenarios.";
+        public override string? Skip => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(_envVar)) ? null : $"Set env var: {_envVar} to run this test. This can be ignored for non CI scenarios.";
     }
 }

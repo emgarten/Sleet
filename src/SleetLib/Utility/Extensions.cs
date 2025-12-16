@@ -64,7 +64,7 @@ namespace Sleet
         /// </summary>
         public static NuGetVersion GetVersion(this JToken json)
         {
-            return NuGetVersion.Parse(json.GetString("version"));
+            return NuGetVersion.Parse(json.GetString("version") ?? throw new InvalidOperationException("Missing version property"));
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Sleet
         /// </summary>
         public static string GetId(this JToken json)
         {
-            return json.GetString("id");
+            return json.GetString("id") ?? throw new InvalidOperationException("Missing id property");
         }
 
         /// <summary>
@@ -88,13 +88,13 @@ namespace Sleet
         /// </summary>
         public static Uri GetEntityId(this JToken json)
         {
-            return json["@id"].ToObject<Uri>();
+            return json["@id"]?.ToObject<Uri>() ?? throw new InvalidOperationException("Missing @id property");
         }
 
         /// <summary>
         /// Read the property as string.
         /// </summary>
-        public static string GetString(this JToken json, string propertyName)
+        public static string? GetString(this JToken json, string propertyName)
         {
             return json[propertyName]?.ToObject<string>();
         }

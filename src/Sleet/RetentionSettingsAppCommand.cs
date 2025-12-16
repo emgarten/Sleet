@@ -52,18 +52,18 @@ namespace Sleet
                 using (var cache = new LocalCache())
                 {
                     // Load settings and file system.
-                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(propertyOptions.Values.ToList()));
+                    var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(CmdUtils.FilterNullValues(propertyOptions.Values)));
                     var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache, log);
 
                     var success = false;
 
-                    var stableVersionMax = stableVersions.HasValue() ? int.Parse(stableVersions.Value()) : -1;
-                    var prereleaseVersionMax = prereleaseVersions.HasValue() ? int.Parse(prereleaseVersions.Value()) : -1;
+                    var stableVersionMax = stableVersions.HasValue() ? int.Parse(stableVersions.Value()!) : -1;
+                    var prereleaseVersionMax = prereleaseVersions.HasValue() ? int.Parse(prereleaseVersions.Value()!) : -1;
                     int? releaseLabelsCount = null;
 
                     if (releaseLabelsValue.HasValue())
                     {
-                        releaseLabelsCount = int.Parse(releaseLabelsValue.Value());
+                        releaseLabelsCount = int.Parse(releaseLabelsValue.Value()!);
                     }
 
                     success = await RetentionSettingsCommand.RunAsync(settings, fileSystem, stableVersionMax, prereleaseVersionMax, releaseLabelsCount, disableRetention.HasValue(), log);

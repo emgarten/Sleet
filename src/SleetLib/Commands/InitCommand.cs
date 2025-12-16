@@ -144,9 +144,9 @@ namespace Sleet
 
             RemoveServiceIndexEntry(id, json);
 
-            var array = (JArray)json["resources"];
+            var array = (JArray?)json["resources"];
 
-            array.Add(GetServiceIndexEntry(baseUri, relativeFilePath, type, comment));
+            array?.Add(GetServiceIndexEntry(baseUri, relativeFilePath, type, comment));
         }
 
         private static JObject GetServiceIndexEntry(Uri baseUri, string relativeFilePath, string type, string comment)
@@ -170,11 +170,11 @@ namespace Sleet
 
         private static void RemoveServiceIndexEntry(Uri id, JObject json)
         {
-            var array = (JArray)json["resources"];
+            var array = (JArray?)json["resources"];
 
-            foreach (var item in array.Where(e => id.Equals(((JObject)e).GetIdUri())))
+            foreach (var item in array?.Where(e => id.Equals(((JObject)e).GetIdUri())) ?? Enumerable.Empty<JToken>())
             {
-                array.Remove(item);
+                array!.Remove(item);
             }
         }
 

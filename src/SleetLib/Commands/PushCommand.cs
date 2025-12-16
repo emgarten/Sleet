@@ -26,7 +26,7 @@ namespace Sleet
                 // Partition package inputs to avoid reading 100K nuspecs at the same time.
                 var packagePaths = GetPackagePaths(inputs);
                 var inputBatches = packagePaths.Partition(DefaultBatchSize);
-                ISleetFileSystemLock feedLock = null;
+                ISleetFileSystemLock? feedLock = null;
 
                 try
                 {
@@ -43,7 +43,7 @@ namespace Sleet
 
                         if (feedLock == null)
                         {
-                            string lockMessage = null;
+                            string? lockMessage = null;
                             if (packages.Count > 0)
                             {
                                 lockMessage = $"Push of {packages[0].Identity.ToString()}";
@@ -267,7 +267,7 @@ namespace Sleet
 
         private static void CheckForDuplicates(List<PackageInput> packages)
         {
-            PackageInput lastPackage = null;
+            PackageInput? lastPackage = null;
             foreach (var package in packages.OrderBy(e => e))
             {
                 if (package.Equals(lastPackage))
@@ -283,7 +283,7 @@ namespace Sleet
         {
             // Validate package
             log.LogVerbose($"Reading {file}");
-            PackageInput packageInput = null;
+            PackageInput? packageInput = null;
 
             try
             {

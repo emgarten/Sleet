@@ -53,27 +53,26 @@ Install-CommonBuildTools $RepoRoot
 Remove-Artifacts $RepoRoot
 Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Clean;WriteGitInfo", "/p:Configuration=$Configuration")
 
-# Build Exe
-Invoke-DotnetExe $RepoRoot ("publish", "--force", "-r", "win-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=false", "--self-contained", "true", "-f", "net8.0", "-o", (Join-Path $RepoRoot "artifacts\publish"), (Join-Path $RepoRoot "\src\Sleet\Sleet.csproj"))
-
 # Restore
 Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Restore", "/p:Configuration=$Configuration")
 
-# Run main build
-$buildTargets = "Build"
+# Run build.proj
+Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Build", "/p:Configuration=$Configuration")
 
+# Build Exe
+Invoke-DotnetExe $RepoRoot ("publish", "--force", "-r", "win-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=false", "--self-contained", "true", "-f", "net10.0", "-o", (Join-Path $RepoRoot "artifacts\publish"), (Join-Path $RepoRoot "\src\Sleet\Sleet.csproj"))
+
+# Pack
 if (-not $SkipPack)
 {
-    $buildTargets += ";Pack"
+    Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Pack", "/p:Configuration=$Configuration")
 }
 
+# Test
 if (-not $SkipTests)
 {
-    $buildTargets += ";Test"
+    Invoke-DotnetExe $RepoRoot ("test", "Sleet.sln")
 }
 
-# Run build.proj
-Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:$buildTargets", "/p:Configuration=$Configuration")
- 
 popd
 Write-Host "Success!"

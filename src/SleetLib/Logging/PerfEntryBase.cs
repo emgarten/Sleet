@@ -49,8 +49,12 @@ namespace Sleet
             return GetMessage(ElapsedTime);
         }
 
-        public int CompareTo(PerfEntryBase other)
+        public int CompareTo(PerfEntryBase? other)
         {
+            if (other == null)
+            {
+                return 1;
+            }
             return ElapsedTime.CompareTo(other.ElapsedTime);
         }
     }

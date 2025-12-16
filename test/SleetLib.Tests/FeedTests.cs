@@ -85,12 +85,12 @@ namespace SleetLib.Tests
 
                     // Assert
                     Assert.True(validateOutput);
-                    Assert.Equal(1, catalogEntries.Count);
-                    Assert.Equal(1, catalogExistingEntries.Count);
-                    Assert.Equal(1, regPackages.Count);
-                    Assert.Equal(1, indexPackages.Count);
-                    Assert.Equal(1, searchPackages.Count);
-                    Assert.Equal(1, autoCompletePackages.Count);
+                    Assert.Single(catalogEntries);
+                    Assert.Single(catalogExistingEntries);
+                    Assert.Single(regPackages);
+                    Assert.Single(indexPackages);
+                    Assert.Single(searchPackages);
+                    Assert.Single(autoCompletePackages);
 
                     // Walk json to check for bad urls
                     await TestUtility.WalkJsonAsync(target.Root, (file, json, toCheck) =>

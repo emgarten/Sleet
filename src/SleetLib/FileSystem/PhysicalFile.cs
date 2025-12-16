@@ -34,7 +34,7 @@ namespace Sleet
             {
                 log.LogVerbose($"Pushing {_sourceFile.FullName}");
 
-                _sourceFile.Directory.Create();
+                _sourceFile.Directory?.Create();
 
                 var tmp = _sourceFile.FullName + ".tmp";
 
@@ -59,12 +59,14 @@ namespace Sleet
                 log.LogVerbose($"Removing {_sourceFile.FullName}");
                 _sourceFile.Delete();
 
-                if (!Directory.EnumerateFiles(_sourceFile.DirectoryName).Any()
-                    && !Directory.EnumerateDirectories(_sourceFile.DirectoryName).Any())
+                var directoryName = _sourceFile.DirectoryName;
+                if (directoryName is not null
+                    && !Directory.EnumerateFiles(directoryName).Any()
+                    && !Directory.EnumerateDirectories(directoryName).Any())
                 {
                     // Remove the parent directory if it is now empty
-                    log.LogVerbose($"Removing {_sourceFile.DirectoryName}");
-                    _sourceFile.Directory.Delete();
+                    log.LogVerbose($"Removing {directoryName}");
+                    _sourceFile.Directory?.Delete();
                 }
             }
             else

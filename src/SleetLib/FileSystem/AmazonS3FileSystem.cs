@@ -20,7 +20,7 @@ namespace Sleet
         private readonly IAmazonS3 _client;
         private readonly bool _compress;
         private readonly ServerSideEncryptionMethod _serverSideEncryptionMethod;
-        private readonly S3CannedACL _acl;
+        private readonly S3CannedACL? _acl;
         private readonly bool _disablePayloadSigning;
 
         private bool? _hasBucket;
@@ -37,9 +37,9 @@ namespace Sleet
             IAmazonS3 client,
             string bucketName,
             ServerSideEncryptionMethod serverSideEncryptionMethod,
-            string feedSubPath = null,
+            string? feedSubPath = null,
             bool compress = true,
-            S3CannedACL acl = null,
+            S3CannedACL? acl = null,
             bool disablePayloadSigning = false)
             : base(cache, root, baseUri)
         {
@@ -101,7 +101,7 @@ namespace Sleet
                     // Remove sub path if it exists on the relative path, GetPath will add the sub path.
                     if (hasSubPath)
                     {
-                        relPath = relPath.Substring(FeedSubPath.Length);
+                        relPath = relPath.Substring(FeedSubPath!.Length);
                     }
 
                     // Get the URI including the bucket uri

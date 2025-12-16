@@ -38,7 +38,7 @@ namespace Sleet
 
         Task<JObject> GetJson(ILogger log, CancellationToken token);
 
-        Task<JObject> GetJsonOrNull(ILogger log, CancellationToken token);
+        Task<JObject?> GetJsonOrNull(ILogger log, CancellationToken token);
 
         Task Write(JObject json, ILogger log, CancellationToken token);
 

@@ -42,14 +42,14 @@ namespace Sleet
             PackageIdentity = new PackageIdentity(id, version);
         }
 
-        public override bool Equals(object obj) => Equals(obj as CatalogIndexEntry);
+        public override bool Equals(object? obj) => Equals(obj as CatalogIndexEntry);
 
         public override int GetHashCode()
         {
             return PackageIdentity.GetHashCode();
         }
 
-        public bool Equals(CatalogIndexEntry other)
+        public bool Equals(CatalogIndexEntry? other)
         {
             if (other == null)
             {
@@ -64,7 +64,7 @@ namespace Sleet
             return PackageIdentity.Equals(other.PackageIdentity);
         }
 
-        public int CompareTo(CatalogIndexEntry other)
+        public int CompareTo(CatalogIndexEntry? other)
         {
             if (other == null)
             {

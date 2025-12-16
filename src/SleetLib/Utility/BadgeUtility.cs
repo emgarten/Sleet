@@ -85,7 +85,7 @@ namespace Sleet
             return toUpdate;
         }
 
-        public static NuGetVersion GetMaxVersion(ISet<PackageIdentity> packages, string id, bool includePre)
+        public static NuGetVersion? GetMaxVersion(ISet<PackageIdentity> packages, string id, bool includePre)
         {
             var versions = new SortedSet<NuGetVersion>(packages.Where(e => StringComparer.OrdinalIgnoreCase.Equals(id, e.Id)).Select(e => e.Version));
 

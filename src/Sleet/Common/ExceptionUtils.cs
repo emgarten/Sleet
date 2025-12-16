@@ -17,7 +17,7 @@ namespace Sleet
         /// </summary>
         internal static void LogException(Exception ex, ILogger logger)
         {
-            LogException(ex, logger, logLevel: LogLevel.Error, showType: true, message: null);
+            LogException(ex, logger, logLevel: LogLevel.Error, showType: true, message: null!);
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Sleet
         /// </summary>
         internal static void LogException(Exception ex, ILogger logger, LogLevel logLevel)
         {
-            LogException(ex, logger, logLevel, showType: true, message: null);
+            LogException(ex, logger, logLevel, showType: true, message: null!);
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Sleet
         /// </summary>
         internal static void LogException(Exception ex, ILogger logger, LogLevel logLevel, bool showType)
         {
-            LogException(ex, logger, logLevel, showType, message: null);
+            LogException(ex, logger, logLevel, showType, message: null!);
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Sleet
         /// </summary>
         internal static string GetExceptionMessage(Exception ex)
         {
-            return GetExceptionMessage(ex, showType: true, message: null);
+            return GetExceptionMessage(ex, showType: true, message: null!);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Sleet
         /// </summary>
         internal static string GetExceptionMessage(Exception ex, bool showType)
         {
-            return GetExceptionMessage(ex, showType, message: null);
+            return GetExceptionMessage(ex, showType, message: null!);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Sleet
         /// <summary>
         /// Return the root exception thrown.
         /// </summary>
-        internal static Exception Unwrap(Exception ex)
+        internal static Exception? Unwrap(Exception ex)
         {
             return GetExceptions(ex, includeInner: false).FirstOrDefault();
         }
@@ -155,14 +155,14 @@ namespace Sleet
                 {
                     return ag.InnerExceptions.SelectMany(e => GetExceptions(e, includeInner));
                 }
-                else if (ex is TargetInvocationException te)
+                else if (ex is TargetInvocationException te && te.InnerException != null)
                 {
                     return GetExceptions(te.InnerException, includeInner);
                 }
                 else
                 {
                     var exceptions = new List<Exception>() { ex };
-                    if (includeInner)
+                    if (includeInner && ex.InnerException != null)
                     {
                         exceptions.AddRange(GetExceptions(ex.InnerException, includeInner));
                     }
