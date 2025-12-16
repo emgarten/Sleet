@@ -6,8 +6,11 @@
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(PackSleetDotnetTool)' == 'true' ">
+  <PropertyGroup>
     <ToolCommandName>sleet</ToolCommandName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(PackSleetDotnetTool)' == 'true' ">
     <IsTool>true</IsTool>
     <PackAsTool>true</PackAsTool>
   </PropertyGroup>
