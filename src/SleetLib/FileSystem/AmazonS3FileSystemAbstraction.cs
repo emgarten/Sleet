@@ -98,7 +98,7 @@ namespace Sleet
                     s3Objects = listObjectsResponse.S3Objects;
                 else
                     s3Objects.AddRange(listObjectsResponse.S3Objects);
-            } while (listObjectsResponse.IsTruncated);
+            } while (listObjectsResponse.IsTruncated == true);
 
             return s3Objects;
         }

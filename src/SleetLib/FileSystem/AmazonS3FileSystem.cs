@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
@@ -238,13 +232,13 @@ namespace Sleet
         // Set the default acl of the bucket.
         private Task SetBucketAcl(ILogger log, CancellationToken token)
         {
-            var aclReq = new PutACLRequest()
+            var bucketAclReq = new PutBucketAclRequest()
             {
                 BucketName = _bucketName,
-                CannedACL = _acl
+                ACL = _acl
             };
 
-            return _client.PutACLAsync(aclReq, token);
+            return _client.PutBucketAclAsync(bucketAclReq, token);
         }
 
         // Remove public access blocks to allow public policies.
