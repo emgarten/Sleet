@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Sleet
 {
-    internal class TaskUtils
+    internal static class TaskUtils
     {
 #if NET45
         private static readonly Task InternalCompletedTask = Task.FromResult<object>(null);

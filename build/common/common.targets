@@ -35,8 +35,11 @@
 
   <!-- Default package versions -->
   <PropertyGroup>
-    <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">8.8.0</FluentAssertionsVersion>
+    <FluentAssertionsVersion Condition=" '$(FluentAssertionsVersion)' == '' ">7.2.0</FluentAssertionsVersion>
     <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.6.0</ToStringWithoutOverrideAnalyzerVersion>
+    <MicrosoftCodeAnalysisNetAnalyzersVersion Condition=" '$(MicrosoftCodeAnalysisNetAnalyzersVersion)' == '' ">10.0.101</MicrosoftCodeAnalysisNetAnalyzersVersion>
+    <RoslynatorAnalyzersVersion Condition=" '$(RoslynatorAnalyzersVersion)' == '' ">4.15.0</RoslynatorAnalyzersVersion>
+    <MeziantouAnalyzerVersion Condition=" '$(MeziantouAnalyzerVersion)' == '' ">false</MeziantouAnalyzerVersion>
     <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">18.0.1</TestSDKVersion>
     <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.9.3</XunitVersion>
     <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">3.1.5</XunitRunnerVisualStudioVersion>
@@ -95,7 +98,14 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TestProject)' != 'true' ">
-    <PackageReference Include="ToStringWithoutOverrideAnalyzer" Version="$(ToStringWithoutOverrideAnalyzerVersion)" PrivateAssets="all" />
+    <!-- Analyze to string -->
+    <PackageReference Include="ToStringWithoutOverrideAnalyzer" Version="$(ToStringWithoutOverrideAnalyzerVersion)" PrivateAssets="all" Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' != 'false' " />
+    <!-- Official Microsoft analyzers (CAxxxx rules) -->
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" PrivateAssets="all" Condition=" '$(MicrosoftCodeAnalysisNetAnalyzersVersion)' != 'false' " />
+    <!-- Practical C# best-practice analyzers + refactorings -->
+    <PackageReference Include="Roslynator.Analyzers" Version="$(RoslynatorAnalyzersVersion)" PrivateAssets="all" Condition=" '$(RoslynatorAnalyzersVersion)' != 'false' " />
+    <!-- High-signal performance, security, and correctness analyzers -->
+    <PackageReference Include="Meziantou.Analyzer" Version="$(MeziantouAnalyzerVersion)" PrivateAssets="all" Condition=" '$(MeziantouAnalyzerVersion)' != 'false' " />
   </ItemGroup>
 
   <!-- Sign -->

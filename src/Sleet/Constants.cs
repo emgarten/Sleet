@@ -1,6 +1,6 @@
 namespace Sleet
 {
-    internal class Constants
+    internal static class Constants
     {
         internal const string HelpOption = "-h|--help";
         internal const string ConfigOption = "-c|--config";
