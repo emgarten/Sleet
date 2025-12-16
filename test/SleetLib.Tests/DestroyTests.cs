@@ -13,7 +13,7 @@ namespace SleetLib.Tests
     public class DestroyTests
     {
         [Fact]
-        public void GivenThatIWantToDestroyAFeedVerifyAnEmptyFeedThrows()
+        public async Task GivenThatIWantToDestroyAFeedVerifyAnEmptyFeedThrows()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
@@ -26,7 +26,7 @@ namespace SleetLib.Tests
 
                 Func<Task> task = async () => await DestroyCommand.RunAsync(settings, fileSystem, log);
 
-                task.ShouldThrow<InvalidOperationException>();
+                await task.Should().ThrowAsync<InvalidOperationException>();
             }
         }
 
@@ -59,10 +59,10 @@ namespace SleetLib.Tests
                 var files = root.GetFiles("*", SearchOption.AllDirectories);
                 var dirs = root.GetDirectories();
 
-                success.ShouldBeEquivalentTo(true, "the command should exit without errors");
+                success.Should().Be(true, "the command should exit without errors");
 
-                files.Length.ShouldBeEquivalentTo(0, "all files should be gone");
-                dirs.Length.ShouldBeEquivalentTo(0, "all directories should be gone");
+                files.Length.Should().Be(0, "all files should be gone");
+                dirs.Length.Should().Be(0, "all directories should be gone");
             }
         }
     }

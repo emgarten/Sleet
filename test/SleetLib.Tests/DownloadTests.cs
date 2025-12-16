@@ -14,7 +14,7 @@ namespace SleetLib.Tests
     public class DownloadTests
     {
         [Fact]
-        public void GivenThatTheFeedIsNotInitializedVerifyCommandFails()
+        public async Task GivenThatTheFeedIsNotInitializedVerifyCommandFails()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
@@ -27,7 +27,7 @@ namespace SleetLib.Tests
 
                 Func<Task> action = async () => await DownloadCommand.RunAsync(settings, fileSystem, outputFolder, false, log);
 
-                action.ShouldThrow<InvalidOperationException>("the feed is not initialized");
+                await action.Should().ThrowAsync<InvalidOperationException>("the feed is not initialized");
             }
         }
 
@@ -49,9 +49,9 @@ namespace SleetLib.Tests
 
                 var success = await DownloadCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
 
-                success.ShouldBeEquivalentTo(true, "the feed is valid");
+                success.Should().Be(true, "the feed is valid");
 
-                Directory.GetFiles(outputFolder, "*.nupkg", SearchOption.AllDirectories).Length.ShouldBeEquivalentTo(0, "the feed is empty");
+                Directory.GetFiles(outputFolder, "*.nupkg", SearchOption.AllDirectories).Length.Should().Be(0, "the feed is empty");
 
                 log.GetMessages().Should().Contain("The feed does not contain any packages");
             }
@@ -87,9 +87,9 @@ namespace SleetLib.Tests
                     .OrderBy(e => e, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 
-                success.ShouldBeEquivalentTo(true, "the feed is valid");
+                success.Should().Be(true, "the feed is valid");
 
-                fileNames.ShouldBeEquivalentTo(new[] { "a.1.0.0.nupkg", "b.2.0.0-beta.nupkg" });
+                fileNames.Should().BeEquivalentTo(new[] { "a.1.0.0.nupkg", "b.2.0.0-beta.nupkg" });
 
                 log.GetMessages().Should().NotContain("The feed does not contain any packages");
                 log.GetMessages().Should().Contain("a.1.0.0.nupkg");
@@ -142,9 +142,9 @@ namespace SleetLib.Tests
                     .OrderBy(e => e, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 
-                success.ShouldBeEquivalentTo(false, "the feed is not valid");
+                success.Should().Be(false, "the feed is not valid");
 
-                fileNames.ShouldBeEquivalentTo(expected, "all files but the deleted one");
+                fileNames.Should().BeEquivalentTo(expected, "all files but the deleted one");
 
                 log.GetMessages().Should().NotContain("The feed does not contain any packages");
                 log.GetMessages().Should().Contain("Failed to download all packages!");
@@ -187,9 +187,9 @@ namespace SleetLib.Tests
                     .OrderBy(e => e, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 
-                success.ShouldBeEquivalentTo(true, "the feed is valid");
+                success.Should().Be(true, "the feed is valid");
 
-                fileNames.ShouldBeEquivalentTo(new[] { "a.1.0.0.nupkg", "a.1.0.0.symbols.nupkg" });
+                fileNames.Should().BeEquivalentTo(new[] { "a.1.0.0.nupkg", "a.1.0.0.symbols.nupkg" });
 
                 log.GetMessages().Should().NotContain("The feed does not contain any packages");
                 log.GetMessages().Should().Contain("a.1.0.0.nupkg");

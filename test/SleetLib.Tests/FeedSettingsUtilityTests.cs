@@ -94,7 +94,7 @@ namespace SleetLib.Tests
                 { "badgesenabled", "false" },
             };
 
-            values.ShouldBeEquivalentTo(expected);
+            values.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -118,7 +118,7 @@ namespace SleetLib.Tests
                 { "badgesenabled", "true" },
             };
 
-            values.ShouldBeEquivalentTo(expected);
+            values.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace SleetLib.Tests
 
             var expected = new FeedSettings();
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -150,7 +150,7 @@ namespace SleetLib.Tests
 
             var actual = FeedSettingsUtility.GetSettings(json);
 
-            actual.ShouldBeEquivalentTo(values);
+            actual.Should().BeEquivalentTo(values);
         }
 
         [Fact]
@@ -169,7 +169,7 @@ namespace SleetLib.Tests
 
             var actual = FeedSettingsUtility.GetSettings(json);
 
-            actual.ShouldBeEquivalentTo(values);
+            actual.Should().BeEquivalentTo(values);
         }
 
         [Fact]
@@ -217,7 +217,7 @@ namespace SleetLib.Tests
 
             var actual = FeedSettingsUtility.GetSettings(json);
 
-            actual.ShouldBeEquivalentTo(values2);
+            actual.Should().BeEquivalentTo(values2);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace SleetLib.Tests
     public class RecreateCommandTests
     {
         [Fact]
-        public void GivenThatTheFeedIsNotInitializedVerifyRecreateFails()
+        public async Task GivenThatTheFeedIsNotInitializedVerifyRecreateFails()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
@@ -36,7 +36,7 @@ namespace SleetLib.Tests
 
                 Func<Task> action = async () => await RecreateCommand.RunAsync(settings, fileSystem, outputFolder, force: false, log: log);
 
-                action.ShouldThrow<InvalidOperationException>("the feed is not initialized");
+                await action.Should().ThrowAsync<InvalidOperationException>("the feed is not initialized");
             }
         }
 
@@ -80,7 +80,7 @@ namespace SleetLib.Tests
 
                 Directory.Exists(outputFolder).Should().BeFalse();
 
-                finalPackages.ShouldBeEquivalentTo(new string[] { "a.1.0.0.nupkg", "b.2.0.0-beta.nupkg" });
+                finalPackages.Should().BeEquivalentTo(new string[] { "a.1.0.0.nupkg", "b.2.0.0-beta.nupkg" });
             }
         }
 

@@ -15,7 +15,7 @@ namespace SleetLib.Tests
     public class FeedSettingsCommandTests
     {
         [Fact]
-        public void GivenThatTheFeedIsNotInitializedVerifySettingsFails()
+        public async Task GivenThatTheFeedIsNotInitializedVerifySettingsFails()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
@@ -46,12 +46,12 @@ namespace SleetLib.Tests
                     log: log,
                     token: context.Token);
 
-                action.ShouldThrow<InvalidOperationException>("the feed is not initialized");
+                await action.Should().ThrowAsync<InvalidOperationException>("the feed is not initialized");
             }
         }
 
         [Fact]
-        public void GivenBothGetAndSetArePassedVerifyFailure()
+        public async Task GivenBothGetAndSetArePassedVerifyFailure()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
@@ -82,7 +82,7 @@ namespace SleetLib.Tests
                     log: log,
                     token: context.Token);
 
-                action.ShouldThrow<InvalidOperationException>("invalid combo");
+                await action.Should().ThrowAsync<InvalidOperationException>("invalid combo");
             }
         }
 
@@ -120,7 +120,7 @@ namespace SleetLib.Tests
                     log: log,
                     token: context.Token);
 
-                action.ShouldThrow<ArgumentException>("invalid format");
+                await action.Should().ThrowAsync<ArgumentException>("invalid format");
             }
         }
 
@@ -251,7 +251,7 @@ namespace SleetLib.Tests
                     log: log,
                     token: context.Token);
 
-                action.ShouldThrow<ArgumentException>("invalid combo");
+                await action.Should().ThrowAsync<ArgumentException>("invalid combo");
             }
         }
 

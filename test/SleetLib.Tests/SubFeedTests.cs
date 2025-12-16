@@ -65,7 +65,7 @@ namespace SleetLib.Tests
 
                 success.Should().BeTrue();
                 target.RootDirectory.GetFiles().Should().BeEmpty();
-                target.RootDirectory.GetDirectories().Select(e => e.Name).ShouldBeEquivalentTo(new[] { "feedA", "feedB" });
+                target.RootDirectory.GetDirectories().Select(e => e.Name).Should().BeEquivalentTo(new[] { "feedA", "feedB" });
             }
         }
 
@@ -96,7 +96,7 @@ namespace SleetLib.Tests
 
                 success.Should().BeTrue();
                 target.RootDirectory.GetFiles().Should().BeEmpty();
-                target.RootDirectory.GetDirectories().Select(e => e.Name).ShouldBeEquivalentTo(new[] { "feedA" });
+                target.RootDirectory.GetDirectories().Select(e => e.Name).Should().BeEquivalentTo(new[] { "feedA" });
             }
         }
     }
