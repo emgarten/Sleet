@@ -102,7 +102,7 @@ Function Invoke-DotnetExe {
 
     Write-Host "[Exec]" $command -ForegroundColor Cyan
 
-    Start-Process -FilePath $dotnetExe -NoNewWindow -Wait -ArgumentList $Arguments
+    & $dotnetExe $Arguments
 
     if (-not $?) {
         Write-Error $command
