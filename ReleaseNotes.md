@@ -1,5 +1,9 @@
 # Release Notes
 
+## 7.0.0
+* Add net10.0 support, remove netstandard2.0, net6.0 support
+* Update NuGet.* packages to 7.0.1
+
 ## 6.5.13
 * Update Azure.Identity to 1.15.0
 
