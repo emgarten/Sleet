@@ -1,0 +1,1 @@
+Follow all guidance and rules in `<repo root>/AGENTS.md`
