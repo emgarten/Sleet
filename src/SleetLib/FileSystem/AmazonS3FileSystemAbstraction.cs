@@ -81,7 +81,7 @@ namespace Sleet
             string bucketName,
             CancellationToken token)
         {
-            List<S3Object>? s3Objects = null;
+            var s3Objects = new List<S3Object>();
             var listObjectsRequest = new ListObjectsV2Request
             {
                 BucketName = bucketName,
@@ -94,10 +94,10 @@ namespace Sleet
                 listObjectsResponse = await client.ListObjectsV2Async(listObjectsRequest, token).ConfigureAwait(false);
                 listObjectsRequest.ContinuationToken = listObjectsResponse.NextContinuationToken;
 
-                if (s3Objects == null)
-                    s3Objects = listObjectsResponse.S3Objects;
-                else
+                if (listObjectsResponse.S3Objects != null)
+                {
                     s3Objects.AddRange(listObjectsResponse.S3Objects);
+                }
             } while (listObjectsResponse.IsTruncated == true);
 
             return s3Objects;
