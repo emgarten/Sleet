@@ -72,7 +72,7 @@ namespace Sleet
                 .ListObjectsV2Async(listObjectsRequest, token)
                 .ConfigureAwait(false);
 
-            return listObjectsResponse.S3Objects
+            return GetS3ObjectsOrEmptyList(listObjectsResponse)
                 .Any(x => x.Key.Equals(key, StringComparison.Ordinal));
         }
 
@@ -81,7 +81,7 @@ namespace Sleet
             string bucketName,
             CancellationToken token)
         {
-            List<S3Object>? s3Objects = null;
+            var s3Objects = new List<S3Object>();
             var listObjectsRequest = new ListObjectsV2Request
             {
                 BucketName = bucketName,
@@ -93,12 +93,8 @@ namespace Sleet
             {
                 listObjectsResponse = await client.ListObjectsV2Async(listObjectsRequest, token).ConfigureAwait(false);
                 listObjectsRequest.ContinuationToken = listObjectsResponse.NextContinuationToken;
-
-                if (s3Objects == null)
-                    s3Objects = listObjectsResponse.S3Objects;
-                else
-                    s3Objects.AddRange(listObjectsResponse.S3Objects);
-            } while (listObjectsResponse.IsTruncated);
+                s3Objects.AddRange(GetS3ObjectsOrEmptyList(listObjectsResponse));
+            } while (listObjectsResponse.IsTruncated == true);
 
             return s3Objects;
         }
@@ -170,6 +166,15 @@ namespace Sleet
 
             using (transferUtility)
                 await transferUtility.UploadAsync(request, token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get S3 objects or an empty list if response is null.
+        /// This helpers avoid issues from S3Objects being null.
+        /// </summary>
+        private static IEnumerable<S3Object> GetS3ObjectsOrEmptyList(ListObjectsV2Response response)
+        {
+            return response?.S3Objects ?? Enumerable.Empty<S3Object>();
         }
     }
 }

@@ -3,17 +3,17 @@
   <!-- Dependency versions -->
   <PropertyGroup>
     <NuGetPackageVersion>7.0.1</NuGetPackageVersion>
-    <AzureStorageBlobsVersion>12.20.0</AzureStorageBlobsVersion>
-    <JsonVersion>13.0.3</JsonVersion>
+    <AzureStorageBlobsVersion>12.26.0</AzureStorageBlobsVersion>
+    <JsonVersion>13.0.4</JsonVersion>
     <CommandLineUtilsVersion>4.1.1</CommandLineUtilsVersion>
     <NuGetTestHelpersVersion>2.1.39</NuGetTestHelpersVersion>
-    <PortablePdbVersion>1.5.0</PortablePdbVersion>
-    <AWSSDKVersion>3.7.310.4</AWSSDKVersion>
-    <AWSSDKTokenVersion>3.7.300.117</AWSSDKTokenVersion>
-    <AWSSDKSSOVersion>3.7.300.116</AWSSDKSSOVersion>
-    <AWSSDKSSOOIDCVersion>3.7.302.27</AWSSDKSSOOIDCVersion>
-    <DotNetConfigVersion>1.0.6</DotNetConfigVersion>
-    <AzureIdentityVersion>1.15.0</AzureIdentityVersion>
+    <PortablePdbVersion>1.6.0</PortablePdbVersion>
+    <AWSSDKVersion>4.0.15.1</AWSSDKVersion>
+    <AWSSDKTokenVersion>4.0.5.4</AWSSDKTokenVersion>
+    <AWSSDKSSOVersion>4.0.2.8</AWSSDKSSOVersion>
+    <AWSSDKSSOOIDCVersion>4.0.3.9</AWSSDKSSOOIDCVersion>
+    <DotNetConfigVersion>1.2.0</DotNetConfigVersion>
+    <AzureIdentityVersion>1.17.1</AzureIdentityVersion>
   </PropertyGroup>
 
   <!-- Config -->
