@@ -61,7 +61,7 @@ namespace Sleet.Test.Common
         /// <summary>
         /// Create a package input from a zip file and register it for disposal.
         /// </summary>
-        public PackageInput GetPackageInput(FileInfo zipFile)
+        public static PackageInput GetPackageInput(FileInfo zipFile)
         {
             return GetPackageInput(zipFile, isSymbols: false);
         }
@@ -69,7 +69,7 @@ namespace Sleet.Test.Common
         /// <summary>
         /// Create a package input from a zip file and register it for disposal.
         /// </summary>
-        public PackageInput GetPackageInput(FileInfo zipFile, bool isSymbols)
+        public static PackageInput GetPackageInput(FileInfo zipFile, bool isSymbols)
         {
             using (var reader = new PackageArchiveReader(zipFile.FullName))
             {

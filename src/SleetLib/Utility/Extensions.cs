@@ -145,10 +145,7 @@ namespace Sleet
         /// </summary>
         public static async Task<MemoryStream> AsMemoryStreamAsync(this Stream stream)
         {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
+            ArgumentNullException.ThrowIfNull(stream);
 
             if (stream.CanSeek)
             {

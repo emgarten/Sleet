@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using NuGet.Common;
 
 namespace Sleet
 {
+    [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "Get is a well-established method name in this API")]
     public abstract class FileSystemBase : ISleetFileSystem
     {
         /// <summary>
@@ -130,20 +132,14 @@ namespace Sleet
 
         public Uri GetPath(string relativePath)
         {
-            if (relativePath == null)
-            {
-                throw new ArgumentNullException(nameof(relativePath));
-            }
+            ArgumentNullException.ThrowIfNull(relativePath);
 
             return UriUtility.GetPath(BaseURI, relativePath);
         }
 
         public virtual string GetRelativePath(Uri uri)
         {
-            if (uri == null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
+            ArgumentNullException.ThrowIfNull(uri);
 
             var path = uri.AbsoluteUri;
 
@@ -165,10 +161,7 @@ namespace Sleet
         /// </summary>
         protected ISleetFile GetOrAddFile(Uri path, bool caseSensitive, Func<SleetUriPair, ISleetFile> createFile)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
+            ArgumentNullException.ThrowIfNull(path);
 
             var file = Files.GetOrAdd(path, (uri) =>
             {
@@ -183,10 +176,7 @@ namespace Sleet
         /// </summary>
         protected SleetUriPair GetUriPair(Uri path, bool caseSensitive)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
+            ArgumentNullException.ThrowIfNull(path);
 
             var isRoot = UriUtility.HasRoot(Root, path, caseSensitive);
             var isDisplay = UriUtility.HasRoot(BaseURI, path, caseSensitive);

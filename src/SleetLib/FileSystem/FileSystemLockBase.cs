@@ -105,7 +105,7 @@ namespace Sleet
         /// </summary>
         protected virtual string ManualUnlockInstructions => string.Empty;
 
-        protected JObject GetMessageJson(string lockMessage)
+        protected static JObject GetMessageJson(string lockMessage)
         {
             return new JObject(
                 new JProperty("date", DateTime.UtcNow.ToString("o")),

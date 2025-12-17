@@ -41,7 +41,7 @@ namespace Sleet
             _context = context;
         }
 
-        public async Task ApplyOperationsAsync(SleetOperations changeContext)
+        public async Task ApplyOperationsAsync(SleetOperations operations)
         {
             var file = RootIndexFile;
             using (var timer = PerfEntryWrapper.CreateModifyTimer(file, _context))
@@ -52,7 +52,7 @@ namespace Sleet
                 // Modified packages will be rebuilt, other entries will be left as-is.
                 var data = GetData(json);
 
-                foreach (var packageId in changeContext.GetChangedIds())
+                foreach (var packageId in operations.GetChangedIds())
                 {
                     // Remove the existing entry if it exists
                     if (data.ContainsKey(packageId))
@@ -60,7 +60,7 @@ namespace Sleet
                         data.Remove(packageId);
                     }
 
-                    var packages = await changeContext.UpdatedIndex.Packages.GetPackagesByIdAsync(packageId);
+                    var packages = await operations.UpdatedIndex.Packages.GetPackagesByIdAsync(packageId);
                     var versions = new SortedSet<NuGetVersion>(packages.Select(e => e.Version));
 
                     // If no versions exist then there is no extra work needed.
@@ -146,7 +146,7 @@ namespace Sleet
             return JsonLDTokenComparer.Format(packageEntry);
         }
 
-        private Dictionary<string, JObject> GetData(JObject page)
+        private static Dictionary<string, JObject> GetData(JObject page)
         {
             var data = new Dictionary<string, JObject>(StringComparer.OrdinalIgnoreCase);
 

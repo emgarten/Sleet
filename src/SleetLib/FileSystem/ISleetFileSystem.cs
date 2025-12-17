@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
 
 namespace Sleet
 {
+    [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "Get is a well-established method name in this API")]
     public interface ISleetFileSystem
     {
         Uri BaseURI { get; }

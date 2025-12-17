@@ -40,7 +40,7 @@
       <!-- Can be ignored -->
       <NoWarn>$(NoWarn);CA2211;CA1308</NoWarn>
       <!-- To remove and fix -->
-      <NoWarn>$(NoWarn);CA2007;CA1051;CA1510;CA1707;CA1716;CA1720;CA1725;CA1805;CA1816;CA1822;CA1853;CA1864;CA2201;CA2249</NoWarn>
+      <NoWarn>$(NoWarn);CA2007;CA1051;CA1816;CA1853;CA1864;CA2201</NoWarn>
    </PropertyGroup>
 
 </Project>

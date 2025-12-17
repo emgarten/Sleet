@@ -159,7 +159,7 @@ namespace Sleet
                 // Allow handlers to perform additional work
                 if (settingHandlers.TryGetValue(key, out var handler))
                 {
-                    await handler.Set(value);
+                    await handler.SetValue(value);
                 }
             }
 

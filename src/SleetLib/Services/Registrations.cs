@@ -26,9 +26,9 @@ namespace Sleet
             _context = context;
         }
 
-        public Task AddPackageAsync(PackageInput package)
+        public Task AddPackageAsync(PackageInput packageInput)
         {
-            return AddPackagesAsync(new[] { package });
+            return AddPackagesAsync(new[] { packageInput });
         }
 
         public Task RemovePackageAsync(PackageIdentity package)
@@ -121,9 +121,9 @@ namespace Sleet
             }
         }
 
-        public Task RemovePackagesAsync(IEnumerable<PackageIdentity> packagesToDelete)
+        public Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
         {
-            var byId = SleetUtility.GetPackageSetsById(packagesToDelete, e => e.Id);
+            var byId = SleetUtility.GetPackageSetsById(packages, e => e.Id);
             var tasks = new List<Func<Task>>();
 
             foreach (var pair in byId)
@@ -194,7 +194,7 @@ namespace Sleet
         /// <summary>
         /// Get all package details from all pages
         /// </summary>
-        public Task<List<JObject>> GetPackageDetails(JObject json)
+        public static Task<List<JObject>> GetPackageDetails(JObject json)
         {
             var pages = GetItems(json);
             return Task.FromResult(pages.SelectMany(GetItems).ToList());

@@ -82,7 +82,7 @@ namespace Sleet
             return result;
         }
 
-        private SortedSet<AssetIndexEntry> GetAssets(JObject json, string propertyName)
+        private static SortedSet<AssetIndexEntry> GetAssets(JObject json, string propertyName)
         {
             var assets = new SortedSet<AssetIndexEntry>();
             var packages = json[propertyName] as JArray;

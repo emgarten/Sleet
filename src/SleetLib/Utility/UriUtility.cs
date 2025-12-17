@@ -35,10 +35,12 @@ namespace Sleet
         /// </summary>
         public static Uri GetPath(Uri root, params string[] relativePaths)
         {
+            ArgumentNullException.ThrowIfNull(relativePaths);
+
             if (relativePaths.Length < 1)
             {
                 Debug.Fail("bad path");
-                throw new ArgumentNullException(nameof(relativePaths));
+                throw new ArgumentException("At least one relative path must be provided.", nameof(relativePaths));
             }
 
             var parts = new List<string>(relativePaths.Length);

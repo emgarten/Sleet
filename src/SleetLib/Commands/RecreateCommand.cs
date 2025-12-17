@@ -149,7 +149,7 @@ namespace Sleet
                 };
 
                 var searchHandler = new ExternalSearchHandler(context);
-                await searchHandler.Set(feedSettings.ExternalSearch);
+                await searchHandler.SetValue(feedSettings.ExternalSearch);
 
                 await source.Commit(log, token);
             }
