@@ -41,7 +41,7 @@ namespace Sleet
                     using (Stream source = File.OpenRead(gzipFile))
                     using (Stream zipStream = new GZipStream(source, CompressionMode.Decompress))
                     {
-                        await zipStream.CopyToAsync(destination);
+                        await zipStream.CopyToAsync(destination, CancellationToken.None);
                     }
 
                     File.Delete(gzipFile);

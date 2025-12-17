@@ -84,7 +84,7 @@ namespace Sleet
 
         public override async Task<IReadOnlyList<ISleetFile>> GetFiles(ILogger log, CancellationToken token)
         {
-            var results = _container.GetBlobsAsync();
+            var results = _container.GetBlobsAsync(cancellationToken: token);
             var pages = results.AsPages();
             var blobs = new List<ISleetFile>();
 

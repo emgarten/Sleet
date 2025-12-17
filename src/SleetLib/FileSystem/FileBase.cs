@@ -147,7 +147,7 @@ namespace Sleet
                         {
                             await log.LogAsync(LogLevel.Debug, ex.ToString());
                             await log.LogAsync(LogLevel.Warning, $"Failed to upload '{RootPath}'. Retrying.");
-                            await Task.Delay(TimeSpan.FromSeconds(10));
+                            await Task.Delay(TimeSpan.FromSeconds(10), token);
                         }
                     }
                 }
@@ -206,7 +206,7 @@ namespace Sleet
                 using (stream)
                 using (var writeStream = File.OpenWrite(LocalCacheFile.FullName))
                 {
-                    await stream.CopyToAsync(writeStream);
+                    await stream.CopyToAsync(writeStream, CancellationToken.None);
                 }
             }
         }
@@ -292,7 +292,7 @@ namespace Sleet
                         {
                             await log.LogAsync(LogLevel.Debug, ex.ToString());
                             await log.LogAsync(LogLevel.Warning, $"Failed to sync '{RootPath}'. Retrying.");
-                            await Task.Delay(TimeSpan.FromSeconds(5));
+                            await Task.Delay(TimeSpan.FromSeconds(5), token);
                         }
                     }
                 }

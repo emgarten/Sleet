@@ -79,7 +79,7 @@ namespace Sleet
                         }
 
                         firstLoop = false;
-                        await Task.Delay(waitTime);
+                        await Task.Delay(waitTime, token);
                     }
                 }
                 while (!result && timer.Elapsed < wait);
