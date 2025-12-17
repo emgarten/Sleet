@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -109,24 +110,24 @@ namespace Sleet
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "catalogenabled", settings.CatalogEnabled.ToString().ToLowerInvariant() },
-                { "catalogpagesize", settings.CatalogPageSize.ToString() },
+                { "catalogpagesize", settings.CatalogPageSize.ToString(CultureInfo.InvariantCulture) },
                 { "symbolsfeedenabled", settings.SymbolsEnabled.ToString().ToLowerInvariant() },
                 { "badgesenabled", settings.BadgesEnabled.ToString().ToLowerInvariant() }
             };
 
             if (settings.RetentionMaxStableVersions > 0)
             {
-                values.Add("retentionmaxstableversions", settings.RetentionMaxStableVersions.Value.ToString());
+                values.Add("retentionmaxstableversions", settings.RetentionMaxStableVersions.Value.ToString(CultureInfo.InvariantCulture));
             }
 
             if (settings.RetentionMaxPrereleaseVersions > 0)
             {
-                values.Add("retentionmaxprereleaseversions", settings.RetentionMaxPrereleaseVersions.Value.ToString());
+                values.Add("retentionmaxprereleaseversions", settings.RetentionMaxPrereleaseVersions.Value.ToString(CultureInfo.InvariantCulture));
             }
 
             if (settings.RetentionGroupByFirstPrereleaseLabelCount > 0)
             {
-                values.Add("retentiongroupbyfirstprereleaselabelcount", settings.RetentionGroupByFirstPrereleaseLabelCount.Value.ToString());
+                values.Add("retentiongroupbyfirstprereleaselabelcount", settings.RetentionGroupByFirstPrereleaseLabelCount.Value.ToString(CultureInfo.InvariantCulture));
             }
 
             if (!string.IsNullOrWhiteSpace(settings.ExternalSearch))

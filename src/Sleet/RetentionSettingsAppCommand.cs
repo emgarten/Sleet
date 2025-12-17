@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using McMaster.Extensions.CommandLineUtils;
 using NuGet.Common;
 
@@ -57,13 +58,13 @@ namespace Sleet
 
                     var success = false;
 
-                    var stableVersionMax = stableVersions.HasValue() ? int.Parse(stableVersions.Value()!) : -1;
-                    var prereleaseVersionMax = prereleaseVersions.HasValue() ? int.Parse(prereleaseVersions.Value()!) : -1;
+                    var stableVersionMax = stableVersions.HasValue() ? int.Parse(stableVersions.Value()!, CultureInfo.InvariantCulture) : -1;
+                    var prereleaseVersionMax = prereleaseVersions.HasValue() ? int.Parse(prereleaseVersions.Value()!, CultureInfo.InvariantCulture) : -1;
                     int? releaseLabelsCount = null;
 
                     if (releaseLabelsValue.HasValue())
                     {
-                        releaseLabelsCount = int.Parse(releaseLabelsValue.Value()!);
+                        releaseLabelsCount = int.Parse(releaseLabelsValue.Value()!, CultureInfo.InvariantCulture);
                     }
 
                     success = await RetentionSettingsCommand.RunAsync(settings, fileSystem, stableVersionMax, prereleaseVersionMax, releaseLabelsCount, disableRetention.HasValue(), log);

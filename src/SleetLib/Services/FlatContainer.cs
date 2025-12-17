@@ -209,7 +209,7 @@ namespace Sleet
             var nupkgFile = _context.Source.Get(GetNupkgPath(packageInput.Identity));
             nupkgFile.Link(packageInput.PackagePath, _context.Log, _context.Token);
 
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         }
 
         private async Task AddNuspecAsync(PackageInput packageInput)

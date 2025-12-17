@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -39,8 +40,8 @@ namespace Sleet
             var size = peHeader.SizeOfImage;
             var time = peReader.PEHeaders.CoffHeader.TimeDateStamp;
 
-            var timeHash = string.Format("{0:X}", time).ToUpperInvariant();
-            var sizeHash = string.Format("{0:X}", size).ToLowerInvariant();
+            var timeHash = string.Format(CultureInfo.InvariantCulture, "{0:X}", time).ToUpperInvariant();
+            var sizeHash = string.Format(CultureInfo.InvariantCulture, "{0:X}", size).ToLowerInvariant();
 
             return $"{timeHash}{sizeHash}";
         }

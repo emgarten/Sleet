@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using DotNetConfig;
@@ -135,7 +136,7 @@ namespace Sleet
 
             if (!string.IsNullOrEmpty(s))
             {
-                timeout = TimeSpan.FromMinutes(int.Parse(s));
+                timeout = TimeSpan.FromMinutes(int.Parse(s, CultureInfo.InvariantCulture));
             }
 
             return timeout;

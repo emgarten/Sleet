@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -474,7 +475,7 @@ namespace Sleet
                 if (diff.HasErrors)
                 {
                     var sb = new StringBuilder();
-                    sb.AppendLine($"Checking package indexes for {asset.Asset.AbsoluteUri}");
+                    sb.AppendLine(CultureInfo.InvariantCulture, $"Checking package indexes for {asset.Asset.AbsoluteUri}");
                     sb.Append(diff.ToString());
 
                     messages.Add(new LogMessage(LogLevel.Error, sb.ToString()));
@@ -499,7 +500,7 @@ namespace Sleet
                 if (diff.HasErrors)
                 {
                     var sb = new StringBuilder();
-                    sb.AppendLine($"Checking symbols package indexes for {asset.Asset.AbsoluteUri}");
+                    sb.AppendLine(CultureInfo.InvariantCulture, $"Checking symbols package indexes for {asset.Asset.AbsoluteUri}");
                     sb.Append(diff.ToString());
 
                     messages.Add(new LogMessage(LogLevel.Error, sb.ToString()));
@@ -549,7 +550,7 @@ namespace Sleet
                 if (feedDiff.HasErrors)
                 {
                     var sb = new StringBuilder();
-                    sb.AppendLine($"Checking packages in {PackageIndex.File.EntityUri.AbsoluteUri}");
+                    sb.AppendLine(CultureInfo.InvariantCulture, $"Checking packages in {PackageIndex.File.EntityUri.AbsoluteUri}");
                     sb.Append(feedDiff.ToString());
                     messages.Add(new LogMessage(LogLevel.Error, sb.ToString()));
                 }
@@ -559,7 +560,7 @@ namespace Sleet
                 if (feedSymbolsDiff.HasErrors)
                 {
                     var sb = new StringBuilder();
-                    sb.AppendLine($"Checking symbols packages in {PackageIndex.File.EntityUri.AbsoluteUri}");
+                    sb.AppendLine(CultureInfo.InvariantCulture, $"Checking symbols packages in {PackageIndex.File.EntityUri.AbsoluteUri}");
                     sb.Append(feedSymbolsDiff.ToString());
                     messages.Add(new LogMessage(LogLevel.Error, sb.ToString()));
                 }
@@ -626,7 +627,7 @@ namespace Sleet
         /// <summary>
         /// dll or pdb file
         /// </summary>
-        private class PackageFile : IDisposable
+        private sealed class PackageFile : IDisposable
         {
             public string FileName { get; }
 

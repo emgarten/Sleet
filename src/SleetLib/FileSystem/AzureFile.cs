@@ -64,20 +64,20 @@ namespace Sleet
                         CacheControl = "no-store"
                     };
 
-                    if (_blob.Uri.AbsoluteUri.EndsWith(".nupkg", StringComparison.Ordinal))
+                    if (_blob.Uri.AbsoluteUri.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase))
                     {
                         blobHeaders.ContentType = "application/zip";
                     }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith(".xml", StringComparison.Ordinal)
-                        || _blob.Uri.AbsoluteUri.EndsWith(".nuspec", StringComparison.Ordinal))
+                    else if (_blob.Uri.AbsoluteUri.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)
+                        || _blob.Uri.AbsoluteUri.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase))
                     {
                         blobHeaders.ContentType = "application/xml";
                     }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith(".svg", StringComparison.Ordinal))
+                    else if (_blob.Uri.AbsoluteUri.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
                     {
                         blobHeaders.ContentType = "image/svg+xml";
                     }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal)
+                    else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
                             || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                     {
                         blobHeaders.ContentType = "application/json";
@@ -94,11 +94,11 @@ namespace Sleet
                     {
                         blobHeaders.ContentType = "application/octet-stream";
                     }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith("/icon"))
+                    else if (_blob.Uri.AbsoluteUri.EndsWith("/icon", StringComparison.Ordinal))
                     {
                         blobHeaders.ContentType = "image/png";
                     }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith("/readme"))
+                    else if (_blob.Uri.AbsoluteUri.EndsWith("/readme", StringComparison.Ordinal))
                     {
                         blobHeaders.ContentType = "text/markdown";
                     }

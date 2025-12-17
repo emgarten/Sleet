@@ -87,7 +87,7 @@ namespace Sleet
             var missingACIds = allIndexIds.Except(autoCompleteIds).ToList();
             var extraACIds = autoCompleteIds.Except(allIndexIds).ToList();
 
-            if (missingACIds.Count() > 0 || extraACIds.Count() > 0)
+            if (missingACIds.Count > 0 || extraACIds.Count > 0)
             {
                 log.LogError("Missing autocomplete packages: " + string.Join(", ", missingACIds));
                 log.LogError("Extra autocomplete packages: " + string.Join(", ", extraACIds));

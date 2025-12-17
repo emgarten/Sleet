@@ -15,6 +15,10 @@ namespace Sleet
 {
     public static class CatalogUtility
     {
+        private static readonly List<string> DeleteTypes = ["PackageDelete", "catalog:Permalink"];
+        private static readonly List<string> DetailsTypes = ["PackageDetails", "catalog:Permalink"];
+        private static readonly char[] TagsSeparator = [' '];
+
         /// <summary>
         /// Create PackageDetails for a delete
         /// </summary>
@@ -25,7 +29,7 @@ namespace Sleet
 
             var rootUri = UriUtility.GetPath(catalogBaseURI, $"data/{pageId}.json");
 
-            var json = JsonUtility.Create(rootUri, new List<string>() { "PackageDelete", "catalog:Permalink" });
+            var json = JsonUtility.Create(rootUri, DeleteTypes);
             json.Add("commitId", commitId.ToString().ToLowerInvariant());
             json.Add("commitTimeStamp", now.GetDateString());
             json.Add("sleet:operation", "remove");
@@ -90,7 +94,7 @@ namespace Sleet
             var now = DateTimeOffset.UtcNow;
             var nuspecReader = packageInput.Nuspec;
 
-            var json = JsonUtility.Create(detailsUri, new List<string>() { "PackageDetails", "catalog:Permalink" });
+            var json = JsonUtility.Create(detailsUri, DetailsTypes);
             json.Add("commitId", commitId.ToString().ToLowerInvariant());
             json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
             json.Add("sleet:operation", "add");
@@ -171,7 +175,7 @@ namespace Sleet
             }
 
             // Tags
-            var tagSet = new HashSet<string>(GetEntry(nuspecReader, "tags").Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
+            var tagSet = new HashSet<string>(GetEntry(nuspecReader, "tags").Split(TagsSeparator, StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
             tagSet.Remove(string.Empty);
             var tagArray = new JArray(tagSet);
             json.Add("tags", tagArray);

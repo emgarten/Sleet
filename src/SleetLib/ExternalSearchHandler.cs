@@ -46,7 +46,7 @@ namespace Sleet
         private JObject GetSearchEntry(JObject serviceIndex)
         {
             var resources = (JArray)serviceIndex["resources"]!;
-            return (JObject)resources.First(e => e["@type"]!.ToObject<string>()!.StartsWith("SearchQueryService/"));
+            return (JObject)resources.First(e => e["@type"]!.ToObject<string>()!.StartsWith("SearchQueryService/", StringComparison.Ordinal));
         }
     }
 }

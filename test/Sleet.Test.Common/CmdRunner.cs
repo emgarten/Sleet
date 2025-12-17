@@ -102,7 +102,7 @@ namespace Sleet.Test.Common
 
         private static void SetEnvVarsOnProcess(Dictionary<string, string> envVars, ProcessStartInfo processInfo)
         {
-            if (envVars?.Any() == true)
+            if (envVars?.Count > 0)
             {
                 foreach (var envVar in envVars)
                 {

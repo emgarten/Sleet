@@ -14,6 +14,23 @@ namespace Sleet
     /// </summary>
     public class Search : ISleetService, IRootIndex, IPackagesLookup, IApplyOperations
     {
+        private static readonly string[] CopyProperties =
+        [
+            "id",
+            "version",
+            "description",
+            "summary",
+            "title",
+            "iconUrl",
+            "licenseUrl",
+            "projectUrl",
+            "tags"
+        ];
+
+        private static readonly string[] CopyPropertiesDelimited = ["authors", "owners"];
+
+        private static readonly string[] RequireArrayFields = ["tags", "authors"];
+
         private readonly SleetContext _context;
         public string RootIndex { get; } = "search/query";
 
@@ -103,30 +120,11 @@ namespace Sleet
 
             packageEntry.Add("registration", registrationUri.AbsoluteUri);
 
-            var copyProperties = new[]
-            {
-                "id",
-                "version",
-                "description",
-                "summary",
-                "title",
-                "iconUrl",
-                "licenseUrl",
-                "projectUrl",
-                "tags"
-            };
+            JsonUtility.CopyProperties(catalogEntry, packageEntry, CopyProperties, skipEmpty: false);
 
-            JsonUtility.CopyProperties(catalogEntry, packageEntry, copyProperties, skipEmpty: false);
+            JsonUtility.CopyDelimitedProperties(catalogEntry, packageEntry, CopyPropertiesDelimited, ',');
 
-            var copyPropertiesDelimited = new[]
-            {
-                "authors",
-                "owners"
-            };
-
-            JsonUtility.CopyDelimitedProperties(catalogEntry, packageEntry, copyPropertiesDelimited, ',');
-
-            JsonUtility.RequireArrayWithEmptyString(packageEntry, new[] { "tags", "authors" });
+            JsonUtility.RequireArrayWithEmptyString(packageEntry, RequireArrayFields);
 
             packageEntry.Add("totalDownloads", 0);
 

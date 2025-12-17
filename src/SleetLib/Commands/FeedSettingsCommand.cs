@@ -15,6 +15,8 @@ namespace Sleet
     /// </summary>
     public static class FeedSettingsCommand
     {
+        private static readonly char[] KeyValueSeparator = [':'];
+
         public static async Task<bool> RunAsync(
             LocalSettings settings,
             ISleetFileSystem source,
@@ -128,7 +130,7 @@ namespace Sleet
 
             foreach (var input in setKeys)
             {
-                var parts = input.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                var parts = input.Split(KeyValueSeparator, StringSplitOptions.RemoveEmptyEntries);
 
                 if (parts.Length < 2 || string.IsNullOrEmpty(parts[0]?.Trim()) || string.IsNullOrEmpty(parts[1]?.Trim()))
                 {

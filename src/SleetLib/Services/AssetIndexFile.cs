@@ -144,7 +144,7 @@ namespace Sleet
             return assets.Packages.Count == 0 && assets.Symbols.Count == 0;
         }
 
-        private class PackageSets
+        private sealed class PackageSets
         {
             public SortedSet<AssetIndexEntry> Packages { get; set; } = new SortedSet<AssetIndexEntry>();
 

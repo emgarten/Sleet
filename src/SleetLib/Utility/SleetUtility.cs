@@ -136,7 +136,7 @@ namespace Sleet
         /// <summary>
         /// PreLoad, Wait for dependencies, Run
         /// </summary>
-        private class SleetStep
+        private sealed class SleetStep
         {
             private bool _done = false;
 

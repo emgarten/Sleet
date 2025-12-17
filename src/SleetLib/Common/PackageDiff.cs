@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using NuGet.Packaging.Core;
@@ -36,18 +37,18 @@ namespace Sleet
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine($"Missing packages: {Missing.Count}");
+            sb.AppendLine(CultureInfo.InvariantCulture, $"Missing packages: {Missing.Count}");
 
             foreach (var package in Missing.OrderBy(p => p.Id, StringComparer.OrdinalIgnoreCase).ThenBy(p => p.Version))
             {
-                sb.AppendLine($"  {package.Id} {package.Version.ToFullVersionString()}");
+                sb.AppendLine(CultureInfo.InvariantCulture, $"  {package.Id} {package.Version.ToFullVersionString()}");
             }
 
-            sb.AppendLine($"Extra packages: {Extra.Count}");
+            sb.AppendLine(CultureInfo.InvariantCulture, $"Extra packages: {Extra.Count}");
 
             foreach (var package in Extra.OrderBy(p => p.Id, StringComparer.OrdinalIgnoreCase).ThenBy(p => p.Version))
             {
-                sb.AppendLine($"  {package.Id} {package.Version.ToFullVersionString()}");
+                sb.AppendLine(CultureInfo.InvariantCulture, $"  {package.Id} {package.Version.ToFullVersionString()}");
             }
 
             return sb.ToString().TrimEnd();

@@ -126,7 +126,7 @@ namespace Sleet
         public static void ValidateFileSystem(ISleetFileSystem fileSystem)
         {
             if (!string.IsNullOrEmpty(fileSystem.FeedSubPath)
-                && !fileSystem.BaseURI.AbsoluteUri.EndsWith($"/{fileSystem.FeedSubPath.TrimEnd(new char[] { '/', '\\' })}/"))
+                && !fileSystem.BaseURI.AbsoluteUri.EndsWith($"/{fileSystem.FeedSubPath.TrimEnd(['/', '\\'])}/", StringComparison.Ordinal))
             {
                 throw new ArgumentException("When using FeedSubPath the Path property must end with the sub path.");
             }
