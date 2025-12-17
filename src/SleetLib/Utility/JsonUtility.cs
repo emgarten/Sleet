@@ -109,10 +109,7 @@ namespace Sleet
 
         public static async Task WriteJsonAsync(JObject json, Stream stream)
         {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
+            ArgumentNullException.ThrowIfNull(stream);
 
             using (var writer = new StreamWriter(stream, JsonEncoding, bufferSize: 8192, leaveOpen: true))
             using (var jsonWriter = new JsonTextWriter(writer))
@@ -162,10 +159,7 @@ namespace Sleet
 
         public static async Task<JObject> LoadJsonAsync(Stream stream)
         {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
+            ArgumentNullException.ThrowIfNull(stream);
 
             using (var reader = new StreamReader(stream))
             using (var jsonReader = new JsonTextReader(reader))

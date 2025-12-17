@@ -15,6 +15,8 @@ namespace Sleet
     /// </summary>
     public static class FeedSettingsCommand
     {
+        private static readonly char[] KeyValueSeparator = [':'];
+
         public static async Task<bool> RunAsync(
             LocalSettings settings,
             ISleetFileSystem source,
@@ -111,10 +113,8 @@ namespace Sleet
             // Unset
             foreach (var key in unsetKeys)
             {
-                if (settings.ContainsKey(key))
+                if (settings.Remove(key))
                 {
-                    settings.Remove(key);
-
                     // Allow handlers to perform additional work
                     if (settingHandlers.TryGetValue(key, out var handler))
                     {
@@ -128,7 +128,7 @@ namespace Sleet
 
             foreach (var input in setKeys)
             {
-                var parts = input.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                var parts = input.Split(KeyValueSeparator, StringSplitOptions.RemoveEmptyEntries);
 
                 if (parts.Length < 2 || string.IsNullOrEmpty(parts[0]?.Trim()) || string.IsNullOrEmpty(parts[1]?.Trim()))
                 {
@@ -157,7 +157,7 @@ namespace Sleet
                 // Allow handlers to perform additional work
                 if (settingHandlers.TryGetValue(key, out var handler))
                 {
-                    await handler.Set(value);
+                    await handler.SetValue(value);
                 }
             }
 

@@ -140,7 +140,7 @@ namespace Sleet
                     if (useTaskRun)
                     {
                         // Start a new task
-                        task = Task.Run(() => RunTaskAsync(toRun, results, process, token));
+                        task = Task.Run(() => RunTaskAsync(toRun, results, process, token), CancellationToken.None);
                     }
                     else
                     {

@@ -73,7 +73,7 @@ namespace Sleet
 
         public void Dispose()
         {
-
+            GC.SuppressFinalize(this);
         }
 
         private static ConsoleColor? GetColor(ILogMessage message)
@@ -114,7 +114,7 @@ namespace Sleet
 
             for (var i = 0; i < messages.Length; i++)
             {
-                if (messages[i].EndsWith("\r"))
+                if (messages[i].EndsWith('\r'))
                 {
                     messages[i] = messages[i].TrimEnd('\r');
                 }

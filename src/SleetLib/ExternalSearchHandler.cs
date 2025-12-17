@@ -21,7 +21,7 @@ namespace Sleet
             _search = new Search(context);
         }
 
-        public Task Set(string value)
+        public Task SetValue(string value)
         {
             // Apply user set search uri
             return SetSearchUri(value);
@@ -43,10 +43,10 @@ namespace Sleet
             await indexFile.Write(json, _context.Log, _context.Token).ConfigureAwait(false);
         }
 
-        private JObject GetSearchEntry(JObject serviceIndex)
+        private static JObject GetSearchEntry(JObject serviceIndex)
         {
             var resources = (JArray)serviceIndex["resources"]!;
-            return (JObject)resources.First(e => e["@type"]!.ToObject<string>()!.StartsWith("SearchQueryService/"));
+            return (JObject)resources.First(e => e["@type"]!.ToObject<string>()!.StartsWith("SearchQueryService/", StringComparison.Ordinal));
         }
     }
 }

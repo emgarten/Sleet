@@ -39,7 +39,6 @@
     <ToStringWithoutOverrideAnalyzerVersion Condition=" '$(ToStringWithoutOverrideAnalyzerVersion)' == '' ">0.6.0</ToStringWithoutOverrideAnalyzerVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion Condition=" '$(MicrosoftCodeAnalysisNetAnalyzersVersion)' == '' ">10.0.101</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <RoslynatorAnalyzersVersion Condition=" '$(RoslynatorAnalyzersVersion)' == '' ">4.15.0</RoslynatorAnalyzersVersion>
-    <MeziantouAnalyzerVersion Condition=" '$(MeziantouAnalyzerVersion)' == '' ">false</MeziantouAnalyzerVersion>
     <TestSDKVersion Condition=" '$(TestSDKVersion)' == '' ">18.0.1</TestSDKVersion>
     <XunitVersion Condition=" '$(XunitVersion)' == '' ">2.9.3</XunitVersion>
     <XunitRunnerVisualStudioVersion Condition=" '$(XunitRunnerVisualStudioVersion)' == '' ">3.1.5</XunitRunnerVisualStudioVersion>
@@ -62,7 +61,7 @@
   <!-- Nupkg -->
   <PropertyGroup Condition=" '$(PackProject)' == 'true' AND '$(SkipDocs)' != 'true' ">
     <GenerateDocumentationFile Condition=" '$(GenerateDocumentationFile)' == '' " >true</GenerateDocumentationFile>
-    <NoWarn>1591;1573</NoWarn>
+    <NoWarn>$(NoWarn);1591;1573</NoWarn>
   </PropertyGroup>
 
   <!-- Create nupkg hook -->
@@ -104,9 +103,12 @@
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" PrivateAssets="all" Condition=" '$(MicrosoftCodeAnalysisNetAnalyzersVersion)' != 'false' " />
     <!-- Practical C# best-practice analyzers + refactorings -->
     <PackageReference Include="Roslynator.Analyzers" Version="$(RoslynatorAnalyzersVersion)" PrivateAssets="all" Condition=" '$(RoslynatorAnalyzersVersion)' != 'false' " />
-    <!-- High-signal performance, security, and correctness analyzers -->
-    <PackageReference Include="Meziantou.Analyzer" Version="$(MeziantouAnalyzerVersion)" PrivateAssets="all" Condition=" '$(MeziantouAnalyzerVersion)' != 'false' " />
   </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TestProject)' == 'true' ">
+    <!-- Avoid running analysis on test projects, force analysis mode to default -->
+    <AnalysisMode>Default</AnalysisMode>
+  </PropertyGroup>
 
   <!-- Sign -->
   <PropertyGroup Condition=" '$(SignKeyPath)' != '' AND '$(TestProject)' != 'true' AND '$(IsXPlat)' != 'true' AND Exists($(SignKeyPath)) ">

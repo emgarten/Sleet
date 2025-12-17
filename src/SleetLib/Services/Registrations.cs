@@ -14,6 +14,9 @@ namespace Sleet
     /// </summary>
     public class Registrations : ISleetService, IPackageIdLookup, IAddRemovePackages
     {
+        private static readonly string[] CatalogRootTypes = ["catalog:CatalogRoot", "PackageRegistration", "catalog:Permalink"];
+        private static readonly string[] PackagePermalinkTypes = ["Package", "http://schema.nuget.org/catalog#Permalink"];
+
         private readonly SleetContext _context;
 
         public string Name { get; } = nameof(Registrations);
@@ -23,9 +26,9 @@ namespace Sleet
             _context = context;
         }
 
-        public Task AddPackageAsync(PackageInput package)
+        public Task AddPackageAsync(PackageInput packageInput)
         {
-            return AddPackagesAsync(new[] { package });
+            return AddPackagesAsync(new[] { packageInput });
         }
 
         public Task RemovePackageAsync(PackageIdentity package)
@@ -118,9 +121,9 @@ namespace Sleet
             }
         }
 
-        public Task RemovePackagesAsync(IEnumerable<PackageIdentity> packagesToDelete)
+        public Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
         {
-            var byId = SleetUtility.GetPackageSetsById(packagesToDelete, e => e.Id);
+            var byId = SleetUtility.GetPackageSetsById(packages, e => e.Id);
             var tasks = new List<Func<Task>>();
 
             foreach (var pair in byId)
@@ -191,7 +194,7 @@ namespace Sleet
         /// <summary>
         /// Get all package details from all pages
         /// </summary>
-        public Task<List<JObject>> GetPackageDetails(JObject json)
+        public static Task<List<JObject>> GetPackageDetails(JObject json)
         {
             var pages = GetItems(json);
             return Task.FromResult(pages.SelectMany(GetItems).ToList());
@@ -199,12 +202,7 @@ namespace Sleet
 
         public async Task<JObject> CreateIndexAsync(Uri indexUri, List<JObject> packageDetails)
         {
-            var json = JsonUtility.Create(indexUri,
-                new string[] {
-                    "catalog:CatalogRoot",
-                    "PackageRegistration",
-                    "catalog:Permalink"
-                });
+            var json = JsonUtility.Create(indexUri, CatalogRootTypes);
 
             json.Add("commitId", _context.CommitId.ToString().ToLowerInvariant());
             json.Add("commitTimeStamp", DateTimeOffset.UtcNow.GetDateString());
@@ -324,7 +322,7 @@ namespace Sleet
         {
             var rootUri = GetPackageUri(packageInput.Identity);
 
-            var json = JsonUtility.Create(rootUri, new string[] { "Package", "http://schema.nuget.org/catalog#Permalink" });
+            var json = JsonUtility.Create(rootUri, PackagePermalinkTypes);
 
             json.Add("catalogEntry", packageInput.PackageDetails.GetIdUri().AbsoluteUri);
             json.Add("packageContent", packageInput.PackageDetails["packageContent"]?.ToString() ?? string.Empty);

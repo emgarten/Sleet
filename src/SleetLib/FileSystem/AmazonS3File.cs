@@ -102,28 +102,28 @@ namespace Sleet
                 string? contentType = null, contentEncoding = null;
                 var disposeWriteStream = false;
 
-                if (key.EndsWith(".nupkg", StringComparison.Ordinal))
+                if (key.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase))
                 {
                     contentType = "application/zip";
                 }
-                else if (key.EndsWith(".xml", StringComparison.Ordinal)
-                         || key.EndsWith(".nuspec", StringComparison.Ordinal))
+                else if (key.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)
+                         || key.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase))
                 {
                     contentType = "application/xml";
                 }
-                else if (key.EndsWith(".svg", StringComparison.Ordinal))
+                else if (key.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
                 {
                     contentType = "image/svg+xml";
                 }
-                else if (absoluteUri.AbsoluteUri.EndsWith("/icon"))
+                else if (absoluteUri.AbsoluteUri.EndsWith("/icon", StringComparison.Ordinal))
                 {
                     contentType = "image/png";
                 }
-                else if (absoluteUri.AbsoluteUri.EndsWith("/readme"))
+                else if (absoluteUri.AbsoluteUri.EndsWith("/readme", StringComparison.Ordinal))
                 {
                     contentType = "text/markdown";
                 }
-                else if (key.EndsWith(".json", StringComparison.Ordinal)
+                else if (key.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
                          || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                 {
                     contentType = "application/json";

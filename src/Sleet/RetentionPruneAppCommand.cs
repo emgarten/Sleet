@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using McMaster.Extensions.CommandLineUtils;
 using NuGet.Common;
 
@@ -54,9 +55,9 @@ namespace Sleet
                     var pruneContext = new RetentionPruneCommandContext()
                     {
                         DryRun = dryRun.HasValue(),
-                        StableVersionMax = stableVersions.HasValue() ? (int?)int.Parse(stableVersions.Value()!) : null,
-                        PrereleaseVersionMax = prereleaseVersions.HasValue() ? (int?)int.Parse(prereleaseVersions.Value()!) : null,
-                        GroupByFirstPrereleaseLabelCount = releaseLabelsValue.HasValue() ? (int?)int.Parse(releaseLabelsValue.Value()!) : null,
+                        StableVersionMax = stableVersions.HasValue() ? (int?)int.Parse(stableVersions.Value()!, CultureInfo.InvariantCulture) : null,
+                        PrereleaseVersionMax = prereleaseVersions.HasValue() ? (int?)int.Parse(prereleaseVersions.Value()!, CultureInfo.InvariantCulture) : null,
+                        GroupByFirstPrereleaseLabelCount = releaseLabelsValue.HasValue() ? (int?)int.Parse(releaseLabelsValue.Value()!, CultureInfo.InvariantCulture) : null,
                     };
 
                     if (packageIds.HasValue())

@@ -17,7 +17,7 @@ namespace Sleet
         /// <summary>
         /// Called when the setting it set by the user.
         /// </summary>
-        Task Set(string value);
+        Task SetValue(string value);
 
         /// <summary>
         /// Called when the setting is cleared by the user.

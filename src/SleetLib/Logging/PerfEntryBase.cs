@@ -57,5 +57,53 @@ namespace Sleet
             }
             return ElapsedTime.CompareTo(other.ElapsedTime);
         }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is PerfEntryBase other)
+            {
+                return ElapsedTime == other.ElapsedTime && Key == other.Key;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ElapsedTime, Key);
+        }
+
+        public static bool operator ==(PerfEntryBase? left, PerfEntryBase? right)
+        {
+            if (left is null)
+            {
+                return right is null;
+            }
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(PerfEntryBase? left, PerfEntryBase? right)
+        {
+            return !(left == right);
+        }
+
+        public static bool operator <(PerfEntryBase? left, PerfEntryBase? right)
+        {
+            return left is null ? right is not null : left.CompareTo(right) < 0;
+        }
+
+        public static bool operator <=(PerfEntryBase? left, PerfEntryBase? right)
+        {
+            return left is null || left.CompareTo(right) <= 0;
+        }
+
+        public static bool operator >(PerfEntryBase? left, PerfEntryBase? right)
+        {
+            return left is not null && left.CompareTo(right) > 0;
+        }
+
+        public static bool operator >=(PerfEntryBase? left, PerfEntryBase? right)
+        {
+            return left is null ? right is null : left.CompareTo(right) >= 0;
+        }
     }
 }

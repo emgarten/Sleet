@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Sleet
@@ -32,7 +33,7 @@ namespace Sleet
 
         public override string GetMessage(TimeSpan timeSpan)
         {
-            return string.Format(Key, PrintUtility.GetTimeString(timeSpan));
+            return string.Format(CultureInfo.InvariantCulture, Key, PrintUtility.GetTimeString(timeSpan));
         }
 
         public static PerfSummaryEntry Merge(List<PerfSummaryEntry> entries)

@@ -48,11 +48,11 @@ namespace Sleet
             }
         }
 
-        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packageInputs)
+        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
         {
-            foreach (var input in packageInputs)
+            foreach (var package in packages)
             {
-                await RemovePackageAsync(input);
+                await RemovePackageAsync(package);
             }
         }
 

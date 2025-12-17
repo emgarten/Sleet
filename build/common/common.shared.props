@@ -37,6 +37,7 @@
     <ComVisible>false</ComVisible>
     <Deterministic>true</Deterministic>
     <Features>strict</Features>
+    <AnalysisMode Condition=" '$(AnalysisMode)' == '' ">Default</AnalysisMode>
   </PropertyGroup>
 
   <!-- output paths -->

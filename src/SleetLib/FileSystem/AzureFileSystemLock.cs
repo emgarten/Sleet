@@ -11,7 +11,7 @@ namespace Sleet
         private readonly AzureBlobLease _lease;
         private readonly BlobClient _blob;
         private readonly BlobClient _messageBlob;
-        private Task? _keepLockTask = null;
+        private Task? _keepLockTask;
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
         private Task _updateLockMessage = Task.CompletedTask;
 
@@ -140,6 +140,7 @@ namespace Sleet
 
         public override void Dispose()
         {
+            GC.SuppressFinalize(this);
             base.Dispose();
             _cts.Dispose();
         }

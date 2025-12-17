@@ -53,6 +53,7 @@ namespace Sleet
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             Release();
         }
 

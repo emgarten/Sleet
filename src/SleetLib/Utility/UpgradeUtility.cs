@@ -59,7 +59,7 @@ namespace Sleet
             if (!string.IsNullOrEmpty(requiredCaps))
             {
                 // Space delimited list of caps
-                foreach (var s in requiredCaps.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+                foreach (var s in requiredCaps.Split([' '], StringSplitOptions.RemoveEmptyEntries))
                 {
                     requirements.RequiredCapabilities.Add(FeedCapability.Parse(s));
                 }

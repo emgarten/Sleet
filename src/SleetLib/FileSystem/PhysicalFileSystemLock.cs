@@ -44,7 +44,7 @@ namespace Sleet
                     }
 
                     json = GetMessageJson(lockMessage);
-                    json.Add(new JProperty("pid", Process.GetCurrentProcess().Id));
+                    json.Add(new JProperty("pid", Environment.ProcessId));
 
                     using (var stream = new FileStream(LockPath, FileMode.CreateNew))
                     {

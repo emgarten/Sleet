@@ -82,10 +82,7 @@ namespace Sleet
         /// </summary>
         internal static void LogToConsole(LogLevel level, string message)
         {
-            if (message == null)
-            {
-                throw new ArgumentNullException(nameof(message));
-            }
+            ArgumentNullException.ThrowIfNull(message);
 
             var color = GetColor(level);
 

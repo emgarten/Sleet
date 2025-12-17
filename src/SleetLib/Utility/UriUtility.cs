@@ -35,10 +35,12 @@ namespace Sleet
         /// </summary>
         public static Uri GetPath(Uri root, params string[] relativePaths)
         {
+            ArgumentNullException.ThrowIfNull(relativePaths);
+
             if (relativePaths.Length < 1)
             {
                 Debug.Fail("bad path");
-                throw new ArgumentNullException(nameof(relativePaths));
+                throw new ArgumentException("At least one relative path must be provided.", nameof(relativePaths));
             }
 
             var parts = new List<string>(relativePaths.Length);
@@ -61,7 +63,7 @@ namespace Sleet
 
         public static string GetRelativePath(Uri basePath, Uri path)
         {
-            if (path.AbsoluteUri.StartsWith(basePath.AbsoluteUri))
+            if (path.AbsoluteUri.StartsWith(basePath.AbsoluteUri, StringComparison.Ordinal))
             {
                 return path.AbsoluteUri.Substring(basePath.AbsoluteUri.Length);
             }
@@ -76,7 +78,7 @@ namespace Sleet
         {
             if (paths.Length == 0)
             {
-                throw new ArgumentException(nameof(paths));
+                throw new ArgumentException("At least one path must be provided.", nameof(paths));
             }
 
             var root = CreateUri(paths[0]);
@@ -122,7 +124,7 @@ namespace Sleet
                 s = s.TrimEnd('/');
             }
 
-            if (s.EndsWith("/", StringComparison.Ordinal))
+            if (s.EndsWith('/'))
             {
                 // noop
                 return uri;
@@ -135,7 +137,7 @@ namespace Sleet
         {
             var s = uri.AbsoluteUri;
 
-            if (!s.EndsWith("/", StringComparison.Ordinal))
+            if (!s.EndsWith('/'))
             {
                 // noop
                 return uri;
@@ -157,7 +159,7 @@ namespace Sleet
         {
             var absolute = uri.AbsoluteUri;
 
-            if (absolute.EndsWith("/"))
+            if (absolute.EndsWith('/'))
             {
                 return null;
             }

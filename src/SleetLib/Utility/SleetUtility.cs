@@ -39,10 +39,7 @@ namespace Sleet
         /// </summary>
         public static string GetRelativePath(ISleetFile file)
         {
-            if (file is null)
-            {
-                throw new ArgumentNullException(nameof(file));
-            }
+            ArgumentNullException.ThrowIfNull(file);
 
             var fileSystemBase = file.FileSystem as FileSystemBase;
 
@@ -136,9 +133,9 @@ namespace Sleet
         /// <summary>
         /// PreLoad, Wait for dependencies, Run
         /// </summary>
-        private class SleetStep
+        private sealed class SleetStep
         {
-            private bool _done = false;
+            private bool _done;
 
             public ISleetService Service { get; }
             public SleetPerfGroup PerfGroup { get; }

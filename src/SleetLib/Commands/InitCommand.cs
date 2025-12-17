@@ -65,7 +65,7 @@ namespace Sleet
             }
 
             // Create service index.json
-            noChanges &= !await CreateServiceIndexAsync(source, log, token, now);
+            noChanges &= !await CreateServiceIndexAsync(source, log, now, token);
 
             var serviceIndexFile = source.Get("index.json");
             var serviceIndexJson = await serviceIndexFile.GetJson(log, token);
@@ -74,19 +74,19 @@ namespace Sleet
             serviceIndexJson["resources"] = new JArray();
 
             // Create sleet.settings.json
-            noChanges &= !await CreateSettingsAsync(source, feedSettings, log, token, now, serviceIndexJson);
+            noChanges &= !await CreateSettingsAsync(source, feedSettings, log, now, serviceIndexJson, token);
 
             // Create catalog/index.json
             if (feedSettings.CatalogEnabled)
             {
-                noChanges &= !await CreateCatalogAsync(source, log, token, now, serviceIndexJson);
+                noChanges &= !await CreateCatalogAsync(source, log, now, serviceIndexJson, token);
             }
 
             // Create autocomplete
-            noChanges &= !await CreateAutoCompleteAsync(source, log, token, now, serviceIndexJson);
+            noChanges &= !await CreateAutoCompleteAsync(source, log, now, serviceIndexJson, token);
 
             // Create search
-            noChanges &= !await CreateSearchAsync(source, log, token, now, serviceIndexJson);
+            noChanges &= !await CreateSearchAsync(source, log, now, serviceIndexJson, token);
 
             // Create package index
             noChanges &= !await CreatePackageIndexAsync(context, serviceIndexJson);
@@ -199,33 +199,33 @@ namespace Sleet
             return false;
         }
 
-        private static async Task<bool> CreateCatalogAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
+        private static async Task<bool> CreateCatalogAsync(ISleetFileSystem source, ILogger log, DateTimeOffset now, JObject serviceIndexJson, CancellationToken token)
         {
             AddServiceIndexEntry(source.BaseURI, "catalog/index.json", "Catalog/3.0.0", "Catalog service.", serviceIndexJson);
 
             return await CreateFromTemplateAsync(source, log, now, "CatalogIndex", "catalog/index.json", token);
         }
 
-        private static async Task<bool> CreateAutoCompleteAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
+        private static async Task<bool> CreateAutoCompleteAsync(ISleetFileSystem source, ILogger log, DateTimeOffset now, JObject serviceIndexJson, CancellationToken token)
         {
             AddServiceIndexEntry(source.BaseURI, "autocomplete/query", "SearchAutocompleteService/3.0.0-beta", "Powershell autocomplete.", serviceIndexJson);
 
             return await CreateFromTemplateAsync(source, log, now, "AutoComplete", "autocomplete/query", token);
         }
 
-        private static async Task<bool> CreateSearchAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
+        private static async Task<bool> CreateSearchAsync(ISleetFileSystem source, ILogger log, DateTimeOffset now, JObject serviceIndexJson, CancellationToken token)
         {
             AddServiceIndexEntry(source.BaseURI, "search/query", "SearchQueryService/3.0.0-beta", "Static package list in search result form.", serviceIndexJson);
 
             return await CreateFromTemplateAsync(source, log, now, "Search", "search/query", token);
         }
 
-        private static async Task<bool> CreateServiceIndexAsync(ISleetFileSystem source, ILogger log, CancellationToken token, DateTimeOffset now)
+        private static async Task<bool> CreateServiceIndexAsync(ISleetFileSystem source, ILogger log, DateTimeOffset now, CancellationToken token)
         {
             return await CreateFromTemplateAsync(source, log, now, "ServiceIndex", "index.json", token);
         }
 
-        private static async Task<bool> CreateSettingsAsync(ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token, DateTimeOffset now, JObject serviceIndexJson)
+        private static async Task<bool> CreateSettingsAsync(ISleetFileSystem source, FeedSettings feedSettings, ILogger log, DateTimeOffset now, JObject serviceIndexJson, CancellationToken token)
         {
             AddServiceIndexEntry(source.BaseURI, "sleet.settings.json", "http://schema.emgarten.com/sleet#SettingsFile/1.0.0", "Sleet feed settings.", serviceIndexJson);
 

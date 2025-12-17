@@ -10,12 +10,12 @@ namespace Sleet
         /// <summary>
         /// If false the catalog will not be written to the feed.
         /// </summary>
-        public bool CatalogEnabled { get; set; } = false;
+        public bool CatalogEnabled { get; set; }
 
         /// <summary>
         /// If false the symbol feed will be disabled.
         /// </summary>
-        public bool SymbolsEnabled { get; set; } = false;
+        public bool SymbolsEnabled { get; set; }
 
         /// <summary>
         /// Package retention - Maximum number of stable versions
@@ -37,11 +37,11 @@ namespace Sleet
         /// <summary>
         /// Version badges, if enabled svg files for the latest versions will be written out.
         /// </summary>
-        public bool BadgesEnabled { get; set; } = false;
+        public bool BadgesEnabled { get; set; }
 
         /// <summary>
         /// External search URI
         /// </summary>
-        public string? ExternalSearch { get; set; } = null;
+        public string? ExternalSearch { get; set; }
     }
 }

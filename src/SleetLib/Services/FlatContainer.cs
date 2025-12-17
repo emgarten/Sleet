@@ -22,12 +22,12 @@ namespace Sleet
             _context = context;
         }
 
-        public Task ApplyOperationsAsync(SleetOperations changeContext)
+        public Task ApplyOperationsAsync(SleetOperations operations)
         {
             // Remove existing files, this will typically result in marking the files
             // as deleted in the virtual file system since they have not been
             // downloaded. It is a fast/safe operation that must be done first.
-            foreach (var toRemove in changeContext.ToRemove)
+            foreach (var toRemove in operations.ToRemove)
             {
                 if (!toRemove.IsSymbolsPackage)
                 {
@@ -39,12 +39,12 @@ namespace Sleet
 
             // Copy in nupkgs/nuspec files
             // Ignore symbols packages
-            tasks.AddRange(changeContext.ToAdd.Where(e => !e.IsSymbolsPackage).Select(e => new Func<Task>(() => AddPackageAsync(e))));
+            tasks.AddRange(operations.ToAdd.Where(e => !e.IsSymbolsPackage).Select(e => new Func<Task>(() => AddPackageAsync(e))));
 
             // Rebuild index files as needed
-            var rebuildIds = changeContext.GetChangedIds();
+            var rebuildIds = operations.GetChangedIds();
 
-            tasks.AddRange(rebuildIds.Select(e => new Func<Task>(() => CreateIndexAsync(e, changeContext.UpdatedIndex.Packages))));
+            tasks.AddRange(rebuildIds.Select(e => new Func<Task>(() => CreateIndexAsync(e, operations.UpdatedIndex.Packages))));
 
             // Run all tasks
             return TaskUtils.RunAsync(tasks);
@@ -137,7 +137,7 @@ namespace Sleet
             return results;
         }
 
-        public JObject CreateIndexJson(SortedSet<NuGetVersion> versions)
+        public static JObject CreateIndexJson(SortedSet<NuGetVersion> versions)
         {
             var json = new JObject();
 
@@ -209,7 +209,7 @@ namespace Sleet
             var nupkgFile = _context.Source.Get(GetNupkgPath(packageInput.Identity));
             nupkgFile.Link(packageInput.PackagePath, _context.Log, _context.Token);
 
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         }
 
         private async Task AddNuspecAsync(PackageInput packageInput)

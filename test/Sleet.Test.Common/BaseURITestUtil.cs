@@ -20,7 +20,7 @@ namespace Sleet.Test.Common
 
                 foreach (var entityId in BaseURITestUtil.GetEntityIds(fileJson))
                 {
-                    Assert.True(entityId.StartsWith(baseUri.AbsoluteUri), $"{entityId} in {file}");
+                    Assert.True(entityId.StartsWith(baseUri.AbsoluteUri, StringComparison.Ordinal), $"{entityId} in {file}");
                 }
             }
         }
@@ -29,7 +29,7 @@ namespace Sleet.Test.Common
         {
             foreach (var file in files)
             {
-                if (file.RootPath.AbsoluteUri.EndsWith(".json"))
+                if (file.RootPath.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal))
                 {
                     var fileJson = await file.GetJsonOrNull(NullLogger.Instance, CancellationToken.None);
 
@@ -37,7 +37,7 @@ namespace Sleet.Test.Common
                     {
                         foreach (var entityId in BaseURITestUtil.GetEntityIds(fileJson))
                         {
-                            Assert.True(entityId.StartsWith(baseUri.AbsoluteUri), $"{entityId} in {fileJson}");
+                            Assert.True(entityId.StartsWith(baseUri.AbsoluteUri, StringComparison.Ordinal), $"{entityId} in {fileJson}");
                         }
                     }
                 }

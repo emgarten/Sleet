@@ -114,7 +114,7 @@ namespace Sleet
             return sleetFiles;
         }
 
-        private ISleetFile CreateAmazonS3File(SleetUriPair pair)
+        private AmazonS3File CreateAmazonS3File(SleetUriPair pair)
         {
             var key = GetRelativePath(pair.Root);
             return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress, _acl, _disablePayloadSigning);

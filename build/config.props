@@ -30,4 +30,14 @@
     <Description>A static nuget feed generator for Azure Storage, AWS S3, and more.</Description>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);NU1903</NoWarn>
+  </PropertyGroup>
+
+  <!-- Analyzers -->
+   <PropertyGroup>
+      <AnalysisMode>Recommended</AnalysisMode>
+      <NoWarn>$(NoWarn);CA2211;CA1308;CA2007;CA1051</NoWarn>
+   </PropertyGroup>
+
 </Project>

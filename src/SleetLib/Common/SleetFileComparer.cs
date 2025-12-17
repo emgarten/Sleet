@@ -18,6 +18,8 @@ namespace Sleet
     /// </summary>
     public class SleetFileComparer : IComparer<ISleetFile>
     {
+        private static readonly char[] PathSeparator = ['/'];
+
         public int Compare(ISleetFile? x, ISleetFile? y)
         {
             if (x == null && y == null)
@@ -54,7 +56,7 @@ namespace Sleet
 
         private static int GetPriority(ISleetFile file)
         {
-            var fileName = file.EntityUri.AbsoluteUri.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries).Last().ToLowerInvariant();
+            var fileName = file.EntityUri.AbsoluteUri.Split(PathSeparator, StringSplitOptions.RemoveEmptyEntries).Last().ToLowerInvariant();
 
             if (!string.IsNullOrEmpty(fileName))
             {

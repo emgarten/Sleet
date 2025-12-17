@@ -202,15 +202,8 @@ namespace Sleet
         /// </summary>
         public async Task<bool> Exists(string packageId, NuGetVersion version)
         {
-            if (packageId == null)
-            {
-                throw new ArgumentNullException(nameof(packageId));
-            }
-
-            if (version == null)
-            {
-                throw new ArgumentNullException(nameof(version));
-            }
+            ArgumentNullException.ThrowIfNull(packageId);
+            ArgumentNullException.ThrowIfNull(version);
 
             var byId = await GetPackagesByIdAsync(packageId);
 
@@ -219,10 +212,7 @@ namespace Sleet
 
         public Task<bool> Exists(PackageIdentity package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
+            ArgumentNullException.ThrowIfNull(package);
 
             return Exists(package.Id, package.Version);
         }
@@ -232,15 +222,8 @@ namespace Sleet
         /// </summary>
         public async Task<bool> SymbolsExists(string packageId, NuGetVersion version)
         {
-            if (packageId == null)
-            {
-                throw new ArgumentNullException(nameof(packageId));
-            }
-
-            if (version == null)
-            {
-                throw new ArgumentNullException(nameof(version));
-            }
+            ArgumentNullException.ThrowIfNull(packageId);
+            ArgumentNullException.ThrowIfNull(version);
 
             var byId = await GetSymbolsPackagesByIdAsync(packageId);
 
@@ -249,10 +232,7 @@ namespace Sleet
 
         public Task<bool> SymbolsExists(PackageIdentity package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
+            ArgumentNullException.ThrowIfNull(package);
 
             return SymbolsExists(package.Id, package.Version);
         }

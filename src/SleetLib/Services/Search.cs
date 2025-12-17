@@ -14,6 +14,23 @@ namespace Sleet
     /// </summary>
     public class Search : ISleetService, IRootIndex, IPackagesLookup, IApplyOperations
     {
+        private static readonly string[] CopyProperties =
+        [
+            "id",
+            "version",
+            "description",
+            "summary",
+            "title",
+            "iconUrl",
+            "licenseUrl",
+            "projectUrl",
+            "tags"
+        ];
+
+        private static readonly string[] CopyPropertiesDelimited = ["authors", "owners"];
+
+        private static readonly string[] RequireArrayFields = ["tags", "authors"];
+
         private readonly SleetContext _context;
         public string RootIndex { get; } = "search/query";
 
@@ -24,7 +41,7 @@ namespace Sleet
             _context = context;
         }
 
-        public async Task ApplyOperationsAsync(SleetOperations changeContext)
+        public async Task ApplyOperationsAsync(SleetOperations operations)
         {
             var file = RootIndexFile;
             using (var timer = PerfEntryWrapper.CreateModifyTimer(file, _context))
@@ -35,15 +52,12 @@ namespace Sleet
                 // Modified packages will be rebuilt, other entries will be left as-is.
                 var data = GetData(json);
 
-                foreach (var packageId in changeContext.GetChangedIds())
+                foreach (var packageId in operations.GetChangedIds())
                 {
                     // Remove the existing entry if it exists
-                    if (data.ContainsKey(packageId))
-                    {
-                        data.Remove(packageId);
-                    }
+                    data.Remove(packageId);
 
-                    var packages = await changeContext.UpdatedIndex.Packages.GetPackagesByIdAsync(packageId);
+                    var packages = await operations.UpdatedIndex.Packages.GetPackagesByIdAsync(packageId);
                     var versions = new SortedSet<NuGetVersion>(packages.Select(e => e.Version));
 
                     // If no versions exist then there is no extra work needed.
@@ -103,30 +117,11 @@ namespace Sleet
 
             packageEntry.Add("registration", registrationUri.AbsoluteUri);
 
-            var copyProperties = new[]
-            {
-                "id",
-                "version",
-                "description",
-                "summary",
-                "title",
-                "iconUrl",
-                "licenseUrl",
-                "projectUrl",
-                "tags"
-            };
+            JsonUtility.CopyProperties(catalogEntry, packageEntry, CopyProperties, skipEmpty: false);
 
-            JsonUtility.CopyProperties(catalogEntry, packageEntry, copyProperties, skipEmpty: false);
+            JsonUtility.CopyDelimitedProperties(catalogEntry, packageEntry, CopyPropertiesDelimited, ',');
 
-            var copyPropertiesDelimited = new[]
-            {
-                "authors",
-                "owners"
-            };
-
-            JsonUtility.CopyDelimitedProperties(catalogEntry, packageEntry, copyPropertiesDelimited, ',');
-
-            JsonUtility.RequireArrayWithEmptyString(packageEntry, new[] { "tags", "authors" });
+            JsonUtility.RequireArrayWithEmptyString(packageEntry, RequireArrayFields);
 
             packageEntry.Add("totalDownloads", 0);
 
@@ -148,7 +143,7 @@ namespace Sleet
             return JsonLDTokenComparer.Format(packageEntry);
         }
 
-        private Dictionary<string, JObject> GetData(JObject page)
+        private static Dictionary<string, JObject> GetData(JObject page)
         {
             var data = new Dictionary<string, JObject>(StringComparer.OrdinalIgnoreCase);
 
@@ -156,10 +151,7 @@ namespace Sleet
             {
                 var id = entry.GetId();
 
-                if (!data.ContainsKey(id))
-                {
-                    data.Add(id, entry);
-                }
+                data.TryAdd(id, entry);
             }
 
             return data;

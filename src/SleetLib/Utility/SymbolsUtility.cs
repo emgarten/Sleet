@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace Sleet
         // SymbolLib.pdb/4B26B9A60D384F90855C3A6196C6C8781/
         public static string GetSymbolsServerDirectoryPath(string fileName, string hash)
         {
-            if (string.IsNullOrEmpty(fileName) || fileName.IndexOf('.') == -1 || fileName.IndexOf('/') > -1)
+            if (string.IsNullOrEmpty(fileName) || !fileName.Contains('.') || fileName.Contains('/'))
             {
                 throw new ArgumentException($"Invalid file name: {fileName}");
             }
@@ -39,8 +40,8 @@ namespace Sleet
             var size = peHeader.SizeOfImage;
             var time = peReader.PEHeaders.CoffHeader.TimeDateStamp;
 
-            var timeHash = string.Format("{0:X}", time).ToUpperInvariant();
-            var sizeHash = string.Format("{0:X}", size).ToLowerInvariant();
+            var timeHash = string.Format(CultureInfo.InvariantCulture, "{0:X}", time).ToUpperInvariant();
+            var sizeHash = string.Format(CultureInfo.InvariantCulture, "{0:X}", size).ToLowerInvariant();
 
             return $"{timeHash}{sizeHash}";
         }
@@ -83,14 +84,14 @@ namespace Sleet
             return hash;
         }
 
-        public static string GetPortablePdbHash(Guid guid)
+        public static string GetPortablePdbHash(Guid id)
         {
-            return guid.ToString("N").ToUpperInvariant() + "ffffffff";
+            return id.ToString("N").ToUpperInvariant() + "ffffffff";
         }
 
-        public static string GetWindowsPdbHash(Guid guid, int age)
+        public static string GetWindowsPdbHash(Guid id, int age)
         {
-            return guid.ToString("N").ToUpperInvariant() + age;
+            return id.ToString("N").ToUpperInvariant() + age;
         }
 
         /// <summary>
