@@ -113,10 +113,8 @@ namespace Sleet
             // Unset
             foreach (var key in unsetKeys)
             {
-                if (settings.ContainsKey(key))
+                if (settings.Remove(key))
                 {
-                    settings.Remove(key);
-
                     // Allow handlers to perform additional work
                     if (settingHandlers.TryGetValue(key, out var handler))
                     {

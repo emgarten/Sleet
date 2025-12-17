@@ -84,6 +84,7 @@ namespace Sleet.Test.Common
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             Root.Dispose();
 
             foreach (var item in DisposeItems)

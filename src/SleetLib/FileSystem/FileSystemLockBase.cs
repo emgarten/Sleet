@@ -116,6 +116,7 @@ namespace Sleet
 
         public virtual void Dispose()
         {
+            GC.SuppressFinalize(this);
             Release();
         }
 

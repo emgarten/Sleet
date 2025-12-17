@@ -140,6 +140,7 @@ namespace Sleet
 
         public override void Dispose()
         {
+            GC.SuppressFinalize(this);
             base.Dispose();
             _cts.Dispose();
         }

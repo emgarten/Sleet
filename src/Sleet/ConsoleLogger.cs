@@ -73,7 +73,7 @@ namespace Sleet
 
         public void Dispose()
         {
-
+            GC.SuppressFinalize(this);
         }
 
         private static ConsoleColor? GetColor(ILogMessage message)

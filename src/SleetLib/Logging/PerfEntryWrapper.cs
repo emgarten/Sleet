@@ -48,6 +48,7 @@ namespace Sleet
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             // Log the event
             _timer.Stop();
             _tracker.Add(_getEntry(_timer.Elapsed));

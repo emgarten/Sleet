@@ -37,10 +37,7 @@
   <!-- Analyzers -->
    <PropertyGroup>
       <AnalysisMode>Recommended</AnalysisMode>
-      <!-- Can be ignored -->
-      <NoWarn>$(NoWarn);CA2211;CA1308</NoWarn>
-      <!-- To remove and fix -->
-      <NoWarn>$(NoWarn);CA2007;CA1051;CA1816;CA1853;CA1864;CA2201</NoWarn>
+      <NoWarn>$(NoWarn);CA2211;CA1308;CA2007;CA1051</NoWarn>
    </PropertyGroup>
 
 </Project>

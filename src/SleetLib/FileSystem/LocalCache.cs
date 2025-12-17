@@ -41,6 +41,7 @@ namespace Sleet
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             try
             {
                 Root.Delete(recursive: true);

@@ -55,10 +55,7 @@ namespace Sleet
                 foreach (var packageId in operations.GetChangedIds())
                 {
                     // Remove the existing entry if it exists
-                    if (data.ContainsKey(packageId))
-                    {
-                        data.Remove(packageId);
-                    }
+                    data.Remove(packageId);
 
                     var packages = await operations.UpdatedIndex.Packages.GetPackagesByIdAsync(packageId);
                     var versions = new SortedSet<NuGetVersion>(packages.Select(e => e.Version));
@@ -154,10 +151,7 @@ namespace Sleet
             {
                 var id = entry.GetId();
 
-                if (!data.ContainsKey(id))
-                {
-                    data.Add(id, entry);
-                }
+                data.TryAdd(id, entry);
             }
 
             return data;
