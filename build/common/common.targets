@@ -62,7 +62,7 @@
   <!-- Nupkg -->
   <PropertyGroup Condition=" '$(PackProject)' == 'true' AND '$(SkipDocs)' != 'true' ">
     <GenerateDocumentationFile Condition=" '$(GenerateDocumentationFile)' == '' " >true</GenerateDocumentationFile>
-    <NoWarn>1591;1573</NoWarn>
+    <NoWarn>$(NoWarn);1591;1573</NoWarn>
   </PropertyGroup>
 
   <!-- Create nupkg hook -->

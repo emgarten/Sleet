@@ -35,8 +35,6 @@ namespace Sleet
             app.HelpOption(Constants.HelpOption);
             app.VersionOption("--version", AssemblyVersionHelper.GetVersion().ToFullVersionString());
 
-            Configure();
-
             InitAppCommand.Register(app, log);
             PushAppCommand.Register(app, log);
             DeleteAppCommand.Register(app, log);
@@ -71,28 +69,6 @@ namespace Sleet
             }
 
             return Task.FromResult(exitCode);
-        }
-
-        private static void Configure()
-        {
-#if NET6_0 || NET8_0
-            // Set connection limit
-            if (!RuntimeEnvironmentHelper.IsMono)
-            {
-                ServicePointManager.DefaultConnectionLimit = 64;
-            }
-            else
-            {
-                // Keep mono limited to a single download to avoid issues.
-                ServicePointManager.DefaultConnectionLimit = 1;
-            }
-
-            // Limit SSL
-            ServicePointManager.SecurityProtocol =
-                SecurityProtocolType.Tls |
-                SecurityProtocolType.Tls11 |
-                SecurityProtocolType.Tls12;
-#endif
         }
     }
 }
