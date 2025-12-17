@@ -76,7 +76,7 @@ namespace Sleet
         {
             if (paths.Length == 0)
             {
-                throw new ArgumentException(nameof(paths));
+                throw new ArgumentException("At least one path must be provided.", nameof(paths));
             }
 
             var root = CreateUri(paths[0]);
