@@ -8,11 +8,15 @@ namespace Sleet
     public class AzureFile : FileBase
     {
         private readonly BlobClient _blob;
+        private readonly string _immutableCacheControl;
+        private readonly string _mutableCacheControl;
 
-        internal AzureFile(AzureFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile, BlobClient blob)
+        internal AzureFile(AzureFileSystem fileSystem, Uri rootPath, Uri displayPath, FileInfo localCacheFile, BlobClient blob, string immutableCacheControl, string mutableCacheControl)
             : base(fileSystem, rootPath, displayPath, localCacheFile, fileSystem.LocalCache.PerfTracker)
         {
             _blob = blob;
+            _immutableCacheControl = immutableCacheControl;
+            _mutableCacheControl = mutableCacheControl;
         }
 
         protected override async Task CopyFromSource(ILogger log, CancellationToken token)
@@ -67,20 +71,24 @@ namespace Sleet
                     if (_blob.Uri.AbsoluteUri.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase))
                     {
                         blobHeaders.ContentType = "application/zip";
+                        blobHeaders.CacheControl = _immutableCacheControl;
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)
                         || _blob.Uri.AbsoluteUri.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase))
                     {
                         blobHeaders.ContentType = "application/xml";
+                        blobHeaders.CacheControl = _immutableCacheControl;
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
                     {
                         blobHeaders.ContentType = "image/svg+xml";
+                        blobHeaders.CacheControl = _mutableCacheControl;
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
                             || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                     {
                         blobHeaders.ContentType = "application/json";
+                        blobHeaders.CacheControl = _mutableCacheControl;
 
                         if (!SkipCompress())
                         {
@@ -93,14 +101,17 @@ namespace Sleet
                         || _blob.Uri.AbsoluteUri.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
                     {
                         blobHeaders.ContentType = "application/octet-stream";
+                        blobHeaders.CacheControl = _immutableCacheControl;
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith("/icon", StringComparison.Ordinal))
                     {
                         blobHeaders.ContentType = "image/png";
+                        blobHeaders.CacheControl = _immutableCacheControl;
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith("/readme", StringComparison.Ordinal))
                     {
                         blobHeaders.ContentType = "text/markdown";
+                        blobHeaders.CacheControl = _immutableCacheControl;
                     }
                     else
                     {

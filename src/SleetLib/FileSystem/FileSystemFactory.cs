@@ -77,6 +77,8 @@ namespace Sleet
                     {
                         var connectionString = JsonUtility.GetValueCaseInsensitive(sourceEntry, "connectionString");
                         var container = JsonUtility.GetValueCaseInsensitive(sourceEntry, "container");
+                        var immutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "immutableCacheControl") ?? "no-cache";
+                        var mutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "mutableCacheControl") ?? "no-cache";
 
                         if (string.IsNullOrEmpty(container))
                         {
@@ -93,7 +95,7 @@ namespace Sleet
 
                         baseUri ??= pathUri;
 
-                        result = new AzureFileSystem(cache, pathUri, baseUri, blobServiceClient, container, feedSubPath);
+                        result = new AzureFileSystem(cache, pathUri, baseUri, blobServiceClient, container, feedSubPath, immutableCacheControl, mutableCacheControl);
                     }
                     else if (type == "s3")
                     {
@@ -107,6 +109,8 @@ namespace Sleet
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
                         var acl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "acl");
                         var disablePayloadSigning = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "disablePayloadSigning", false);
+                        var immutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "immutableCacheControl") ?? "no-cache";
+                        var mutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "mutableCacheControl") ?? "no-cache";
 
 
                         if (string.IsNullOrEmpty(bucketName))
@@ -245,7 +249,9 @@ namespace Sleet
                             feedSubPath,
                             compress,
                             resolvedAcl,
-                            disablePayloadSigning
+                            disablePayloadSigning,
+                            immutableCacheControl,
+                            mutableCacheControl
                         );
                     }
                 }

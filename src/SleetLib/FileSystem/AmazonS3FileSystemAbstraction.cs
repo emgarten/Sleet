@@ -131,6 +131,7 @@ namespace Sleet
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             S3CannedACL? acl,
             bool disablePayloadSigning,
+            string? cacheControl,
             CancellationToken token)
         {
             var transferUtility = new TransferUtility(client);
@@ -141,7 +142,7 @@ namespace Sleet
                 InputStream = reader,
                 AutoCloseStream = false,
                 AutoResetStreamPosition = false,
-                Headers = { CacheControl = "no-store" },
+                Headers = { CacheControl = cacheControl ?? "no-store" },
                 DisablePayloadSigning = disablePayloadSigning
             };
 

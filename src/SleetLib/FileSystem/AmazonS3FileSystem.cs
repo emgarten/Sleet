@@ -16,6 +16,8 @@ namespace Sleet
         private readonly ServerSideEncryptionMethod _serverSideEncryptionMethod;
         private readonly S3CannedACL? _acl;
         private readonly bool _disablePayloadSigning;
+        private readonly string _immutableCacheControl;
+        private readonly string _mutableCacheControl;
 
         private bool? _hasBucket;
 
@@ -34,7 +36,9 @@ namespace Sleet
             string? feedSubPath = null,
             bool compress = true,
             S3CannedACL? acl = null,
-            bool disablePayloadSigning = false)
+            bool disablePayloadSigning = false,
+            string? immutableCacheControl = null,
+            string? mutableCacheControl = null)
             : base(cache, root, baseUri)
         {
             _client = client;
@@ -42,6 +46,8 @@ namespace Sleet
             _serverSideEncryptionMethod = serverSideEncryptionMethod;
             _acl = acl;
             _disablePayloadSigning = disablePayloadSigning;
+            _immutableCacheControl = immutableCacheControl ?? "no-cache";
+            _mutableCacheControl = mutableCacheControl ?? "no-cache";
 
             if (!string.IsNullOrEmpty(feedSubPath))
             {
@@ -117,7 +123,7 @@ namespace Sleet
         private AmazonS3File CreateAmazonS3File(SleetUriPair pair)
         {
             var key = GetRelativePath(pair.Root);
-            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress, _acl, _disablePayloadSigning);
+            return new AmazonS3File(this, pair.Root, pair.BaseURI, LocalCache.GetNewTempPath(), _client, _bucketName, key, _serverSideEncryptionMethod, _compress, _acl, _disablePayloadSigning, _immutableCacheControl, _mutableCacheControl);
         }
 
         public override string GetRelativePath(Uri uri)

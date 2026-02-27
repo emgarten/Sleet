@@ -9,16 +9,20 @@ namespace Sleet
         public static readonly string AzureEmptyConnectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint=";
 
         private readonly BlobContainerClient _container;
+        private readonly string _immutableCacheControl;
+        private readonly string _mutableCacheControl;
 
         public AzureFileSystem(LocalCache cache, Uri root, BlobServiceClient blobServiceClient, string container)
             : this(cache, root, root, blobServiceClient, container)
         {
         }
 
-        public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, BlobServiceClient blobServiceClient, string container, string? feedSubPath = null)
+        public AzureFileSystem(LocalCache cache, Uri root, Uri baseUri, BlobServiceClient blobServiceClient, string container, string? feedSubPath = null, string? immutableCacheControl = null, string? mutableCacheControl = null)
             : base(cache, root, baseUri, feedSubPath)
         {
             _container = blobServiceClient.GetBlobContainerClient(container);
+            _immutableCacheControl = immutableCacheControl ?? "no-cache";
+            _mutableCacheControl = mutableCacheControl ?? "no-cache";
 
             var containerUri = UriUtility.EnsureTrailingSlash(_container.Uri);
             var expectedPath = UriUtility.EnsureTrailingSlash(root);
@@ -54,7 +58,9 @@ namespace Sleet
                     pair.Root,
                     pair.BaseURI,
                     LocalCache.GetNewTempPath(),
-                    _container.GetBlobClient(GetRelativePath(path))));
+                    _container.GetBlobClient(GetRelativePath(path)),
+                    _immutableCacheControl,
+                    _mutableCacheControl));
         }
 
         public override async Task<bool> Validate(ILogger log, CancellationToken token)
