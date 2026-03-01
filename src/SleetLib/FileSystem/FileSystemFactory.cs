@@ -79,8 +79,8 @@ namespace Sleet
                         var container = JsonUtility.GetValueCaseInsensitive(sourceEntry, "container");
                         var immutableCacheControlValue = JsonUtility.GetValueCaseInsensitive(sourceEntry, "immutableCacheControl");
                         var mutableCacheControlValue = JsonUtility.GetValueCaseInsensitive(sourceEntry, "mutableCacheControl");
-                        var immutableCacheControl = string.IsNullOrWhiteSpace(immutableCacheControlValue) ? "no-cache" : immutableCacheControlValue;
-                        var mutableCacheControl = string.IsNullOrWhiteSpace(mutableCacheControlValue) ? "no-cache" : mutableCacheControlValue;
+                        var immutableCacheControl = string.IsNullOrWhiteSpace(immutableCacheControlValue) ? "no-store" : immutableCacheControlValue;
+                        var mutableCacheControl = string.IsNullOrWhiteSpace(mutableCacheControlValue) ? "no-store" : mutableCacheControlValue;
 
                         if (string.IsNullOrEmpty(container))
                         {
