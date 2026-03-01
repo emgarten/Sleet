@@ -105,7 +105,7 @@ namespace Sleet
             using (var cache = LocalCacheFile.OpenRead())
             {
                 Stream writeStream = cache;
-                string? contentType = null, contentEncoding = null, cacheControl = "no-cache";
+                string? contentType = null, contentEncoding = null, cacheControl = "no-store";
                 var disposeWriteStream = false;
 
                 if (key.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase))
