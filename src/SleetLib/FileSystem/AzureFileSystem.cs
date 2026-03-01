@@ -21,8 +21,8 @@ namespace Sleet
             : base(cache, root, baseUri, feedSubPath)
         {
             _container = blobServiceClient.GetBlobContainerClient(container);
-            _immutableCacheControl = immutableCacheControl ?? "no-cache";
-            _mutableCacheControl = mutableCacheControl ?? "no-cache";
+            _immutableCacheControl = immutableCacheControl ?? "no-store";
+            _mutableCacheControl = mutableCacheControl ?? "no-store";
 
             var containerUri = UriUtility.EnsureTrailingSlash(_container.Uri);
             var expectedPath = UriUtility.EnsureTrailingSlash(root);
