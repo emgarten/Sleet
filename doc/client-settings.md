@@ -254,7 +254,7 @@ It is possible to configure caching header for both Azure and S3 backed feeds. T
 
 | Property                   | Description                                                                                                                                                          |
 |----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| immutableCacheControl      | Cache-Control header value for immutable versioned files (.nupkg, .nuspec, .xml, .dll, .pdb). Default is `no-store`. Example: `public, max-age=31536000, immutable`  |
+| immutableCacheControl      | Cache-Control header value for immutable versioned files (.nupkg, /readme, /icon, .nuspec, .xml, .dll, .pdb). Default is `no-store`. Example: `public, max-age=31536000, immutable`  |
 | mutableCacheControl        | Cache-Control header value for mutable files (.json, .svg). Default is `no-store`. Example: `public, max-age=300, must-revalidate`                                   |
 
 ## Sleet.json loading order
