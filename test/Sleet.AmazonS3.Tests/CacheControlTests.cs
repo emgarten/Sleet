@@ -1,4 +1,3 @@
-using Amazon.S3.Model;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
