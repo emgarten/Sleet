@@ -111,8 +111,16 @@ namespace Sleet
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
                         var acl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "acl");
                         var disablePayloadSigning = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "disablePayloadSigning", false);
-                        var immutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "immutableCacheControl") ?? "no-store";
-                        var mutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "mutableCacheControl") ?? "no-store";
+                        var immutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "immutableCacheControl");
+                        if (string.IsNullOrWhiteSpace(immutableCacheControl))
+                        {
+                            immutableCacheControl = "no-store";
+                        }
+                        var mutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "mutableCacheControl");
+                        if (string.IsNullOrWhiteSpace(mutableCacheControl))
+                        {
+                            mutableCacheControl = "no-store";
+                        }
 
 
                         if (string.IsNullOrEmpty(bucketName))
