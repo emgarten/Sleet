@@ -2,8 +2,8 @@
 
 ## 7.1.0
 * Added `immutableCacheControl` and `mutableCacheControl` configuration options for Azure Storage and Amazon S3 feeds
-  * `immutableCacheControl` - Controls caching for versioned immutable files (.nupkg, .nuspec, .xml, .dll, .pdb, icons, readmes). Default: `no-cache`
-  * `mutableCacheControl` - Controls caching for mutable feed metadata (.json, .svg). Default: `no-cache`
+  * `immutableCacheControl` - Controls caching for versioned immutable files (.nupkg, .nuspec, .xml, .dll, .pdb, icons, readmes). Default: `no-store`
+  * `mutableCacheControl` - Controls caching for mutable feed metadata (.json, .svg). Default: `no-store`
   * Both settings support standard Cache-Control header values (e.g., `public, max-age=31536000, immutable`)
 
 ## 7.0.0

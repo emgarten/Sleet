@@ -44,8 +44,8 @@ namespace Sleet
             this.serverSideEncryptionMethod = serverSideEncryptionMethod;
             this.acl = acl;
             this.disablePayloadSigning = disablePayloadSigning;
-            this.immutableCacheControl = immutableCacheControl ?? "no-cache";
-            this.mutableCacheControl = mutableCacheControl ?? "no-cache";
+            this.immutableCacheControl = immutableCacheControl ?? "no-store";
+            this.mutableCacheControl = mutableCacheControl ?? "no-store";
         }
 
         protected override async Task CopyFromSource(ILogger log, CancellationToken token)

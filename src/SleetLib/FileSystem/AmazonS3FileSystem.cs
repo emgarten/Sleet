@@ -46,8 +46,8 @@ namespace Sleet
             _serverSideEncryptionMethod = serverSideEncryptionMethod;
             _acl = acl;
             _disablePayloadSigning = disablePayloadSigning;
-            _immutableCacheControl = immutableCacheControl ?? "no-cache";
-            _mutableCacheControl = mutableCacheControl ?? "no-cache";
+            _immutableCacheControl = immutableCacheControl ?? "no-store";
+            _mutableCacheControl = mutableCacheControl ?? "no-store";
 
             if (!string.IsNullOrEmpty(feedSubPath))
             {
