@@ -3,7 +3,6 @@ using FluentAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
-using static Sleet.AmazonS3FileSystemAbstraction;
 
 namespace Sleet.AmazonS3.Tests
 {
