@@ -1,4 +1,3 @@
-using Azure.Storage.Blobs.Models;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;

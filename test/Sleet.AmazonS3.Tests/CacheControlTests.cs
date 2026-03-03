@@ -1,10 +1,8 @@
-using Amazon.S3.Model;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
 using System.Net.Http.Headers;
-using static Sleet.AmazonS3FileSystemAbstraction;
 
 namespace Sleet.AmazonS3.Tests
 {
