@@ -3,6 +3,7 @@ using FluentAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
+using System.Net.Http.Headers;
 
 namespace Sleet.Azure.Tests
 {
@@ -32,17 +33,17 @@ namespace Sleet.Azure.Tests
                 // Verify .nupkg has no-store
                 var nupkgBlob = testContext.Container.GetBlobClient("flatcontainer/packagea/1.0.0/packagea.1.0.0.nupkg");
                 var nupkgProperties = await nupkgBlob.GetPropertiesAsync();
-                nupkgProperties.Value.CacheControl.Should().Be("no-store");
+                CacheControlHeaderValue.Parse(nupkgProperties.Value.CacheControl).Should().Be(CacheControlHeaderValue.Parse("no-store"));
 
                 // Verify .nuspec has no-store
                 var nuspecBlob = testContext.Container.GetBlobClient("flatcontainer/packagea/1.0.0/packagea.nuspec");
                 var nuspecProperties = await nuspecBlob.GetPropertiesAsync();
-                nuspecProperties.Value.CacheControl.Should().Be("no-store");
+                CacheControlHeaderValue.Parse(nuspecProperties.Value.CacheControl).Should().Be(CacheControlHeaderValue.Parse("no-store"));
 
                 // Verify index.json has no-store
                 var indexBlob = testContext.Container.GetBlobClient("index.json");
                 var indexProperties = await indexBlob.GetPropertiesAsync();
-                indexProperties.Value.CacheControl.Should().Be("no-store");
+                CacheControlHeaderValue.Parse(indexProperties.Value.CacheControl).Should().Be(CacheControlHeaderValue.Parse("no-store"));
 
                 await testContext.CleanupAsync();
             }
@@ -95,22 +96,22 @@ namespace Sleet.Azure.Tests
                 // Verify .nupkg has immutable cache control
                 var nupkgBlob = testContext.Container.GetBlobClient("flatcontainer/packageb/1.0.0/packageb.1.0.0.nupkg");
                 var nupkgProperties = await nupkgBlob.GetPropertiesAsync();
-                nupkgProperties.Value.CacheControl.Should().Be(immutableCacheControl);
+                CacheControlHeaderValue.Parse(nupkgProperties.Value.CacheControl).Should().Be(CacheControlHeaderValue.Parse(immutableCacheControl));
 
                 // Verify .nuspec has immutable cache control
                 var nuspecBlob = testContext.Container.GetBlobClient("flatcontainer/packageb/1.0.0/packageb.nuspec");
                 var nuspecProperties = await nuspecBlob.GetPropertiesAsync();
-                nuspecProperties.Value.CacheControl.Should().Be(immutableCacheControl);
+                CacheControlHeaderValue.Parse(nuspecProperties.Value.CacheControl).Should().Be(CacheControlHeaderValue.Parse(immutableCacheControl));
 
                 // Verify index.json has mutable cache control
                 var indexBlob = testContext.Container.GetBlobClient("index.json");
                 var indexProperties = await indexBlob.GetPropertiesAsync();
-                indexProperties.Value.CacheControl.Should().Be(mutableCacheControl);
+                CacheControlHeaderValue.Parse(indexProperties.Value.CacheControl).Should().Be(CacheControlHeaderValue.Parse(mutableCacheControl));
 
                 // Verify flatcontainer index.json has mutable cache control
                 var flatcontainerIndexBlob = testContext.Container.GetBlobClient("flatcontainer/packageb/index.json");
                 var flatcontainerIndexProperties = await flatcontainerIndexBlob.GetPropertiesAsync();
-                flatcontainerIndexProperties.Value.CacheControl.Should().Be(mutableCacheControl);
+                CacheControlHeaderValue.Parse(flatcontainerIndexProperties.Value.CacheControl).Should().Be(CacheControlHeaderValue.Parse(mutableCacheControl));
 
                 await testContext.CleanupAsync();
             }
@@ -165,12 +166,12 @@ namespace Sleet.Azure.Tests
                 // Verify .nupkg has immutable cache control
                 var nupkgBlob = testContext.Container.GetBlobClient("flatcontainer/packagec/2.0.0/packagec.2.0.0.nupkg");
                 var nupkgProperties = await nupkgBlob.GetPropertiesAsync();
-                nupkgProperties.Value.CacheControl.Should().Be(immutableCacheControl);
+                CacheControlHeaderValue.Parse(nupkgProperties.Value.CacheControl).Should().Be(CacheControlHeaderValue.Parse(immutableCacheControl));
 
                 // Verify index.json has mutable cache control
                 var indexBlob = testContext.Container.GetBlobClient("index.json");
                 var indexProperties = await indexBlob.GetPropertiesAsync();
-                indexProperties.Value.CacheControl.Should().Be(mutableCacheControl);
+                CacheControlHeaderValue.Parse(indexProperties.Value.CacheControl).Should().Be(CacheControlHeaderValue.Parse(mutableCacheControl));
 
                 await testContext.CleanupAsync();
             }

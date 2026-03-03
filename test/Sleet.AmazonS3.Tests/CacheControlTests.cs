@@ -3,6 +3,7 @@ using FluentAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
+using System.Net.Http.Headers;
 using static Sleet.AmazonS3FileSystemAbstraction;
 
 namespace Sleet.AmazonS3.Tests
@@ -34,19 +35,19 @@ namespace Sleet.AmazonS3.Tests
                 var nupkgMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,
                     "flatcontainer/packagea/1.0.0/packagea.1.0.0.nupkg");
-                nupkgMetadata.Headers.CacheControl.Should().Be("no-store");
+                CacheControlHeaderValue.Parse(nupkgMetadata.Headers.CacheControl).Should().Be(CacheControlHeaderValue.Parse("no-store"));
 
                 // Verify .nuspec has no-store
                 var nuspecMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,
                     "flatcontainer/packagea/1.0.0/packagea.nuspec");
-                nuspecMetadata.Headers.CacheControl.Should().Be("no-store");
+                CacheControlHeaderValue.Parse(nuspecMetadata.Headers.CacheControl).Should().Be(CacheControlHeaderValue.Parse("no-store"));
 
                 // Verify index.json has no-store
                 var indexMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,
                     "index.json");
-                indexMetadata.Headers.CacheControl.Should().Be("no-store");
+                CacheControlHeaderValue.Parse(indexMetadata.Headers.CacheControl).Should().Be(CacheControlHeaderValue.Parse("no-store"));
 
                 await testContext.CleanupAsync();
             }
@@ -104,25 +105,25 @@ namespace Sleet.AmazonS3.Tests
                 var nupkgMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,
                     "flatcontainer/packageb/1.0.0/packageb.1.0.0.nupkg");
-                nupkgMetadata.Headers.CacheControl.Should().Be(immutableCacheControl);
+                CacheControlHeaderValue.Parse(nupkgMetadata.Headers.CacheControl).Should().Be(CacheControlHeaderValue.Parse(immutableCacheControl));
 
                 // Verify .nuspec has immutable cache control
                 var nuspecMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,
                     "flatcontainer/packageb/1.0.0/packageb.nuspec");
-                nuspecMetadata.Headers.CacheControl.Should().Be(immutableCacheControl);
+                CacheControlHeaderValue.Parse(nuspecMetadata.Headers.CacheControl).Should().Be(CacheControlHeaderValue.Parse(immutableCacheControl));
 
                 // Verify index.json has mutable cache control
                 var indexMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,
                     "index.json");
-                indexMetadata.Headers.CacheControl.Should().Be(mutableCacheControl);
+                CacheControlHeaderValue.Parse(indexMetadata.Headers.CacheControl).Should().Be(CacheControlHeaderValue.Parse(mutableCacheControl));
 
                 // Verify flatcontainer index.json has mutable cache control
                 var flatcontainerIndexMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,
                     "flatcontainer/packageb/index.json");
-                flatcontainerIndexMetadata.Headers.CacheControl.Should().Be(mutableCacheControl);
+                CacheControlHeaderValue.Parse(flatcontainerIndexMetadata.Headers.CacheControl).Should().Be(CacheControlHeaderValue.Parse(mutableCacheControl));
 
                 await testContext.CleanupAsync();
             }
@@ -184,13 +185,13 @@ namespace Sleet.AmazonS3.Tests
                 var nupkgMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,
                     "flatcontainer/packagec/2.0.0/packagec.2.0.0.nupkg");
-                nupkgMetadata.Headers.CacheControl.Should().Be(immutableCacheControl);
+                CacheControlHeaderValue.Parse(nupkgMetadata.Headers.CacheControl).Should().Be(CacheControlHeaderValue.Parse(immutableCacheControl));
 
                 // Verify index.json has mutable cache control
                 var indexMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,
                     "index.json");
-                indexMetadata.Headers.CacheControl.Should().Be(mutableCacheControl);
+                CacheControlHeaderValue.Parse(indexMetadata.Headers.CacheControl).Should().Be(CacheControlHeaderValue.Parse(mutableCacheControl));
 
                 await testContext.CleanupAsync();
             }
