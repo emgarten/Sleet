@@ -18,6 +18,8 @@ namespace Sleet
         private readonly ServerSideEncryptionMethod serverSideEncryptionMethod;
         private readonly S3CannedACL? acl;
         private readonly bool disablePayloadSigning;
+        private readonly string immutableCacheControl;
+        private readonly string mutableCacheControl;
 
         internal AmazonS3File(
             AmazonS3FileSystem fileSystem,
@@ -30,7 +32,9 @@ namespace Sleet
             ServerSideEncryptionMethod serverSideEncryptionMethod,
             bool compress = true,
             S3CannedACL? acl = null,
-            bool disablePayloadSigning = false)
+            bool disablePayloadSigning = false,
+            string? immutableCacheControl = null,
+            string? mutableCacheControl = null)
             : base(fileSystem, rootPath, displayPath, localCacheFile, fileSystem.LocalCache.PerfTracker)
         {
             this.client = client;
@@ -40,6 +44,8 @@ namespace Sleet
             this.serverSideEncryptionMethod = serverSideEncryptionMethod;
             this.acl = acl;
             this.disablePayloadSigning = disablePayloadSigning;
+            this.immutableCacheControl = immutableCacheControl ?? "no-store";
+            this.mutableCacheControl = mutableCacheControl ?? "no-store";
         }
 
         protected override async Task CopyFromSource(ILogger log, CancellationToken token)
@@ -99,33 +105,39 @@ namespace Sleet
             using (var cache = LocalCacheFile.OpenRead())
             {
                 Stream writeStream = cache;
-                string? contentType = null, contentEncoding = null;
+                string? contentType = null, contentEncoding = null, cacheControl = "no-store";
                 var disposeWriteStream = false;
 
                 if (key.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase))
                 {
                     contentType = "application/zip";
+                    cacheControl = immutableCacheControl;
                 }
                 else if (key.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)
                          || key.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase))
                 {
                     contentType = "application/xml";
+                    cacheControl = immutableCacheControl;
                 }
                 else if (key.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
                 {
                     contentType = "image/svg+xml";
+                    cacheControl = mutableCacheControl;
                 }
                 else if (absoluteUri.AbsoluteUri.EndsWith("/icon", StringComparison.Ordinal))
                 {
                     contentType = "image/png";
+                    cacheControl = immutableCacheControl;
                 }
                 else if (absoluteUri.AbsoluteUri.EndsWith("/readme", StringComparison.Ordinal))
                 {
                     contentType = "text/markdown";
+                    cacheControl = immutableCacheControl;
                 }
                 else if (key.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
                          || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                 {
+                    cacheControl = mutableCacheControl;
                     contentType = "application/json";
                     if (compress && !SkipCompress())
                     {
@@ -137,6 +149,7 @@ namespace Sleet
                 else if (key.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
                          || key.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
                 {
+                    cacheControl = immutableCacheControl;
                     contentType = "application/octet-stream";
                 }
                 else
@@ -146,7 +159,7 @@ namespace Sleet
 
                 try
                 {
-                    await UploadFileAsync(client, bucketName, key, contentType, contentEncoding, writeStream, serverSideEncryptionMethod, acl, disablePayloadSigning, token)
+                    await UploadFileAsync(client, bucketName, key, contentType, contentEncoding, writeStream, serverSideEncryptionMethod, acl, disablePayloadSigning, cacheControl, token)
                         .ConfigureAwait(false);
                 }
                 finally

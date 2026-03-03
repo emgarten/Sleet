@@ -249,6 +249,14 @@ Tokens that resolve to a tokenized string will also be resolved, allowing enviro
 
 To escape `$` use `$$`.
 
+## Caching configuration
+It is possible to configure caching header for both Azure and S3 backed feeds. This is useful when serving the feed content through a CDN. By default, caching is disabled with a value of `no-store`. You can configure caching for both mutable and immutable files. Immutable files (files which aren't supposed to change, since they are stored per version - `.nupkg`, `/readme`, `/icon`, `.nuspec`, `.xml`, `.dll`, `.pdb`) should have a long cache lifetime (unless you are making changes to live packages). Mutable files (files which are expected to change, such as `index.json` and `flatcontainer/{id}/index.json`) should have a short cache lifetime (~1 hour or whatever you are comfortable with), since it can make clients see stale feed.
+
+| Property                   | Description                                                                                                                                                          |
+|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| immutableCacheControl      | Cache-Control header value for immutable versioned files (.nupkg, /readme, /icon, .nuspec, .xml, .dll, .pdb). Default is `no-store`. Example: `public, max-age=31536000, immutable`  |
+| mutableCacheControl        | Cache-Control header value for mutable files (.json, .svg). Default is `no-store`. Example: `public, max-age=300, must-revalidate`                                   |
+
 ## Sleet.json loading order
 
 1. If `--config` was passed the path given will be used.

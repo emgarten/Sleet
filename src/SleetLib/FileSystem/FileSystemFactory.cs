@@ -77,6 +77,10 @@ namespace Sleet
                     {
                         var connectionString = JsonUtility.GetValueCaseInsensitive(sourceEntry, "connectionString");
                         var container = JsonUtility.GetValueCaseInsensitive(sourceEntry, "container");
+                        var immutableCacheControlValue = JsonUtility.GetValueCaseInsensitive(sourceEntry, "immutableCacheControl");
+                        var mutableCacheControlValue = JsonUtility.GetValueCaseInsensitive(sourceEntry, "mutableCacheControl");
+                        var immutableCacheControl = string.IsNullOrWhiteSpace(immutableCacheControlValue) ? "no-store" : immutableCacheControlValue;
+                        var mutableCacheControl = string.IsNullOrWhiteSpace(mutableCacheControlValue) ? "no-store" : mutableCacheControlValue;
 
                         if (string.IsNullOrEmpty(container))
                         {
@@ -93,7 +97,7 @@ namespace Sleet
 
                         baseUri ??= pathUri;
 
-                        result = new AzureFileSystem(cache, pathUri, baseUri, blobServiceClient, container, feedSubPath);
+                        result = new AzureFileSystem(cache, pathUri, baseUri, blobServiceClient, container, feedSubPath, immutableCacheControl, mutableCacheControl);
                     }
                     else if (type == "s3")
                     {
@@ -107,6 +111,16 @@ namespace Sleet
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
                         var acl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "acl");
                         var disablePayloadSigning = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "disablePayloadSigning", false);
+                        var immutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "immutableCacheControl");
+                        if (string.IsNullOrWhiteSpace(immutableCacheControl))
+                        {
+                            immutableCacheControl = "no-store";
+                        }
+                        var mutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "mutableCacheControl");
+                        if (string.IsNullOrWhiteSpace(mutableCacheControl))
+                        {
+                            mutableCacheControl = "no-store";
+                        }
 
 
                         if (string.IsNullOrEmpty(bucketName))
@@ -245,7 +259,9 @@ namespace Sleet
                             feedSubPath,
                             compress,
                             resolvedAcl,
-                            disablePayloadSigning
+                            disablePayloadSigning,
+                            immutableCacheControl,
+                            mutableCacheControl
                         );
                     }
                 }
