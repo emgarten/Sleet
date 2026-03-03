@@ -57,12 +57,16 @@ namespace Sleet.Integration.Test
                 {
                     Directory.SetCurrentDirectory(target.Root);
 
+                    // Capture the resolved working directory path (on macOS, /var is a symlink to /private/var,
+                    // so GetCurrentDirectory() returns the resolved /private/var/... path after SetCurrentDirectory).
+                    var resolvedRoot = Directory.GetCurrentDirectory();
+
                     //Load sleet.json file from working directory
                     var settings = LocalSettings.Load(path: null);
                     var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log) as PhysicalFileSystem;
 
                     fileSystem.Should().NotBeNull();
-                    fileSystem.LocalRoot.Should().Be(Path.Combine(target.Root, "output") + Path.DirectorySeparatorChar);
+                    fileSystem.LocalRoot.Should().Be(Path.Combine(resolvedRoot, "output") + Path.DirectorySeparatorChar);
 
                 }
                 finally

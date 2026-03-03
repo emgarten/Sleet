@@ -32,6 +32,22 @@ jobs:
     - name: Build
       run: ./build.sh
       shell: bash
+  build-mac:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-tags: true
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 10.0.x
+    - name: Build
+      run: ./build.sh
+      shell: bash
   build-win:
 
     runs-on: windows-latest
