@@ -6,16 +6,23 @@ A static NuGet package feed generator. ☁️ + 📦 = ❄️
 
 ## Table of Contents
 
-* [Features](#features)
-* [Why use static feeds?](#why-use-static-feeds)
-* [Getting Sleet](#getting-sleet)
-* [Quick start](#quick-start)
-* [Commands](#commands)
-* [Documentation](#documentation)
-* [Contributing](#contributing)
-* [History](#history)
-* [Related projects](#related-projects)
-* [License](#license)
+- [Sleet](#sleet)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Why use static feeds?](#why-use-static-feeds)
+  - [Getting Sleet](#getting-sleet)
+    - [Install as a dotnet global tool (recommended)](#install-as-a-dotnet-global-tool-recommended)
+    - [Manually getting sleet.exe](#manually-getting-sleetexe)
+    - [Using SleetLib as a library](#using-sleetlib-as-a-library)
+  - [Quick start](#quick-start)
+  - [Commands](#commands)
+  - [Documentation](#documentation)
+    - [Quick start guides](#quick-start-guides)
+  - [Contributing](#contributing)
+  - [History](#history)
+    - [How was sleet named?](#how-was-sleet-named)
+  - [Related projects](#related-projects)
+  - [License](#license)
 
 ## Features
 
@@ -127,6 +134,10 @@ CI runs on Linux, macOS, and Windows.
 Sleet was created to achieve the original goals of the NuGet v3 feed format: provide maximum availability and performance for NuGet restore by using only static files.
 
 The v3 feed format was designed to do all compute when pushing a new package since updates are infrequent compared to the number of times a package is read for restore. Static files also remove the need to run a specific server to host the feed, allowing a simple file service to handle it.
+
+### How was sleet named?
+
+Sleet is.. cold static packages from the cloud. ☁️ + 📦 = ❄️
 
 ## Related projects
 
