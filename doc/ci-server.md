@@ -14,7 +14,7 @@ You can make it ok with other CI/CD tools like Jeknins, Gitlab Jobs, etc.
 
 Now, we are going to publish nuget package to Azure by Github Action.
 
-You can create a yml file named 'push_nuget_to_azure_by_sleet.yml' at `.github/workflows` in you Github repository.
+You can create a yml file named 'push_nuget_to_azure_by_sleet.yml' at `.github/workflows` in your GitHub repository.
 
 And type something as below:
 
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: pack
         env:
           NUGET_PACKAGE_VERSION: 1.0.0
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: pack
         env:
           NUGET_PACKAGE_VERSION: 1.0.0

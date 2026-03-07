@@ -129,7 +129,7 @@ To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/usergu
       "serviceURL": "https://storage.yandexcloud.net",
       "accessKeyId": "IAM_ACCESS_KEY_ID",
       "secretAccessKey": "IAM_SECRET_ACCESS_KEY",
-      "disablePayloadSigning": false, // set to true if SigV4 is not supported by provider (such as Cloudflare R2)
+      "disablePayloadSigning": false
     }
   ]
 }
@@ -146,7 +146,7 @@ To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/usergu
     secretAccessKey = IAM_SECRET_ACCESS_KEY
 ```
 
-To use S3 compatible storage create an s3 feed config with *serviceURL* instead of *region*.
+To use S3 compatible storage create an s3 feed config with *serviceURL* instead of *region*. Set *disablePayloadSigning* to `true` if SigV4 payload signing is not supported by the storage provider (such as Cloudflare R2).
 
 ### Additional feed settings
 

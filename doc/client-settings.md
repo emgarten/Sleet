@@ -36,7 +36,7 @@ More options can be found in the [Azure.Identity README](https://github.com/Azur
 | --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | container | Name of an existing container in the storage account. *[Required]*                                                                                                                        |
 | connectionString | Azure storage connection string. Note, either connectionString or path *must* be specified. *[Discouraged]*                                                                               |
-| path | Full URI of the azure storage container. If specified this value will be verified against the container's URI. None, either connectionString or path *must* be specified. *[Encouraged]*. |
+| path | Full URI of the azure storage container. If specified this value will be verified against the container's URI. Note, either connectionString or path *must* be specified. *[Encouraged]*. |
 | feedSubPath | Provides a sub directory path within the container where the feed should be added. This allows for multiple feeds within a single container.                                              |
 
 `sleet.json`:
@@ -204,9 +204,13 @@ When running Sleet with [AWS environment variables](https://docs.aws.amazon.com/
 `sleet.json`:
 ```json
 {
-  "name": "myLocalFeed",
-  "type": "local",
-  "path": "C:\\myFeed"
+  "sources": [
+    {
+      "name": "myLocalFeed",
+      "type": "local",
+      "path": "C:\\myFeed"
+    }
+  ]
 }
 ```
 

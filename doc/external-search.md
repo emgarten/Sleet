@@ -27,5 +27,5 @@ feed-settings --unset "externalsearch"
 
 ## Example external search providers
 
-* [Sleet.Search](https://github.com/emgarten/Sleet.Search) - Dockerized azure function that providers filtering for sleet feeds
+* [Sleet.Search](https://github.com/emgarten/Sleet.Search) - Dockerized azure function that provides filtering for sleet feeds
 

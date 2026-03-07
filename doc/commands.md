@@ -34,7 +34,7 @@ After running this command you will have a complete feed with zero packages.
 | Parameter | Description |
 | --- | ------ |
 | config | Optional path to *sleet.json* where the source information is contained. |
-| source | Source name from *sleet.json*. *Required* |
+| source | Source name from *sleet.json*. |
 | with-catalog | Enable the feed catalog and all change history tracking. |
 | with-symbols | Enable symbols server. |
 
@@ -49,8 +49,9 @@ Push adds packages to your feed. It can be used to add individual packages or co
 | Parameter | Description |
 | --- | ------ |
 | config | Optional path to *sleet.json* where the source information is contained. |
-| source | Source name from *sleet.json*. *Required* |
+| source | Source name from *sleet.json*. |
 | force | Overwrite existing packages. Defaults to *false* |
+| skip-existing | Skip packages that already exist on the feed. |
 
 ### Examples
 
@@ -72,11 +73,11 @@ Delete removes packages from your feed. It can be used to remove a single versio
 
 | Parameter | Description |
 | --- | ------ |
-| id | Package id to delete from the feed. |
+| id | Package id to delete from the feed. *Required* |
 | version | Package version to delete. If not specified all versions will be deleted. |
 | reason | Reason for deleting the package(s). This will be stored in the catalog. |
 | config | Optional path to *sleet.json* where the source information is contained. |
-| source | Source name from *sleet.json*. *Required* |
+| source | Source name from *sleet.json*. |
 | force | Ignore missing packages. Defaults to *false* |
 
 ### Examples
@@ -100,7 +101,7 @@ Stats provides a count of the number of packages on the feed.
 | Parameter | Description |
 | --- | ------ |
 | config | Optional path to *sleet.json* where the source information is contained. |
-| source | Source name from *sleet.json*. *Required* |
+| source | Source name from *sleet.json*. |
 
 ## Validate
 
@@ -113,7 +114,7 @@ Validate is a built-in helper to verify that all packages contained in the index
 | Parameter | Description |
 | --- | ------ |
 | config | Optional path to *sleet.json* where the source information is contained. |
-| source | Source name from *sleet.json*. *Required* |
+| source | Source name from *sleet.json*. |
 
 ## Download
 
@@ -126,10 +127,71 @@ Downloads all packages and symbols packages from the feed to a local folder.
 | Parameter | Description |
 | --- | ------ |
 | config | Optional path to *sleet.json* where the source information is contained. |
-| source | Source name from *sleet.json*. *Required* |
+| source | Source name from *sleet.json*. |
+| output-path | Output directory to store downloaded nupkgs. *Required* |
 | skip-existing | Skip packages that already exist in the output folder. |
 | no-lock | Skip locking the feed and verifying the client version. |
 | ignore-errors | Ignore download errors. |
+
+## Destroy
+
+Destroy deletes all files from a feed. This is a destructive operation and cannot be undone.
+
+``Usage: sleet destroy [options]``
+
+### Options
+
+| Parameter | Description |
+| --- | ------ |
+| config | Optional path to *sleet.json* where the source information is contained. |
+| source | Source name from *sleet.json*. |
+
+## Recreate
+
+Recreate downloads all packages, deletes the feed, and then creates a new feed from the existing packages. This may be used to fix feed problems or to upgrade between Sleet versions.
+
+``Usage: sleet recreate [options]``
+
+### Options
+
+| Parameter | Description |
+| --- | ------ |
+| config | Optional path to *sleet.json* where the source information is contained. |
+| source | Source name from *sleet.json*. |
+| nupkg-path | Optional temporary directory to store downloaded nupkgs in. This folder will be cleaned up if the command completes successfully. If the command fails these files will be left as a backup. |
+| force | Ignore errors when recreating the feed. |
+
+## Feed Settings
+
+Read or modify feed settings stored in *sleet.settings.json* for the feed.
+
+``Usage: sleet feed-settings [options]``
+
+### Options
+
+| Parameter | Description |
+| --- | ------ |
+| config | Optional path to *sleet.json* where the source information is contained. |
+| source | Source name from *sleet.json*. |
+| get | Display a feed setting. May be specified multiple times. |
+| get-all | Display all feed settings. |
+| set | Add or update a feed setting. Value must be in the form *key:value*. May be specified multiple times. |
+| unset | Remove a feed setting. May be specified multiple times. |
+| unset-all | Clear all feed settings. |
+
+### Examples
+
+Display all feed settings
+
+``sleet feed-settings --get-all``
+
+Enable the symbols server
+
+``sleet feed-settings --set symbolsfeedenabled:true``
+
+Disable badges
+
+``sleet feed-settings --set badgesenabled:false``
 
 ## Retention
 
@@ -143,10 +205,28 @@ Package retention commands for pruning and limiting package versions.
 
 | Parameter | Description |
 | --- | ------ |
-| stable | Number of stable versions per package id to retain. |
-| prerelease | Number of prerelease versions per package id to retain. |
-| release-labels | Retain *prerelease* versions based on the semantic version release labels. |
+| config | Optional path to *sleet.json* where the source information is contained. |
+| source | Source name from *sleet.json*. |
+| stable | Number of stable versions per package id to retain. *Required* unless --disable is used. |
+| prerelease | Number of prerelease versions per package id to retain. *Required* unless --disable is used. |
+| release-labels | Group prerelease packages by the first X release labels. Each group will be pruned to the prerelease max if applied. |
 | disable | Disable package retention. |
+
+## Retention prune
+
+``Usage: sleet retention prune [options]``
+
+### Options
+
+| Parameter | Description |
+| --- | ------ |
+| config | Optional path to *sleet.json* where the source information is contained. |
+| source | Source name from *sleet.json*. |
+| stable | Number of stable versions per package id. If not specified the feed settings will be used. |
+| prerelease | Number of prerelease versions per package id. If not specified the feed settings will be used. |
+| release-labels | Group prerelease packages by the first X release labels. Each group will be pruned to the prerelease max if applied. |
+| package | Prune only the given package ids. May be specified multiple times. |
+| dry-run | Print out all versions that would be deleted without actually removing them. |
 
 ### Examples
 
@@ -199,7 +279,7 @@ with only the highest `1` prerelease packages remaining.
 
 After the prune the packages left are:
 ```
-1.0.0-beta.branch.a.build.102
+1.0.0-beta.branch.a.build.103
 1.0.0-beta.branch.z.build.207
 1.0.0-rc.branch.a.build.308
 ```
