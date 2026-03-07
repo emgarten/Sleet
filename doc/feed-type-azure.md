@@ -41,7 +41,7 @@ Alternatively you can use Entra ID to provide a service principal or managed ide
 For the list of environment variables that can be used see:
 https://learn.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet
 
-`path` must be set to the full uri of the feed including the container name. This gives sleet context on which account and contanier to use the Entra ID with.
+`path` must be set to the full uri of the feed including the container name. This gives sleet context on which account and container to use the Entra ID with.
 
 Sleet will pick up the environment variables using the Microsoft Identity package and use to authenticate with the storage account.
 
@@ -60,7 +60,7 @@ Sleet will pick up the environment variables using the Microsoft Identity packag
 }
 ```
 
-### .netconfg
+### .netconfig
 
 ```gitconfig
 [sleet "feed"]

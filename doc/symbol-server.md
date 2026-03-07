@@ -33,5 +33,5 @@ The symbol store is the url of the feed, excluding */index.json*, appended with 
 
 The full url can be found in the feed's root `/index.json` under the type `http://schema.emgarten.com/sleet#SymbolsServer/1.0.0`
 
-Instuctions on how to add the symbol store to Visual Studio can be found on [docs.microsoft.com](https://docs.microsoft.com/en-us/visualstudio/debugger/specify-symbol-dot-pdb-and-source-files-in-the-visual-studio-debugger?view=vs-2017#configure-symbol-locations-and-loading-options)
+Instructions on how to add the symbol store to Visual Studio can be found on [docs.microsoft.com](https://docs.microsoft.com/en-us/visualstudio/debugger/specify-symbol-dot-pdb-and-source-files-in-the-visual-studio-debugger?view=vs-2017#configure-symbol-locations-and-loading-options)
 

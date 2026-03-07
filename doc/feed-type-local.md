@@ -36,7 +36,6 @@ For `.netconfig`, just create or edit the file directly in the [desired location
 
 [sleet "myLocalFeed"]
     type = local
-    container = feed
     path = C:\\myFeed
     baseURI = https://example.com/feed/
 ```
