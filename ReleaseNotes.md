@@ -1,5 +1,8 @@
 # Release Notes
 
+## 7.1.1
+* Update NuGet.* packages to 7.3.0
+
 ## 7.1.0
 * Added `immutableCacheControl` and `mutableCacheControl` configuration options for Azure Storage and Amazon S3 feeds
   * `immutableCacheControl` - Controls caching for versioned immutable files (.nupkg, .nuspec, .xml, .dll, .pdb, icons, readmes). Default: `no-store`
