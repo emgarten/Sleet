@@ -2,11 +2,11 @@
 
   <!-- Dependency versions -->
   <PropertyGroup>
-    <NuGetPackageVersion>7.3.0</NuGetPackageVersion>
+    <NuGetPackageVersion>7.6.0</NuGetPackageVersion>
     <AzureStorageBlobsVersion>12.27.0</AzureStorageBlobsVersion>
     <JsonVersion>13.0.4</JsonVersion>
     <CommandLineUtilsVersion>5.0.1</CommandLineUtilsVersion>
-    <NuGetTestHelpersVersion>2.1.39</NuGetTestHelpersVersion>
+    <NuGetTestHelpersVersion>2.1.56</NuGetTestHelpersVersion>
     <PortablePdbVersion>1.6.0</PortablePdbVersion>
     <AWSSDKVersion>4.0.15.1</AWSSDKVersion>
     <AWSSDKTokenVersion>4.0.5.4</AWSSDKTokenVersion>

@@ -242,7 +242,7 @@ namespace Sleet
             return AddFileAsync(packageInput, path, feedPath);
         }
 
-        private async Task AddFileAsync(PackageInput packageInput, string nupkgPath, Uri feedPath)
+        private async Task AddFileAsync(PackageInput packageInput, string? nupkgPath, Uri feedPath)
         {
             if (!string.IsNullOrWhiteSpace(nupkgPath))
             {

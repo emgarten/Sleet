@@ -10,6 +10,10 @@ jobs:
   build-win:
 
     runs-on: windows-latest
+    environment: release
+    permissions:
+      id-token: write   # request the GitHub OIDC token for trusted publishing
+      contents: read    # checkout still needs read access
 
     steps:
     - uses: actions/checkout@v4
@@ -23,6 +27,11 @@ jobs:
     - name: Build
       run: ./build.ps1
       shell: pwsh
+    - name: NuGet login (OIDC -> temp API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: emgarten
     - name: Publish
-      run: dotnet nuget push artifacts\nupkgs\*.nupkg  --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push artifacts\nupkgs\*.nupkg  --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
       shell: pwsh
