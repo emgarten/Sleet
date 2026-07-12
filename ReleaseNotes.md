@@ -1,5 +1,8 @@
 # Release Notes
 
+## 7.2.0
+* Update NuGet.* packages to 7.6.0 to address advisory GHSA-g4vj-cjjj-v7hg
+
 ## 7.1.1
 * Update NuGet.* packages to 7.3.0
 
