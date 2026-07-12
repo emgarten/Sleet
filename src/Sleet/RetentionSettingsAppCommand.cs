@@ -23,6 +23,7 @@ namespace Sleet
                 CommandOptionType.SingleValue);
 
             var verbose = cmd.Option(Constants.VerboseOption, Constants.VerboseDesc, CommandOptionType.NoValue);
+            var verbosity = cmd.Option(Constants.VerbosityOption, Constants.VerbosityDesc, CommandOptionType.SingleValue);
 
             cmd.HelpOption(Constants.HelpOption);
 
@@ -47,7 +48,7 @@ namespace Sleet
                 }
 
                 // Init logger
-                Util.SetVerbosity(log, verbose.HasValue());
+                Util.SetVerbosity(log, verbose.HasValue(), verbosity.Value());
 
                 // Create a temporary folder for caching files during the operation.
                 using (var cache = new LocalCache())

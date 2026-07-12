@@ -5,6 +5,22 @@ The help parameter may be applied to any command to see a description of all par
 
 ``sleet.exe --help``
 
+## Logging verbosity
+All commands accept ``--verbosity <level>`` to control how much console output is written. This is useful for tooling that pushes packages one at a time and wants only a couple of lines per operation.
+
+``sleet.exe push mypackage.nupkg --verbosity minimal``
+
+| Level | Description |
+| --- | ------ |
+| quiet | Only warnings and errors. |
+| minimal | Key progress and results without the performance summary. |
+| normal | Default output. |
+| detailed | Additional messages. Equivalent to ``--verbose``. |
+| diagnostic | Full debug output. |
+
+``--verbose`` remains available as an alias for ``--verbosity detailed``. When both are supplied, ``--verbosity`` wins.
+
+
 ## CreateConfig
 All commands require a *sleet.json* config file to provide source settings. Before creating a new source the *createconfig* command may be used to output a *sleet.json* template file that may be filled in with your own settings.
 
@@ -52,6 +68,7 @@ Push adds packages to your feed. It can be used to add individual packages or co
 | source | Source name from *sleet.json*. |
 | force | Overwrite existing packages. Defaults to *false* |
 | skip-existing | Skip packages that already exist on the feed. |
+| verbosity | Console log verbosity: *quiet*, *minimal*, *normal*, *detailed*, or *diagnostic*. See [Logging verbosity](#logging-verbosity). |
 
 ### Examples
 
@@ -62,6 +79,10 @@ Pushing a single nupkg
 Pushing multiple directories of nupkgs
 
 ``sleet push /my/nupkgs1/ /my/nupkgs2/ --source myFeed``
+
+Pushing a single nupkg with reduced output
+
+``sleet push path/to/mynupkg.nupkg --source myFeed --verbosity minimal``
 
 ## Delete
 

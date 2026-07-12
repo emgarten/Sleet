@@ -29,6 +29,7 @@ namespace Sleet
                 CommandOptionType.SingleValue);
 
             var verbose = cmd.Option(Constants.VerboseOption, Constants.VerboseDesc, CommandOptionType.NoValue);
+            var verbosity = cmd.Option(Constants.VerbosityOption, Constants.VerbosityDesc, CommandOptionType.SingleValue);
 
             var forceName = cmd.Option("-f|--force", "Overwrite existing packages.",
                             CommandOptionType.NoValue);
@@ -51,7 +52,7 @@ namespace Sleet
                 CmdUtils.VerifyRequiredOptions(required.ToArray());
 
                 // Init logger
-                Util.SetVerbosity(log, verbose.HasValue());
+                Util.SetVerbosity(log, verbose.HasValue(), verbosity.Value());
 
                 // Create a temporary folder for caching files during the operation.
                 using (var cache = new LocalCache(new PerfTracker()))
