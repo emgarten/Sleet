@@ -309,7 +309,5 @@ All commands accept ``--verbosity <level>`` to control how much console output i
 | quiet | Only warnings and errors. |
 | minimal | Key progress and results without the performance summary. |
 | normal | Default output. |
-| detailed | Additional messages. Equivalent to ``--verbose``. |
+| detailed | Additional messages. |
 | diagnostic | Full debug output. |
-
-``--verbose`` remains available as an alias for ``--verbosity detailed``. When both are supplied, ``--verbosity`` wins.

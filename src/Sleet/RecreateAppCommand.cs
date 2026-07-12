@@ -22,6 +22,7 @@ namespace Sleet
                 CommandOptionType.SingleValue);
 
             var verbose = cmd.Option(Constants.VerboseOption, Constants.VerboseDesc, CommandOptionType.NoValue);
+            verbose.ShowInHelpText = false;
             var verbosity = cmd.Option(Constants.VerbosityOption, Constants.VerbosityDesc, CommandOptionType.SingleValue);
 
             cmd.HelpOption(Constants.HelpOption);

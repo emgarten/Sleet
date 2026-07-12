@@ -32,6 +32,7 @@ namespace Sleet
             var force = cmd.Option("-f|--force", "Ignore missing packages.", CommandOptionType.NoValue);
 
             var verbose = cmd.Option(Constants.VerboseOption, Constants.VerboseDesc, CommandOptionType.NoValue);
+            verbose.ShowInHelpText = false;
             var verbosity = cmd.Option(Constants.VerbosityOption, Constants.VerbosityDesc, CommandOptionType.SingleValue);
             var propertyOptions = cmd.Option(Constants.PropertyOption, Constants.PropertyDescription, CommandOptionType.MultipleValue);
 
