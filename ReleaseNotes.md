@@ -1,9 +1,7 @@
 # Release Notes
 
 ## 7.2.0
-* Added `--verbosity <level>` option to all commands to control console output: `quiet`, `minimal`, `normal`, `detailed`, or `diagnostic`
-  * Use `--verbosity minimal` (or `quiet`) to reduce push output to just a few lines when pushing packages one at a time
-  * `--verbose` is now an alias for `--verbosity detailed`
+* Added `--verbosity <level>` option to control console output
 * Update NuGet.* packages to 7.6.0 to address advisory GHSA-g4vj-cjjj-v7hg
 
 ## 7.1.1

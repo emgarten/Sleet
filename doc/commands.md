@@ -5,22 +5,6 @@ The help parameter may be applied to any command to see a description of all par
 
 ``sleet.exe --help``
 
-## Logging verbosity
-All commands accept ``--verbosity <level>`` to control how much console output is written. This is useful for tooling that pushes packages one at a time and wants only a couple of lines per operation.
-
-``sleet.exe push mypackage.nupkg --verbosity minimal``
-
-| Level | Description |
-| --- | ------ |
-| quiet | Only warnings and errors. |
-| minimal | Key progress and results without the performance summary. |
-| normal | Default output. |
-| detailed | Additional messages. Equivalent to ``--verbose``. |
-| diagnostic | Full debug output. |
-
-``--verbose`` remains available as an alias for ``--verbosity detailed``. When both are supplied, ``--verbosity`` wins.
-
-
 ## CreateConfig
 All commands require a *sleet.json* config file to provide source settings. Before creating a new source the *createconfig* command may be used to output a *sleet.json* template file that may be filled in with your own settings.
 
@@ -314,3 +298,18 @@ and only the highest version will be left.
 All feed related commands allow passing *--property* to specify properties on the command line. These properties can be used to override env vars or populate tokens in sleet.json.
 
 For more information see [client settings](client-settings.md)
+
+## Logging verbosity
+All commands accept ``--verbosity <level>`` to control how much console output is written. This is useful for tooling that pushes packages one at a time and wants only a couple of lines per operation.
+
+``sleet.exe push mypackage.nupkg --verbosity minimal``
+
+| Level | Description |
+| --- | ------ |
+| quiet | Only warnings and errors. |
+| minimal | Key progress and results without the performance summary. |
+| normal | Default output. |
+| detailed | Additional messages. Equivalent to ``--verbose``. |
+| diagnostic | Full debug output. |
+
+``--verbose`` remains available as an alias for ``--verbosity detailed``. When both are supplied, ``--verbosity`` wins.
