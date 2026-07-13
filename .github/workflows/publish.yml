@@ -4,7 +4,9 @@
 name: Publish to NuGet.org
 
 on:
-  workflow_dispatch:   # ↩️ manual trigger only
+  release:
+    types: [published]   # 🚀 auto-publish when a GitHub Release is published
+  workflow_dispatch:      # ↩️ manual trigger fallback
 
 jobs:
   build-win:
