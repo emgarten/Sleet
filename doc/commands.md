@@ -300,7 +300,7 @@ All feed related commands allow passing *--property* to specify properties on th
 For more information see [client settings](client-settings.md)
 
 ## Logging verbosity
-All commands accept ``--verbosity <level>`` to control how much console output is written. This is useful for tooling that pushes packages one at a time and wants only a couple of lines per operation.
+All commands accept ``--verbosity <level>`` (short form ``-V``) to control how much console output is written. This is useful for tooling that pushes packages one at a time and wants only a couple of lines per operation.
 
 ``sleet.exe push mypackage.nupkg --verbosity minimal``
 

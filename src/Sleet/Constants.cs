@@ -9,7 +9,7 @@ namespace Sleet
         internal const string SourceDesc = "Source name from sleet.json.";
         internal const string VerboseOption = "--verbose";
         internal const string VerboseDesc = "Write out additional messages for verbose output. Alias for --verbosity detailed.";
-        internal const string VerbosityOption = "--verbosity";
+        internal const string VerbosityOption = "-V|--verbosity";
         internal const string VerbosityDesc = "Set the log verbosity: quiet, minimal, normal, detailed, or diagnostic. Defaults to normal.";
         internal const string EnableCatalogOption = "--with-catalog";
         internal const string EnableCatalogDesc = "Enable the feed catalog and all change history tracking.";
