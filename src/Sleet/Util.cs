@@ -104,10 +104,11 @@ namespace Sleet
                     // The debug environment variable forces full diagnostic output.
                     level = LogLevel.Debug;
                 }
-                else if (!string.IsNullOrEmpty(verbosity))
+                else if (verbosity != null)
                 {
                     // An explicit --verbosity value takes precedence over the --verbose alias.
-                    level = VerbosityUtility.GetLogLevel(verbosity!);
+                    // A supplied but empty value is treated as invalid rather than defaulting.
+                    level = VerbosityUtility.GetLogLevel(verbosity);
                 }
                 else if (verbose)
                 {
