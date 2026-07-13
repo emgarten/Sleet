@@ -25,7 +25,7 @@ namespace Sleet
         /// </summary>
         public static async Task<bool> Destroy(LocalSettings settings, ISleetFileSystem source, ILogger log, CancellationToken token)
         {
-            log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
+            log.LogInformation($"Reading feed {source.BaseURI.AbsoluteUri}");
 
             var success = await source.Destroy(log, token);
 

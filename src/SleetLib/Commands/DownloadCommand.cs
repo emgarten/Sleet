@@ -89,7 +89,7 @@ namespace Sleet
                 Token = token
             };
 
-            log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
+            log.LogInformation($"Reading feed {source.BaseURI.AbsoluteUri}");
 
             // Find all packages
             var packageIndex = new PackageIndex(context);

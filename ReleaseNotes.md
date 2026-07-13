@@ -2,6 +2,7 @@
 
 ## 7.2.0
 * Added `--verbosity <level>` option to control console output
+* Adjusted minimal verbosity to show the main actions and final result
 * Update NuGet.* packages to 7.6.0 to address advisory GHSA-g4vj-cjjj-v7hg
 
 ## 7.1.1

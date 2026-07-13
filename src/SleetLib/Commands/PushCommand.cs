@@ -19,7 +19,7 @@ namespace Sleet
             var success = false;
             var perfTracker = source.LocalCache.PerfTracker;
 
-            await log.LogAsync(LogLevel.Minimal, $"Reading feed {source.BaseURI.AbsoluteUri}");
+            await log.LogAsync(LogLevel.Information, $"Reading feed {source.BaseURI.AbsoluteUri}");
 
             using (var timer = PerfEntryWrapper.CreateSummaryTimer("Total execution time: {0}", perfTracker))
             {
@@ -113,7 +113,7 @@ namespace Sleet
             CheckForDuplicates(packages);
 
             // Get sleet.settings.json
-            await log.LogAsync(LogLevel.Minimal, "Reading feed");
+            await log.LogAsync(LogLevel.Information, "Reading feed");
             var sourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
 
             // Settings context used for all operations
@@ -139,7 +139,7 @@ namespace Sleet
             await PrunePackages(packages, context);
 
             // Save all
-            await log.LogAsync(LogLevel.Minimal, $"Committing changes to {source.BaseURI.AbsoluteUri}");
+            await log.LogAsync(LogLevel.Information, $"Committing changes to {source.BaseURI.AbsoluteUri}");
 
             await source.Commit(log, token);
 
@@ -214,7 +214,7 @@ namespace Sleet
                     else if (force)
                     {
                         toRemove.Add(package);
-                        await log.LogAsync(LogLevel.Information, $"Replace existing package: {packageString}");
+                        await log.LogAsync(LogLevel.Minimal, $"Replace existing package: {packageString}");
                     }
                     else
                     {
@@ -230,7 +230,7 @@ namespace Sleet
                 toAdd.Add(package);
             }
 
-            await log.LogAsync(LogLevel.Minimal, $"Processing feed changes");
+            await log.LogAsync(LogLevel.Information, $"Processing feed changes");
 
             // Add/Remove packages
             var changeContext = SleetOperations.Create(existingPackageSets, toAdd, toRemove);

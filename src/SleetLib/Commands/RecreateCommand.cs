@@ -29,7 +29,7 @@ namespace Sleet
                 localCache = new LocalCache(tmpPath);
             }
 
-            log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
+            log.LogInformation($"Reading feed {source.BaseURI.AbsoluteUri}");
 
             using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Recreate", log, token))
             {

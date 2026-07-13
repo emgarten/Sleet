@@ -134,13 +134,13 @@ namespace Sleet
 
                 if (exists || symbolsExists)
                 {
-                    await log.LogAsync(LogLevel.Information, $"Pruning {package.ToString()}");
+                    await log.LogAsync(LogLevel.Minimal, $"Pruning {package.ToString()}");
                 }
             }
 
             if (toRemove.Count < 1 && toRemoveSymbols.Count < 1)
             {
-                await log.LogAsync(LogLevel.Information, $"No packages need pruning.");
+                await log.LogAsync(LogLevel.Minimal, $"No packages need pruning.");
             }
             else if (!dryRun)
             {

@@ -307,7 +307,7 @@ All commands accept ``--verbosity <level>`` to control how much console output i
 | Level | Description |
 | --- | ------ |
 | quiet | Only warnings and errors. |
-| minimal | Key progress and results without the performance summary. |
+| minimal | The main actions taken and the final result. |
 | normal | Default output. |
 | detailed | Additional messages. |
 | diagnostic | Full debug output. |
