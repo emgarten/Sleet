@@ -93,23 +93,36 @@ namespace Sleet
             return results;
         }
 
-        internal static void SetVerbosity(ILogger log, bool verbose)
+        internal static void SetVerbosity(ILogger log, bool verbose, string? verbosity)
         {
             if (log is ConsoleLogger consoleLogger)
             {
+                LogLevel level;
+
                 if (CmdUtils.IsDebugModeEnabled())
                 {
-                    consoleLogger.VerbosityLevel = LogLevel.Debug;
+                    // The debug environment variable forces full diagnostic output.
+                    level = LogLevel.Debug;
+                }
+                else if (verbosity != null)
+                {
+                    // An explicit --verbosity value takes precedence over the --verbose alias.
+                    // A supplied but empty value is treated as invalid rather than defaulting.
+                    level = VerbosityUtility.GetLogLevel(verbosity);
                 }
                 else if (verbose)
                 {
-                    consoleLogger.VerbosityLevel = LogLevel.Verbose;
+                    level = LogLevel.Verbose;
                 }
                 else
                 {
-                    consoleLogger.VerbosityLevel = DefaultLogLevel;
-                    consoleLogger.CollapseMessages = true;
+                    level = DefaultLogLevel;
                 }
+
+                consoleLogger.VerbosityLevel = level;
+
+                // Collapse extra messages when not showing verbose or debug output.
+                consoleLogger.CollapseMessages = level > LogLevel.Verbose;
             }
         }
     }

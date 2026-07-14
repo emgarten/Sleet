@@ -28,7 +28,7 @@ namespace Sleet
             ILogger log,
             CancellationToken token)
         {
-            log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
+            log.LogInformation($"Reading feed {source.BaseURI.AbsoluteUri}");
 
             // Check if already initialized
             using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Feed settings", log, token))
@@ -170,7 +170,7 @@ namespace Sleet
                 await feedSettings.Write(feedSettingsJson, log, token);
 
                 // Save all
-                log.LogMinimal($"Committing changes to {source.BaseURI.AbsoluteUri}");
+                log.LogInformation($"Committing changes to {source.BaseURI.AbsoluteUri}");
 
                 return await source.Commit(log, token);
             }

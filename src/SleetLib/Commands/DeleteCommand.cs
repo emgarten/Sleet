@@ -21,7 +21,7 @@ namespace Sleet
 
             var token = CancellationToken.None;
 
-            log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
+            log.LogInformation($"Reading feed {source.BaseURI.AbsoluteUri}");
 
             // Check if already initialized
             using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Delete", log, token))
@@ -69,7 +69,7 @@ namespace Sleet
                 await RemovePackages(force, log, context, existingPackageSets, packages);
 
                 // Save all
-                log.LogMinimal($"Committing changes to {source.BaseURI.AbsoluteUri}");
+                log.LogInformation($"Committing changes to {source.BaseURI.AbsoluteUri}");
 
                 success &= await source.Commit(log, token);
             }
@@ -95,7 +95,7 @@ namespace Sleet
 
             var token = CancellationToken.None;
 
-            log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
+            log.LogInformation($"Reading feed {source.BaseURI.AbsoluteUri}");
 
             // Check if already initialized
             using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Delete", log, token))
@@ -129,7 +129,7 @@ namespace Sleet
                 await RemovePackages(force, log, context, existingPackageSets, packages);
 
                 // Save all
-                log.LogMinimal($"Committing changes to {source.BaseURI.AbsoluteUri}");
+                log.LogInformation($"Committing changes to {source.BaseURI.AbsoluteUri}");
 
                 success &= await source.Commit(log, token);
             }
@@ -192,7 +192,7 @@ namespace Sleet
                     message = $"Removing symbols package {package.ToString()}";
                 }
 
-                await log.LogAsync(LogLevel.Information, message);
+                await log.LogAsync(LogLevel.Minimal, message);
             }
 
             // Update feed

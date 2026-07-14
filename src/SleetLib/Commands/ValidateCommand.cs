@@ -15,7 +15,7 @@ namespace Sleet
         {
             var token = CancellationToken.None;
 
-            log.LogMinimal($"Reading feed {source.BaseURI.AbsoluteUri}");
+            log.LogInformation($"Reading feed {source.BaseURI.AbsoluteUri}");
 
             // Check if already initialized
             using (var feedLock = await SourceUtility.VerifyInitAndLock(settings, source, "Validate", log, token))
