@@ -13,6 +13,10 @@ The page reads the feed's own JSON files at runtime:
 All URLs in the page are relative, so the same file works from any host name the feed is
 served under and never requires CORS configuration.
 
+The page is written by `sleet init`, by `sleet recreate`, and by the automatic
+initialization that happens on the first push to a new feed. Later pushes and all other
+commands leave it alone and never read it.
+
 ## Feed UI URL
 
 | feed type | url |

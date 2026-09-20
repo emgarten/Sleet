@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -350,6 +351,53 @@ namespace SleetLib.Tests
                 success.Should().BeTrue();
                 feedUIOutput.Refresh();
                 feedUIOutput.Exists.Should().BeTrue();
+                File.ReadAllText(feedUIOutput.FullName).Should().Be(customHtml);
+            }
+        }
+
+        [Fact]
+        public async Task GivenPushOnAnInitializedFeedVerifyFeedUIIsNotTouched()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var feedUIOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
+
+                success.Should().BeTrue();
+                feedUIOutput.Exists.Should().BeTrue();
+
+                // Replace the page so that any rewrite during push is detectable.
+                var customHtml = "<html><body>custom</body></html>";
+                File.WriteAllText(feedUIOutput.FullName, customHtml);
+
+                var testPackage = new TestNupkg("packageA", "1.0.0");
+                var zipFile = testPackage.Save(packagesFolder.Root);
+
+                // Act
+                using (var cache2 = new LocalCache())
+                {
+                    var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+
+                    success = await PushCommand.RunAsync(settings, fileSystem2, new List<string>() { zipFile.FullName }, force: false, skipExisting: false, log: log);
+
+                    // Assert
+                    success.Should().BeTrue();
+
+                    // The feed UI is only relevant to init and recreate. Push must not
+                    // read or write it, so it should never be requested from the feed.
+                    // index.json is requested on every push and acts as a control to
+                    // show that requested files are tracked here.
+                    fileSystem2.Files.Keys.Should().Contain(fileSystem2.GetPath("index.json"));
+                    fileSystem2.Files.Keys.Should().NotContain(fileSystem2.GetPath("index.html"));
+                }
+
                 File.ReadAllText(feedUIOutput.FullName).Should().Be(customHtml);
             }
         }
