@@ -24,8 +24,6 @@ header{border-bottom:1px solid var(--line);padding:12px 20px;display:flex;
 h1{font-size:17px;margin:0;font-weight:600;white-space:nowrap;letter-spacing:-.01em}
 h1 a{color:inherit;text-decoration:none}
 h1 a:hover{color:var(--accent)}
-.tagline{font-size:12px;color:var(--muted);white-space:nowrap;
-  border-left:1px solid var(--line);padding-left:12px}
 #search{flex:1;min-width:220px;padding:7px 11px;border:1px solid var(--line);
   border-radius:6px;background:var(--bg);color:var(--fg);font-size:14px}
 #search:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
@@ -75,10 +73,9 @@ th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;
 td{padding:5px 10px 5px 0;border-bottom:1px solid var(--line);vertical-align:top}
 td:first-child,th:first-child{white-space:nowrap}
 tr.sel td{background:var(--chip)}
-.pick{background:none;border:0;padding:0;font:inherit;color:var(--accent);cursor:pointer;
-  font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
-.pick:hover{text-decoration:underline}
-.pick[disabled]{color:var(--fg);cursor:default;font-weight:600;text-decoration:none}
+.pick{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+.cur{color:var(--fg);font-weight:600}
+.note{color:var(--muted);font-size:12px;margin:0 0 14px}
 .readme{background:var(--chip);border:1px solid var(--line);border-radius:6px;
   padding:12px 14px;margin:0;max-height:420px;overflow:auto;white-space:pre-wrap;
   word-break:break-word;font-size:12.5px;
@@ -92,7 +89,6 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 <body>
 <header>
   <h1><a href="#" id="home">Sleet</a></h1>
-  <span class="tagline">static NuGet feed</span>
   <input id="search" type="search" placeholder="Filter by package id&#8230;" autocomplete="off" autofocus>
   <span class="meta" id="count"></span>
 </header>
@@ -327,6 +323,13 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     return "#" + parts.join("&");
   }
 
+  // A version is optional. Leaving it off addresses the latest version, which
+  // keeps the link stable as new versions are pushed.
+  function packageHash(id, version) {
+    return "#package/" + encodeURIComponent(id) +
+      (version ? "/" + encodeURIComponent(version) : "");
+  }
+
   function setHash(hash) {
     try {
       history.replaceState(null, "", location.pathname + location.search + hash);
@@ -339,7 +342,12 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     var h = location.hash.replace(/^#\/?/, "");
 
     if (h.slice(0, 8) === "package/") {
-      return { view: "detail", id: decodeURIComponent(h.slice(8)) };
+      var parts = h.slice(8).split("/");
+      return {
+        view: "detail",
+        id: decodeURIComponent(parts[0]),
+        version: parts.length > 1 ? decodeURIComponent(parts[1]) : ""
+      };
     }
 
     var q = "";
@@ -363,7 +371,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
     var col = el("div", "grow");
     var title = el("div", "pkg-title");
-    title.appendChild(link("#package/" + encodeURIComponent(pkg.id), pkg.id, "pkg-id"));
+    title.appendChild(link(packageHash(pkg.id), pkg.id, "pkg-id"));
     col.appendChild(title);
 
     var count = pkg.versions.length === 1 ? "1 version" : pkg.versions.length + " versions";
@@ -487,7 +495,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     return head;
   }
 
-  function versionsPanel(pkg, reg, selected, onPick) {
+  function versionsPanel(pkg, reg, selected) {
     var panel = el("section", "panel");
     panel.appendChild(el("h3", null, "Versions"));
 
@@ -499,13 +507,10 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     reg.versions.forEach(function (v) {
       var tr = el("tr", v === selected ? "sel" : null);
 
-      var pick = el("button", "pick", v.version);
-      pick.type = "button";
-      if (v === selected) pick.disabled = true;
-      else pick.onclick = function () { onPick(v); };
-
       var first = el("td");
-      first.appendChild(pick);
+      first.appendChild(v === selected
+        ? el("span", "pick cur", v.version)
+        : link(packageHash(pkg.id, v.version), v.version, "pick"));
       tr.appendChild(first);
       tr.appendChild(el("td", "meta", when(v.published)));
 
@@ -541,7 +546,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
         var cell = el("td");
         var target = byId[d.id.toLowerCase()];
         cell.appendChild(target
-          ? link("#package/" + encodeURIComponent(target.id), d.id)
+          ? link(packageHash(target.id), d.id)
           : el("span", null, d.id));
         tr.appendChild(cell);
         tr.appendChild(el("td", "meta mono", d.range));
@@ -568,7 +573,22 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
       });
   }
 
-  function renderDetail(pkg, reg, gen) {
+  // Versions in the package index keep build metadata but the urls sleet writes
+  // do not, so match on the identity part to keep hand written links working.
+  function versionKey(version) {
+    var plus = version.indexOf("+");
+    return (plus < 0 ? version : version.slice(0, plus)).toLowerCase();
+  }
+
+  function findVersion(reg, wanted) {
+    var key = versionKey(wanted);
+    for (var i = 0; i < reg.versions.length; i++) {
+      if (versionKey(reg.versions[i].version) === key) return reg.versions[i];
+    }
+    return null;
+  }
+
+  function renderDetail(pkg, reg, gen, wanted) {
     document.title = pkg.id + " \u00b7 " + BRAND;
     elCount.textContent = reg.versions.length === 1
       ? "1 version"
@@ -582,30 +602,24 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
       return;
     }
 
-    var host = el("div");
-    elBody.appendChild(host);
+    var asked = wanted ? findVersion(reg, wanted) : null;
+    var selected = asked || reg.latest;
 
-    // Selecting a version redraws the page, so an in flight readme from the
-    // previously selected version has to be dropped rather than appended.
-    var shown = 0;
-
-    function show(meta) {
-      var token = ++shown;
-
-      host.textContent = "";
-      host.appendChild(detailHeader(pkg, meta));
-      host.appendChild(versionsPanel(pkg, reg, meta, show));
-      host.appendChild(dependencyPanel(meta.groups));
-
-      loadReadme(pkg, meta.version, host, function () {
-        return gen === generation && token === shown;
-      });
+    if (wanted && !asked) {
+      elBody.appendChild(el("p", "note",
+        "Version " + wanted + " is not on this feed, showing " + selected.version + " instead."));
     }
 
-    show(reg.latest);
+    elBody.appendChild(detailHeader(pkg, selected));
+    elBody.appendChild(versionsPanel(pkg, reg, selected));
+    elBody.appendChild(dependencyPanel(selected.groups));
+
+    // Selecting another version routes through the url, so a readme that is
+    // still in flight belongs to a page the reader has already left.
+    loadReadme(pkg, selected.version, elBody, function () { return gen === generation; });
   }
 
-  function openDetail(id) {
+  function openDetail(id, version) {
     var gen = ++generation;
     var pkg = byId[id.toLowerCase()];
 
@@ -623,7 +637,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
     registration(pkg.lowerId).then(function (reg) {
       if (gen !== generation) return;
-      renderDetail(pkg, reg, gen);
+      renderDetail(pkg, reg, gen, version);
     }, function (err) {
       if (gen !== generation) return;
       fail(err);
@@ -634,7 +648,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     if (!loaded) return;
 
     var r = parseHash();
-    if (r.view === "detail") openDetail(r.id);
+    if (r.view === "detail") openDetail(r.id, r.version);
     else renderList(r.q, r.page);
   }
 

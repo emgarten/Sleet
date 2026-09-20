@@ -38,6 +38,12 @@ A package page shows the description, authors, tags, publish date, project and l
 links, the full version history with download links, and the dependencies of the selected
 version. Dependencies that are also on the feed link to their own package page.
 
+Selecting a version from the version history changes the URL to
+`#package/Newtonsoft.Json/13.0.3`, so a specific version can be bookmarked and shared.
+Leaving the version off addresses whichever version is the latest at the time the link is
+opened. If a pinned version is no longer on the feed the page falls back to the latest
+version and says so.
+
 Readme files are shown as plain text rather than rendered markdown, since the content
 comes from the package author.
 
