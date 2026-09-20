@@ -1,5 +1,13 @@
 # Release Notes
 
+## 7.3.0
+* Added a static browsing UI written to `index.html` at the root of the feed
+  * Lists all packages on the feed with client side search, reading the feed's own `search/query` and `sleet.packageindex.json` files
+  * Browse the feed at `{feed url}/index.html`, see [feed UI docs](doc/feed-ui.md) for serving it from the bare root URL
+  * Sleet does not overwrite an existing `index.html`, so a custom page can be used instead
+  * Disable with `sleet feed-settings --set feeduienabled:false`
+* Azure Storage and Amazon S3 feeds now set content types for `.html`, `.css`, and `.js` files
+
 ## 7.2.0
 * Added `--verbosity <level>` (`-V`) option to control console output
 * Adjusted minimal verbosity to show the main actions and final result

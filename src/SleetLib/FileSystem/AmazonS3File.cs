@@ -124,6 +124,23 @@ namespace Sleet
                     contentType = "image/svg+xml";
                     cacheControl = mutableCacheControl;
                 }
+                else if (key.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+                {
+                    // text/html is required for browsers to render the feed UI
+                    // instead of prompting the user to download it.
+                    contentType = "text/html; charset=utf-8";
+                    cacheControl = mutableCacheControl;
+                }
+                else if (key.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
+                {
+                    contentType = "text/css; charset=utf-8";
+                    cacheControl = mutableCacheControl;
+                }
+                else if (key.EndsWith(".js", StringComparison.OrdinalIgnoreCase))
+                {
+                    contentType = "text/javascript; charset=utf-8";
+                    cacheControl = mutableCacheControl;
+                }
                 else if (absoluteUri.AbsoluteUri.EndsWith("/icon", StringComparison.Ordinal))
                 {
                     contentType = "image/png";

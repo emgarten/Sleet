@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -9,6 +11,13 @@ namespace Sleet
 {
     public static class InitCommand
     {
+        /// <summary>
+        /// Static browsing UI written to the root of the feed.
+        /// </summary>
+        public const string FeedUIFileName = "index.html";
+
+        private const string FeedUITemplateName = "templateIndex.html";
+
         public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, ILogger log)
         {
             var token = CancellationToken.None;
@@ -90,6 +99,9 @@ namespace Sleet
 
             // Create package index
             noChanges &= !await CreatePackageIndexAsync(context, serviceIndexJson);
+
+            // Create index.html
+            noChanges &= !await CreateFeedUIAsync(context);
 
             // Additional entries
             AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
@@ -253,6 +265,41 @@ namespace Sleet
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Write the static browsing UI to the root of the feed.
+        /// Returns true if the feed was modified.
+        /// </summary>
+        private static async Task<bool> CreateFeedUIAsync(SleetContext context)
+        {
+            var file = context.Source.Get(FeedUIFileName);
+            var exists = await file.Exists(context.Log, context.Token);
+
+            if (!context.SourceSettings.FeedUIEnabled)
+            {
+                // Remove the UI if it was written before the setting was disabled.
+                if (exists)
+                {
+                    file.Delete(context.Log, context.Token);
+                    return true;
+                }
+
+                return false;
+            }
+
+            // Leave an existing file alone so that a hand customized UI is not
+            // overwritten. Recreate rebuilds the feed and refreshes it.
+            if (exists)
+            {
+                return false;
+            }
+
+            var html = await TemplateUtility.LoadTemplateFile(FeedUITemplateName, context.OperationStart, context.Source.BaseURI);
+
+            await file.Write(new MemoryStream(Encoding.UTF8.GetBytes(html)), context.Log, context.Token);
+
+            return true;
         }
     }
 }

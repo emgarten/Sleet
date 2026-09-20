@@ -173,6 +173,12 @@ To create a feed with custom feed settings, such as with a catalog or symbols fe
 
 Add the feed as a source to your `NuGet.Config` file. In the example above the package source URL is ``https://s3.amazonaws.com/my-bucket-feed/index.json``
 
+## Browsing the feed
+
+Sleet writes a static browsing UI to the root of the feed. In the example above it can be opened at ``https://s3.amazonaws.com/my-bucket-feed/index.html``
+
+The S3 REST endpoint has no index document, so `index.html` must be included in the URL. See [feed UI](feed-ui.md) for serving the page from the bare root URL.
+
 ## Creating a private S3 feed
 
 Private feeds can be created by creating a lambda function to authenticate clients. 

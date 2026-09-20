@@ -82,6 +82,7 @@ namespace SleetLib.Tests
                 CatalogPageSize = 5,
                 SymbolsEnabled = false,
                 BadgesEnabled = false,
+                FeedUIEnabled = false,
             };
 
             var values = FeedSettingsUtility.LoadSettings(settings);
@@ -92,6 +93,7 @@ namespace SleetLib.Tests
                 { "symbolsfeedenabled", "false" },
                 { "catalogpagesize", "5" },
                 { "badgesenabled", "false" },
+                { "feeduienabled", "false" },
             };
 
             values.Should().BeEquivalentTo(expected);
@@ -105,7 +107,8 @@ namespace SleetLib.Tests
                 CatalogEnabled = true,
                 CatalogPageSize = 10,
                 SymbolsEnabled = true,
-                BadgesEnabled = true
+                BadgesEnabled = true,
+                FeedUIEnabled = true
             };
 
             var values = FeedSettingsUtility.LoadSettings(settings);
@@ -116,6 +119,7 @@ namespace SleetLib.Tests
                 { "symbolsfeedenabled", "true" },
                 { "catalogpagesize", "10" },
                 { "badgesenabled", "true" },
+                { "feeduienabled", "true" },
             };
 
             values.Should().BeEquivalentTo(expected);

@@ -233,5 +233,125 @@ namespace SleetLib.Tests
                 rootJson.ToString().Should().NotContain("symbols/packages/index.json");
             }
         }
+
+        [Fact]
+        public async Task GivenInitVerifyFeedUIIsCreated()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var feedUIOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+
+                // Act
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
+
+                // Assert
+                success.Should().BeTrue();
+                feedUIOutput.Exists.Should().BeTrue();
+
+                var html = File.ReadAllText(feedUIOutput.FullName);
+                html.Should().Contain("search/query");
+                html.Should().Contain("sleet.packageindex.json");
+                html.Should().NotContain("$SLEETVERSION$");
+
+                // Package metadata is untrusted. The UI must build the DOM with
+                // textContent and route urls through safeUrl so that a published
+                // package cannot inject script into the feed origin.
+                html.Should().NotContain("innerHTML");
+                html.Should().Contain("safeUrl(e.projectUrl)");
+                html.Should().Contain("safeUrl(e.licenseUrl)");
+                html.Should().Contain("safeUrl(e.iconUrl)");
+            }
+        }
+
+        [Fact]
+        public async Task GivenFeedUIDisabledVerifyIndexHtmlIsNotCreated()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+                var feedSettings = new FeedSettings() { FeedUIEnabled = false };
+
+                var feedUIOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+                var packageIndexOutput = new FileInfo(Path.Combine(target.Root, "sleet.packageindex.json"));
+
+                // Act
+                var success = await InitCommand.InitAsync(settings, fileSystem, feedSettings, log, CancellationToken.None);
+
+                // Assert
+                success.Should().BeTrue();
+                packageIndexOutput.Exists.Should().BeTrue();
+                feedUIOutput.Exists.Should().BeFalse();
+            }
+        }
+
+        [Fact]
+        public async Task GivenFeedUIDisabledAfterInitVerifyIndexHtmlIsRemoved()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var feedUIOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
+
+                success.Should().BeTrue();
+                feedUIOutput.Exists.Should().BeTrue();
+
+                // Act
+                using (var cache2 = new LocalCache())
+                {
+                    var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                    var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(fileSystem2, log, CancellationToken.None);
+                    feedSettings.FeedUIEnabled = false;
+
+                    success = await InitCommand.InitAsync(settings, fileSystem2, feedSettings, log, CancellationToken.None);
+                }
+
+                // Assert
+                success.Should().BeTrue();
+                feedUIOutput.Refresh();
+                feedUIOutput.Exists.Should().BeFalse();
+            }
+        }
+
+        [Fact]
+        public async Task GivenACustomIndexHtmlVerifyInitDoesNotOverwriteIt()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                var feedUIOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+                var customHtml = "<html><body>custom</body></html>";
+                File.WriteAllText(feedUIOutput.FullName, customHtml);
+
+                // Act
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
+
+                // Assert
+                success.Should().BeTrue();
+                feedUIOutput.Refresh();
+                feedUIOutput.Exists.Should().BeTrue();
+                File.ReadAllText(feedUIOutput.FullName).Should().Be(customHtml);
+            }
+        }
     }
 }

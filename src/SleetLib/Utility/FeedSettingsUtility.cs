@@ -74,6 +74,9 @@ namespace Sleet
                     case "badgesenabled":
                         settings.BadgesEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
                         break;
+                    case "feeduienabled":
+                        settings.FeedUIEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
+                        break;
                     case "retentionmaxstableversions":
                         settings.RetentionMaxStableVersions = GetIntOrDefault(pair.Value, defaultValue: -1);
                         break;
@@ -112,7 +115,8 @@ namespace Sleet
                 { "catalogenabled", settings.CatalogEnabled.ToString().ToLowerInvariant() },
                 { "catalogpagesize", settings.CatalogPageSize.ToString(CultureInfo.InvariantCulture) },
                 { "symbolsfeedenabled", settings.SymbolsEnabled.ToString().ToLowerInvariant() },
-                { "badgesenabled", settings.BadgesEnabled.ToString().ToLowerInvariant() }
+                { "badgesenabled", settings.BadgesEnabled.ToString().ToLowerInvariant() },
+                { "feeduienabled", settings.FeedUIEnabled.ToString().ToLowerInvariant() }
             };
 
             if (settings.RetentionMaxStableVersions > 0)

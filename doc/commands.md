@@ -198,6 +198,10 @@ Disable badges
 
 ``sleet feed-settings --set badgesenabled:false``
 
+Disable the feed browsing UI
+
+``sleet feed-settings --set feeduienabled:false``
+
 ## Retention
 
 Package retention commands for pruning and limiting package versions.

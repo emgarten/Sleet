@@ -40,6 +40,11 @@ namespace Sleet
         public bool BadgesEnabled { get; set; }
 
         /// <summary>
+        /// If true an index.html browsing UI will be written to the root of the feed.
+        /// </summary>
+        public bool FeedUIEnabled { get; set; } = true;
+
+        /// <summary>
         /// External search URI
         /// </summary>
         public string? ExternalSearch { get; set; }
