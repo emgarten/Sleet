@@ -2,13 +2,20 @@
 
 Sleet writes a package gallery to `index.html` at the root of the feed. It is a single
 self contained HTML file with no external dependencies and no build step. Opening it in a
-browser lists every package on the feed and provides client side search.
+browser lists every package on the feed, filters by package id, and shows a detail page
+for each package.
 
 The page reads the feed's own JSON files at runtime:
 
-* `search/query` for package metadata (id, version, description, authors, tags, and links).
-* `sleet.packageindex.json` as a fallback when `search/query` is unavailable, which lists
-  ids and versions only.
+* `sleet.packageindex.json` once on load. It holds every package id and version, which is
+  all the list, the id filter, and paging need.
+* `registration/{id}/index.json` for a package's metadata, version history and
+  dependencies. This is requested only for the packages that are actually shown, so the
+  cost of drawing the list does not grow with the size of the feed.
+* `flatcontainer/{id}/{version}/icon` and `.../readme` when a package has them.
+
+`search/query` is deliberately not used. It is a single large document covering the whole
+feed, and `externalsearch` can point it at a different service.
 
 All URLs in the page are relative, so the same file works from any host name the feed is
 served under and never requires CORS configuration.
@@ -16,6 +23,19 @@ served under and never requires CORS configuration.
 The page is written by `sleet init`, by `sleet recreate`, and by the automatic
 initialization that happens on the first push to a new feed. Later pushes and all other
 commands leave it alone and never read it.
+
+## Browsing
+
+The list shows 20 packages per page. Both the current page and the id filter are kept in
+the URL fragment, so `#q=storage`, `#page=3` and `#package/Newtonsoft.Json` can be
+bookmarked and shared, and the browser back button works as expected.
+
+A package page shows the description, authors, tags, publish date, project and license
+links, the full version history with download links, and the dependencies of the selected
+version. Dependencies that are also on the feed link to their own package page.
+
+Readme files are shown as plain text rather than rendered markdown, since the content
+comes from the package author.
 
 ## Gallery URL
 

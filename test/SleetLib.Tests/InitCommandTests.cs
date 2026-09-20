@@ -256,9 +256,13 @@ namespace SleetLib.Tests
                 galleryOutput.Exists.Should().BeTrue();
 
                 var html = File.ReadAllText(galleryOutput.FullName);
-                html.Should().Contain("search/query");
                 html.Should().Contain("sleet.packageindex.json");
+                html.Should().Contain("registration/");
                 html.Should().NotContain("$SLEETVERSION$");
+
+                // The gallery reads the package index and the registrations, it
+                // must not depend on search which can be pointed off feed.
+                html.Should().NotContain("search/query");
 
                 // Package metadata is untrusted. The UI must build the DOM with
                 // textContent and route urls through safeUrl so that a published
@@ -266,7 +270,6 @@ namespace SleetLib.Tests
                 html.Should().NotContain("innerHTML");
                 html.Should().Contain("safeUrl(e.projectUrl)");
                 html.Should().Contain("safeUrl(e.licenseUrl)");
-                html.Should().Contain("safeUrl(e.iconUrl)");
             }
         }
 

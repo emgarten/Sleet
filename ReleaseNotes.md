@@ -2,7 +2,9 @@
 
 ## 7.3.0
 * Added a package gallery written to `index.html` at the root of the feed
-  * Lists all packages on the feed with client side search, reading the feed's own `search/query` and `sleet.packageindex.json` files
+  * Browse and page through all packages on the feed and filter by package id
+  * Package pages show the description, tags, version history, dependencies, and readme
+  * Reads the feed's own `sleet.packageindex.json` and registration files, loading package metadata only for the packages on screen
   * Browse the feed at `{feed url}/index.html`, see [gallery docs](doc/gallery.md) for serving it from the bare root URL
   * Sleet does not overwrite an existing `index.html`, so a custom page can be used instead
   * Disable with `sleet feed-settings --set galleryenabled:false`

@@ -22,6 +22,8 @@ body{margin:0;background:var(--bg);color:var(--fg);
 header{border-bottom:1px solid var(--line);padding:14px 20px;display:flex;
   flex-wrap:wrap;gap:12px;align-items:center;position:sticky;top:0;background:var(--bg);z-index:1}
 h1{font-size:15px;margin:0;font-weight:600;white-space:nowrap}
+h1 a{color:inherit;text-decoration:none}
+h1 a:hover{color:var(--accent)}
 #search{flex:1;min-width:220px;padding:7px 11px;border:1px solid var(--line);
   border-radius:6px;background:var(--bg);color:var(--fg);font-size:14px}
 #search:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
@@ -35,23 +37,44 @@ main{max-width:1000px;margin:0 auto;padding:20px}
 .pkg{border:1px solid var(--line);border-radius:6px;background:var(--card);
   padding:14px 16px;margin-bottom:10px}
 .pkg-head{display:flex;gap:12px;align-items:flex-start}
-.icon{width:36px;height:36px;border-radius:6px;flex:none;background:var(--chip);object-fit:contain}
+.icon-slot{flex:none}
+.icon-slot:empty{display:none}
+.icon{width:36px;height:36px;border-radius:6px;display:block;background:var(--chip);object-fit:contain}
+.icon.lg{width:56px;height:56px}
 .grow{flex:1;min-width:0}
 .pkg-title{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
 .pkg-id{font-size:15px;font-weight:600;color:var(--accent);text-decoration:none}
 .pkg-id:hover{text-decoration:underline}
 .ver{font-size:12px;color:var(--muted)}
 .desc{margin:6px 0 0}
+.desc:empty{display:none}
 .tags{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
 .tag{background:var(--chip);border-radius:999px;padding:1px 9px;font-size:11px;color:var(--muted)}
 .sub{margin-top:6px;font-size:12px;color:var(--muted)}
-details{margin-top:10px}
-summary{cursor:pointer;font-size:12px;color:var(--muted);width:max-content}
-summary:hover{color:var(--accent)}
-table{border-collapse:collapse;margin-top:8px;width:100%;font-size:13px}
-td{padding:4px 10px 4px 0;border-bottom:1px solid var(--line)}
-td:first-child{white-space:nowrap}
+.sub:empty{display:none}
 a{color:var(--accent)}
+.pager{display:flex;gap:16px;align-items:center;justify-content:center;
+  padding:16px 0 4px;font-size:13px}
+.off{color:var(--muted);opacity:.5}
+.back{display:inline-block;margin-bottom:14px;font-size:13px;text-decoration:none}
+.back:hover{text-decoration:underline}
+h2{font-size:22px;margin:0;word-break:break-all}
+h3{font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.panel{border-top:1px solid var(--line);margin-top:22px;padding-top:16px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;
+  padding:0 10px 4px 0;border-bottom:1px solid var(--line)}
+td{padding:5px 10px 5px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child,th:first-child{white-space:nowrap}
+tr.sel td{background:var(--chip)}
+.pick{background:none;border:0;padding:0;font:inherit;color:var(--accent);cursor:pointer;
+  font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+.pick:hover{text-decoration:underline}
+.pick[disabled]{color:var(--fg);cursor:default;font-weight:600;text-decoration:none}
+.readme{background:var(--chip);border:1px solid var(--line);border-radius:6px;
+  padding:12px 14px;margin:0;max-height:420px;overflow:auto;white-space:pre-wrap;
+  word-break:break-word;font-size:12.5px;
+  font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
 .empty{color:var(--muted);padding:48px 0;text-align:center}
 .err{border:1px solid var(--danger);border-radius:6px;padding:12px 14px}
 .err p{margin:6px 0 0;color:var(--muted);font-size:13px}
@@ -60,8 +83,8 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 </head>
 <body>
 <header>
-  <h1>NuGet feed</h1>
-  <input id="search" type="search" placeholder="Search by id, description, tag or author&#8230;" autocomplete="off" autofocus>
+  <h1><a href="#" id="home">NuGet feed</a></h1>
+  <input id="search" type="search" placeholder="Filter by package id&#8230;" autocomplete="off" autofocus>
   <span class="meta" id="count"></span>
 </header>
 <main>
@@ -75,6 +98,9 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 <script>
 (function () {
   "use strict";
+
+  var PAGE_SIZE = 20;
+  var BASE_TITLE = document.title;
 
   // Resolve the feed root from this page's own location rather than from a
   // baked in base URI. The same file then works unmodified when served from a
@@ -92,7 +118,21 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   var elSearch = document.getElementById("search");
   document.getElementById("sourceUrl").textContent = ROOT + "index.json";
 
+  // Every package id in the feed, sorted, from sleet.packageindex.json.
   var packages = [];
+  var byId = {};
+
+  // Parsed registration indexes, keyed by lower case id.
+  var regCache = {};
+
+  // Bumped on every navigation so that responses which arrive after the user
+  // has moved on are dropped instead of drawn into the wrong view.
+  var generation = 0;
+
+  // The most recent list route, used by the back link on a package page.
+  var listHash = "#";
+
+  var loaded = false;
 
   function getJson(path) {
     return fetch(ROOT + path, { headers: { accept: "application/json" } })
@@ -100,6 +140,13 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
         if (!r.ok) throw new Error("GET " + path + " failed with status " + r.status);
         return r.json();
       });
+  }
+
+  function getText(path) {
+    return fetch(ROOT + path).then(function (r) {
+      if (!r.ok) throw new Error("GET " + path + " failed with status " + r.status);
+      return r.text();
+    });
   }
 
   function text(v) { return typeof v === "string" ? v : ""; }
@@ -127,62 +174,6 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     return text(v).split(",").map(function (x) { return x.trim(); }).filter(Boolean);
   }
 
-  // Newest first. Numeric release parts descend, and a release version sorts
-  // ahead of any prerelease of that same release.
-  function compareVersions(a, b) {
-    var sa = a.split("+")[0].split("-"), sb = b.split("+")[0].split("-");
-    var na = sa[0].split("."), nb = sb[0].split(".");
-    for (var i = 0; i < Math.max(na.length, nb.length); i++) {
-      var d = (parseInt(nb[i], 10) || 0) - (parseInt(na[i], 10) || 0);
-      if (d) return d;
-    }
-    var pa = sa.slice(1).join("-"), pb = sb.slice(1).join("-");
-    if (!pa && !pb) return 0;
-    if (!pa) return -1;
-    if (!pb) return 1;
-    return pb < pa ? -1 : pb > pa ? 1 : 0;
-  }
-
-  function nupkgUrl(id, version) {
-    var i = id.toLowerCase(), v = version.toLowerCase();
-    return ROOT + "flatcontainer/" + encodeURIComponent(i) + "/" + encodeURIComponent(v) +
-      "/" + encodeURIComponent(i + "." + v + ".nupkg");
-  }
-
-  // search/query holds full metadata for every package in the feed.
-  function fromSearch(json) {
-    return (json.data || []).map(function (e) {
-      var versions = (e.versions || []).map(function (v) { return text(v.version); })
-        .filter(Boolean).sort(compareVersions);
-      return {
-        id: text(e.id),
-        latest: text(e.version) || versions[0] || "",
-        title: text(e.title),
-        description: text(e.description) || text(e.summary),
-        iconUrl: safeUrl(e.iconUrl),
-        projectUrl: safeUrl(e.projectUrl),
-        licenseUrl: safeUrl(e.licenseUrl),
-        tags: list(e.tags),
-        authors: list(e.authors),
-        versions: versions
-      };
-    });
-  }
-
-  // sleet.packageindex.json carries only ids and versions, but it is always
-  // present and stays correct when externalsearch points search off feed.
-  function fromPackageIndex(json) {
-    var src = (json && json.packages) || {};
-    return Object.keys(src).map(function (id) {
-      var versions = list(src[id]).sort(compareVersions);
-      return {
-        id: id, latest: versions[0] || "", title: "", description: "",
-        iconUrl: "", projectUrl: "", licenseUrl: "",
-        tags: [], authors: [], versions: versions
-      };
-    });
-  }
-
   function el(tag, cls, txt) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -196,110 +187,424 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     return a;
   }
 
-  function card(p) {
-    var box = el("div", "pkg");
-    var head = el("div", "pkg-head");
+  function seg(v) { return encodeURIComponent(String(v).toLowerCase()); }
 
-    if (p.iconUrl) {
-      var img = el("img", "icon");
-      img.src = p.iconUrl;
-      img.alt = "";
-      img.loading = "lazy";
-      img.onerror = function () { img.remove(); };
-      head.appendChild(img);
-    }
+  // Flat container paths are built from the version identity reported by the
+  // registration, which is already normalized the same way the feed layout is.
+  // Versions from sleet.packageindex.json keep their build metadata, so they
+  // are only ever displayed and never turned into a url.
+  function flatUrl(id, version, file) {
+    return ROOT + "flatcontainer/" + seg(id) + "/" + seg(version) + "/" + file;
+  }
 
-    var col = el("div", "grow");
+  function nupkgUrl(id, version) {
+    var name = String(id).toLowerCase() + "." + String(version).toLowerCase() + ".nupkg";
+    return flatUrl(id, version, encodeURIComponent(name));
+  }
 
-    var title = el("div", "pkg-title");
-    title.appendChild(p.latest
-      ? link(nupkgUrl(p.id, p.latest), p.id, "pkg-id")
-      : el("span", "pkg-id", p.id));
-    if (p.latest) title.appendChild(el("span", "ver mono", p.latest));
-    if (p.title && p.title !== p.id) title.appendChild(el("span", "meta", p.title));
-    col.appendChild(title);
+  function when(iso) {
+    var d = new Date(text(iso));
+    if (isNaN(d.getTime()) || d.getFullYear() < 1901) return "";
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  }
 
-    if (p.description) col.appendChild(el("p", "desc", p.description));
-    if (p.authors.length) col.appendChild(el("div", "sub", "by " + p.authors.join(", ")));
-
-    if (p.tags.length) {
-      var tags = el("div", "tags");
-      p.tags.forEach(function (t) { tags.appendChild(el("span", "tag", t)); });
-      col.appendChild(tags);
-    }
-
-    var links = el("div", "sub");
-    if (p.projectUrl) links.appendChild(link(p.projectUrl, "Project"));
-    if (p.projectUrl && p.licenseUrl) links.appendChild(document.createTextNode(" \u00b7 "));
-    if (p.licenseUrl) links.appendChild(link(p.licenseUrl, "License"));
-    if (links.childNodes.length) col.appendChild(links);
-
-    var det = el("details");
-    det.appendChild(el("summary", null,
-      p.versions.length + (p.versions.length === 1 ? " version" : " versions")));
-    var table = el("table");
-    p.versions.forEach(function (v) {
-      var row = el("tr");
-      row.appendChild(el("td", "mono", v));
-      var cell = el("td");
-      cell.appendChild(link(nupkgUrl(p.id, v), "download .nupkg"));
-      row.appendChild(cell);
-      table.appendChild(row);
+  function dependencyGroups(v) {
+    return (Array.isArray(v) ? v : []).map(function (g) {
+      g = g || {};
+      return {
+        framework: text(g.targetFramework) || "Any",
+        deps: (Array.isArray(g.dependencies) ? g.dependencies : []).map(function (d) {
+          d = d || {};
+          return { id: text(d.id), range: text(d.range) };
+        }).filter(function (d) { return d.id; })
+      };
     });
-    det.appendChild(table);
-    col.appendChild(det);
+  }
 
-    head.appendChild(col);
-    box.appendChild(head);
+  // Sleet writes the whole version history of a package into a single inline
+  // registration page ordered oldest first, so one request per package returns
+  // everything the detail view needs and no paging has to be followed.
+  function fromRegistration(json) {
+    var leaves = [];
+    ((json && json.items) || []).forEach(function (page) {
+      ((page && page.items) || []).forEach(function (leaf) { leaves.push(leaf); });
+    });
+
+    var versions = leaves.map(function (leaf) {
+      var e = (leaf && leaf.catalogEntry) || {};
+      return {
+        version: text(e.version),
+        published: text(e.published),
+        title: text(e.title),
+        description: text(e.description) || text(e.summary),
+        projectUrl: safeUrl(e.projectUrl),
+        licenseUrl: safeUrl(e.licenseUrl),
+        tags: list(e.tags),
+        authors: list(e.authors),
+        // An empty iconUrl is dropped when the registration is written, so its
+        // presence is a reliable signal that the package embedded an icon.
+        hasIcon: !!text(e.iconUrl).trim(),
+        groups: dependencyGroups(e.dependencyGroups)
+      };
+    }).filter(function (v) { return v.version; }).reverse();
+
+    return { versions: versions, latest: pickLatest(versions) };
+  }
+
+  // Newest release if the package has one, otherwise the newest prerelease.
+  function pickLatest(versions) {
+    for (var i = 0; i < versions.length; i++) {
+      if (versions[i].version.indexOf("-") === -1) return versions[i];
+    }
+    return versions[0] || null;
+  }
+
+  function registration(lowerId) {
+    if (!regCache[lowerId]) {
+      regCache[lowerId] = getJson("registration/" + seg(lowerId) + "/index.json")
+        .then(fromRegistration);
+    }
+    return regCache[lowerId];
+  }
+
+  function icon(pkg, version, cls) {
+    var img = el("img", cls);
+    img.src = flatUrl(pkg.id, version, "icon");
+    img.alt = "";
+    img.loading = "lazy";
+    img.onerror = function () { img.remove(); };
+    return img;
+  }
+
+  function linkRow(meta, pkg, version) {
+    var row = el("div", "sub");
+    var parts = [];
+    if (meta.projectUrl) parts.push(link(meta.projectUrl, "Project"));
+    if (meta.licenseUrl) parts.push(link(meta.licenseUrl, "License"));
+    parts.push(link(nupkgUrl(pkg.id, version), "Download .nupkg"));
+
+    parts.forEach(function (node, i) {
+      if (i) row.appendChild(document.createTextNode(" \u00b7 "));
+      row.appendChild(node);
+    });
+    return row;
+  }
+
+  function tagRow(tags) {
+    var box = el("div", "tags");
+    tags.forEach(function (t) { box.appendChild(el("span", "tag", t)); });
     return box;
   }
 
-  function render(items) {
-    elCount.textContent = items.length === packages.length
+  function listHashFor(q, page) {
+    var parts = [];
+    if (q) parts.push("q=" + encodeURIComponent(q));
+    if (page > 1) parts.push("page=" + page);
+    return "#" + parts.join("&");
+  }
+
+  function setHash(hash) {
+    try {
+      history.replaceState(null, "", location.pathname + location.search + hash);
+    } catch (e) {
+      location.hash = hash;
+    }
+  }
+
+  function parseHash() {
+    var h = location.hash.replace(/^#\/?/, "");
+
+    if (h.slice(0, 8) === "package/") {
+      return { view: "detail", id: decodeURIComponent(h.slice(8)) };
+    }
+
+    var q = "";
+    var page = 1;
+    h.split("&").forEach(function (part) {
+      var i = part.indexOf("=");
+      if (i < 1) return;
+      var value = decodeURIComponent(part.slice(i + 1).replace(/\+/g, " "));
+      if (part.slice(0, i) === "q") q = value;
+      else if (part.slice(0, i) === "page") page = parseInt(value, 10) || 1;
+    });
+
+    return { view: "list", q: q, page: page < 1 ? 1 : page };
+  }
+
+  function row(pkg, gen) {
+    var box = el("div", "pkg");
+    var head = el("div", "pkg-head");
+    var slot = el("div", "icon-slot");
+    head.appendChild(slot);
+
+    var col = el("div", "grow");
+    var title = el("div", "pkg-title");
+    title.appendChild(link("#package/" + encodeURIComponent(pkg.id), pkg.id, "pkg-id"));
+    title.appendChild(el("span", "ver mono", pkg.versions[0]));
+    title.appendChild(el("span", "meta",
+      pkg.versions.length === 1 ? "1 version" : pkg.versions.length + " versions"));
+    col.appendChild(title);
+
+    var desc = el("p", "desc");
+    var authors = el("div", "sub");
+    var tags = el("div", "tags");
+    col.appendChild(desc);
+    col.appendChild(authors);
+    col.appendChild(tags);
+
+    head.appendChild(col);
+    box.appendChild(head);
+
+    // Only the rows on the current page pull their metadata, so the cost of
+    // drawing the list stays flat no matter how large the feed grows.
+    registration(pkg.lowerId).then(function (reg) {
+      if (gen !== generation) return;
+      var meta = reg.latest;
+      if (!meta) return;
+
+      desc.textContent = meta.description;
+      if (meta.authors.length) authors.textContent = "by " + meta.authors.join(", ");
+      meta.tags.forEach(function (t) { tags.appendChild(el("span", "tag", t)); });
+      if (meta.hasIcon) slot.appendChild(icon(pkg, meta.version, "icon"));
+    }, function () {
+      // A package without a readable registration still lists by id.
+    });
+
+    return box;
+  }
+
+  function pager(q, page, pages) {
+    var nav = el("nav", "pager");
+    if (pages < 2) return nav;
+
+    nav.appendChild(page > 1
+      ? link(listHashFor(q, page - 1), "\u2190 Previous")
+      : el("span", "off", "\u2190 Previous"));
+    nav.appendChild(el("span", "meta", "Page " + page + " of " + pages));
+    nav.appendChild(page < pages
+      ? link(listHashFor(q, page + 1), "Next \u2192")
+      : el("span", "off", "Next \u2192"));
+
+    return nav;
+  }
+
+  function renderList(q, page) {
+    var gen = ++generation;
+    document.title = BASE_TITLE;
+    if (elSearch.value !== q) elSearch.value = q;
+
+    var needle = q.trim().toLowerCase();
+    var matches = needle
+      ? packages.filter(function (p) { return p.lowerId.indexOf(needle) !== -1; })
+      : packages;
+
+    var pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
+    if (page > pages) page = pages;
+    listHash = listHashFor(q, page);
+
+    elCount.textContent = matches.length === packages.length
       ? packages.length + (packages.length === 1 ? " package" : " packages")
-      : items.length + " of " + packages.length + " packages";
+      : matches.length + " of " + packages.length + " packages";
 
     elBody.textContent = "";
 
-    if (!items.length) {
-      elBody.appendChild(el("p", "empty",
-        packages.length ? "No packages match this search." : "This feed has no packages yet."));
+    if (!matches.length) {
+      elBody.appendChild(el("p", "empty", packages.length
+        ? "No package ids contain \u201c" + q.trim() + "\u201d."
+        : "This feed has no packages yet."));
       return;
     }
 
     var frag = document.createDocumentFragment();
-    items.forEach(function (p) { frag.appendChild(card(p)); });
-    elBody.appendChild(frag);
-  }
-
-  function applyFilter() {
-    var q = elSearch.value.trim().toLowerCase();
-    if (!q) return render(packages);
-
-    var terms = q.split(/\s+/);
-    render(packages.filter(function (p) {
-      return terms.every(function (t) { return p.search.indexOf(t) !== -1; });
-    }));
-  }
-
-  function start(items) {
-    packages = items.filter(function (p) { return p.id; })
-      .sort(function (a, b) {
-        var x = a.id.toLowerCase(), y = b.id.toLowerCase();
-        return x < y ? -1 : x > y ? 1 : 0;
-      });
-
-    packages.forEach(function (p) {
-      p.search = [p.id, p.title, p.description, p.tags.join(" "), p.authors.join(" ")]
-        .join(" ").toLowerCase();
+    matches.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).forEach(function (pkg) {
+      frag.appendChild(row(pkg, gen));
     });
 
-    applyFilter();
+    elBody.appendChild(frag);
+    elBody.appendChild(pager(q, page, pages));
+  }
+
+  function detailHeader(pkg, meta) {
+    var head = el("div", "pkg-head");
+    var slot = el("div", "icon-slot");
+    if (meta.hasIcon) slot.appendChild(icon(pkg, meta.version, "icon lg"));
+    head.appendChild(slot);
+
+    var col = el("div", "grow");
+    var title = el("div", "pkg-title");
+    title.appendChild(el("h2", null, pkg.id));
+    title.appendChild(el("span", "ver mono", meta.version));
+    col.appendChild(title);
+
+    if (meta.title && meta.title !== pkg.id) col.appendChild(el("div", "sub", meta.title));
+    if (meta.description) col.appendChild(el("p", "desc", meta.description));
+    if (meta.authors.length) col.appendChild(el("div", "sub", "by " + meta.authors.join(", ")));
+
+    var published = when(meta.published);
+    if (published) col.appendChild(el("div", "sub", "Published " + published));
+
+    col.appendChild(linkRow(meta, pkg, meta.version));
+    if (meta.tags.length) col.appendChild(tagRow(meta.tags));
+
+    head.appendChild(col);
+    return head;
+  }
+
+  function versionsPanel(pkg, reg, selected, onPick) {
+    var panel = el("section", "panel");
+    panel.appendChild(el("h3", null, "Versions"));
+
+    var table = el("table");
+    var head = el("tr");
+    ["Version", "Published", ""].forEach(function (h) { head.appendChild(el("th", null, h)); });
+    table.appendChild(head);
+
+    reg.versions.forEach(function (v) {
+      var tr = el("tr", v === selected ? "sel" : null);
+
+      var pick = el("button", "pick", v.version);
+      pick.type = "button";
+      if (v === selected) pick.disabled = true;
+      else pick.onclick = function () { onPick(v); };
+
+      var first = el("td");
+      first.appendChild(pick);
+      tr.appendChild(first);
+      tr.appendChild(el("td", "meta", when(v.published)));
+
+      var last = el("td");
+      last.appendChild(link(nupkgUrl(pkg.id, v.version), "Download"));
+      tr.appendChild(last);
+
+      table.appendChild(tr);
+    });
+
+    panel.appendChild(table);
+    return panel;
+  }
+
+  function dependencyPanel(groups) {
+    var panel = el("section", "panel");
+    panel.appendChild(el("h3", null, "Dependencies"));
+
+    if (!groups.length) {
+      panel.appendChild(el("p", "meta", "This package has no dependencies."));
+      return panel;
+    }
+
+    var table = el("table");
+    groups.forEach(function (g) {
+      var head = el("tr");
+      head.appendChild(el("th", null, g.framework));
+      head.appendChild(el("th", null, g.deps.length ? "" : "No dependencies"));
+      table.appendChild(head);
+
+      g.deps.forEach(function (d) {
+        var tr = el("tr");
+        var cell = el("td");
+        var target = byId[d.id.toLowerCase()];
+        cell.appendChild(target
+          ? link("#package/" + encodeURIComponent(target.id), d.id)
+          : el("span", null, d.id));
+        tr.appendChild(cell);
+        tr.appendChild(el("td", "meta mono", d.range));
+        table.appendChild(tr);
+      });
+    });
+
+    panel.appendChild(table);
+    return panel;
+  }
+
+  // The readme is markdown written by the package author. It is rendered as
+  // preformatted text so that nothing in it can become markup on this page.
+  function loadReadme(pkg, version, host, isCurrent) {
+    getText("flatcontainer/" + seg(pkg.id) + "/" + seg(version) + "/readme")
+      .then(function (body) {
+        if (!isCurrent() || !body || !body.trim()) return;
+        var panel = el("section", "panel");
+        panel.appendChild(el("h3", null, "Readme"));
+        panel.appendChild(el("pre", "readme", body));
+        host.appendChild(panel);
+      }, function () {
+        // Most packages do not ship a readme.
+      });
+  }
+
+  function renderDetail(pkg, reg, gen) {
+    document.title = pkg.id + " \u00b7 " + BASE_TITLE;
+    elCount.textContent = reg.versions.length === 1
+      ? "1 version"
+      : reg.versions.length + " versions";
+
+    elBody.textContent = "";
+    elBody.appendChild(link(listHash, "\u2190 All packages", "back"));
+
+    if (!reg.latest) {
+      elBody.appendChild(el("p", "empty", "No versions of this package are available."));
+      return;
+    }
+
+    var host = el("div");
+    elBody.appendChild(host);
+
+    // Selecting a version redraws the page, so an in flight readme from the
+    // previously selected version has to be dropped rather than appended.
+    var shown = 0;
+
+    function show(meta) {
+      var token = ++shown;
+
+      host.textContent = "";
+      host.appendChild(detailHeader(pkg, meta));
+      host.appendChild(versionsPanel(pkg, reg, meta, show));
+      host.appendChild(dependencyPanel(meta.groups));
+
+      loadReadme(pkg, meta.version, host, function () {
+        return gen === generation && token === shown;
+      });
+    }
+
+    show(reg.latest);
+  }
+
+  function openDetail(id) {
+    var gen = ++generation;
+    var pkg = byId[id.toLowerCase()];
+
+    if (!pkg) {
+      document.title = BASE_TITLE;
+      elCount.textContent = "";
+      elBody.textContent = "";
+      elBody.appendChild(link(listHash, "\u2190 All packages", "back"));
+      elBody.appendChild(el("p", "empty", "\u201c" + id + "\u201d is not in this feed."));
+      return;
+    }
+
+    elBody.textContent = "";
+    elBody.appendChild(el("p", "empty", "Loading\u2026"));
+
+    registration(pkg.lowerId).then(function (reg) {
+      if (gen !== generation) return;
+      renderDetail(pkg, reg, gen);
+    }, function (err) {
+      if (gen !== generation) return;
+      fail(err);
+    });
+  }
+
+  function route() {
+    if (!loaded) return;
+
+    var r = parseHash();
+    if (r.view === "detail") openDetail(r.id);
+    else renderList(r.q, r.page);
   }
 
   function fail(err) {
     elCount.textContent = "";
     elBody.textContent = "";
+
     var box = el("div", "err");
     box.appendChild(el("strong", null, "Unable to read this feed."));
     box.appendChild(el("p", null, String((err && err.message) || err)));
@@ -308,16 +613,39 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     elBody.appendChild(box);
   }
 
-  elSearch.addEventListener("input", applyFilter);
+  elSearch.addEventListener("input", function () {
+    setHash(listHashFor(elSearch.value, 1));
+    route();
+  });
 
-  getJson("search/query")
-    .then(function (json) { start(fromSearch(json)); })
-    .catch(function () {
-      return getJson("sleet.packageindex.json").then(function (json) {
-        start(fromPackageIndex(json));
-      });
-    })
-    .catch(fail);
+  document.getElementById("home").addEventListener("click", function (e) {
+    e.preventDefault();
+    setHash(listHashFor("", 1));
+    route();
+  });
+
+  window.addEventListener("hashchange", route);
+
+  // sleet.packageindex.json is the smallest complete view of the feed. It
+  // carries every id and version, which covers the list, the id filter and
+  // paging, and each package pulls its own metadata only when it is shown.
+  getJson("sleet.packageindex.json").then(function (json) {
+    var src = (json && json.packages) || {};
+
+    packages = Object.keys(src).map(function (id) {
+      // Sleet writes these newest first, so no client side sort is needed.
+      return { id: id, lowerId: id.toLowerCase(), versions: list(src[id]) };
+    }).filter(function (p) {
+      return p.id && p.versions.length;
+    }).sort(function (a, b) {
+      return a.lowerId < b.lowerId ? -1 : a.lowerId > b.lowerId ? 1 : 0;
+    });
+
+    packages.forEach(function (p) { byId[p.lowerId] = p; });
+
+    loaded = true;
+    route();
+  }, fail);
 })();
 </script>
 </body>
