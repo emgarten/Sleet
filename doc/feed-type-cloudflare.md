@@ -134,6 +134,4 @@ The following S3 feed options cannot be used with `"provider": "r2"` and will fa
 | --- | ------ |
 | acl | R2 accepts S3 ACL headers but ignores them. Use a public bucket instead. |
 | serverSideEncryptionMethod | R2 always encrypts objects at rest. |
-
-R2 buckets are signed with the `auto` region, so `region` does not need to be set. If it is set it
-will be used as the signing region.
+| region | R2 always signs with the `auto` region. Use `authenticationRegion` to override the signing region. |

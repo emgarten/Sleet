@@ -44,6 +44,8 @@ namespace Sleet
                 throw new ArgumentException("Missing accountId for Cloudflare R2 account. The account id can be found on the R2 overview page of the Cloudflare dashboard.");
             }
 
+            jurisdiction = jurisdiction?.Trim();
+
             if (!string.IsNullOrWhiteSpace(jurisdiction) && !Jurisdictions.Contains(jurisdiction))
             {
                 throw new ArgumentException($"Invalid jurisdiction '{jurisdiction}' for Cloudflare R2 account. Valid values are: {string.Join(", ", Jurisdictions)}");
@@ -52,7 +54,7 @@ namespace Sleet
             var host = string.IsNullOrWhiteSpace(jurisdiction)
                 || StringComparer.OrdinalIgnoreCase.Equals(jurisdiction, DefaultJurisdiction)
                 ? $"{accountId.Trim()}{EndpointHostSuffix}"
-                : $"{accountId.Trim()}.{jurisdiction.Trim().ToLowerInvariant()}{EndpointHostSuffix}";
+                : $"{accountId.Trim()}.{jurisdiction.ToLowerInvariant()}{EndpointHostSuffix}";
 
             return $"https://{host}";
         }

@@ -15,11 +15,14 @@ namespace Sleet
         /// <summary>
         /// Error codes returned with a 400 by services that do not implement an operation.
         /// </summary>
+        /// <remarks>
+        /// Deliberately narrow. Generic codes such as InvalidRequest and InvalidArgument are
+        /// ordinary client errors (a malformed policy, acls disabled on the bucket) and treating
+        /// them as "not implemented" would silently skip a setting the user asked for.
+        /// </remarks>
         private static readonly HashSet<string> UnsupportedErrorCodes = new(StringComparer.OrdinalIgnoreCase)
         {
             "NotImplemented",
-            "InvalidRequest",
-            "InvalidArgument",
             "MethodNotAllowed",
             "UnsupportedOperation"
         };
@@ -110,9 +113,14 @@ namespace Sleet
         }
 
         /// <summary>
-        /// Apply a bucket setting, skipping it when the service does not implement the operation.
-        /// Returns false if the setting was skipped.
+        /// Apply an optional bucket setting, skipping it when the service does not implement the
+        /// operation. Returns false if the setting was skipped.
         /// </summary>
+        /// <remarks>
+        /// Only for settings the feed does not depend on. A call that actually grants public read
+        /// access must use <see cref="RetryAsync"/> so that a service which cannot apply it fails
+        /// loudly instead of leaving the user with a private feed and a success message.
+        /// </remarks>
         public static async Task<bool> TryApplyAsync(
             Func<ILogger, CancellationToken, Task> func,
             string description,

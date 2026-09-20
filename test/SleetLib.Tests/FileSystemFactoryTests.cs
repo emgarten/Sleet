@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
+using Amazon.S3;
 using FluentAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
@@ -520,6 +522,103 @@ namespace SleetLib.Tests
             var result = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
 
             ((FileSystemBase)result).Root.AbsoluteUri.Should().Be("https://custom.example.com/test-bucket/");
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithNonAwsProvider_WithoutServiceURL_ThrowsArgumentException()
+        {
+            // 'region' only identifies an endpoint for Amazon S3. Without this a missing or
+            // misspelled serviceURL would silently send requests to Amazon.
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "minio";
+                source["region"] = "us-east-1";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Missing serviceURL for MinIO", ex.Message);
+            Assert.Contains("http://localhost:9000", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithR2Provider_WithRegion_ThrowsArgumentException()
+        {
+            // R2 always signs with the auto region, a region copied from an Amazon S3 config
+            // would break signing.
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "r2";
+                source["accountId"] = "abc123";
+                source["baseURI"] = "https://nuget.example.com/";
+                source["region"] = "us-east-1";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Option 'region' is not supported by Cloudflare R2", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithR2Provider_WithPathButNoBaseURI_ThrowsArgumentException()
+        {
+            // 'path' falls back to the bucket url, which is the private API endpoint for R2.
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "r2";
+                source["accountId"] = "abc123";
+                source["path"] = "https://abc123.r2.cloudflarestorage.com/test-bucket/";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Missing baseURI for Cloudflare R2 account", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithCannedAclProvider_DefaultsObjectAclToPublicRead()
+        {
+            // Access is granted by acl rather than a bucket policy, so uploaded objects need the
+            // same acl as the bucket to be readable.
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "b2";
+                source["serviceURL"] = "https://s3.us-west-004.backblazeb2.com";
+            });
+            var cache = new LocalCache();
+
+            var result = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var acl = (S3CannedACL)typeof(AmazonS3FileSystem)
+                .GetField("_acl", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(result);
+
+            acl.Should().Be(S3CannedACL.PublicRead);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithBucketPolicyProvider_LeavesObjectAclUnset()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "minio";
+                source["serviceURL"] = "http://localhost:9000";
+            });
+            var cache = new LocalCache();
+
+            var result = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var acl = typeof(AmazonS3FileSystem)
+                .GetField("_acl", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(result);
+
+            acl.Should().BeNull();
         }
 
         /// <summary>

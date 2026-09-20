@@ -20,22 +20,23 @@ namespace Sleet
 
         public virtual async Task ConfigureBucketAsync(IAmazonS3 client, string bucketName, S3CannedACL? acl, ILogger log, CancellationToken token)
         {
-            log.LogInformation($"Adding policy for public read access to bucket: {bucketName}");
-
             await SetBucketPolicyAsync(client, bucketName, log, token);
 
             if (acl != null)
             {
                 await SetBucketAclAsync(client, bucketName, acl, log, token);
             }
+
+            log.LogInformation($"Added policy for public read access to bucket: {bucketName}");
         }
 
         /// <summary>
-        /// Set the bucket policy to public read-only.
+        /// Set the bucket policy to public read-only. This is what makes the feed readable, a
+        /// service that cannot apply it fails rather than leaving the bucket private.
         /// </summary>
-        protected Task<bool> SetBucketPolicyAsync(IAmazonS3 client, string bucketName, ILogger log, CancellationToken token)
+        protected Task SetBucketPolicyAsync(IAmazonS3 client, string bucketName, ILogger log, CancellationToken token)
         {
-            return S3ErrorUtility.TryApplyAsync((_, t) =>
+            return S3ErrorUtility.RetryAsync((_, t) =>
             {
                 var policyRequest = new PutBucketPolicyRequest()
                 {
@@ -44,15 +45,16 @@ namespace Sleet
                 };
 
                 return client.PutBucketPolicyAsync(policyRequest, t);
-            }, "public read bucket policies", Provider, log, token);
+            }, Provider, log, token);
         }
 
         /// <summary>
-        /// Set the default acl of the bucket.
+        /// Set the default acl of the bucket. Explicitly requested by the user, so a failure is
+        /// reported rather than skipped.
         /// </summary>
-        protected Task<bool> SetBucketAclAsync(IAmazonS3 client, string bucketName, S3CannedACL acl, ILogger log, CancellationToken token)
+        protected Task SetBucketAclAsync(IAmazonS3 client, string bucketName, S3CannedACL acl, ILogger log, CancellationToken token)
         {
-            return S3ErrorUtility.TryApplyAsync((_, t) =>
+            return S3ErrorUtility.RetryAsync((_, t) =>
             {
                 var bucketAclReq = new PutBucketAclRequest()
                 {
@@ -61,7 +63,7 @@ namespace Sleet
                 };
 
                 return client.PutBucketAclAsync(bucketAclReq, t);
-            }, "bucket acls", Provider, log, token);
+            }, Provider, log, token);
         }
 
         /// <summary>

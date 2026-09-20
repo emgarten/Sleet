@@ -94,6 +94,7 @@ namespace SleetLib.Tests
             S3Provider.CloudflareR2.RequiresBaseUri.Should().BeTrue();
             S3Provider.CloudflareR2.AllowsAcl.Should().BeFalse();
             S3Provider.CloudflareR2.AllowsServerSideEncryption.Should().BeFalse();
+            S3Provider.CloudflareR2.AllowsRegion.Should().BeFalse();
             S3Provider.CloudflareR2.PublicAccess.Should().Be(S3PublicAccessType.External);
             S3Provider.CloudflareR2.ChecksumMode.Should().Be(S3ChecksumMode.WhenRequired);
             S3Provider.CloudflareR2.DisablePayloadSigning.Should().BeTrue();
@@ -139,8 +140,8 @@ namespace SleetLib.Tests
 
         [Theory]
         [InlineData("NotImplemented")]
-        [InlineData("InvalidRequest")]
-        [InlineData("InvalidArgument")]
+        [InlineData("UnsupportedOperation")]
+        [InlineData("MethodNotAllowed")]
         public void S3ErrorUtility_BadRequestErrorCodesAreUnsupported(string errorCode)
         {
             var ex = new AmazonS3Exception("no") { StatusCode = HttpStatusCode.BadRequest, ErrorCode = errorCode };
@@ -148,10 +149,16 @@ namespace SleetLib.Tests
             S3ErrorUtility.IsUnsupportedOperation(ex).Should().BeTrue();
         }
 
-        [Fact]
-        public void S3ErrorUtility_BadRequestWithOtherErrorCodeIsNotUnsupported()
+        [Theory]
+        [InlineData("MalformedPolicy")]
+        [InlineData("InvalidRequest")]
+        [InlineData("InvalidArgument")]
+        [InlineData("AccessControlListNotSupported")]
+        public void S3ErrorUtility_GenericBadRequestErrorCodesAreNotUnsupported(string errorCode)
         {
-            var ex = new AmazonS3Exception("no") { StatusCode = HttpStatusCode.BadRequest, ErrorCode = "MalformedPolicy" };
+            // These are ordinary client errors. Treating them as "not implemented" would silently
+            // skip a setting the user asked for.
+            var ex = new AmazonS3Exception("no") { StatusCode = HttpStatusCode.BadRequest, ErrorCode = errorCode };
 
             S3ErrorUtility.IsUnsupportedOperation(ex).Should().BeFalse();
         }

@@ -22,9 +22,9 @@ namespace Sleet
             // Fall back to public read, the feed is not usable by NuGet clients without it.
             var resolvedAcl = acl ?? S3CannedACL.PublicRead;
 
-            log.LogInformation($"Setting acl '{resolvedAcl.Value}' for public read access on bucket: {bucketName}");
-
-            await S3ErrorUtility.TryApplyAsync((_, t) =>
+            // This is what makes the feed readable, a service that cannot apply it fails rather
+            // than leaving the bucket private.
+            await S3ErrorUtility.RetryAsync((_, t) =>
             {
                 var bucketAclReq = new PutBucketAclRequest()
                 {
@@ -33,7 +33,9 @@ namespace Sleet
                 };
 
                 return client.PutBucketAclAsync(bucketAclReq, t);
-            }, "bucket acls", _provider, log, token);
+            }, _provider, log, token);
+
+            log.LogInformation($"Set acl '{resolvedAcl.Value}' for public read access on bucket: {bucketName}");
         }
     }
 }

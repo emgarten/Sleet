@@ -108,6 +108,12 @@ namespace Sleet
         public bool AllowsAcl { get; init; } = true;
 
         /// <summary>
+        /// The service uses the 'region' property. Services with a fixed signing region reject
+        /// it so that a region copied from an Amazon S3 config cannot break request signing.
+        /// </summary>
+        public bool AllowsRegion { get; init; } = true;
+
+        /// <summary>
         /// The service honors the 'serverSideEncryptionMethod' property.
         /// </summary>
         public bool AllowsServerSideEncryption { get; init; } = true;
@@ -193,6 +199,9 @@ namespace Sleet
             // R2 accepts acl headers but ignores them, and always encrypts objects at rest.
             AllowsAcl = false,
             AllowsServerSideEncryption = false,
+
+            // R2 always signs with the auto region.
+            AllowsRegion = false,
             HelpUrl = "https://developers.cloudflare.com/r2/buckets/public-buckets/",
             PrivateEndpointHostSuffix = CloudflareR2Utility.EndpointHostSuffix,
             ResolveServiceUrl = static source => CloudflareR2Utility.GetServiceUrl(

@@ -152,6 +152,25 @@ namespace Sleet
                             throw new ArgumentException(message);
                         }
 
+                        // 'region' alone only identifies an endpoint for Amazon S3. Without this
+                        // a typo in serviceURL would silently send requests to Amazon.
+                        if (string.IsNullOrEmpty(serviceURL) && !ReferenceEquals(provider, S3Provider.Aws))
+                        {
+                            var message = $"Missing serviceURL for {provider.DisplayName}. 'region' only selects an endpoint for Amazon S3.";
+
+                            if (!string.IsNullOrEmpty(provider.ServiceUrlHint))
+                            {
+                                message += $" For {provider.DisplayName} serviceURL is usually {provider.ServiceUrlHint}";
+                            }
+
+                            throw new ArgumentException(message);
+                        }
+
+                        if (!string.IsNullOrEmpty(region) && !provider.AllowsRegion)
+                        {
+                            throw new ArgumentException($"Option 'region' is not supported by {provider.DisplayName}, which always signs requests with the '{provider.AuthenticationRegion}' region. Remove the setting, or set 'authenticationRegion' to override the signing region.");
+                        }
+
                         if (serverSideEncryptionMethod != "None" && serverSideEncryptionMethod != "AES256")
                         {
                             throw new ArgumentException("Only 'None' or 'AES256' are currently supported for serverSideEncryptionMethod");
@@ -178,6 +197,12 @@ namespace Sleet
                         if (acl != null)
                         {
                             resolvedAcl = S3CannedACL.FindValue(acl);
+                        }
+                        else if ((publicAccess ?? provider.PublicAccess) == S3PublicAccessType.CannedAcl)
+                        {
+                            // Access is granted by acl rather than a bucket policy, so uploaded
+                            // objects need the same acl as the bucket to be readable.
+                            resolvedAcl = S3CannedACL.PublicRead;
                         }
 
                         // Use the SDK value
@@ -275,30 +300,36 @@ namespace Sleet
                         // Assume IAM role
                         else
                         {
-                            if (config.RegionEndpoint == null)
+                            if (config.RegionEndpoint != null)
                             {
-                                // IAM roles are an Amazon feature and require a region, other
-                                // services are always reached through a serviceURL.
+                                // STS is an Amazon service, it is only reachable on the region path.
+                                using (var client = new AmazonSecurityTokenServiceClient(config.RegionEndpoint))
+                                {
+                                    try
+                                    {
+                                        var identity = await client.GetCallerIdentityAsync(new GetCallerIdentityRequest());
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        throw new ArgumentException(
+                                            "Failed to determine AWS identity - ensure you have an IAM " +
+                                            "role set, have set up default credentials or have specified a profile/key pair.", ex);
+                                    }
+                                }
+                            }
+
+                            try
+                            {
+                                // Falls back to the default credential chain, which covers instance
+                                // profiles and a default credentials file profile.
+                                amazonS3Client = new AmazonS3Client(config);
+                            }
+                            catch (Exception ex)
+                            {
                                 throw new ArgumentException(
-                                    $"Missing accessKeyId and secretAccessKey for {provider.DisplayName} account. "
-                                    + "Set them in sleet.json, or set the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.");
+                                    $"Missing accessKeyId and secretAccessKey for {provider.DisplayName} account, and no default credentials were found. "
+                                    + "Set them in sleet.json, or set the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.", ex);
                             }
-
-                            using (var client = new AmazonSecurityTokenServiceClient(config.RegionEndpoint))
-                            {
-                                try
-                                {
-                                    var identity = await client.GetCallerIdentityAsync(new GetCallerIdentityRequest());
-                                }
-                                catch (Exception ex)
-                                {
-                                    throw new ArgumentException(
-                                        "Failed to determine AWS identity - ensure you have an IAM " +
-                                        "role set, have set up default credentials or have specified a profile/key pair.", ex);
-                                }
-                            }
-
-                            amazonS3Client = new AmazonS3Client(config);
                         }
 
                         if (pathUri == null)
@@ -309,21 +340,23 @@ namespace Sleet
                                 : UriUtility.EnsureTrailingSlash(UriUtility.CreateUri($"{serviceURL!.TrimEnd('/')}/{bucketName}"));
                         }
 
-                        if (baseUri == null)
+                        // 'path' falling back to the bucket url does not satisfy providers that
+                        // need a separate public url, so require baseURI to be set explicitly.
+                        if (provider.RequiresBaseUri && baseURIString == null)
                         {
-                            if (provider.RequiresBaseUri)
+                            var message = $"Missing baseURI for {provider.DisplayName} account. Buckets are private by default and the public url cannot be determined automatically. "
+                                + "Set baseURI to the public url of the bucket.";
+
+                            if (!string.IsNullOrEmpty(provider.HelpUrl))
                             {
-                                var message = $"Missing baseURI for {provider.DisplayName} account. Buckets are private by default and the public url cannot be determined automatically. "
-                                    + "Set baseURI to the public url of the bucket.";
-
-                                if (!string.IsNullOrEmpty(provider.HelpUrl))
-                                {
-                                    message += $" See: {provider.HelpUrl}";
-                                }
-
-                                throw new ArgumentException(message);
+                                message += $" See: {provider.HelpUrl}";
                             }
 
+                            throw new ArgumentException(message);
+                        }
+
+                        if (baseUri == null)
+                        {
                             baseUri = pathUri;
                         }
                         else if (!string.IsNullOrEmpty(provider.PrivateEndpointHostSuffix)
@@ -408,7 +441,7 @@ namespace Sleet
         /// </summary>
         private static string? Coalesce(params string?[] values)
         {
-            return values.FirstOrDefault(e => !string.IsNullOrEmpty(e));
+            return values.FirstOrDefault(e => !string.IsNullOrWhiteSpace(e));
         }
 
         private static async Task<BlobServiceClient> GetBlobServiceClient(            ILogger log,

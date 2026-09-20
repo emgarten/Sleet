@@ -38,9 +38,26 @@ namespace Sleet
             S3CannedACL? acl = null,
             bool disablePayloadSigning = false,
             string? immutableCacheControl = null,
-            string? mutableCacheControl = null,
-            S3Provider? provider = null,
-            IS3PublicAccessStrategy? publicAccessStrategy = null)
+            string? mutableCacheControl = null)
+            : this(cache, root, baseUri, client, bucketName, serverSideEncryptionMethod, feedSubPath, compress, acl,
+                  disablePayloadSigning, immutableCacheControl, mutableCacheControl, provider: null, publicAccessStrategy: null)
+        {
+        }
+
+        public AmazonS3FileSystem(LocalCache cache,
+            Uri root,
+            Uri baseUri,
+            IAmazonS3 client,
+            string bucketName,
+            ServerSideEncryptionMethod serverSideEncryptionMethod,
+            string? feedSubPath,
+            bool compress,
+            S3CannedACL? acl,
+            bool disablePayloadSigning,
+            string? immutableCacheControl,
+            string? mutableCacheControl,
+            S3Provider? provider,
+            IS3PublicAccessStrategy? publicAccessStrategy)
             : base(cache, root, baseUri)
         {
             _client = client;

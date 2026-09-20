@@ -71,7 +71,7 @@ More options can be found in the [Azure.Identity README](https://github.com/Azur
 | secretAccessKey            | Secret access key *[Cannot be used with profileName]*                                                                                                                                                                                                                                                                        |
 | bucketName                 | S3 bucket name *[Required]*                                                                                                                                                                                                                                                                                                  |
 | provider                   | S3 compatible service to configure defaults for. Default is `aws`. See [S3 providers](#s3-providers).                                                                                                                                                                                                                       |
-| region                     | S3 region. When used with `serviceURL` this is the region used to sign requests.                                                                                                                                                                                                                                             |
+| region                     | S3 region. Selects the endpoint for Amazon S3. For other services it is the region used to sign requests, and must be used with `serviceURL`.                                                                                                                                                                                |
 | serviceURL                 | S3 service URL. Required for non-AWS services unless the provider can determine it.                                                                                                                                                                                                                                          |
 | path                       | Full URI of the storage bucket. If not specified a default URI will be used.                                                                                                                                                                                                                                                 |
 | feedSubPath                | Provides a sub directory path within the bucket where the feed should be added. This allows for multiple feeds within a single bucket.                                                                                                                                                                                       |
@@ -84,7 +84,7 @@ More options can be found in the [Azure.Identity README](https://github.com/Azur
 | authenticationRegion       | Region used to sign requests when it differs from `region`. Defaults to the value for the selected `provider`.                                                                                                                                                                                                               |
 | publicAccess               | How the bucket is made publicly readable when Sleet creates it. One of `aws`, `bucketPolicy`, `cannedAcl`, or `external`. Defaults to the value for the selected `provider`.                                                                                                                                                  |
 
-`region` and `serviceURL` may be used together. `serviceURL` selects the endpoint and `region` is used as the signing region.
+`region` and `serviceURL` may be used together. `serviceURL` selects the endpoint and `region` is used as the signing region. Every provider other than `aws` requires `serviceURL`, because `region` alone only identifies an Amazon endpoint.
 
 ### S3 providers
 
@@ -102,7 +102,7 @@ that is not listed.
 | `wasabi` | Wasabi | |
 | `b2` | Backblaze B2 | Also accepted as `backblaze`. |
 | `digitalocean` | DigitalOcean Spaces | Also accepted as `spaces`. |
-| `generic` | Any other S3 compatible service | No provider defaults are applied. |
+| `generic` | Any other S3 compatible service | Grants public read with a bucket policy. No other defaults are applied. |
 
 Defaults for `scaleway`, `wasabi`, `b2`, and `digitalocean` come from each service's published
 documentation and have not been verified against a live account. If a feed on one of these services
