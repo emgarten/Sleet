@@ -408,7 +408,9 @@ namespace Sleet
                 return provider.ChecksumMode;
             }
 
-            if (Enum.TryParse<S3ChecksumMode>(value.Trim(), ignoreCase: true, out var result))
+            // TryParse accepts any number, IsDefined rejects values that are not real modes.
+            if (Enum.TryParse<S3ChecksumMode>(value.Trim(), ignoreCase: true, out var result)
+                && Enum.IsDefined(result))
             {
                 return result;
             }
@@ -428,7 +430,9 @@ namespace Sleet
                 return null;
             }
 
-            if (Enum.TryParse<S3PublicAccessType>(value.Trim(), ignoreCase: true, out var result))
+            // TryParse accepts any number, IsDefined rejects values that are not real types.
+            if (Enum.TryParse<S3PublicAccessType>(value.Trim(), ignoreCase: true, out var result)
+                && Enum.IsDefined(result))
             {
                 return result;
             }

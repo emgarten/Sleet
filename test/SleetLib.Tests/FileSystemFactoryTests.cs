@@ -389,6 +389,36 @@ namespace SleetLib.Tests
         }
 
         [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithUndefinedNumericChecksumMode_ThrowsArgumentException()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["checksumMode"] = "2";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Invalid checksumMode '2'", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithUndefinedNumericPublicAccess_ThrowsArgumentException()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["publicAccess"] = "4";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Invalid publicAccess '4'", ex.Message);
+        }
+
+        [Fact]
         public async Task CreateFileSystemAsync_WithMinioProvider_CreatesFileSystem()
         {
             var settings = GetS3Settings(source =>
