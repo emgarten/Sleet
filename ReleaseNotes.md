@@ -4,7 +4,7 @@
 * Added a package gallery written to `index.html` at the root of the feed
   * Browse and page through all packages on the feed and filter by package id
   * Drill down from the package list to a package's versions and then to a single version
-  * Version pages show the description, tags, dependencies, readme, and links to the `.nupkg` and `.nuspec`
+  * Version pages show the description, tags, dependencies grouped by target framework, readme, and links to the `.nupkg` and `.nuspec`
   * Every view is linkable, for example `index.html#package/Newtonsoft.Json/13.0.3`
   * Reads the feed's own `sleet.packageindex.json` and registration files, loading package metadata only when a package is opened
   * Browse the feed at `{feed url}/index.html`, see [gallery docs](doc/gallery.md) for serving it from the bare root URL

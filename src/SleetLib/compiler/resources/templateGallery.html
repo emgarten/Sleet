@@ -64,6 +64,11 @@ a{color:var(--accent)}
 .crumbs a:hover{text-decoration:underline}
 h2{font-size:22px;margin:0;word-break:break-all}
 h3{font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.group{margin-top:4px}
+.group + .group{margin-top:18px}
+.group h4{display:inline-block;margin:0 0 6px;font-size:12px;font-weight:600;
+  font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;
+  background:var(--chip);border:1px solid var(--line);border-radius:5px;padding:2px 8px}
 .panel{border-top:1px solid var(--line);margin-top:22px;padding-top:16px}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;
@@ -79,6 +84,7 @@ td:first-child,th:first-child{white-space:nowrap}
 .empty{color:var(--muted);padding:48px 0;text-align:center}
 .err{border:1px solid var(--danger);border-radius:6px;padding:12px 14px}
 .err p{margin:6px 0 0;color:var(--muted);font-size:13px}
+.err p.mono{font-size:12px;word-break:break-all}
 footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);font-size:11px}
 </style>
 </head>
@@ -134,7 +140,11 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   function getJson(path) {
     return fetch(ROOT + path, { headers: { accept: "application/json" } })
       .then(function (r) {
-        if (!r.ok) throw new Error("GET " + path + " failed with status " + r.status);
+        if (!r.ok) {
+          var err = new Error("GET " + path + " failed with status " + r.status);
+          err.status = r.status;
+          throw err;
+        }
         return r.json();
       });
   }
@@ -281,7 +291,12 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   function registration(lowerId) {
     if (!regCache[lowerId]) {
       regCache[lowerId] = getJson("registration/" + seg(lowerId) + "/index.json")
-        .then(fromRegistration);
+        .then(fromRegistration, function (err) {
+          // A cached rejection would keep failing for the rest of the session,
+          // so drop it and let the next visit try the request again.
+          delete regCache[lowerId];
+          throw err;
+        });
     }
     return regCache[lowerId];
   }
@@ -532,7 +547,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
     var table = el("table");
     var header = el("tr");
-    ["Version", "Published", ""].forEach(function (h) { header.appendChild(el("th", null, h)); });
+    ["Version", "Published"].forEach(function (h) { header.appendChild(el("th", null, h)); });
     table.appendChild(header);
 
     reg.versions.forEach(function (v) {
@@ -543,10 +558,6 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
       if (v === reg.latest) first.appendChild(el("span", "tag", "latest"));
       tr.appendChild(first);
       tr.appendChild(el("td", "meta", when(v.published)));
-
-      var last = el("td");
-      last.appendChild(link(nupkgUrl(pkg.id, v.version), "Download"));
-      tr.appendChild(last);
 
       table.appendChild(tr);
     });
@@ -564,13 +575,19 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
       return panel;
     }
 
-    var table = el("table");
+    // Each target framework gets its own labelled block so that the groups of
+    // a multi targeted package do not read as one continuous list.
     groups.forEach(function (g) {
-      var head = el("tr");
-      head.appendChild(el("th", null, g.framework));
-      head.appendChild(el("th", null, g.deps.length ? "" : "No dependencies"));
-      table.appendChild(head);
+      var group = el("section", "group");
+      group.appendChild(el("h4", null, g.framework));
 
+      if (!g.deps.length) {
+        group.appendChild(el("p", "meta", "No dependencies."));
+        panel.appendChild(group);
+        return;
+      }
+
+      var table = el("table");
       g.deps.forEach(function (d) {
         var tr = el("tr");
         var cell = el("td");
@@ -582,9 +599,11 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
         tr.appendChild(el("td", "meta mono", d.range));
         table.appendChild(tr);
       });
+
+      group.appendChild(table);
+      panel.appendChild(group);
     });
 
-    panel.appendChild(table);
     return panel;
   }
 
@@ -669,8 +688,28 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
       else renderVersions(pkg, reg);
     }, function (err) {
       if (gen !== generation) return;
-      fail(err);
+      packageError(pkg, err);
     });
+  }
+
+  // One unreadable package is not a broken feed, so the failure stays on the
+  // package that caused it and the breadcrumb is kept so the reader can go back.
+  function packageError(pkg, err) {
+    document.title = pkg.id + " \u00b7 " + BRAND;
+    elCount.textContent = "";
+    elBody.textContent = "";
+    elBody.appendChild(crumbs([["All packages", listHash]], pkg.id));
+
+    var box = el("div", "err");
+    box.appendChild(el("strong", null, "Unable to load this package."));
+
+    box.appendChild(el("p", null, err && err.status === 404
+      ? "The feed lists " + pkg.id + " but has no registration for it, so its "
+        + "versions and metadata cannot be read."
+      : "Check that the feed files are readable from " + ROOT + "."));
+
+    box.appendChild(el("p", "mono", String((err && err.message) || err)));
+    elBody.appendChild(box);
   }
 
   function route() {

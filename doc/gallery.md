@@ -32,7 +32,7 @@ that any view can be bookmarked, shared, and reached with the browser back butto
 | View | URL | Shows |
 | --- | --- | --- |
 | Packages | `#` | 20 package ids per page, each with its icon, latest version, and total number of versions |
-| Versions | `#package/Newtonsoft.Json` | Every version of one package with its publish date and a download link |
+| Versions | `#package/Newtonsoft.Json` | Every version of one package with its publish date |
 | Version | `#package/Newtonsoft.Json/13.0.3` | Everything the feed knows about one specific version |
 
 The id filter and the current page are also kept in the fragment, as `#q=storage` and
@@ -44,11 +44,15 @@ stable version. Packages without an embedded icon fall back to a generic one.
 
 A version page shows the description, authors, tags, publish date, project and license
 links, a download link for the `.nupkg`, a link to the `.nuspec`, the dependencies of that
-version, and its readme. Dependencies that are also on the feed link to their own package.
+version grouped by target framework, and its readme. Dependencies that are also on the
+feed link to their own package.
 
 Leaving the version off a package URL addresses the package rather than a single version,
 which keeps the link stable as new versions are pushed. If a pinned version is not on the
 feed the page falls back to the latest version and says so.
+
+If a package's registration cannot be read the error is shown on that package's page
+rather than replacing the gallery, so the rest of the feed stays browsable.
 
 Readme files are shown as plain text rather than rendered markdown, since the content
 comes from the package author.
