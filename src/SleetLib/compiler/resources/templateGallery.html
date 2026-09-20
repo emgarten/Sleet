@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>NuGet feed</title>
+<title>Sleet package feed</title>
 <style>
 :root{
   --bg:#ffffff; --fg:#1f2328; --muted:#59636e; --line:#d1d9e0;
@@ -19,11 +19,13 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);
   font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
-header{border-bottom:1px solid var(--line);padding:14px 20px;display:flex;
+header{border-bottom:1px solid var(--line);padding:12px 20px;display:flex;
   flex-wrap:wrap;gap:12px;align-items:center;position:sticky;top:0;background:var(--bg);z-index:1}
-h1{font-size:15px;margin:0;font-weight:600;white-space:nowrap}
+h1{font-size:17px;margin:0;font-weight:600;white-space:nowrap;letter-spacing:-.01em}
 h1 a{color:inherit;text-decoration:none}
 h1 a:hover{color:var(--accent)}
+.tagline{font-size:12px;color:var(--muted);white-space:nowrap;
+  border-left:1px solid var(--line);padding-left:12px}
 #search{flex:1;min-width:220px;padding:7px 11px;border:1px solid var(--line);
   border-radius:6px;background:var(--bg);color:var(--fg);font-size:14px}
 #search:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
@@ -36,18 +38,24 @@ main{max-width:1000px;margin:0 auto;padding:20px}
 .source code{color:var(--fg);word-break:break-all}
 .pkg{border:1px solid var(--line);border-radius:6px;background:var(--card);
   padding:14px 16px;margin-bottom:10px}
-.pkg-head{display:flex;gap:12px;align-items:flex-start}
-.icon-slot{flex:none}
-.icon-slot:empty{display:none}
-.icon{width:36px;height:36px;border-radius:6px;display:block;background:var(--chip);object-fit:contain}
-.icon.lg{width:56px;height:56px}
+.pkg-head{display:flex;gap:14px;align-items:flex-start}
+.icon-slot{width:48px;height:48px;flex:none;border-radius:8px;overflow:hidden;
+  border:1px solid var(--line);
+  background:var(--chip) center/26px 26px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c959f' stroke-width='1.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.9 20.4 7.4v9.2L12 21.1 3.6 16.6V7.4z'/%3E%3Cpath d='M3.6 7.4 12 12l8.4-4.6'/%3E%3Cpath d='M12 12v9.1'/%3E%3C/svg%3E")}
+.icon-slot.lg{width:64px;height:64px;background-size:34px 34px}
+.icon{width:100%;height:100%;display:block;object-fit:contain;background:var(--card)}
 .grow{flex:1;min-width:0}
 .pkg-title{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
 .pkg-id{font-size:15px;font-weight:600;color:var(--accent);text-decoration:none}
 .pkg-id:hover{text-decoration:underline}
 .ver{font-size:12px;color:var(--muted)}
+.facts{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 7px;margin-top:3px;
+  font-size:12px;color:var(--muted)}
+.dot{opacity:.55}
 .desc{margin:6px 0 0}
 .desc:empty{display:none}
+.pkg .desc{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  line-clamp:2;overflow:hidden}
 .tags{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
 .tag{background:var(--chip);border-radius:999px;padding:1px 9px;font-size:11px;color:var(--muted)}
 .sub{margin-top:6px;font-size:12px;color:var(--muted)}
@@ -83,7 +91,8 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 </head>
 <body>
 <header>
-  <h1><a href="#" id="home">NuGet feed</a></h1>
+  <h1><a href="#" id="home">Sleet</a></h1>
+  <span class="tagline">static NuGet feed</span>
   <input id="search" type="search" placeholder="Filter by package id&#8230;" autocomplete="off" autofocus>
   <span class="meta" id="count"></span>
 </header>
@@ -101,6 +110,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
   var PAGE_SIZE = 20;
   var BASE_TITLE = document.title;
+  var BRAND = "Sleet";
 
   // Resolve the feed root from this page's own location rather than from a
   // baked in base URI. The same file then works unmodified when served from a
@@ -267,13 +277,27 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     return regCache[lowerId];
   }
 
-  function icon(pkg, version, cls) {
-    var img = el("img", cls);
+  function iconBox(extra) {
+    return el("div", extra ? "icon-slot " + extra : "icon-slot");
+  }
+
+  // The slot carries a generic package glyph as its background, so a package
+  // without an embedded icon still lines up with the rest of the list.
+  function fillIcon(slot, pkg, version) {
+    var img = el("img", "icon");
     img.src = flatUrl(pkg.id, version, "icon");
     img.alt = "";
     img.loading = "lazy";
     img.onerror = function () { img.remove(); };
-    return img;
+    slot.appendChild(img);
+  }
+
+  function fillFacts(box, parts) {
+    box.textContent = "";
+    parts.filter(Boolean).forEach(function (part, i) {
+      if (i) box.appendChild(el("span", "dot", "\u00b7"));
+      box.appendChild(typeof part === "string" ? el("span", null, part) : part);
+    });
   }
 
   function linkRow(meta, pkg, version) {
@@ -334,16 +358,21 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   function row(pkg, gen) {
     var box = el("div", "pkg");
     var head = el("div", "pkg-head");
-    var slot = el("div", "icon-slot");
+    var slot = iconBox();
     head.appendChild(slot);
 
     var col = el("div", "grow");
     var title = el("div", "pkg-title");
     title.appendChild(link("#package/" + encodeURIComponent(pkg.id), pkg.id, "pkg-id"));
-    title.appendChild(el("span", "ver mono", pkg.versions[0]));
-    title.appendChild(el("span", "meta",
-      pkg.versions.length === 1 ? "1 version" : pkg.versions.length + " versions"));
     col.appendChild(title);
+
+    var count = pkg.versions.length === 1 ? "1 version" : pkg.versions.length + " versions";
+
+    // Drawn from the package index first so the row paints before its metadata
+    // request finishes, then redrawn once the registration arrives.
+    var facts = el("div", "facts");
+    fillFacts(facts, [el("span", "mono", pkg.versions[0]), count]);
+    col.appendChild(facts);
 
     var desc = el("p", "desc");
     var authors = el("div", "sub");
@@ -362,10 +391,18 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
       var meta = reg.latest;
       if (!meta) return;
 
+      var published = when(meta.published);
+      fillFacts(facts, [
+        el("span", "mono", meta.version),
+        count,
+        published ? "Published " + published : "",
+        link(nupkgUrl(pkg.id, meta.version), "Download .nupkg")
+      ]);
+
       desc.textContent = meta.description;
       if (meta.authors.length) authors.textContent = "by " + meta.authors.join(", ");
       meta.tags.forEach(function (t) { tags.appendChild(el("span", "tag", t)); });
-      if (meta.hasIcon) slot.appendChild(icon(pkg, meta.version, "icon"));
+      if (meta.hasIcon) fillIcon(slot, pkg, meta.version);
     }, function () {
       // A package without a readable registration still lists by id.
     });
@@ -426,8 +463,8 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
   function detailHeader(pkg, meta) {
     var head = el("div", "pkg-head");
-    var slot = el("div", "icon-slot");
-    if (meta.hasIcon) slot.appendChild(icon(pkg, meta.version, "icon lg"));
+    var slot = iconBox("lg");
+    if (meta.hasIcon) fillIcon(slot, pkg, meta.version);
     head.appendChild(slot);
 
     var col = el("div", "grow");
@@ -532,7 +569,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   }
 
   function renderDetail(pkg, reg, gen) {
-    document.title = pkg.id + " \u00b7 " + BASE_TITLE;
+    document.title = pkg.id + " \u00b7 " + BRAND;
     elCount.textContent = reg.versions.length === 1
       ? "1 version"
       : reg.versions.length + " versions";

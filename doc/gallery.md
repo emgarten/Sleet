@@ -26,9 +26,13 @@ commands leave it alone and never read it.
 
 ## Browsing
 
-The list shows 20 packages per page. Both the current page and the id filter are kept in
-the URL fragment, so `#q=storage`, `#page=3` and `#package/Newtonsoft.Json` can be
-bookmarked and shared, and the browser back button works as expected.
+The list shows 20 packages per page. Each row has the package icon, the latest version,
+the number of versions, the publish date, a direct download link, and the description,
+authors and tags. Packages without an embedded icon fall back to a generic one.
+
+Both the current page and the id filter are kept in the URL fragment, so `#q=storage`,
+`#page=3` and `#package/Newtonsoft.Json` can be bookmarked and shared, and the browser
+back button works as expected.
 
 A package page shows the description, authors, tags, publish date, project and license
 links, the full version history with download links, and the dependencies of the selected
