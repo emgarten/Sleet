@@ -369,15 +369,26 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     }
   }
 
+  // A hand-edited address bar can hold a malformed escape sequence, which
+  // makes decodeURIComponent throw. Fall back to the raw text so a typo shows
+  // an empty result instead of breaking the page.
+  function decode(value) {
+    try {
+      return decodeURIComponent(value);
+    } catch (e) {
+      return value;
+    }
+  }
+
   function parseHash() {
     var h = location.hash.replace(/^#\/?/, "");
 
-    if (h.slice(0, 8) === "package/") {
+    if (h.slice(0, 8) === "package/" && h.length > 8) {
       var parts = h.slice(8).split("/");
       return {
         view: "package",
-        id: decodeURIComponent(parts[0]),
-        version: parts.length > 1 ? decodeURIComponent(parts[1]) : ""
+        id: decode(parts[0]),
+        version: parts.length > 1 ? decode(parts[1]) : ""
       };
     }
 
@@ -386,7 +397,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     h.split("&").forEach(function (part) {
       var i = part.indexOf("=");
       if (i < 1) return;
-      var value = decodeURIComponent(part.slice(i + 1).replace(/\+/g, " "));
+      var value = decode(part.slice(i + 1).replace(/\+/g, " "));
       if (part.slice(0, i) === "q") q = value;
       else if (part.slice(0, i) === "page") page = parseInt(value, 10) || 1;
     });
