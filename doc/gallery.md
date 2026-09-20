@@ -1,6 +1,6 @@
-# Feed UI
+# Gallery
 
-Sleet writes a static browsing UI to `index.html` at the root of the feed. It is a single
+Sleet writes a package gallery to `index.html` at the root of the feed. It is a single
 self contained HTML file with no external dependencies and no build step. Opening it in a
 browser lists every package on the feed and provides client side search.
 
@@ -17,7 +17,7 @@ The page is written by `sleet init`, by `sleet recreate`, and by the automatic
 initialization that happens on the first push to a new feed. Later pushes and all other
 commands leave it alone and never read it.
 
-## Feed UI URL
+## Gallery URL
 
 | feed type | url |
 | --------- | --- |
@@ -27,9 +27,9 @@ commands leave it alone and never read it.
 
 Object storage REST endpoints do not support index documents, so the file name must be
 included in the URL. Requesting the bare feed root returns an error from the storage
-service, not the UI.
+service, not the gallery.
 
-To serve the UI from the bare root URL a static website endpoint or CDN is required:
+To serve the gallery from the bare root URL a static website endpoint or CDN is required:
 
 * **Azure Storage** &mdash; enable the [static website endpoint](https://learn.microsoft.com/azure/storage/blobs/storage-blob-static-website)
   and set the index document to `index.html`. The feed is then browsable at
@@ -43,7 +43,7 @@ To serve the UI from the bare root URL a static website endpoint or CDN is requi
 * **Cloudflare R2** &mdash; R2 has no index document feature. Use a Worker in front of the
   bucket to rewrite `/` to `/index.html`, or link directly to `index.html`.
 
-## Customizing the UI
+## Customizing the gallery
 
 Sleet only creates `index.html` when it does not already exist, so a custom page can be
 used instead. Upload your own `index.html` to the feed root and Sleet will leave it alone.
@@ -51,12 +51,12 @@ used instead. Upload your own `index.html` to the feed root and Sleet will leave
 Note that `sleet recreate` rebuilds the feed from scratch and will replace a custom page
 with the default one.
 
-## How to disable the feed UI
+## How to disable the gallery
 
-The UI can be disabled in the feed settings using the following command
+The gallery can be disabled in the feed settings using the following command
 
-`sleet feed-settings --set feeduienabled:false`
+`sleet feed-settings --set galleryenabled:false`
 
 Run `sleet init` afterwards to remove the existing `index.html` from the feed.
 
-The feed UI is enabled by default for new feeds.
+The gallery is enabled by default for new feeds.

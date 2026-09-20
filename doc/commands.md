@@ -198,9 +198,9 @@ Disable badges
 
 ``sleet feed-settings --set badgesenabled:false``
 
-Disable the feed browsing UI
+Disable the package gallery
 
-``sleet feed-settings --set feeduienabled:false``
+``sleet feed-settings --set galleryenabled:false``
 
 ## Retention
 

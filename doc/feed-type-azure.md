@@ -93,6 +93,6 @@ Add the feed as a source to your `NuGet.Config` file. In the example above the p
 
 ## Browsing the feed
 
-Sleet writes a static browsing UI to the root of the feed. In the example above it can be opened at ``https://yourStorageAccount.blob.core.windows.net/feed/index.html``
+Sleet writes a package gallery to the root of the feed. In the example above it can be opened at ``https://yourStorageAccount.blob.core.windows.net/feed/index.html``
 
-The blob endpoint has no index document, so `index.html` must be included in the URL. See [feed UI](feed-ui.md) for serving the page from the bare root URL.
+The blob endpoint has no index document, so `index.html` must be included in the URL. See [gallery](gallery.md) for serving the page from the bare root URL.

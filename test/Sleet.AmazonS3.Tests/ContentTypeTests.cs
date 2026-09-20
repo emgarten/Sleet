@@ -7,13 +7,13 @@ namespace Sleet.AmazonS3.Tests
     public class ContentTypeTests
     {
         [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
-        public async Task GivenInitVerifyFeedUIContentTypeIsHtml()
+        public async Task GivenInitVerifyGalleryContentTypeIsHtml()
         {
             using (var testContext = new AmazonS3TestContext())
             {
                 await testContext.InitAsync();
 
-                // The browser must receive text/html to render the feed UI
+                // The browser must receive text/html to render the gallery
                 // instead of downloading it.
                 var htmlMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,

@@ -86,7 +86,7 @@ namespace Sleet
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
                     {
-                        // text/html is required for browsers to render the feed UI
+                        // text/html is required for browsers to render the gallery
                         // instead of prompting the user to download it.
                         blobHeaders.ContentType = "text/html; charset=utf-8";
                         blobHeaders.CacheControl = _mutableCacheControl;

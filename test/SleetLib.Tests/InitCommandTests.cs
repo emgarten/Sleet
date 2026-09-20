@@ -236,7 +236,7 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task GivenInitVerifyFeedUIIsCreated()
+        public async Task GivenInitVerifyGalleryIsCreated()
         {
             using (var target = new TestFolder())
             using (var cache = new LocalCache())
@@ -246,16 +246,16 @@ namespace SleetLib.Tests
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
-                var feedUIOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+                var galleryOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
 
                 // Act
                 var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
 
                 // Assert
                 success.Should().BeTrue();
-                feedUIOutput.Exists.Should().BeTrue();
+                galleryOutput.Exists.Should().BeTrue();
 
-                var html = File.ReadAllText(feedUIOutput.FullName);
+                var html = File.ReadAllText(galleryOutput.FullName);
                 html.Should().Contain("search/query");
                 html.Should().Contain("sleet.packageindex.json");
                 html.Should().NotContain("$SLEETVERSION$");
@@ -271,7 +271,7 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task GivenFeedUIDisabledVerifyIndexHtmlIsNotCreated()
+        public async Task GivenGalleryDisabledVerifyIndexHtmlIsNotCreated()
         {
             using (var target = new TestFolder())
             using (var cache = new LocalCache())
@@ -280,9 +280,9 @@ namespace SleetLib.Tests
                 var log = new TestLogger();
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
-                var feedSettings = new FeedSettings() { FeedUIEnabled = false };
+                var feedSettings = new FeedSettings() { GalleryEnabled = false };
 
-                var feedUIOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+                var galleryOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
                 var packageIndexOutput = new FileInfo(Path.Combine(target.Root, "sleet.packageindex.json"));
 
                 // Act
@@ -291,12 +291,12 @@ namespace SleetLib.Tests
                 // Assert
                 success.Should().BeTrue();
                 packageIndexOutput.Exists.Should().BeTrue();
-                feedUIOutput.Exists.Should().BeFalse();
+                galleryOutput.Exists.Should().BeFalse();
             }
         }
 
         [Fact]
-        public async Task GivenFeedUIDisabledAfterInitVerifyIndexHtmlIsRemoved()
+        public async Task GivenGalleryDisabledAfterInitVerifyIndexHtmlIsRemoved()
         {
             using (var target = new TestFolder())
             using (var cache = new LocalCache())
@@ -304,28 +304,28 @@ namespace SleetLib.Tests
                 // Arrange
                 var log = new TestLogger();
                 var settings = new LocalSettings();
-                var feedUIOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+                var galleryOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
 
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
 
                 success.Should().BeTrue();
-                feedUIOutput.Exists.Should().BeTrue();
+                galleryOutput.Exists.Should().BeTrue();
 
                 // Act
                 using (var cache2 = new LocalCache())
                 {
                     var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
                     var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(fileSystem2, log, CancellationToken.None);
-                    feedSettings.FeedUIEnabled = false;
+                    feedSettings.GalleryEnabled = false;
 
                     success = await InitCommand.InitAsync(settings, fileSystem2, feedSettings, log, CancellationToken.None);
                 }
 
                 // Assert
                 success.Should().BeTrue();
-                feedUIOutput.Refresh();
-                feedUIOutput.Exists.Should().BeFalse();
+                galleryOutput.Refresh();
+                galleryOutput.Exists.Should().BeFalse();
             }
         }
 
@@ -340,23 +340,23 @@ namespace SleetLib.Tests
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
-                var feedUIOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+                var galleryOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
                 var customHtml = "<html><body>custom</body></html>";
-                File.WriteAllText(feedUIOutput.FullName, customHtml);
+                File.WriteAllText(galleryOutput.FullName, customHtml);
 
                 // Act
                 var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
 
                 // Assert
                 success.Should().BeTrue();
-                feedUIOutput.Refresh();
-                feedUIOutput.Exists.Should().BeTrue();
-                File.ReadAllText(feedUIOutput.FullName).Should().Be(customHtml);
+                galleryOutput.Refresh();
+                galleryOutput.Exists.Should().BeTrue();
+                File.ReadAllText(galleryOutput.FullName).Should().Be(customHtml);
             }
         }
 
         [Fact]
-        public async Task GivenPushOnAnInitializedFeedVerifyFeedUIIsNotTouched()
+        public async Task GivenPushOnAnInitializedFeedVerifyGalleryIsNotTouched()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
@@ -365,17 +365,17 @@ namespace SleetLib.Tests
                 // Arrange
                 var log = new TestLogger();
                 var settings = new LocalSettings();
-                var feedUIOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+                var galleryOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
 
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
 
                 success.Should().BeTrue();
-                feedUIOutput.Exists.Should().BeTrue();
+                galleryOutput.Exists.Should().BeTrue();
 
                 // Replace the page so that any rewrite during push is detectable.
                 var customHtml = "<html><body>custom</body></html>";
-                File.WriteAllText(feedUIOutput.FullName, customHtml);
+                File.WriteAllText(galleryOutput.FullName, customHtml);
 
                 var testPackage = new TestNupkg("packageA", "1.0.0");
                 var zipFile = testPackage.Save(packagesFolder.Root);
@@ -390,7 +390,7 @@ namespace SleetLib.Tests
                     // Assert
                     success.Should().BeTrue();
 
-                    // The feed UI is only relevant to init and recreate. Push must not
+                    // The gallery is only relevant to init and recreate. Push must not
                     // read or write it, so it should never be requested from the feed.
                     // index.json is requested on every push and acts as a control to
                     // show that requested files are tracked here.
@@ -398,7 +398,7 @@ namespace SleetLib.Tests
                     fileSystem2.Files.Keys.Should().NotContain(fileSystem2.GetPath("index.html"));
                 }
 
-                File.ReadAllText(feedUIOutput.FullName).Should().Be(customHtml);
+                File.ReadAllText(galleryOutput.FullName).Should().Be(customHtml);
             }
         }
     }

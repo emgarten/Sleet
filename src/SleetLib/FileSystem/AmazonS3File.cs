@@ -126,7 +126,7 @@ namespace Sleet
                 }
                 else if (key.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
                 {
-                    // text/html is required for browsers to render the feed UI
+                    // text/html is required for browsers to render the gallery
                     // instead of prompting the user to download it.
                     contentType = "text/html; charset=utf-8";
                     cacheControl = mutableCacheControl;

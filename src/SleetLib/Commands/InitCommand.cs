@@ -12,11 +12,11 @@ namespace Sleet
     public static class InitCommand
     {
         /// <summary>
-        /// Static browsing UI written to the root of the feed.
+        /// Package gallery written to the root of the feed.
         /// </summary>
-        public const string FeedUIFileName = "index.html";
+        public const string GalleryFileName = "index.html";
 
-        private const string FeedUITemplateName = "templateIndex.html";
+        private const string GalleryTemplateName = "templateGallery.html";
 
         public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, ILogger log)
         {
@@ -101,7 +101,7 @@ namespace Sleet
             noChanges &= !await CreatePackageIndexAsync(context, serviceIndexJson);
 
             // Create index.html
-            noChanges &= !await CreateFeedUIAsync(context);
+            noChanges &= !await CreateGalleryAsync(context);
 
             // Additional entries
             AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
@@ -268,17 +268,17 @@ namespace Sleet
         }
 
         /// <summary>
-        /// Write the static browsing UI to the root of the feed.
+        /// Write the package gallery to the root of the feed.
         /// Returns true if the feed was modified.
         /// </summary>
-        private static async Task<bool> CreateFeedUIAsync(SleetContext context)
+        private static async Task<bool> CreateGalleryAsync(SleetContext context)
         {
-            var file = context.Source.Get(FeedUIFileName);
+            var file = context.Source.Get(GalleryFileName);
             var exists = await file.Exists(context.Log, context.Token);
 
-            if (!context.SourceSettings.FeedUIEnabled)
+            if (!context.SourceSettings.GalleryEnabled)
             {
-                // Remove the UI if it was written before the setting was disabled.
+                // Remove the gallery if it was written before the setting was disabled.
                 if (exists)
                 {
                     file.Delete(context.Log, context.Token);
@@ -288,14 +288,14 @@ namespace Sleet
                 return false;
             }
 
-            // Leave an existing file alone so that a hand customized UI is not
+            // Leave an existing file alone so that a hand customized gallery is not
             // overwritten. Recreate rebuilds the feed and refreshes it.
             if (exists)
             {
                 return false;
             }
 
-            var html = await TemplateUtility.LoadTemplateFile(FeedUITemplateName, context.OperationStart, context.Source.BaseURI);
+            var html = await TemplateUtility.LoadTemplateFile(GalleryTemplateName, context.OperationStart, context.Source.BaseURI);
 
             await file.Write(new MemoryStream(Encoding.UTF8.GetBytes(html)), context.Log, context.Token);
 

@@ -40,9 +40,9 @@ namespace Sleet
         public bool BadgesEnabled { get; set; }
 
         /// <summary>
-        /// If true an index.html browsing UI will be written to the root of the feed.
+        /// Package gallery, if enabled an index.html browsing page will be written to the root of the feed.
         /// </summary>
-        public bool FeedUIEnabled { get; set; } = true;
+        public bool GalleryEnabled { get; set; } = true;
 
         /// <summary>
         /// External search URI

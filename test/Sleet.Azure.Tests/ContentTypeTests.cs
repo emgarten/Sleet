@@ -7,13 +7,13 @@ namespace Sleet.Azure.Tests
     public class ContentTypeTests
     {
         [EnvVarExistsFact(AzureTestContext.EnvVarName)]
-        public async Task GivenInitVerifyFeedUIContentTypeIsHtml()
+        public async Task GivenInitVerifyGalleryContentTypeIsHtml()
         {
             using (var testContext = new AzureTestContext())
             {
                 await testContext.InitAsync();
 
-                // The browser must receive text/html to render the feed UI
+                // The browser must receive text/html to render the gallery
                 // instead of downloading it.
                 var htmlBlob = testContext.Container.GetBlobClient("index.html");
                 var htmlProperties = await htmlBlob.GetPropertiesAsync();
