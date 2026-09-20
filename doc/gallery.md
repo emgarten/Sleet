@@ -2,16 +2,16 @@
 
 Sleet writes a package gallery to `index.html` at the root of the feed. It is a single
 self contained HTML file with no external dependencies and no build step. Opening it in a
-browser lists every package on the feed, filters by package id, and shows a detail page
-for each package.
+browser lists every package on the feed, filters by package id, and drills down from a
+package to its versions and then to a single version.
 
 The page reads the feed's own JSON files at runtime:
 
 * `sleet.packageindex.json` once on load. It holds every package id and version, which is
-  all the list, the id filter, and paging need.
-* `registration/{id}/index.json` for a package's metadata, version history and
-  dependencies. This is requested only for the packages that are actually shown, so the
-  cost of drawing the list does not grow with the size of the feed.
+  everything the top level list, the id filter, and paging need.
+* `registration/{id}/index.json` for a package's version history, metadata and
+  dependencies. This is requested only when a package is opened, so the cost of browsing
+  the list does not grow with the size of the feed.
 * `flatcontainer/{id}/{version}/icon` and `.../readme` when a package has them.
 
 `search/query` is deliberately not used. It is a single large document covering the whole
@@ -26,23 +26,29 @@ commands leave it alone and never read it.
 
 ## Browsing
 
-The list shows 20 packages per page. Each row has the package icon, the latest version,
-the number of versions, the publish date, a direct download link, and the description,
-authors and tags. Packages without an embedded icon fall back to a generic one.
+The gallery has three levels, and the current level is always kept in the URL fragment so
+that any view can be bookmarked, shared, and reached with the browser back button.
 
-Both the current page and the id filter are kept in the URL fragment, so `#q=storage`,
-`#page=3` and `#package/Newtonsoft.Json` can be bookmarked and shared, and the browser
-back button works as expected.
+| View | URL | Shows |
+| --- | --- | --- |
+| Packages | `#` | 20 package ids per page, each with its icon, latest version, and total number of versions |
+| Versions | `#package/Newtonsoft.Json` | Every version of one package with its publish date and a download link |
+| Version | `#package/Newtonsoft.Json/13.0.3` | Everything the feed knows about one specific version |
 
-A package page shows the description, authors, tags, publish date, project and license
-links, the full version history with download links, and the dependencies of the selected
-version. Dependencies that are also on the feed link to their own package page.
+The id filter and the current page are also kept in the fragment, as `#q=storage` and
+`#page=3`, and the breadcrumb on a package page returns to the list page it was opened
+from.
 
-Selecting a version from the version history changes the URL to
-`#package/Newtonsoft.Json/13.0.3`, so a specific version can be bookmarked and shared.
-Leaving the version off addresses whichever version is the latest at the time the link is
-opened. If a pinned version is no longer on the feed the page falls back to the latest
-version and says so.
+Latest means the newest stable version, or the newest prerelease when a package has no
+stable version. Packages without an embedded icon fall back to a generic one.
+
+A version page shows the description, authors, tags, publish date, project and license
+links, a download link for the `.nupkg`, a link to the `.nuspec`, the dependencies of that
+version, and its readme. Dependencies that are also on the feed link to their own package.
+
+Leaving the version off a package URL addresses the package rather than a single version,
+which keeps the link stable as new versions are pushed. If a pinned version is not on the
+feed the page falls back to the latest version and says so.
 
 Readme files are shown as plain text rather than rendered markdown, since the content
 comes from the package author.

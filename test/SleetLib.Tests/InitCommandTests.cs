@@ -260,6 +260,11 @@ namespace SleetLib.Tests
                 html.Should().Contain("registration/");
                 html.Should().NotContain("$SLEETVERSION$");
 
+                // Packages, versions and a single version are separate views so
+                // that each one can be linked to directly.
+                html.Should().Contain("#package/");
+                html.Should().Contain(".nuspec");
+
                 // The gallery reads the package index and the registrations, it
                 // must not depend on search which can be pointed off feed.
                 html.Should().NotContain("search/query");
