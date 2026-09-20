@@ -1,5 +1,21 @@
 # Release Notes
 
+## 7.3.0
+* Added a `provider` setting for `s3` feeds to configure Sleet for S3 compatible services
+  * Supported values are `aws` (default), `r2`, `minio`, `yandex`, `scaleway`, `wasabi`, `b2`, `digitalocean`, and `generic`
+  * `sleet createconfig --s3 --provider <name>` creates a config template for the service
+  * Existing `s3` feeds are unchanged, the default provider is `aws`
+* Added Cloudflare R2 support with `"provider": "r2"`, including a [setup guide](doc/feed-type-cloudflare.md)
+  * The R2 endpoint is built from `accountId`, with an optional `jurisdiction` setting
+* Fixed MinIO support
+  * `region` and `serviceURL` may now be used together, `region` is used as the signing region
+  * Added a `forcePathStyle` setting, enabled by default for MinIO
+  * Bucket creation no longer fails or hangs when a service does not implement the AWS public access block and object ownership APIs
+* Fixed Yandex Object Storage support by adding a `checksumMode` setting to limit the checksum headers sent by the AWS SDK
+* Added an `authenticationRegion` setting to set the signing region independently of `region`
+* Added a `publicAccess` setting to control how Sleet makes a new bucket publicly readable
+* Fixed the file path shown in verbose S3 log messages, which repeated the key
+
 ## 7.2.0
 * Added `--verbosity <level>` (`-V`) option to control console output
 * Adjusted minimal verbosity to show the main actions and final result

@@ -79,6 +79,59 @@ namespace SleetLib.Tests
         }
 
         [Fact]
+        public async Task CreateConfigCommand_WithR2Provider_CreatesValidConfig()
+        {
+            using (var testDir = new TestFolder())
+            {
+                var configPath = Path.Combine(testDir.Root, "sleet.json");
+                var result = await CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "r2", NullLogger.Instance);
+
+                result.Should().BeTrue();
+                File.Exists(configPath).Should().BeTrue();
+
+                var json = JObject.Parse(File.ReadAllText(configPath));
+                var source = json["sources"][0];
+                source["name"].Value<string>().Should().Be("myCloudflareR2Feed");
+                source["type"].Value<string>().Should().Be("s3");
+                source["provider"].Value<string>().Should().Be("r2");
+                source["bucketName"].Value<string>().Should().Be("myfeed");
+                source["accountId"].Value<string>().Should().Be("cloudflareAccountId");
+                source["baseURI"].Value<string>().Should().Be("https://nuget.example.com/");
+            }
+        }
+
+        [Fact]
+        public async Task CreateConfigCommand_WithMinioProvider_CreatesValidConfig()
+        {
+            using (var testDir = new TestFolder())
+            {
+                var configPath = Path.Combine(testDir.Root, "sleet.json");
+                var result = await CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "minio", NullLogger.Instance);
+
+                result.Should().BeTrue();
+
+                var json = JObject.Parse(File.ReadAllText(configPath));
+                var source = json["sources"][0];
+                source["type"].Value<string>().Should().Be("s3");
+                source["provider"].Value<string>().Should().Be("minio");
+                source["serviceURL"].Value<string>().Should().Be("http://localhost:9000");
+                source["region"].Value<string>().Should().Be("us-east-1");
+                source["forcePathStyle"].Value<string>().Should().Be("true");
+            }
+        }
+
+        [Fact]
+        public async Task CreateConfigCommand_WithUnknownProvider_Throws()
+        {
+            using (var testDir = new TestFolder())
+            {
+                Func<Task> act = async () => await CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "notarealservice", NullLogger.Instance);
+
+                await Assert.ThrowsAsync<ArgumentException>(act);
+            }
+        }
+
+        [Fact]
         public async Task CreateConfigCommand_WithUnspecifiedStorageType_CreatesValidConfig()
         {
             using (var testDir = new TestFolder())

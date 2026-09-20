@@ -228,12 +228,13 @@ namespace SleetLib.Tests
             Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
 
             var ex = await Assert.ThrowsAsync<ArgumentException>(act);
-            Assert.Contains("Either 'region' or 'serviceURL' must be specified for an Amazon S3 account", ex.Message);
+            Assert.Contains("Either 'region' or 'serviceURL' must be specified for Amazon S3", ex.Message);
         }
 
         [Fact]
-        public async Task CreateFileSystemAsync_WithS3Type_WithBothRegionAndServiceURL_ThrowsArgumentException()
+        public async Task CreateFileSystemAsync_WithS3Type_WithBothRegionAndServiceURL_UsesRegionForSigning()
         {
+            // Services such as MinIO require both, the region is used as the SigV4 signing region.
             var settings = new LocalSettings();
             settings.Json = new JObject
             {
@@ -245,16 +246,18 @@ namespace SleetLib.Tests
                         ["type"] = "s3",
                         ["bucketName"] = "test-bucket",
                         ["region"] = "us-east-1",
-                        ["serviceURL"] = "https://s3.example.com"
+                        ["serviceURL"] = "https://s3.example.com",
+                        ["accessKeyId"] = "key",
+                        ["secretAccessKey"] = "secret"
                     }
                 }
             };
             var cache = new LocalCache();
 
-            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+            var result = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
 
-            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
-            Assert.Contains("Options 'region' and 'serviceURL' cannot be used together", ex.Message);
+            result.Should().BeOfType<AmazonS3FileSystem>();
+            ((FileSystemBase)result).Root.AbsoluteUri.Should().Be("https://s3.example.com/test-bucket/");
         }
 
         [Fact]
@@ -336,6 +339,213 @@ namespace SleetLib.Tests
                 result.Should().NotBeNull();
                 result.Should().BeOfType<PhysicalFileSystem>();
             }
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithUnknownProvider_ThrowsArgumentException()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "notarealservice";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Unknown provider 'notarealservice'", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithInvalidChecksumMode_ThrowsArgumentException()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["checksumMode"] = "sometimes";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Invalid checksumMode 'sometimes'", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithInvalidPublicAccess_ThrowsArgumentException()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["publicAccess"] = "everyone";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Invalid publicAccess 'everyone'", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithMinioProvider_CreatesFileSystem()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "minio";
+                source["region"] = "us-east-1";
+                source["serviceURL"] = "http://localhost:9000";
+            });
+            var cache = new LocalCache();
+
+            var result = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            result.Should().BeOfType<AmazonS3FileSystem>();
+            ((FileSystemBase)result).Root.AbsoluteUri.Should().Be("http://localhost:9000/test-bucket/");
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithYandexProvider_WithAes256_ThrowsArgumentException()
+        {
+            // Yandex supports aws:kms only, AES256 would fail at push time.
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "yandex";
+                source["serviceURL"] = "https://s3.yandexcloud.net";
+                source["serverSideEncryptionMethod"] = "AES256";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Option 'serverSideEncryptionMethod' is not supported by Yandex Object Storage", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithR2Provider_CreatesFileSystem()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "r2";
+                source["accountId"] = "abc123";
+                source["baseURI"] = "https://nuget.example.com/";
+            });
+            var cache = new LocalCache();
+
+            var result = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            result.Should().BeOfType<AmazonS3FileSystem>();
+            ((FileSystemBase)result).Root.AbsoluteUri.Should().Be("https://abc123.r2.cloudflarestorage.com/test-bucket/");
+            result.BaseURI.AbsoluteUri.Should().Be("https://nuget.example.com/");
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithR2Provider_WithJurisdiction_UsesJurisdictionEndpoint()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "cloudflare";
+                source["accountId"] = "abc123";
+                source["jurisdiction"] = "eu";
+                source["baseURI"] = "https://nuget.example.com/";
+            });
+            var cache = new LocalCache();
+
+            var result = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            ((FileSystemBase)result).Root.AbsoluteUri.Should().Be("https://abc123.eu.r2.cloudflarestorage.com/test-bucket/");
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithR2Provider_WithoutBaseURI_ThrowsArgumentException()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "r2";
+                source["accountId"] = "abc123";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Missing baseURI for Cloudflare R2 account", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithR2Provider_WithoutAccountId_ThrowsArgumentException()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "r2";
+                source["baseURI"] = "https://nuget.example.com/";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Missing accountId for Cloudflare R2 account", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithR2Provider_WithAcl_ThrowsArgumentException()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "r2";
+                source["accountId"] = "abc123";
+                source["baseURI"] = "https://nuget.example.com/";
+                source["acl"] = "PublicRead";
+            });
+            var cache = new LocalCache();
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Option 'acl' is not supported by Cloudflare R2", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithR2Provider_WithExplicitServiceURL_UsesServiceURL()
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "r2";
+                source["serviceURL"] = "https://custom.example.com";
+                source["baseURI"] = "https://nuget.example.com/";
+            });
+            var cache = new LocalCache();
+
+            var result = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+
+            ((FileSystemBase)result).Root.AbsoluteUri.Should().Be("https://custom.example.com/test-bucket/");
+        }
+
+        /// <summary>
+        /// Minimal valid s3 source with explicit credentials, customized by the caller.
+        /// Tests add 'region' or 'serviceURL' as needed.
+        /// </summary>
+        private static LocalSettings GetS3Settings(Action<JObject> configure)
+        {
+            var source = new JObject
+            {
+                ["name"] = "s3",
+                ["type"] = "s3",
+                ["bucketName"] = "test-bucket",
+                ["accessKeyId"] = "key",
+                ["secretAccessKey"] = "secret"
+            };
+
+            configure(source);
+
+            return new LocalSettings()
+            {
+                Json = new JObject
+                {
+                    ["sources"] = new JArray { source }
+                }
+            };
         }
     }
 }

@@ -10,5 +10,6 @@
   * [Local feed with IIS hosting](feed-type-local.md)
   * [Azure feed](feed-type-azure.md)
   * [AWS S3 feed](feed-type-s3.md)
+  * [Cloudflare R2 feed](feed-type-cloudflare.md)
   * [Integration with CI Server](ci-server.md)
   * [Setting up a private feed on AWS using S3 + CloudFront + Lambdas](private-feed-s3.md)
