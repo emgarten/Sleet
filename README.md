@@ -26,7 +26,7 @@ A static NuGet package feed generator. ☁️ + 📦 = ❄️
 
 ## Features
 
-* **Serverless.** Create static feeds directly on *Azure Storage*, *Amazon S3*, or any S3-compatible storage (MinIO, Yandex Cloud, Scaleway, etc.). No compute required.
+* **Serverless.** Create static feeds directly on *Azure Storage*, *Amazon S3*, or any S3-compatible storage (Cloudflare R2, MinIO, Yandex Cloud, Scaleway, etc.). No compute required.
 * **Cross platform.** Sleet is built in .NET and runs anywhere the [dotnet CLI](https://github.com/dotnet/cli) is supported — Linux, macOS, and Windows.
 * **Fast.** Static feeds use the [NuGet v3 feed format](https://docs.microsoft.com/en-us/nuget/api/overview) so clients resolve packages with simple HTTP requests.
 * **Simple.** A straightforward command line tool to add, remove, and update packages.
@@ -107,6 +107,7 @@ Full documentation can be found under [/doc](doc/index.md).
 
 * [Setting up an Azure feed](doc/feed-type-azure.md)
 * [Setting up an AWS S3 feed](doc/feed-type-s3.md)
+* [Setting up a Cloudflare R2 feed](doc/feed-type-cloudflare.md)
 * [Setting up a local feed with IIS hosting](doc/feed-type-local.md)
 * [Integration with CI Server](doc/ci-server.md)
 * [Setting up a private feed on AWS using S3 + CloudFront + Lambdas](doc/private-feed-s3.md)

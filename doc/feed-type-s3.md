@@ -146,7 +146,46 @@ To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/usergu
     secretAccessKey = IAM_SECRET_ACCESS_KEY
 ```
 
-To use S3 compatible storage create an s3 feed config with *serviceURL* instead of *region*. Set *disablePayloadSigning* to `true` if SigV4 payload signing is not supported by the storage provider (such as Cloudflare R2).
+To use S3 compatible storage create an s3 feed config with *serviceURL*. If the service requires a specific signing region also set *region*. Set *disablePayloadSigning*, *forcePathStyle*, or *checksumMode* if the service does not support the AWS defaults, see [client settings](client-settings.md).
+
+Set *provider* to use the defaults for a supported service:
+
+* `r2` for Cloudflare R2, see [Creating a Cloudflare R2 feed](feed-type-cloudflare.md)
+* `minio` for MinIO
+
+`sleet createconfig --provider <name>` creates a config template for the service.
+
+### Using MinIO
+
+`sleet.json`:
+```json
+{
+  "sources": [
+    {
+      "name": "feed",
+      "type": "s3",
+      "provider": "minio",
+      "bucketName": "my-bucket-feed",
+      "serviceURL": "http://localhost:9000",
+      "accessKeyId": "MINIO_ACCESS_KEY",
+      "secretAccessKey": "MINIO_SECRET_KEY"
+    }
+  ]
+}
+```
+
+`.netconfig`:
+```gitconfig
+[sleet "feed"]
+    type = s3
+    provider = minio
+    bucketName = my-bucket-feed
+    serviceURL = http://localhost:9000
+    accessKeyId = MINIO_ACCESS_KEY
+    secretAccessKey = MINIO_SECRET_KEY
+```
+
+The `minio` provider uses path style urls such as `http://localhost:9000/my-bucket-feed/`. Set *region* if the MinIO server is configured with a region other than `us-east-1`.
 
 ### Additional feed settings
 
