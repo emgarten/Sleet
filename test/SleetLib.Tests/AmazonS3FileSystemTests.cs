@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -97,6 +98,20 @@ namespace SleetLib.Tests
             log.GetMessages().Should().Contain("Cloudflare R2 buckets are private by default");
         }
 
+        [Theory]
+        [InlineData("flatcontainer/a/1.0.0/icon", "image/png")]
+        [InlineData("flatcontainer/a/1.0.0/readme", "text/markdown")]
+        public async Task Commit_WithIconOrReadme_SetsContentType(string path, string contentType)
+        {
+            var (fileSystem, client) = await CreateFileSystemWithFakeClientAsync(source => source["region"] = "us-east-1");
+            var log = new TestLogger();
+
+            await fileSystem.Get(path).Write(new MemoryStream(new byte[] { 1, 2, 3 }), log, CancellationToken.None);
+            await fileSystem.Commit(log, CancellationToken.None);
+
+            client.PutObjectRequests.Should().ContainSingle().Which.ContentType.Should().Be(contentType);
+        }
+
         private static async Task<(AmazonS3FileSystem FileSystem, FakeS3Client Client)> CreateFileSystemWithFakeClientAsync(Action<JObject> configure)
         {
             var fileSystem = await FileSystemFactoryTests.CreateS3FileSystemAsync(configure);
@@ -123,7 +138,7 @@ namespace SleetLib.Tests
         }
 
         /// <summary>
-        /// Records the calls made when creating a bucket. Calls succeed unless a failure is set for the method name.
+        /// Records the calls made to S3. Calls succeed unless a failure is set for the method name.
         /// </summary>
         private class FakeS3Client : AmazonS3Client, ICoreAmazonS3
         {
@@ -153,8 +168,13 @@ namespace SleetLib.Tests
             public override Task<ListObjectsV2Response> ListObjectsV2Async(ListObjectsV2Request request, CancellationToken cancellationToken = default)
                 => Record(nameof(ListObjectsV2Async), new ListObjectsV2Response());
 
+            public List<PutObjectRequest> PutObjectRequests { get; } = new List<PutObjectRequest>();
+
             public override Task<PutObjectResponse> PutObjectAsync(PutObjectRequest request, CancellationToken cancellationToken = default)
-                => Record(nameof(PutObjectAsync), new PutObjectResponse());
+            {
+                PutObjectRequests.Add(request);
+                return Record(nameof(PutObjectAsync), new PutObjectResponse());
+            }
 
             private Task<T> Record<T>(string name, T response)
             {
