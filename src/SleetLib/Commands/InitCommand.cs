@@ -101,7 +101,7 @@ namespace Sleet
             noChanges &= !await CreatePackageIndexAsync(context, serviceIndexJson);
 
             // Create index.html
-            noChanges &= !await CreateGalleryAsync(context);
+            noChanges &= !await CreateGalleryAsync(context, serviceIndexJson);
 
             // Additional entries
             AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
@@ -169,6 +169,8 @@ namespace Sleet
             // Remove encoding for templates
             url = url.Replace("%7Blower_id%7D", "{lower_id}");
             url = url.Replace("%7Blower_version%7D", "{lower_version}");
+            url = url.Replace("%7Bid%7D", "{id}");
+            url = url.Replace("%7Bversion%7D", "{version}");
 
             var json = new JObject
             {
@@ -271,26 +273,21 @@ namespace Sleet
         /// Write the package gallery to the root of the feed.
         /// Returns true if the feed was modified.
         /// </summary>
-        private static async Task<bool> CreateGalleryAsync(SleetContext context)
+        private static async Task<bool> CreateGalleryAsync(SleetContext context, JObject serviceIndexJson)
         {
-            var file = context.Source.Get(GalleryFileName);
-            var exists = await file.Exists(context.Log, context.Token);
-
             if (!context.SourceSettings.GalleryEnabled)
             {
-                // Remove the gallery if it was written before the setting was disabled.
-                if (exists)
-                {
-                    file.Delete(context.Log, context.Token);
-                    return true;
-                }
-
                 return false;
             }
 
-            // Leave an existing file alone so that a hand customized gallery is not
-            // overwritten. Recreate rebuilds the feed and refreshes it.
-            if (exists)
+            // Visual Studio uses this to link each package to its page in the gallery.
+            AddServiceIndexEntry(context.Source.BaseURI, GalleryFileName + "#package/{id}/{version}", "PackageDetailsUriTemplate/5.1.0", "URI template used by NuGet Client to construct a URL for viewing package details.", serviceIndexJson);
+
+            var file = context.Source.Get(GalleryFileName);
+
+            // Sleet only ever creates the file. An existing file may be a custom page,
+            // so it is left alone. Recreate deletes the feed first and writes a fresh copy.
+            if (await file.Exists(context.Log, context.Token))
             {
                 return false;
             }

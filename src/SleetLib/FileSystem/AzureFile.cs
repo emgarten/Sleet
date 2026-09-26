@@ -91,16 +91,6 @@ namespace Sleet
                         blobHeaders.ContentType = "text/html; charset=utf-8";
                         blobHeaders.CacheControl = _mutableCacheControl;
                     }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
-                    {
-                        blobHeaders.ContentType = "text/css; charset=utf-8";
-                        blobHeaders.CacheControl = _mutableCacheControl;
-                    }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith(".js", StringComparison.OrdinalIgnoreCase))
-                    {
-                        blobHeaders.ContentType = "text/javascript; charset=utf-8";
-                        blobHeaders.CacheControl = _mutableCacheControl;
-                    }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
                             || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                     {

@@ -131,16 +131,6 @@ namespace Sleet
                     contentType = "text/html; charset=utf-8";
                     cacheControl = mutableCacheControl;
                 }
-                else if (key.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
-                {
-                    contentType = "text/css; charset=utf-8";
-                    cacheControl = mutableCacheControl;
-                }
-                else if (key.EndsWith(".js", StringComparison.OrdinalIgnoreCase))
-                {
-                    contentType = "text/javascript; charset=utf-8";
-                    cacheControl = mutableCacheControl;
-                }
                 else if (absoluteUri.AbsoluteUri.EndsWith("/icon", StringComparison.Ordinal))
                 {
                     contentType = "image/png";

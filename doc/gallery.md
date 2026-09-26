@@ -18,11 +18,14 @@ The page reads the feed's own JSON files at runtime:
 feed, and `externalsearch` can point it at a different service.
 
 All URLs in the page are relative, so the same file works from any host name the feed is
-served under and never requires CORS configuration.
+served under and never requires CORS configuration. The browser reads the feed without
+credentials, so the gallery needs a feed that is publicly readable.
 
 The page is written by `sleet init`, by `sleet recreate`, and by the automatic
 initialization that happens on the first push to a new feed. Later pushes and all other
 commands leave it alone and never read it.
+
+To add the gallery to a feed created with an older version of Sleet, run `sleet recreate`.
 
 ## Browsing
 
@@ -48,14 +51,23 @@ version grouped by target framework, and its readme. Dependencies that are also 
 feed link to their own package.
 
 Leaving the version off a package URL addresses the package rather than a single version,
-which keeps the link stable as new versions are pushed. If a pinned version is not on the
-feed the page falls back to the latest version and says so.
+which keeps the link stable as new versions are pushed. Package ids and versions match
+regardless of case, and versions match in any form NuGet treats as equal, such as `1.0`
+for `1.0.0`. If a pinned version is not on the feed the page falls back to the latest
+version and says so.
 
 If a package's registration cannot be read the error is shown on that package's page
 rather than replacing the gallery, so the rest of the feed stays browsable.
 
 Readme files are shown as plain text rather than rendered markdown, since the content
 comes from the package author.
+
+## Package links in Visual Studio
+
+When the gallery is enabled the feed's `index.json` includes a `PackageDetailsUriTemplate`
+resource pointing at `index.html#package/{id}/{version}`. NuGet clients such as Visual
+Studio use it to link a package to its page in the gallery. NuGet only uses this link for
+feeds served over https.
 
 ## Gallery URL
 
@@ -66,30 +78,34 @@ comes from the package author.
 | Any feed | `{feed url}/index.html` |
 
 Object storage REST endpoints do not support index documents, so the file name must be
-included in the URL. Requesting the bare feed root returns an error from the storage
-service, not the gallery.
+included in the URL. Requesting the bare feed root does not show the gallery.
 
 To serve the gallery from the bare root URL a static website endpoint or CDN is required:
 
-* **Azure Storage** &mdash; enable the [static website endpoint](https://learn.microsoft.com/azure/storage/blobs/storage-blob-static-website)
-  and set the index document to `index.html`. The feed is then browsable at
-  `https://{account}.z00.web.core.windows.net/`. Note that CORS is not supported on the
-  static website endpoint, so NuGet clients should continue to use the blob endpoint.
+* **Azure Storage** &mdash; the [static website endpoint](https://learn.microsoft.com/azure/storage/blobs/storage-blob-static-website)
+  only serves the `$web` container. For a feed in `$web`, enable static website hosting
+  with `index.html` as the index document, and the gallery opens at the primary endpoint
+  shown in the portal, for example `https://{account}.z13.web.core.windows.net/`. NuGet
+  clients continue to use the feed's blob endpoint.
 * **Amazon S3** &mdash; enable [static website hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
   with `index.html` as the index document. S3 website endpoints serve HTTP only, so front
   the bucket with CloudFront for HTTPS.
 * **CloudFront** &mdash; set the *Default Root Object* to `index.html`. This applies to the
   distribution root only, not to sub paths.
-* **Cloudflare R2** &mdash; R2 has no index document feature. Use a Worker in front of the
-  bucket to rewrite `/` to `/index.html`, or link directly to `index.html`.
+* **Cloudflare R2** &mdash; R2 has no index document feature. On a custom domain, add a
+  [URL Rewrite Rule](https://developers.cloudflare.com/rules/transform/url-rewrite/) that
+  rewrites `/` to `/index.html`. The `r2.dev` development URL does not support rules, so
+  link directly to `index.html` there.
 
 ## Customizing the gallery
 
 Sleet only creates `index.html` when it does not already exist, so a custom page can be
 used instead. Upload your own `index.html` to the feed root and Sleet will leave it alone.
+While the gallery is enabled, package links from NuGet clients point at
+`index.html#package/{id}/{version}`, so a custom page receives those links too.
 
-Note that `sleet recreate` rebuilds the feed from scratch and will replace a custom page
-with the default one.
+Note that `sleet recreate` rebuilds the feed from scratch, so a custom page has to be
+uploaded again afterwards.
 
 ## How to disable the gallery
 
@@ -97,6 +113,7 @@ The gallery can be disabled in the feed settings using the following command
 
 `sleet feed-settings --set galleryenabled:false`
 
-Run `sleet init` afterwards to remove the existing `index.html` from the feed.
+Then run `sleet recreate` to rebuild the feed without `index.html` and without the package
+links in `index.json`.
 
 The gallery is enabled by default for new feeds.

@@ -90,8 +90,8 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 </head>
 <body>
 <header>
-  <h1><a href="#" id="home">Sleet</a></h1>
-  <input id="search" type="search" placeholder="Filter by package id&#8230;" autocomplete="off" autofocus>
+  <h1><a href="#">Sleet</a></h1>
+  <input id="search" type="search" placeholder="Filter by package id&#8230;" aria-label="Filter packages by id" autocomplete="off">
   <span class="meta" id="count"></span>
 </header>
 <main>
@@ -136,6 +136,44 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   var listHash = "#";
 
   var loaded = false;
+
+  // Hash routes never match an element id, so the browser keeps the old scroll
+  // position when the view changes. Following a link starts the next view at
+  // the top, and Back returns to where the reader left the previous one.
+  var scrollPositions = {};
+  var shownEntry = null;
+  var startAtTop = false;
+  var scrollTarget = 0;
+  var settledAt = -1;
+
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
+  // Two history entries can share a hash, such as the list before and after a
+  // visit to a package, so positions are saved under a key kept in each entry.
+  function entryKey() {
+    var state = history.state;
+    if (state && state.gallery) return state.gallery;
+
+    var key = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    try {
+      history.replaceState({ gallery: key }, "", location.href);
+    } catch (e) {
+      return location.hash || "#";
+    }
+    return key;
+  }
+
+  function leaveView() {
+    if (shownEntry !== null) scrollPositions[shownEntry] = window.scrollY;
+    startAtTop = true;
+  }
+
+  // Called once a view is drawn. The readme arrives later, so a position
+  // inside it is applied again by loadReadme.
+  function restoreScroll() {
+    window.scrollTo(0, scrollTarget);
+    settledAt = window.scrollY;
+  }
 
   function getJson(path) {
     return fetch(ROOT + path, { headers: { accept: "application/json" } })
@@ -363,7 +401,8 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
   function setHash(hash) {
     try {
-      history.replaceState(null, "", location.pathname + location.search + hash);
+      // The entry keeps its state so its saved scroll position still applies.
+      history.replaceState(history.state, "", location.pathname + location.search + hash);
     } catch (e) {
       location.hash = hash;
     }
@@ -485,6 +524,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
       elBody.appendChild(el("p", "empty", packages.length
         ? "No package ids contain \u201c" + q.trim() + "\u201d."
         : "This feed has no packages yet."));
+      restoreScroll();
       return;
     }
 
@@ -495,6 +535,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
     elBody.appendChild(frag);
     elBody.appendChild(pager(q, page, pages));
+    restoreScroll();
   }
 
   function detailHeader(pkg, meta) {
@@ -550,6 +591,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
     if (!reg.versions.length) {
       elBody.appendChild(el("p", "empty", "No versions of this package are available."));
+      restoreScroll();
       return;
     }
 
@@ -575,6 +617,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
     panel.appendChild(table);
     elBody.appendChild(panel);
+    restoreScroll();
   }
 
   function dependencyPanel(groups) {
@@ -628,17 +671,33 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
         panel.appendChild(el("h3", null, "Readme"));
         panel.appendChild(el("pre", "readme", body));
         host.appendChild(panel);
+
+        // Only reapply the position if the reader has not scrolled since.
+        if (settledAt < scrollTarget && window.scrollY === settledAt) restoreScroll();
       }, function () {
         // Most packages do not ship a readme.
       });
   }
 
-  // Versions in the package index keep build metadata but the urls sleet writes
-  // do not, so match on the identity part to keep hand written links working.
+  // Links from NuGet clients and hand written ones do not always use the
+  // normalized form of a version, such as 1.0 or 1.0.0.0 for 1.0.0, so both
+  // sides are normalized the way NuGet does before they are compared.
+  function normalizeVersion(v) {
+    var s = identityVersion(v).trim().toLowerCase();
+    var dash = s.indexOf("-");
+    var parts = (dash < 0 ? s : s.slice(0, dash)).split(".");
+    if (parts.length > 4 || !parts.every(function (p) { return /^\d+$/.test(p); })) return s;
+
+    parts = parts.map(function (p) { return String(parseInt(p, 10)); });
+    while (parts.length < 3) parts.push("0");
+    if (parts.length === 4 && parts[3] === "0") parts.pop();
+    return parts.join(".") + (dash < 0 ? "" : s.slice(dash));
+  }
+
   function findVersion(reg, wanted) {
-    var key = identityVersion(wanted).toLowerCase();
+    var key = normalizeVersion(wanted);
     for (var i = 0; i < reg.versions.length; i++) {
-      if (identityVersion(reg.versions[i].version).toLowerCase() === key) return reg.versions[i];
+      if (normalizeVersion(reg.versions[i].version) === key) return reg.versions[i];
     }
     return null;
   }
@@ -652,6 +711,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
       document.title = pkg.id + " \u00b7 " + BRAND;
       elBody.appendChild(crumbs([["All packages", listHash]], pkg.id));
       elBody.appendChild(el("p", "empty", "No versions of this package are available."));
+      restoreScroll();
       return;
     }
 
@@ -671,6 +731,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
     elBody.appendChild(detailHeader(pkg, selected));
     elBody.appendChild(dependencyPanel(selected.groups));
+    restoreScroll();
 
     // Moving between versions routes through the url, so a readme that is
     // still in flight belongs to a page the reader has already left.
@@ -687,6 +748,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
       elBody.textContent = "";
       elBody.appendChild(crumbs([["All packages", listHash]], id));
       elBody.appendChild(el("p", "empty", "\u201c" + id + "\u201d is not in this feed."));
+      restoreScroll();
       return;
     }
 
@@ -721,10 +783,16 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
     box.appendChild(el("p", "mono", String((err && err.message) || err)));
     elBody.appendChild(box);
+    restoreScroll();
   }
 
   function route() {
     if (!loaded) return;
+
+    if (shownEntry !== null && !startAtTop) scrollPositions[shownEntry] = window.scrollY;
+    shownEntry = entryKey();
+    scrollTarget = startAtTop ? 0 : scrollPositions[shownEntry] || 0;
+    startAtTop = false;
 
     var r = parseHash();
     if (r.view === "package") openPackage(r.id, r.version);
@@ -744,14 +812,26 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   }
 
   elSearch.addEventListener("input", function () {
-    setHash(listHashFor(elSearch.value, 1));
-    route();
+    var hash = listHashFor(elSearch.value, 1);
+    leaveView();
+
+    // Filtering from a package page is a new step that Back returns from.
+    // Further keystrokes replace it rather than filling up the history.
+    if (parseHash().view === "package") {
+      location.hash = hash;
+    } else {
+      setHash(hash);
+      route();
+    }
   });
 
-  document.getElementById("home").addEventListener("click", function (e) {
-    e.preventDefault();
-    setHash(listHashFor("", 1));
-    route();
+  // Links inside the gallery only change the hash. Modified clicks open a new
+  // tab and leave this page where it is.
+  document.addEventListener("click", function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target && e.target.closest ? e.target.closest("a") : null;
+    if (!a || (a.getAttribute("href") || "").charAt(0) !== "#" || a.href === location.href) return;
+    leaveView();
   });
 
   window.addEventListener("hashchange", route);

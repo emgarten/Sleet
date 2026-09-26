@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using Sleet;
 using Xunit;
@@ -296,44 +298,69 @@ namespace SleetLib.Tests
                 // Act
                 var success = await InitCommand.InitAsync(settings, fileSystem, feedSettings, log, CancellationToken.None);
 
+                var rootJson = await fileSystem.Get("index.json").GetJson(log, CancellationToken.None);
+
                 // Assert
                 success.Should().BeTrue();
                 packageIndexOutput.Exists.Should().BeTrue();
                 galleryOutput.Exists.Should().BeFalse();
+                rootJson.ToString().Should().NotContain("PackageDetailsUriTemplate");
             }
         }
 
         [Fact]
-        public async Task GivenGalleryDisabledAfterInitVerifyIndexHtmlIsRemoved()
+        public async Task GivenInitVerifyPackageDetailsUriTemplatePointsToGallery()
         {
             using (var target = new TestFolder())
             using (var cache = new LocalCache())
             {
                 // Arrange
                 var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root), UriUtility.CreateUri("https://example.com/feed/"));
                 var settings = new LocalSettings();
-                var galleryOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
-
-                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
-                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
-
-                success.Should().BeTrue();
-                galleryOutput.Exists.Should().BeTrue();
 
                 // Act
-                using (var cache2 = new LocalCache())
-                {
-                    var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
-                    var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(fileSystem2, log, CancellationToken.None);
-                    feedSettings.GalleryEnabled = false;
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: CancellationToken.None);
 
-                    success = await InitCommand.InitAsync(settings, fileSystem2, feedSettings, log, CancellationToken.None);
-                }
+                var rootJson = await fileSystem.Get("index.json").GetJson(log, CancellationToken.None);
+                var resources = ((JArray)rootJson["resources"]).Cast<JObject>();
 
                 // Assert
                 success.Should().BeTrue();
+
+                // NuGet fills in the template by replacing the literal {id} and {version}
+                // placeholders, so they must not be percent encoded.
+                resources.Should().ContainSingle(e => e["@type"].ToString() == "PackageDetailsUriTemplate/5.1.0")
+                    .Which["@id"].ToString().Should().Be("https://example.com/feed/index.html#package/{id}/{version}");
+            }
+        }
+
+        [Fact]
+        public async Task GivenGalleryDisabledVerifyInitDoesNotRemoveAnExistingIndexHtml()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+                var feedSettings = new FeedSettings() { GalleryEnabled = false };
+
+                var galleryOutput = new FileInfo(Path.Combine(target.Root, "index.html"));
+                var customHtml = "<html><body>custom</body></html>";
+                File.WriteAllText(galleryOutput.FullName, customHtml);
+
+                // Act
+                var success = await InitCommand.InitAsync(settings, fileSystem, feedSettings, log, CancellationToken.None);
+
+                // Assert
+                // Sleet only ever creates the gallery. An existing file may be a custom
+                // page, so disabling the gallery must not delete it.
+                success.Should().BeTrue();
                 galleryOutput.Refresh();
-                galleryOutput.Exists.Should().BeFalse();
+                galleryOutput.Exists.Should().BeTrue();
+                File.ReadAllText(galleryOutput.FullName).Should().Be(customHtml);
             }
         }
 
