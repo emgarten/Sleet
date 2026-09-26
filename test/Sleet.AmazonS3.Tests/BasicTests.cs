@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
 
@@ -15,7 +15,7 @@ namespace Sleet.AmazonS3.Tests
         [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
         public async Task GivenAStorageAccountVerifyInitSucceeds()
         {
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 await testContext.InitAsync();
 
@@ -40,7 +40,7 @@ namespace Sleet.AmazonS3.Tests
         public async Task GivenAStorageAccountVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 await testContext.InitAsync();
 
@@ -75,7 +75,7 @@ namespace Sleet.AmazonS3.Tests
         public async Task GivenAStorageAccountWithNoContainerVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 // Skip creation and allow it to be done during push.
                 testContext.CreateBucketOnInit = false;
@@ -106,7 +106,7 @@ namespace Sleet.AmazonS3.Tests
         public async Task GivenAStorageAccountWithNoContainerPublicAclVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext(acl: "public-read"))
+            await using (var testContext = new AmazonS3TestContext(acl: "public-read"))
             {
                 // Skip creation and allow it to be done during push.
                 testContext.CreateBucketOnInit = false;
@@ -137,7 +137,7 @@ namespace Sleet.AmazonS3.Tests
         public async Task GivenAStorageAccountWithNoInitVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 await testContext.InitAsync();
 
@@ -166,7 +166,7 @@ namespace Sleet.AmazonS3.Tests
         public async Task GivenAStorageAccountVerifyPushAndRemoveSucceed()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 await testContext.InitAsync();
 
@@ -238,7 +238,7 @@ namespace Sleet.AmazonS3.Tests
         public async Task GivenAStorageAccountVerifyPushAndSucceedWithBaseURI()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 var baseUri = new Uri("http://tempuri.org/abc/");
                 var fileSystem = new AmazonS3FileSystem(

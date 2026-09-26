@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
 
@@ -16,8 +16,8 @@ namespace Sleet.AmazonS3.Tests
         public async Task SubFeed_InitMultipleFeedsVerifyDestroyDoesNotModifyOthers()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
-            using (var testContext2 = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
+            await using (var testContext2 = new AmazonS3TestContext())
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeedA";
@@ -81,7 +81,7 @@ namespace Sleet.AmazonS3.Tests
         public async Task SubFeed_PushAndVerifyNoFilesInRoot()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeed";
@@ -130,8 +130,8 @@ namespace Sleet.AmazonS3.Tests
         public async Task SubFeed_PushAndVerifyWithNestedFeedsVerifySuccess()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
-            using (var testContext2 = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
+            await using (var testContext2 = new AmazonS3TestContext())
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeed";

@@ -1,16 +1,9 @@
-<Project ToolsVersion="15.0">
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <PackageId>SleetLib</PackageId>
-    <RootNamespace>SleetLib</RootNamespace>
-    <AssemblyName>SleetLib</AssemblyName>
     <Description>Access Sleet.exe commands through the Sleet API.</Description>
-    <PackProject>true</PackProject>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591;1573</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,18 +11,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="$(AWSSDKVersion)" />
-    <PackageReference Include="AWSSDK.SecurityToken" Version="$(AWSSDKTokenVersion)" />
-    <PackageReference Include="AWSSDK.SSO" Version="$(AWSSDKSSOVersion)" />
-    <PackageReference Include="AWSSDK.SSOOIDC" Version="$(AWSSDKSSOOIDCVersion)" />
-    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackageVersion)" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="$(AzureStorageBlobsVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(JsonVersion)" />
-    <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(PortablePdbVersion)" />
-    <PackageReference Include="DotNetConfig" Version="$(DotNetConfigVersion)" />
-    <PackageReference Include="Azure.Identity" Version="$(AzureIdentityVersion)" />
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="AWSSDK.SecurityToken" />
+    <PackageReference Include="AWSSDK.SSO" />
+    <PackageReference Include="AWSSDK.SSOOIDC" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="DotNetConfig" />
+    <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="NuGet.Packaging" />
   </ItemGroup>
-
-  <Import Project="$(BuildCommonDirectory)\common.targets" />
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

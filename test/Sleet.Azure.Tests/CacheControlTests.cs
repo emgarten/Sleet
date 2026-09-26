@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
@@ -12,7 +12,7 @@ namespace Sleet.Azure.Tests
         public async Task GivenDefaultSettings_VerifyCacheControlIsNoStore()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 await testContext.InitAsync();
 
@@ -52,7 +52,7 @@ namespace Sleet.Azure.Tests
         public async Task GivenCustomCacheControl_VerifyHeadersAreSet()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 await testContext.InitAsync();
 
@@ -120,7 +120,7 @@ namespace Sleet.Azure.Tests
         public async Task GivenCustomCacheControlViaFactory_VerifyHeadersAreSet()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 await testContext.InitAsync();
 

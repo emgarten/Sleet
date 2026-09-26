@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Packaging;
@@ -17,10 +17,7 @@ namespace Sleet.CliTool.Tests
     public class BasicTests
     {
         /// <summary>
-        /// Dotnet install sleet
-        ///
-        /// Currently the sleet nupkg is only produced on Windows,
-        /// for that reason this test only runs on windows.
+        /// Dotnet install sleet from the nupkg created by build.ps1 or build.sh
         /// </summary>
         [Fact]
         public async Task InstallToolVerifySuccess()
@@ -31,10 +28,9 @@ namespace Sleet.CliTool.Tests
                 Directory.CreateDirectory(dir);
 
                 var dotnetExe = GetDotnetPath();
-                var exeFile = new FileInfo(dotnetExe);
-                var nupkgsFolder = Path.Combine(exeFile.Directory.Parent.FullName, "artifacts", "nupkgs");
+                var nupkgsFolder = CmdRunner.GetPath("artifacts/nupkgs");
 
-                var packages = LocalFolderUtility.GetPackagesV2(nupkgsFolder, "Sleet", NullLogger.Instance).ToList();
+                var packages = LocalFolderUtility.GetPackagesV2(nupkgsFolder, "Sleet", NullLogger.Instance, TestContext.Current.CancellationToken).ToList();
 
                 if (packages.Count < 1)
                 {
@@ -68,14 +64,24 @@ namespace Sleet.CliTool.Tests
 
         private static string GetDotnetPath()
         {
-            var dotnetExeRelativePath = ".cli/dotnet.exe";
+            var dotnetExeName = RuntimeEnvironmentHelper.IsWindows ? "dotnet.exe" : "dotnet";
 
-            if (!RuntimeEnvironmentHelper.IsWindows)
+            // Prefer the dotnet host running the tests, then the SDK used by the build scripts.
+            var hostPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
+
+            if (!string.IsNullOrEmpty(hostPath) && File.Exists(hostPath))
             {
-                dotnetExeRelativePath = ".cli/dotnet";
+                return hostPath;
             }
 
-            return CmdRunner.GetPath(dotnetExeRelativePath);
+            var dotnetRoot = Environment.GetEnvironmentVariable("DOTNET_ROOT");
+
+            if (!string.IsNullOrEmpty(dotnetRoot) && File.Exists(Path.Combine(dotnetRoot, dotnetExeName)))
+            {
+                return Path.Combine(dotnetRoot, dotnetExeName);
+            }
+
+            return CmdRunner.GetPath(Path.Combine(".dotnet", dotnetExeName));
         }
 
         private static void Delete(DirectoryInfo dir)

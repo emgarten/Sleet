@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Tests;
 using Xunit;
 
 namespace Sleet.Integration.Test
 {
+    [Collection(WorkingDirectoryCollection.Name)]
     public class LocalFeedTests
     {
         [Fact]

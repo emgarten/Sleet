@@ -1,0 +1,39 @@
+<Solution>
+  <Folder Name="/.github/">
+    <File Path=".github/dependabot.yml" />
+  </Folder>
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/dotnet.yml" />
+    <File Path=".github/workflows/functional-manual.yml" />
+    <File Path=".github/workflows/functional.yml" />
+    <File Path=".github/workflows/publish.yml" />
+  </Folder>
+  <Folder Name="/build/">
+    <File Path=".editorconfig" />
+    <File Path="build.cmd" />
+    <File Path="build.ps1" />
+    <File Path="build.sh" />
+    <File Path="build/version.proj" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="NuGet.Config" />
+  </Folder>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <Project Path="src/Sleet/Sleet.csproj" />
+    <Project Path="src/SleetLib/SleetLib.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <File Path="test/Directory.Build.props" />
+    <File Path="test/xunit.runner.json" />
+    <Project Path="test/Sleet.AmazonS3.Tests/Sleet.AmazonS3.Tests.csproj" />
+    <Project Path="test/Sleet.Azure.Tests/Sleet.Azure.Tests.csproj" />
+    <Project Path="test/Sleet.CliTool.Tests/Sleet.CliTool.Tests.csproj" />
+    <Project Path="test/Sleet.CmdExe.Tests/Sleet.CmdExe.Tests.csproj" />
+    <Project Path="test/Sleet.Integration.Tests/Sleet.Integration.Tests.csproj" />
+    <Project Path="test/Sleet.Test.Common/Sleet.Test.Common.csproj" />
+    <Project Path="test/SleetLib.Tests/SleetLib.Tests.csproj" />
+  </Folder>
+</Solution>

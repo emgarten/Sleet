@@ -1,5 +1,9 @@
 # Release Notes
 
+## 7.2.1
+* SleetExe now sets the `$(Sleet)` MSBuild property to the path of Sleet.exe in projects that reference the package
+* SleetExe now uses the Sleet package icon and includes the source repository commit in the package metadata
+
 ## 7.2.0
 * Added `--verbosity <level>` (`-V`) option to control console output
 * Adjusted minimal verbosity to show the main actions and final result

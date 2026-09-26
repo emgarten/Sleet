@@ -1,0 +1,7 @@
+<Project>
+  <!-- Additional analyzers for product and shared test code. -->
+  <ItemGroup Condition="'$(IsTestProject)' != 'true'">
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="ToStringWithoutOverrideAnalyzer" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

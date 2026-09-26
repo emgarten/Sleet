@@ -12,6 +12,12 @@ Run `build.sh` to build and run all unit tests and validations.
 
 All builds and tests must pass successfully before stopping. All errors or test failures must be fixed.
 
+## Project setup
+
+* Package versions are managed centrally in `Directory.Packages.props`, do not add versions to `PackageReference` items.
+* Shared build settings are in `Directory.Build.props`, `src/Directory.Build.props`, and `test/Directory.Build.props`.
+* Tests use xUnit v3 on Microsoft.Testing.Platform with AwesomeAssertions. Pass `TestContext.Current.CancellationToken` to async APIs called from tests.
+
 ## Style
 
 Follow existing patterns in the repository for both structure, coding style, and tests.

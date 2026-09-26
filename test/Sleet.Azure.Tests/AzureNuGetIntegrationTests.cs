@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Common;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -17,7 +17,7 @@ namespace Sleet.Azure.Tests
         public async Task GivenPushCreatesAContainerVerifyNuGetCanRead()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             using (var sourceContext = new SourceCacheContext())
             {
                 // Skip creation and allow it to be done during push.

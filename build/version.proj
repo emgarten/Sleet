@@ -1,0 +1,100 @@
+<Project DefaultTargets="WriteGitInfo">
+  <!--
+    Computes the build version from the most recent git tag and writes artifacts/obj/git.props,
+    which Directory.Build.props imports. Run this before restore, build.ps1 and build.sh do this.
+
+      Tag v7.2.0 at HEAD                => 7.2.0
+      Tag v7.2.0 with 5 commits since   => 7.2.5
+      Tag v7.3.0-beta with 5 commits    => 7.3.0-beta.5
+
+    Build metadata +git.<short commit hash> is always appended.
+  -->
+  <PropertyGroup>
+    <GitInfoOutputPath>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', 'artifacts', 'obj', 'git.props'))</GitInfoOutputPath>
+  </PropertyGroup>
+
+  <Target Name="WriteGitInfo">
+    <Exec Command="git describe --tags --abbrev=0" ConsoleToMSBuild="true" StandardOutputImportance="low" ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitTagLabel" />
+      <Output TaskParameter="ExitCode" PropertyName="GitTagLabelExitCode" />
+    </Exec>
+
+    <Exec Command="git rev-list $(GitTagLabel)..HEAD --count" ConsoleToMSBuild="true" StandardOutputImportance="low" ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="CommitsSinceLastTag" />
+      <Output TaskParameter="ExitCode" PropertyName="CommitsSinceLastTagExitCode" />
+    </Exec>
+
+    <Exec Command="git rev-parse HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low" ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+      <Output TaskParameter="ExitCode" PropertyName="GitCommitHashExitCode" />
+    </Exec>
+
+    <Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low" ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitShortHash" />
+      <Output TaskParameter="ExitCode" PropertyName="GitCommitShortHashExitCode" />
+    </Exec>
+
+    <Exec Command="git rev-parse --abbrev-ref HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low" ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
+      <Output TaskParameter="ExitCode" PropertyName="GitBranchExitCode" />
+    </Exec>
+
+    <PropertyGroup Condition="'$(GitTagLabelExitCode)' == '0' AND '$(CommitsSinceLastTagExitCode)' == '0' AND '$(GitCommitHashExitCode)' == '0' AND '$(GitCommitShortHashExitCode)' == '0' AND '$(GitBranchExitCode)' == '0'">
+      <GitVersionSuccess>true</GitVersionSuccess>
+    </PropertyGroup>
+
+    <!-- Fall back to a default version when git info is unavailable -->
+    <PropertyGroup Condition="'$(GitVersionSuccess)' != 'true'">
+      <GitVersion>0.1.0-alpha</GitVersion>
+      <GitBranch>unknown</GitBranch>
+      <GitCommitHash></GitCommitHash>
+      <GitCommitShortHash></GitCommitShortHash>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(GitVersionSuccess)' == 'true'">
+      <GitVersion>$(GitTagLabel.Trim())</GitVersion>
+      <GitVersion>$(GitVersion.TrimStart('release/'))</GitVersion>
+      <GitVersion>$(GitVersion.TrimStart('v'))</GitVersion>
+      <GitVersionIsVersion Condition="$(GitVersion.IndexOf('.')) != $(GitVersion.LastIndexOf('.'))">true</GitVersionIsVersion>
+      <GitVersionHasMetadata Condition="$(GitVersion.Contains('+'))">true</GitVersionHasMetadata>
+      <GitVersionIsPreRelease Condition="$(GitVersion.Contains('-'))">true</GitVersionIsPreRelease>
+      <GitVersionEndsWithZero Condition="$(GitVersion.EndsWith('.0'))">true</GitVersionEndsWithZero>
+      <GitCommitsSinceLastTag>$(CommitsSinceLastTag.Trim())</GitCommitsSinceLastTag>
+      <GitCommitHash>$(GitCommitHash.Trim())</GitCommitHash>
+      <GitCommitShortHash>$(GitCommitShortHash.Trim())</GitCommitShortHash>
+      <GitBranch>$(GitBranch.Trim())</GitBranch>
+    </PropertyGroup>
+
+    <Error Text="Git version label does not contain a valid version $(GitTagLabel)" Condition="'$(GitVersionSuccess)' == 'true' AND '$(GitVersionIsVersion)' != 'true'" />
+    <Error Text="Git version label may not contain build metadata $(GitTagLabel)" Condition="'$(GitVersionSuccess)' == 'true' AND '$(GitVersionHasMetadata)' == 'true'" />
+    <Error Text="Unable to increment git version label $(GitTagLabel)" Condition="'$(GitVersionSuccess)' == 'true' AND '$(GitVersionIsPreRelease)' != 'true' AND '$(GitCommitsSinceLastTag)' != '0' AND '$(GitVersionEndsWithZero)' != 'true'" />
+
+    <!-- Replace the trailing .0 of stable versions, or append to pre-release versions, the number of commits since the tag -->
+    <PropertyGroup Condition="'$(GitVersionSuccess)' == 'true' AND '$(GitCommitsSinceLastTag)' != '0'">
+      <GitVersion Condition="'$(GitVersionEndsWithZero)' == 'true'">$(GitVersion.Substring(0, $(GitVersion.LastIndexOf('.'))))</GitVersion>
+      <GitVersion>$(GitVersion).$(GitCommitsSinceLastTag)</GitVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(GitVersionSuccess)' == 'true'">
+      <GitVersion>$(GitVersion)+git.$(GitCommitShortHash)</GitVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_GitInfoLine Include="&lt;Project&gt;" />
+      <_GitInfoLine Include="&lt;PropertyGroup&gt;" />
+      <_GitInfoLine Include="&lt;GitVersion&gt;$(GitVersion)&lt;/GitVersion&gt;" />
+      <_GitInfoLine Include="&lt;GitCommitHash&gt;$(GitCommitHash)&lt;/GitCommitHash&gt;" />
+      <_GitInfoLine Include="&lt;GitCommitShortHash&gt;$(GitCommitShortHash)&lt;/GitCommitShortHash&gt;" />
+      <_GitInfoLine Include="&lt;GitBranch&gt;$(GitBranch)&lt;/GitBranch&gt;" />
+      <_GitInfoLine Include="&lt;GitVersionIsPreRelease&gt;$(GitVersionIsPreRelease)&lt;/GitVersionIsPreRelease&gt;" />
+      <_GitInfoLine Include="&lt;RepositoryBranch&gt;$(GitBranch)&lt;/RepositoryBranch&gt;" />
+      <_GitInfoLine Include="&lt;RepositoryCommit&gt;$(GitCommitHash)&lt;/RepositoryCommit&gt;" />
+      <_GitInfoLine Include="&lt;/PropertyGroup&gt;" />
+      <_GitInfoLine Include="&lt;/Project&gt;" />
+    </ItemGroup>
+
+    <MakeDir Directories="$([System.IO.Path]::GetDirectoryName('$(GitInfoOutputPath)'))" />
+    <WriteLinesToFile File="$(GitInfoOutputPath)" Lines="@(_GitInfoLine)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <Message Text="Version: $(GitVersion)" Importance="high" />
+  </Target>
+</Project>

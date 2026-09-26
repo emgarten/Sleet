@@ -1,4 +1,4 @@
-# This workflow will build a .NET project
+# Build and test on Linux, macOS, and Windows
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
 name: .NET test
@@ -15,52 +15,89 @@ on:
       - 'doc/**'
       - '*.md'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build-linux:
 
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-tags: true
         fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: Build
       run: ./build.sh
       shell: bash
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-results-linux
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7
   build-mac:
 
     runs-on: macos-latest
+    timeout-minutes: 60
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-tags: true
         fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: Build
       run: ./build.sh
       shell: bash
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-results-mac
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7
   build-win:
 
     runs-on: windows-latest
+    timeout-minutes: 60
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-tags: true
         fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: Build
       run: ./build.ps1
       shell: pwsh
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-results-win
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7

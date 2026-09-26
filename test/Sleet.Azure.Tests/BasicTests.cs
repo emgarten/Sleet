@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
 
@@ -13,7 +13,7 @@ namespace Sleet.Azure.Tests
         [EnvVarExistsFact(AzureTestContext.EnvVarName)]
         public async Task GivenAStorageAccountVerifyInitSucceeds()
         {
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 await testContext.InitAsync();
 
@@ -38,7 +38,7 @@ namespace Sleet.Azure.Tests
         public async Task GivenAStorageAccountVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 await testContext.InitAsync();
 
@@ -73,7 +73,7 @@ namespace Sleet.Azure.Tests
         public async Task GivenAStorageAccountWithNoContainerVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 // Skip creation and allow it to be done during push.
                 testContext.CreateContainerOnInit = false;
@@ -104,7 +104,7 @@ namespace Sleet.Azure.Tests
         public async Task GivenAStorageAccountWithNoInitVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 await testContext.InitAsync();
 
@@ -133,7 +133,7 @@ namespace Sleet.Azure.Tests
         public async Task GivenAStorageAccountVerifyPushAndRemoveSucceed()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 await testContext.InitAsync();
 
@@ -205,7 +205,7 @@ namespace Sleet.Azure.Tests
         public async Task GivenAStorageAccountVerifyPushWithBaseURI()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 var baseUri = new Uri("http://tempuri.org/abc/");
                 var fileSystem = new AzureFileSystem(testContext.LocalCache, testContext.Uri, baseUri, testContext.StorageAccount, testContext.ContainerName);
