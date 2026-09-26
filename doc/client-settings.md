@@ -70,59 +70,19 @@ More options can be found in the [Azure.Identity README](https://github.com/Azur
 | accessKeyId                | Access key id *[Cannot be used with profileName]*                                                                                                                                                                                                                                                                            |
 | secretAccessKey            | Secret access key *[Cannot be used with profileName]*                                                                                                                                                                                                                                                                        |
 | bucketName                 | S3 bucket name *[Required]*                                                                                                                                                                                                                                                                                                  |
-| provider                   | S3 compatible service to configure defaults for. Default is `aws`. See [S3 providers](#s3-providers).                                                                                                                                                                                                                       |
-| region                     | S3 region. Selects the endpoint for Amazon S3. For other services it is the region used to sign requests, and must be used with `serviceURL`.                                                                                                                                                                                |
-| serviceURL                 | S3 service URL. Required for non-AWS services unless the provider can determine it.                                                                                                                                                                                                                                          |
+| region                     | S3 region. When used with serviceURL the region is only used to sign requests.                                                                                                                                                                                                                                              |
+| serviceURL                 | S3 service URL, used for S3 compatible storage. *[Required for provider r2 and minio]*                                                                                                                                                                                                                                       |
 | path                       | Full URI of the storage bucket. If not specified a default URI will be used.                                                                                                                                                                                                                                                 |
 | feedSubPath                | Provides a sub directory path within the bucket where the feed should be added. This allows for multiple feeds within a single bucket.                                                                                                                                                                                       |
 | serverSideEncryptionMethod | The encryption to use for uploaded objects. Only `AES256` and `None` are currently supported. Default is `None`                                                                                                                                                                                                              |
 | compress                   | Compress JSON files with GZIP before uploading. Default is *true*                                                                                                                                                                                                                                                            |
 | acl                        | A acl can be set for uploaded files. By default, no specific canned acl is set and bucket defaults and/or policies are in effect. If the bucket is created by sleet and an acl is set, then the default bucket acl will be set to that acl. |
-| disablePayloadSigning      | S3 payload signing is a requirement of AWS SigV4, some S3 compatible storage providers do not implement this. Defaults to the value for the selected `provider`.                                                                                                                                                              |
-| forcePathStyle             | Address buckets as `serviceURL/bucket` instead of `bucket.serviceURL`. Required by services without wildcard DNS such as a local MinIO server. Defaults to the value for the selected `provider`.                                                                                                                             |
-| checksumMode               | Controls the `x-amz-checksum-*` headers the AWS SDK adds to requests. `default` sends them on every request, `whenRequired` sends them only where the S3 API requires them. Services that reject unknown headers need `whenRequired`. Defaults to the value for the selected `provider`.                                       |
-| authenticationRegion       | Region used to sign requests when it differs from `region`. Defaults to the value for the selected `provider`.                                                                                                                                                                                                               |
-| publicAccess               | How the bucket is made publicly readable when Sleet creates it. One of `aws`, `bucketPolicy`, `cannedAcl`, or `external`. Defaults to the value for the selected `provider`.                                                                                                                                                  |
+|disablePayloadSigning                       | S3 payload signing is a requirement of AWS SigV4, some S3 compatible storage providers do not implement this. Default is `false`, `true` for provider `r2`
+| provider                   | S3 compatible service the bucket is hosted on: `aws` (default), `r2` for [Cloudflare R2](feed-type-cloudflare.md), or `minio`. Sets the defaults for disablePayloadSigning, forcePathStyle, and checksumMode. |
+| forcePathStyle             | Use path style bucket urls, `serviceURL/bucketName`, instead of virtual hosted style urls, `bucketName.serviceURL`. Default is `false`, `true` for provider `minio` |
+| checksumMode               | When the AWS SDK adds checksums to requests: `whenSupported` or `whenRequired`. Use `whenRequired` for services that reject the checksums. Default is `whenSupported`, `whenRequired` for provider `r2` |
 
-`region` and `serviceURL` may be used together. `serviceURL` selects the endpoint and `region` is used as the signing region. Every provider other than `aws` requires `serviceURL`, because `region` alone only identifies an Amazon endpoint.
-
-### S3 providers
-
-`provider` selects defaults for an S3 compatible service. Every default it sets can be overridden by
-setting the individual property, so a provider is only a starting point. Use `generic` for a service
-that is not listed.
-
-| Provider | Service | Notes |
-| --- | --- | --- |
-| `aws` | Amazon S3 | Default. Also accepted as `amazon` or `s3`. |
-| `r2` | Cloudflare R2 | Also accepted as `cloudflare`. See the [Cloudflare R2 guide](feed-type-cloudflare.md). |
-| `minio` | MinIO | Uses path style addressing and a bucket policy for public read access. |
-| `yandex` | Yandex Object Storage | Signs with `ru-central1` and skips optional checksums. |
-| `scaleway` | Scaleway Object Storage | |
-| `wasabi` | Wasabi | |
-| `b2` | Backblaze B2 | Also accepted as `backblaze`. |
-| `digitalocean` | DigitalOcean Spaces | Also accepted as `spaces`. |
-| `generic` | Any other S3 compatible service | Grants public read with a bucket policy. No other defaults are applied. |
-
-Defaults for `scaleway`, `wasabi`, `b2`, and `digitalocean` come from each service's published
-documentation and have not been verified against a live account. If a feed on one of these services
-needs a different setting, set it explicitly in `sleet.json` and please open an issue so the default
-can be corrected.
-
-#### Troubleshooting S3 compatible services
-
-| Symptom | Setting to try |
-| --- | --- |
-| Uploads fail with a signature or `STREAMING-AWS4-HMAC-SHA256-PAYLOAD` error | `"disablePayloadSigning": true` |
-| Requests are rejected for an unexpected `x-amz-checksum-crc32` or `x-amz-sdk-checksum-algorithm` header | `"checksumMode": "whenRequired"` |
-| Requests go to `bucket.host` and fail to resolve, or a local server returns 404 for every path | `"forcePathStyle": true` |
-| Signature errors mentioning a region that is not the one you configured | `authenticationRegion` |
-
-`disablePayloadSigning` and `checksumMode` solve different problems and are not interchangeable.
-`disablePayloadSigning` moves the checksum out of the signed payload and into an `aws-chunked`
-trailer, so on a service that does not accept trailers it can make uploads worse rather than better.
-Try `checksumMode` first for header and checksum rejections.
-
+Either `region` or `serviceURL` must be specified.
 
 ### Using an AWS credentials file
 

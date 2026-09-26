@@ -117,9 +117,6 @@ To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/usergu
 
 ### Using S3 compatible storage
 
-Set `provider` to the service hosting the feed. Sleet uses it to apply the settings that service
-needs, such as path style addressing or reduced checksum headers.
-
 `sleet.json`:
 ```json
 {
@@ -128,11 +125,11 @@ needs, such as path style addressing or reduced checksum headers.
       "name": "feed",
       "type": "s3",
       "path": "https://nupkg.website.yandexcloud.net/",
-      "provider": "yandex",
       "bucketName": "nupkg",
-      "serviceURL": "https://s3.yandexcloud.net",
+      "serviceURL": "https://storage.yandexcloud.net",
       "accessKeyId": "IAM_ACCESS_KEY_ID",
-      "secretAccessKey": "IAM_SECRET_ACCESS_KEY"
+      "secretAccessKey": "IAM_SECRET_ACCESS_KEY",
+      "disablePayloadSigning": false
     }
   ]
 }
@@ -142,28 +139,23 @@ needs, such as path style addressing or reduced checksum headers.
 ```gitconfig
 [sleet "feed"]
     type = s3
-    provider = yandex
     path = https://nupkg.website.yandexcloud.net/
     bucketName = nupkg
-    serviceURL = https://s3.yandexcloud.net
+    serviceURL = https://storage.yandexcloud.net
     accessKeyId = IAM_ACCESS_KEY_ID
     secretAccessKey = IAM_SECRET_ACCESS_KEY
 ```
 
-A template for any supported provider can be generated with `createconfig`:
+To use S3 compatible storage create an s3 feed config with *serviceURL*. If the service requires a specific signing region also set *region*. Set *disablePayloadSigning*, *forcePathStyle*, or *checksumMode* if the service does not support the AWS defaults, see [client settings](client-settings.md).
 
-``sleet createconfig --s3 --provider yandex``
+Set *provider* to use the defaults for a supported service:
 
-The supported providers are `aws`, `r2`, `minio`, `yandex`, `scaleway`, `wasabi`, `b2`,
-`digitalocean`, and `generic`. See [S3 providers](client-settings.md#s3-providers) for the defaults
-each one applies, and for the individual settings to use with a service that is not listed.
+* `r2` for Cloudflare R2, see [Creating a Cloudflare R2 feed](feed-type-cloudflare.md)
+* `minio` for MinIO
 
-Cloudflare R2 has its own guide: [Creating a Cloudflare R2 feed](feed-type-cloudflare.md).
+`sleet createconfig --provider <name>` creates a config template for the service.
 
-#### Using MinIO
-
-A MinIO server needs `serviceURL`, a signing `region`, and path style addressing. The `minio`
-provider sets path style addressing for you.
+### Using MinIO
 
 `sleet.json`:
 ```json
@@ -173,9 +165,8 @@ provider sets path style addressing for you.
       "name": "feed",
       "type": "s3",
       "provider": "minio",
-      "bucketName": "myfeed",
+      "bucketName": "my-bucket-feed",
       "serviceURL": "http://localhost:9000",
-      "region": "us-east-1",
       "accessKeyId": "MINIO_ACCESS_KEY",
       "secretAccessKey": "MINIO_SECRET_KEY"
     }
@@ -188,16 +179,13 @@ provider sets path style addressing for you.
 [sleet "feed"]
     type = s3
     provider = minio
-    bucketName = myfeed
+    bucketName = my-bucket-feed
     serviceURL = http://localhost:9000
-    region = us-east-1
     accessKeyId = MINIO_ACCESS_KEY
     secretAccessKey = MINIO_SECRET_KEY
 ```
 
-If clients reach the feed through a different address than the one Sleet uploads to, set `baseURI`
-to the public address.
-
+The `minio` provider uses path style urls such as `http://localhost:9000/my-bucket-feed/`. Set *region* if the MinIO server is configured with a region other than `us-east-1`.
 
 ### Additional feed settings
 

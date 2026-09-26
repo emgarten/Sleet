@@ -102,21 +102,18 @@ namespace Sleet
                     else if (type == "s3")
                     {
                         var provider = S3Provider.Get(JsonUtility.GetValueCaseInsensitive(sourceEntry, "provider"));
-
                         var profileName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "profileName");
                         var accessKeyId = JsonUtility.GetValueCaseInsensitive(sourceEntry, "accessKeyId");
                         var secretAccessKey = JsonUtility.GetValueCaseInsensitive(sourceEntry, "secretAccessKey");
                         var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
                         var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
                         var serviceURL = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serviceURL");
-                        var authenticationRegion = JsonUtility.GetValueCaseInsensitive(sourceEntry, "authenticationRegion");
                         var serverSideEncryptionMethod = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serverSideEncryptionMethod") ?? "None";
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
                         var acl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "acl");
                         var disablePayloadSigning = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "disablePayloadSigning", provider.DisablePayloadSigning);
                         var forcePathStyle = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "forcePathStyle", provider.ForcePathStyle);
-                        var checksumMode = GetChecksumMode(sourceEntry, provider);
-                        var publicAccess = GetPublicAccessType(sourceEntry, provider);
+                        var checksumMode = GetChecksumMode(sourceEntry) ?? provider.ChecksumMode;
                         var immutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "immutableCacheControl");
                         if (string.IsNullOrWhiteSpace(immutableCacheControl))
                         {
@@ -134,41 +131,21 @@ namespace Sleet
                             throw new ArgumentException($"Missing bucketName for {provider.DisplayName} account.");
                         }
 
-                        // Providers that derive the endpoint from an account identifier build it here.
-                        if (string.IsNullOrEmpty(serviceURL) && provider.ResolveServiceUrl != null)
+                        // region alone selects an Amazon S3 endpoint
+                        if (string.IsNullOrEmpty(serviceURL) && provider != S3Provider.Aws)
                         {
-                            serviceURL = provider.ResolveServiceUrl(sourceEntry);
+                            throw new ArgumentException($"Missing serviceURL for {provider.DisplayName} account.");
+                        }
+
+                        // The S3 API of these services is not public, clients must read the feed from baseURI
+                        if (provider.ExternalPublicAccess && string.IsNullOrEmpty(baseURIString))
+                        {
+                            throw new ArgumentException($"Missing baseURI for {provider.DisplayName} account. Set baseURI to the public url of the bucket: {provider.HelpUrl}");
                         }
 
                         if (string.IsNullOrEmpty(region) && string.IsNullOrEmpty(serviceURL))
                         {
-                            var message = $"Either 'region' or 'serviceURL' must be specified for {provider.DisplayName}";
-
-                            if (!string.IsNullOrEmpty(provider.ServiceUrlHint))
-                            {
-                                message += $". For {provider.DisplayName} serviceURL is usually {provider.ServiceUrlHint}";
-                            }
-
-                            throw new ArgumentException(message);
-                        }
-
-                        // 'region' alone only identifies an endpoint for Amazon S3. Without this
-                        // a typo in serviceURL would silently send requests to Amazon.
-                        if (string.IsNullOrEmpty(serviceURL) && !ReferenceEquals(provider, S3Provider.Aws))
-                        {
-                            var message = $"Missing serviceURL for {provider.DisplayName}. 'region' only selects an endpoint for Amazon S3.";
-
-                            if (!string.IsNullOrEmpty(provider.ServiceUrlHint))
-                            {
-                                message += $" For {provider.DisplayName} serviceURL is usually {provider.ServiceUrlHint}";
-                            }
-
-                            throw new ArgumentException(message);
-                        }
-
-                        if (!string.IsNullOrEmpty(region) && !provider.AllowsRegion)
-                        {
-                            throw new ArgumentException($"Option 'region' is not supported by {provider.DisplayName}, which always signs requests with the '{provider.AuthenticationRegion}' region. Remove the setting, or set 'authenticationRegion' to override the signing region.");
+                            throw new ArgumentException("Either 'region' or 'serviceURL' must be specified for an Amazon S3 account");
                         }
 
                         if (serverSideEncryptionMethod != "None" && serverSideEncryptionMethod != "AES256")
@@ -176,33 +153,10 @@ namespace Sleet
                             throw new ArgumentException("Only 'None' or 'AES256' are currently supported for serverSideEncryptionMethod");
                         }
 
-                        if (serverSideEncryptionMethod != "None" && !provider.AllowsServerSideEncryption)
-                        {
-                            throw new ArgumentException($"Option 'serverSideEncryptionMethod' is not supported by {provider.DisplayName}. Remove the setting or use a different provider.");
-                        }
-
-                        if (!string.IsNullOrEmpty(acl) && !provider.AllowsAcl)
-                        {
-                            var message = $"Option 'acl' is not supported by {provider.DisplayName}. Public read access must be configured outside of Sleet.";
-
-                            if (!string.IsNullOrEmpty(provider.HelpUrl))
-                            {
-                                message += $" See: {provider.HelpUrl}";
-                            }
-
-                            throw new ArgumentException(message);
-                        }
-
                         S3CannedACL? resolvedAcl = null;
                         if (acl != null)
                         {
                             resolvedAcl = S3CannedACL.FindValue(acl);
-                        }
-                        else if ((publicAccess ?? provider.PublicAccess) == S3PublicAccessType.CannedAcl)
-                        {
-                            // Access is granted by acl rather than a bucket policy, so uploaded
-                            // objects need the same acl as the bucket to be readable.
-                            resolvedAcl = S3CannedACL.PublicRead;
                         }
 
                         // Use the SDK value
@@ -219,35 +173,27 @@ namespace Sleet
                             ForcePathStyle = forcePathStyle
                         };
 
-                        if (checksumMode == S3ChecksumMode.WhenRequired)
+                        if (checksumMode != null)
                         {
-                            // The SDK adds a CRC32 checksum to every request by default. Services that
-                            // do not accept the x-amz-checksum headers reject those requests.
-                            config.RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED;
-                            config.ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED;
+                            config.RequestChecksumCalculation = checksumMode.Value;
+                            config.ResponseChecksumValidation = checksumMode == RequestChecksumCalculation.WHEN_REQUIRED
+                                ? ResponseChecksumValidation.WHEN_REQUIRED
+                                : ResponseChecksumValidation.WHEN_SUPPORTED;
                         }
 
                         if (!string.IsNullOrEmpty(serviceURL))
                         {
                             config.ServiceURL = serviceURL;
 
-                            // ServiceURL and RegionEndpoint are mutually exclusive on the config, so
-                            // 'region' is used as the SigV4 signing region when a serviceURL is set.
-                            var signingRegion = Coalesce(authenticationRegion, region, provider.AuthenticationRegion);
-
-                            if (!string.IsNullOrEmpty(signingRegion))
+                            // RegionEndpoint cannot be used with ServiceURL, region is only used to sign requests
+                            if (!string.IsNullOrEmpty(region))
                             {
-                                config.AuthenticationRegion = signingRegion;
+                                config.AuthenticationRegion = region;
                             }
                         }
                         else
                         {
                             config.RegionEndpoint = RegionEndpoint.GetBySystemName(region);
-
-                            if (!string.IsNullOrEmpty(authenticationRegion))
-                            {
-                                config.AuthenticationRegion = authenticationRegion;
-                            }
                         }
 
                         AmazonS3Client? amazonS3Client = null;
@@ -300,9 +246,9 @@ namespace Sleet
                         // Assume IAM role
                         else
                         {
+                            // STS is an Amazon service, other services use the default credentials directly
                             if (config.RegionEndpoint != null)
                             {
-                                // STS is an Amazon service, it is only reachable on the region path.
                                 using (var client = new AmazonSecurityTokenServiceClient(config.RegionEndpoint))
                                 {
                                     try
@@ -318,18 +264,7 @@ namespace Sleet
                                 }
                             }
 
-                            try
-                            {
-                                // Falls back to the default credential chain, which covers instance
-                                // profiles and a default credentials file profile.
-                                amazonS3Client = new AmazonS3Client(config);
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new ArgumentException(
-                                    $"Missing accessKeyId and secretAccessKey for {provider.DisplayName} account, and no default credentials were found. "
-                                    + "Set them in sleet.json, or set the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.", ex);
-                            }
+                            amazonS3Client = new AmazonS3Client(config);
                         }
 
                         if (pathUri == null)
@@ -340,37 +275,9 @@ namespace Sleet
                                 : UriUtility.EnsureTrailingSlash(UriUtility.CreateUri($"{serviceURL!.TrimEnd('/')}/{bucketName}"));
                         }
 
-                        // 'path' falling back to the bucket url does not satisfy providers that
-                        // need a separate public url, so require baseURI to be set explicitly.
-                        if (provider.RequiresBaseUri && baseURIString == null)
-                        {
-                            var message = $"Missing baseURI for {provider.DisplayName} account. Buckets are private by default and the public url cannot be determined automatically. "
-                                + "Set baseURI to the public url of the bucket.";
-
-                            if (!string.IsNullOrEmpty(provider.HelpUrl))
-                            {
-                                message += $" See: {provider.HelpUrl}";
-                            }
-
-                            throw new ArgumentException(message);
-                        }
-
                         if (baseUri == null)
                         {
                             baseUri = pathUri;
-                        }
-                        else if (!string.IsNullOrEmpty(provider.PrivateEndpointHostSuffix)
-                            && baseUri.Host.EndsWith(provider.PrivateEndpointHostSuffix, StringComparison.OrdinalIgnoreCase))
-                        {
-                            var message = $"baseURI is set to the {provider.DisplayName} API endpoint ({baseUri.AbsoluteUri}) which cannot be read by NuGet clients." + Environment.NewLine
-                                + "Set baseURI to the public url of the bucket instead.";
-
-                            if (!string.IsNullOrEmpty(provider.HelpUrl))
-                            {
-                                message += $" See: {provider.HelpUrl}";
-                            }
-
-                            await log.LogAsync(LogLevel.Warning, message);
                         }
 
                         result = new AmazonS3FileSystem(
@@ -385,10 +292,11 @@ namespace Sleet
                             resolvedAcl,
                             disablePayloadSigning,
                             immutableCacheControl,
-                            mutableCacheControl,
-                            provider,
-                            provider.CreatePublicAccessStrategy(publicAccess)
-                        );
+                            mutableCacheControl
+                        )
+                        {
+                            Provider = provider
+                        };
                     }
                 }
             }
@@ -396,59 +304,31 @@ namespace Sleet
             return result;
         }
 
-        /// <summary>
-        /// Read 'checksumMode' from an s3 source, falling back to the provider default.
-        /// </summary>
-        private static S3ChecksumMode GetChecksumMode(JObject sourceEntry, S3Provider provider)
+        // Read checksumMode, null if it is not set
+        private static RequestChecksumCalculation? GetChecksumMode(JObject sourceEntry)
         {
             var value = JsonUtility.GetValueCaseInsensitive(sourceEntry, "checksumMode");
 
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return provider.ChecksumMode;
-            }
-
-            // TryParse accepts any number, IsDefined rejects values that are not real modes.
-            if (Enum.TryParse<S3ChecksumMode>(value.Trim(), ignoreCase: true, out var result)
-                && Enum.IsDefined(result))
-            {
-                return result;
-            }
-
-            throw new ArgumentException($"Invalid checksumMode '{value}'. Valid values are: {string.Join(", ", Enum.GetNames<S3ChecksumMode>())}");
-        }
-
-        /// <summary>
-        /// Read 'publicAccess' from an s3 source. Null uses the provider default.
-        /// </summary>
-        private static S3PublicAccessType? GetPublicAccessType(JObject sourceEntry, S3Provider provider)
-        {
-            var value = JsonUtility.GetValueCaseInsensitive(sourceEntry, "publicAccess");
-
-            if (string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrEmpty(value))
             {
                 return null;
             }
 
-            // TryParse accepts any number, IsDefined rejects values that are not real types.
-            if (Enum.TryParse<S3PublicAccessType>(value.Trim(), ignoreCase: true, out var result)
-                && Enum.IsDefined(result))
+            if (value.Equals("whenSupported", StringComparison.OrdinalIgnoreCase))
             {
-                return result;
+                return RequestChecksumCalculation.WHEN_SUPPORTED;
             }
 
-            throw new ArgumentException($"Invalid publicAccess '{value}' for {provider.DisplayName}. Valid values are: {string.Join(", ", Enum.GetNames<S3PublicAccessType>())}");
+            if (value.Equals("whenRequired", StringComparison.OrdinalIgnoreCase))
+            {
+                return RequestChecksumCalculation.WHEN_REQUIRED;
+            }
+
+            throw new ArgumentException($"Invalid checksumMode '{value}'. Valid values are: whenSupported, whenRequired");
         }
 
-        /// <summary>
-        /// First value that is not null or empty.
-        /// </summary>
-        private static string? Coalesce(params string?[] values)
-        {
-            return values.FirstOrDefault(e => !string.IsNullOrWhiteSpace(e));
-        }
-
-        private static async Task<BlobServiceClient> GetBlobServiceClient(            ILogger log,
+        private static async Task<BlobServiceClient> GetBlobServiceClient(
+            ILogger log,
             string? connectionString,
             Uri? pathUri,
             string? container)

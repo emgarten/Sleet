@@ -79,7 +79,7 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task CreateConfigCommand_WithR2Provider_CreatesValidConfig()
+        public async Task CreateConfigCommand_WithS3StorageTypeAndCloudflareR2Provider_CreatesValidConfig()
         {
             using (var testDir = new TestFolder())
             {
@@ -87,21 +87,24 @@ namespace SleetLib.Tests
                 var result = await CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "r2", NullLogger.Instance);
 
                 result.Should().BeTrue();
-                File.Exists(configPath).Should().BeTrue();
 
                 var json = JObject.Parse(File.ReadAllText(configPath));
                 var source = json["sources"][0];
-                source["name"].Value<string>().Should().Be("myCloudflareR2Feed");
+                source["name"].Value<string>().Should().Be("myR2Feed");
                 source["type"].Value<string>().Should().Be("s3");
                 source["provider"].Value<string>().Should().Be("r2");
-                source["bucketName"].Value<string>().Should().Be("myfeed");
-                source["accountId"].Value<string>().Should().Be("cloudflareAccountId");
+                source["bucketName"].Value<string>().Should().Be("bucketname");
+                source["serviceURL"].Value<string>().Should().Be("https://ACCOUNT_ID.r2.cloudflarestorage.com");
                 source["baseURI"].Value<string>().Should().Be("https://nuget.example.com/");
+                source["region"].Should().BeNull();
+
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(new LocalSettings { Json = json }, new LocalCache(), "myR2Feed", NullLogger.Instance);
+                fileSystem.Should().BeOfType<AmazonS3FileSystem>();
             }
         }
 
         [Fact]
-        public async Task CreateConfigCommand_WithMinioProvider_CreatesValidConfig()
+        public async Task CreateConfigCommand_WithS3StorageTypeAndMinioProvider_CreatesValidConfig()
         {
             using (var testDir = new TestFolder())
             {
@@ -112,22 +115,30 @@ namespace SleetLib.Tests
 
                 var json = JObject.Parse(File.ReadAllText(configPath));
                 var source = json["sources"][0];
+                source["name"].Value<string>().Should().Be("myMinioFeed");
                 source["type"].Value<string>().Should().Be("s3");
                 source["provider"].Value<string>().Should().Be("minio");
+                source["bucketName"].Value<string>().Should().Be("bucketname");
                 source["serviceURL"].Value<string>().Should().Be("http://localhost:9000");
-                source["region"].Value<string>().Should().Be("us-east-1");
-                source["forcePathStyle"].Value<string>().Should().Be("true");
+                source["region"].Should().BeNull();
+
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(new LocalSettings { Json = json }, new LocalCache(), "myMinioFeed", NullLogger.Instance);
+                fileSystem.Should().BeOfType<AmazonS3FileSystem>();
             }
         }
 
         [Fact]
-        public async Task CreateConfigCommand_WithUnknownProvider_Throws()
+        public async Task CreateConfigCommand_WithUnknownProvider_ThrowsArgumentException()
         {
             using (var testDir = new TestFolder())
             {
-                Func<Task> act = async () => await CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "notarealservice", NullLogger.Instance);
+                var configPath = Path.Combine(testDir.Root, "sleet.json");
 
-                await Assert.ThrowsAsync<ArgumentException>(act);
+                Func<Task> act = () => CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "gcs", NullLogger.Instance);
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+                Assert.Contains("Unknown provider 'gcs' for s3 source.", ex.Message);
+                File.Exists(configPath).Should().BeFalse();
             }
         }
 
