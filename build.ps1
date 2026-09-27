@@ -17,7 +17,6 @@ $RepoRoot = $PSScriptRoot
 $ArtifactsDir = Join-Path $RepoRoot "artifacts"
 $DotnetDir = Join-Path $RepoRoot ".dotnet"
 $IsWindowsOS = $env:OS -eq "Windows_NT"
-$DotnetExe = Join-Path $DotnetDir $(if ($IsWindowsOS) { "dotnet.exe" } else { "dotnet" })
 
 Function Invoke-Exe {
     param(
@@ -33,22 +32,30 @@ Function Invoke-Exe {
     }
 }
 
-# Install the SDK from global.json and the runtimes used by the tests to .dotnet
-Function Install-Dotnet {
-    $globalJson = Join-Path $RepoRoot "global.json"
-    $sdkVersion = (Get-Content $globalJson -Raw | ConvertFrom-Json).sdk.version
-
-    if ((Test-Path "$DotnetDir/sdk/$sdkVersion") -and
-        (Test-Path "$DotnetDir/shared/Microsoft.NETCore.App/8.*") -and
-        (Test-Path "$DotnetDir/shared/Microsoft.NETCore.App/9.*")) {
-        return
+# True if dotnet has the SDK from global.json and the runtimes used by the tests
+Function Test-Dotnet([string]$Dotnet) {
+    if (-not $Dotnet -or -not (Test-Path $Dotnet)) {
+        return $false
     }
 
+    $ErrorActionPreference = "Continue"
+    & $Dotnet --version *> $null
+
+    if ($LASTEXITCODE -ne 0) {
+        return $false
+    }
+
+    $runtimes = (& $Dotnet --list-runtimes) -join "`n"
+    return $runtimes -match "(?m)^Microsoft\.NETCore\.App 8\." -and $runtimes -match "(?m)^Microsoft\.NETCore\.App 9\."
+}
+
+# Install the SDK from global.json and the runtimes used by the tests to .dotnet
+Function Install-Dotnet {
     New-Item -ItemType Directory -Force -Path $DotnetDir | Out-Null
     $installScript = Join-Path $DotnetDir "dotnet-install.ps1"
     Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile $installScript -UseBasicParsing
 
-    & $installScript -JsonFile $globalJson -InstallDir $DotnetDir -NoPath
+    & $installScript -JsonFile (Join-Path $RepoRoot "global.json") -InstallDir $DotnetDir -NoPath
     & $installScript -Runtime dotnet -Channel 8.0 -InstallDir $DotnetDir -NoPath
     & $installScript -Runtime dotnet -Channel 9.0 -InstallDir $DotnetDir -NoPath
 }
@@ -65,14 +72,23 @@ $originalDotnetRoot = $env:DOTNET_ROOT
 Push-Location $RepoRoot
 
 try {
-    Install-Dotnet
-
-    # Use the repo local SDK for the build and any dotnet processes started by the tests
-    $env:DOTNET_ROOT = $DotnetDir
-    $env:PATH = "$DotnetDir$([IO.Path]::PathSeparator)$env:PATH"
     $env:DOTNET_NOLOGO = "1"
     $env:DOTNET_CLI_TELEMETRY_OPTOUT = "1"
     $env:MSBUILDDISABLENODEREUSE = "1"
+
+    # Prefer dotnet on PATH, otherwise use the repo local .dotnet
+    $DotnetExe = (Get-Command dotnet -CommandType Application -TotalCount 1 -ErrorAction Ignore).Path
+
+    if (-not (Test-Dotnet $DotnetExe)) {
+        $DotnetExe = Join-Path $DotnetDir $(if ($IsWindowsOS) { "dotnet.exe" } else { "dotnet" })
+
+        if (-not (Test-Dotnet $DotnetExe)) {
+            Install-Dotnet
+        }
+
+        $env:DOTNET_ROOT = $DotnetDir
+        $env:PATH = "$DotnetDir$([IO.Path]::PathSeparator)$env:PATH"
+    }
 
     Invoke-Exe $DotnetExe @("--info")
 

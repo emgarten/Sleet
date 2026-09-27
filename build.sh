@@ -38,10 +38,13 @@ done
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ARTIFACTS_DIR="$REPO_ROOT/artifacts"
 DOTNET_DIR="$REPO_ROOT/.dotnet"
-DOTNET="$DOTNET_DIR/dotnet"
 CONFIGURATION="Release"
 
 cd "$REPO_ROOT"
+
+export DOTNET_NOLOGO=1
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export MSBUILDDISABLENODEREUSE=1
 
 run_command()
 {
@@ -49,29 +52,33 @@ run_command()
   "$@"
 }
 
-dotnet_is_installed()
+# True if dotnet has the SDK from global.json and the runtimes used by the tests
+has_dotnet()
 {
-  "$DOTNET" --version > /dev/null 2>&1 &&
-    compgen -G "$DOTNET_DIR/shared/Microsoft.NETCore.App/8.*" > /dev/null &&
-    compgen -G "$DOTNET_DIR/shared/Microsoft.NETCore.App/9.*" > /dev/null
+  [ -x "$1" ] && "$1" --version > /dev/null 2>&1 || return 1
+  local runtimes
+  runtimes="$("$1" --list-runtimes)"
+  grep -q "^Microsoft\.NETCore\.App 8\." <<< "$runtimes" && grep -q "^Microsoft\.NETCore\.App 9\." <<< "$runtimes"
 }
 
-# Install the SDK from global.json and the runtimes used by the tests to .dotnet
-if ! dotnet_is_installed; then
-  mkdir -p "$DOTNET_DIR"
-  run_command curl -sSL --retry 3 -o "$DOTNET_DIR/dotnet-install.sh" https://dot.net/v1/dotnet-install.sh
-  chmod +x "$DOTNET_DIR/dotnet-install.sh"
-  run_command "$DOTNET_DIR/dotnet-install.sh" --jsonfile "$REPO_ROOT/global.json" --install-dir "$DOTNET_DIR" --no-path
-  run_command "$DOTNET_DIR/dotnet-install.sh" --runtime dotnet --channel 8.0 --install-dir "$DOTNET_DIR" --no-path
-  run_command "$DOTNET_DIR/dotnet-install.sh" --runtime dotnet --channel 9.0 --install-dir "$DOTNET_DIR" --no-path
-fi
+# Prefer dotnet on PATH, otherwise use the repo local .dotnet
+DOTNET="$(command -v dotnet || true)"
 
-# Use the repo local SDK for the build and any dotnet processes started by the tests
-export DOTNET_ROOT="$DOTNET_DIR"
-export PATH="$DOTNET_DIR:$PATH"
-export DOTNET_NOLOGO=1
-export DOTNET_CLI_TELEMETRY_OPTOUT=1
-export MSBUILDDISABLENODEREUSE=1
+if ! has_dotnet "$DOTNET"; then
+  DOTNET="$DOTNET_DIR/dotnet"
+
+  if ! has_dotnet "$DOTNET"; then
+    mkdir -p "$DOTNET_DIR"
+    run_command curl -sSL --retry 3 -o "$DOTNET_DIR/dotnet-install.sh" https://dot.net/v1/dotnet-install.sh
+    chmod +x "$DOTNET_DIR/dotnet-install.sh"
+    run_command "$DOTNET_DIR/dotnet-install.sh" --jsonfile "$REPO_ROOT/global.json" --install-dir "$DOTNET_DIR" --no-path
+    run_command "$DOTNET_DIR/dotnet-install.sh" --runtime dotnet --channel 8.0 --install-dir "$DOTNET_DIR" --no-path
+    run_command "$DOTNET_DIR/dotnet-install.sh" --runtime dotnet --channel 9.0 --install-dir "$DOTNET_DIR" --no-path
+  fi
+
+  export DOTNET_ROOT="$DOTNET_DIR"
+  export PATH="$DOTNET_DIR:$PATH"
+fi
 
 run_command "$DOTNET" --info
 run_command rm -rf "$ARTIFACTS_DIR"

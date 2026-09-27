@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using AwesomeAssertions;
@@ -64,24 +65,10 @@ namespace Sleet.CliTool.Tests
 
         private static string GetDotnetPath()
         {
-            var dotnetExeName = RuntimeEnvironmentHelper.IsWindows ? "dotnet.exe" : "dotnet";
+            // Use the dotnet install running the tests: <root>/shared/Microsoft.NETCore.App/<version>/
+            var dotnetRoot = Path.GetFullPath(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "..", "..", ".."));
 
-            // Prefer the dotnet host running the tests, then the SDK used by the build scripts.
-            var hostPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
-
-            if (!string.IsNullOrEmpty(hostPath) && File.Exists(hostPath))
-            {
-                return hostPath;
-            }
-
-            var dotnetRoot = Environment.GetEnvironmentVariable("DOTNET_ROOT");
-
-            if (!string.IsNullOrEmpty(dotnetRoot) && File.Exists(Path.Combine(dotnetRoot, dotnetExeName)))
-            {
-                return Path.Combine(dotnetRoot, dotnetExeName);
-            }
-
-            return CmdRunner.GetPath(Path.Combine(".dotnet", dotnetExeName));
+            return Path.Combine(dotnetRoot, RuntimeEnvironmentHelper.IsWindows ? "dotnet.exe" : "dotnet");
         }
 
         private static void Delete(DirectoryInfo dir)
