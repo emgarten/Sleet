@@ -11,6 +11,7 @@ updates:
           - "AwesomeAssertions"
           - "Microsoft.NET.Test.Sdk"
           - "Microsoft.Testing.*"
+          - "Moq*"
           - "NuGet.Test.Helpers"
           - "xunit*"
       analyzers:
