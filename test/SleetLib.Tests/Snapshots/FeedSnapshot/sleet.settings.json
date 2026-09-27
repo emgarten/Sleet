@@ -1,0 +1,48 @@
+{
+  "@id": "https://example.org/feed/sleet.settings.json",
+  "@type": "Settings",
+  "created": "<timestamp>",
+  "lastEdited": "<timestamp>",
+  "feedSettings": [
+    {
+      "@id": "https://example.org/feed/sleet.settings.json#badgesenabled",
+      "@type": "FeedSetting",
+      "key": "badgesenabled",
+      "value": "true"
+    },
+    {
+      "@id": "https://example.org/feed/sleet.settings.json#catalogenabled",
+      "@type": "FeedSetting",
+      "key": "catalogenabled",
+      "value": "true"
+    },
+    {
+      "@id": "https://example.org/feed/sleet.settings.json#catalogpagesize",
+      "@type": "FeedSetting",
+      "key": "catalogpagesize",
+      "value": "1024"
+    },
+    {
+      "@id": "https://example.org/feed/sleet.settings.json#symbolsfeedenabled",
+      "@type": "FeedSetting",
+      "key": "symbolsfeedenabled",
+      "value": "true"
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.emgarten.com/sleet#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "feedSettings": {
+      "@id": "settingsItem",
+      "@container": "@set"
+    }
+  }
+}

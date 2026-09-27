@@ -1,0 +1,66 @@
+{
+  "version": "3.0.0",
+  "sleet:version": "<sleetVersion>",
+  "resources": [
+    {
+      "@id": "https://example.org/feed/sleet.settings.json",
+      "@type": "http://schema.emgarten.com/sleet#SettingsFile/1.0.0",
+      "comment": "Sleet feed settings."
+    },
+    {
+      "@id": "https://example.org/feed/catalog/index.json",
+      "@type": "Catalog/3.0.0",
+      "comment": "Catalog service."
+    },
+    {
+      "@id": "https://example.org/feed/autocomplete/query",
+      "@type": "SearchAutocompleteService/3.0.0-beta",
+      "comment": "Powershell autocomplete."
+    },
+    {
+      "@id": "https://example.org/feed/search/query",
+      "@type": "SearchQueryService/3.0.0-beta",
+      "comment": "Static package list in search result form."
+    },
+    {
+      "@id": "https://example.org/feed/sleet.packageindex.json",
+      "@type": "http://schema.emgarten.com/sleet#PackageIndex/1.0.0",
+      "comment": "Sleet package index."
+    },
+    {
+      "@id": "https://example.org/feed/registration/",
+      "@type": "RegistrationsBaseUrl/3.4.0",
+      "comment": "Package registrations used for search and packages.config."
+    },
+    {
+      "@id": "https://example.org/feed/",
+      "@type": "ReportAbuseUriTemplate/3.0.0",
+      "comment": "Report abuse template."
+    },
+    {
+      "@id": "https://example.org/feed/flatcontainer/",
+      "@type": "PackageBaseAddress/3.0.0",
+      "comment": "Packages used by project.json"
+    },
+    {
+      "@id": "https://example.org/feed/flatcontainer/{lower_id}/{lower_version}/readme",
+      "@type": "ReadmeUriTemplate/6.13.0",
+      "comment": "URI template used by NuGet Client to construct a URL for downloading a package's README."
+    },
+    {
+      "@id": "https://example.org/feed/symbols/packages/index.json",
+      "@type": "http://schema.emgarten.com/sleet#SymbolsPackageIndex/1.0.0",
+      "comment": "Packages indexed in the symbols feed."
+    },
+    {
+      "@id": "https://example.org/feed/symbols/",
+      "@type": "http://schema.emgarten.com/sleet#SymbolsServer/1.0.0",
+      "comment": "Symbols server containing dll and pdb files."
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/services#",
+    "sleet": "http://schema.emgarten.com/sleet#",
+    "comment": "http://www.w3.org/2000/01/rdf-schema#comment"
+  }
+}

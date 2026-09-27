@@ -1,0 +1,13 @@
+{
+  "packages": [],
+  "symbols": [
+    {
+      "asset": "https://example.org/feed/symbols/a.dll/A7F83EF08000/a.dll",
+      "packageIndex": "https://example.org/feed/symbols/a.dll/A7F83EF08000/packages.json"
+    },
+    {
+      "asset": "https://example.org/feed/symbols/a.pdb/B1680B8315F8485EA0A10F55AF08B565ffffffff/a.pdb",
+      "packageIndex": "https://example.org/feed/symbols/a.pdb/B1680B8315F8485EA0A10F55AF08B565ffffffff/packages.json"
+    }
+  ]
+}

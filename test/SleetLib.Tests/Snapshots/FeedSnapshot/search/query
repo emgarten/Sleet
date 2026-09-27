@@ -1,0 +1,83 @@
+{
+  "index": "sleet-static",
+  "lastReopen": "<timestamp>",
+  "totalHits": 2,
+  "data": [
+    {
+      "@id": "https://example.org/feed/registration/alpha/1.1.0-beta.1.json",
+      "@type": "Package",
+      "description": "Alpha prerelease package",
+      "iconUrl": "",
+      "id": "alpha",
+      "licenseUrl": "",
+      "projectUrl": "",
+      "registration": "https://example.org/feed/registration/alpha/index.json",
+      "summary": "",
+      "title": "",
+      "totalDownloads": 0,
+      "version": "1.1.0-beta.1",
+      "authors": [
+        "alpha authors"
+      ],
+      "owners": [
+        ""
+      ],
+      "tags": [
+        "alpha",
+        "prerelease"
+      ],
+      "versions": [
+        {
+          "@id": "https://example.org/feed/registration/alpha/1.0.0.json",
+          "@type": "Package",
+          "downloads": 0,
+          "version": "1.0.0"
+        },
+        {
+          "@id": "https://example.org/feed/registration/alpha/1.1.0-beta.1.json",
+          "@type": "Package",
+          "downloads": 0,
+          "version": "1.1.0-beta.1"
+        }
+      ]
+    },
+    {
+      "@id": "https://example.org/feed/registration/beta/2.0.0.json",
+      "@type": "Package",
+      "description": "Beta package",
+      "iconUrl": "",
+      "id": "beta",
+      "licenseUrl": "",
+      "projectUrl": "",
+      "registration": "https://example.org/feed/registration/beta/index.json",
+      "summary": "",
+      "title": "",
+      "totalDownloads": 0,
+      "version": "2.0.0",
+      "authors": [
+        "beta authors"
+      ],
+      "owners": [
+        ""
+      ],
+      "tags": [
+        "beta"
+      ],
+      "versions": [
+        {
+          "@id": "https://example.org/feed/registration/beta/2.0.0.json",
+          "@type": "Package",
+          "downloads": 0,
+          "version": "2.0.0"
+        }
+      ]
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "sleet": "http://schema.emgarten.com/sleet#",
+    "totalHits": {
+      "@type": "http://www.w3.org/2001/XMLSchema#integer"
+    }
+  }
+}
