@@ -1,4 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
@@ -7,12 +10,19 @@
     <ToolCommandName>sleet</ToolCommandName>
   </PropertyGroup>
 
-  <!-- Sleet.exe settings, used when publishing the single file exe for the SleetExe package. -->
+  <!-- Single file Sleet.exe, see build.ps1 -->
   <PropertyGroup Condition="'$(PublishSingleFile)' == 'true'">
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishReadyToRun>true</PublishReadyToRun>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+
+  <!-- SleetExe package, see build.ps1 -->
+  <PropertyGroup Condition="'$(PackageId)' == 'SleetExe'">
+    <PackAsTool>false</PackAsTool>
+    <NuspecFile>SleetExe.nuspec</NuspecFile>
+    <NuspecProperties>version=$(Version);copyright=$(Copyright);branch=$(RepositoryBranch);commit=$(RepositoryCommit)</NuspecProperties>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,27 +33,5 @@
     <ProjectReference Include="..\SleetLib\SleetLib.csproj" />
   </ItemGroup>
 
-  <!-- SleetExe package settings, used when PackSleetExe packs this project with PackageId=SleetExe. -->
-  <PropertyGroup Condition="'$(PackageId)' == 'SleetExe'">
-    <PackAsTool>false</PackAsTool>
-    <IncludeSymbols>false</IncludeSymbols>
-    <NuspecFile>$(MSBuildThisFileDirectory)SleetExe.nuspec</NuspecFile>
-    <NuspecProperties>version=$(Version);copyright=$(Copyright);branch=$(RepositoryBranch);commit=$(RepositoryCommit)</NuspecProperties>
-  </PropertyGroup>
-
-  <!--
-    Pack SleetExe from the single file Sleet.exe published to artifacts/publish.
-    Enabled with -p:PackSleetExe=true, see build.ps1.
-  -->
-  <Target Name="PackSleetExe" AfterTargets="Pack" Condition="'$(PackSleetExe)' == 'true' AND '$(PackageId)' != 'SleetExe'">
-    <PropertyGroup>
-      <SleetExePath>$(ArtifactsPath)\publish\Sleet.exe</SleetExePath>
-    </PropertyGroup>
-
-    <Error Condition="!Exists('$(SleetExePath)')" Text="Missing $(SleetExePath). Publish Sleet.exe before packing SleetExe." />
-
-    <MSBuild Projects="$(MSBuildProjectFullPath)"
-             Targets="Pack"
-             Properties="NoBuild=true;PackSleetExe=false;PackageId=SleetExe" />
-  </Target>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

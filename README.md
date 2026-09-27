@@ -127,17 +127,6 @@ To build and run tests locally:
 ./build.ps1
 ```
 
-The build scripts install the .NET SDK from `global.json`, along with the .NET 8 and 9 runtimes used by the tests, into `.dotnet`. They then restore, build, pack, and test. Packages are written to `artifacts/nupkgs` and test results to `artifacts/TestResults`.
-
-Tests use [xUnit v3](https://xunit.net) on [Microsoft.Testing.Platform](https://aka.ms/mtp-overview). After running a build script once, tests can also be run directly:
-
-```bash
-dotnet test --solution Sleet.slnx
-dotnet test --project test/SleetLib.Tests/SleetLib.Tests.csproj --filter-class SleetLib.Tests.FeedTests
-```
-
-The Azure Storage and Amazon S3 functional tests are skipped unless `SLEET_TEST_ACCOUNT` or `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are set.
-
 CI runs on Linux, macOS, and Windows.
 
 ## History

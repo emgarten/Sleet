@@ -14,8 +14,7 @@ namespace Sleet.Test.Common
     public static class CmdRunner
     {
         /// <summary>
-        /// Search the test output directory and its parents for a file or directory,
-        /// such as a path relative to the repository root.
+        /// Search the test output directory and its parents for a relative path.
         /// </summary>
         /// <remarks>throws if not found</remarks>
         public static string GetPath(string relativePath)

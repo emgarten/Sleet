@@ -15,7 +15,7 @@ All builds and tests must pass successfully before stopping. All errors or test 
 ## Project setup
 
 * Package versions are managed centrally in `Directory.Packages.props`, do not add versions to `PackageReference` items.
-* Shared build settings are in `Directory.Build.props`, `src/Directory.Build.props`, and `test/Directory.Build.props`.
+* Shared build settings are in `build/common.props` and `build/test.props`, projects import one of them before `Sdk.props`.
 * Tests use xUnit v3 on Microsoft.Testing.Platform with AwesomeAssertions. Pass `TestContext.Current.CancellationToken` to async APIs called from tests.
 
 ## Style
