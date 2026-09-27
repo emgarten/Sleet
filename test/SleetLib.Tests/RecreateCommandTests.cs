@@ -236,8 +236,48 @@ namespace SleetLib.Tests
                 var success = await RecreateCommand.RunAsync(settings, faultingFileSystem, outputFolder.Root, false, log);
 
                 success.Should().BeFalse();
-                Directory.Exists(outputFolder.Root).Should().BeFalse();
+                Directory.GetFiles(outputFolder.Root, "*.nupkg", SearchOption.AllDirectories).Select(Path.GetFileName).Should().Contain("a.1.0.0.nupkg");
                 log.GetMessages().Should().Contain("Unable to completely remove the old feed before recreating. Use --force to skip this check.");
+                log.GetMessages().Should().Contain($"Nupkgs have been saved to: {outputFolder.Root}");
+            }
+        }
+
+        [Fact]
+        public async Task GivenInitThrowsVerifyRecreateThrowsAndKeepsDownloadedNupkgs()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                await InitCommand.RunAsync(settings, fileSystem, log);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+
+                var inner = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var faultingFileSystem = new FaultInjectingFileSystem(inner)
+                {
+                    CommitAsync = async (count, logger, token) =>
+                    {
+                        // Commit 1 completes the destroy, commit 2 writes the new feed.
+                        if (count == 2)
+                        {
+                            throw new IOException("Injected commit failure.");
+                        }
+
+                        return await inner.Commit(logger, token);
+                    }
+                };
+
+                Func<Task> action = async () => await RecreateCommand.RunAsync(settings, faultingFileSystem, outputFolder.Root, false, log);
+
+                await action.Should().ThrowAsync<IOException>().WithMessage("Injected commit failure.");
+                Directory.GetFiles(outputFolder.Root, "*.nupkg", SearchOption.AllDirectories).Select(Path.GetFileName).Should().Contain("a.1.0.0.nupkg");
+                log.GetMessages().Should().Contain($"Nupkgs have been saved to: {outputFolder.Root}");
             }
         }
 
