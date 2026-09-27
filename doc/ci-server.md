@@ -52,7 +52,7 @@ jobs:
           SLEET_FEED_CONNECTIONSTRING: ${{secrets.SLEET_CONNECTIONSTRING}}
         run: |
           cd $GITHUB_WORKSPACE/src
-          dotnet tool install -g sleet
+          dotnet tool install -g sleet --version "7.*"
           sleet push ./pkgs --skip-existing
 ```
 
@@ -93,11 +93,24 @@ jobs:
           SLEET_FEED_CONNECTIONSTRING: ${{secrets.SLEET_CONNECTIONSTRING}}
         run: |
           cd $GITHUB_WORKSPACE/src
-          dotnet tool install -g sleet
+          dotnet tool install -g sleet --version "7.*"
           sleet push ./pkgs --skip-existing
 ```
 
 ### Some tips
+
+#### Pin the Sleet version
+
+The examples above pin Sleet to a major version with `--version "7.*"`, so a new major release can't change your build unexpectedly.
+
+To pin an exact version, use a [local tool manifest](https://learn.microsoft.com/dotnet/core/tools/local-tools-how-to-use) instead. Run `dotnet new tool-manifest` and `dotnet tool install sleet` in your repository, commit the *dotnet-tools.json* file they create, and replace the install step with:
+
+```yml
+        run: |
+          cd $GITHUB_WORKSPACE/src
+          dotnet tool restore
+          dotnet sleet push ./pkgs --skip-existing
+```
 
 #### Please pack nuget package to out it to specific directory
 

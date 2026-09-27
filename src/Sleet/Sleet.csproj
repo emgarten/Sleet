@@ -8,6 +8,8 @@
     <Description>Sleet is a static NuGet package feed generator.</Description>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>sleet</ToolCommandName>
+    <RollForward>Major</RollForward>
+    <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
   </PropertyGroup>
 
   <!-- Single file Sleet.exe, see build.ps1 -->
@@ -24,6 +26,10 @@
     <NuspecFile>SleetExe.nuspec</NuspecFile>
     <NuspecProperties>version=$(Version);copyright=$(Copyright);branch=$(RepositoryBranch);commit=$(RepositoryCommit)</NuspecProperties>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="PACKAGE.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" />

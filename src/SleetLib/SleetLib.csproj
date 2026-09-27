@@ -7,10 +7,12 @@
     <Description>Access Sleet.exe commands through the Sleet API.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;1573</NoWarn>
+    <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="compiler\resources\**\*" />
+    <None Include="PACKAGE.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
