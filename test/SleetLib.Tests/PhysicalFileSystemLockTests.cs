@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using NuGet.Test.Helpers;
 using Sleet;
 using Xunit;
@@ -108,6 +109,60 @@ namespace SleetLib.Tests
 
                 feedLock.IsLocked.Should().BeFalse();
                 File.Exists(lockPath).Should().BeFalse();
+            }
+        }
+
+        [Fact]
+        public async Task PhysicalFileSystemLock_ReleaseAfterLockFileWasRemovedReleasesLock()
+        {
+            using (var target = new TestFolder())
+            {
+                var log = new TestLogger();
+                var lockPath = Path.Combine(target.Root, PhysicalFileSystemLock.LockFile);
+                var feedLock = new PhysicalFileSystemLock(lockPath, log);
+
+                (await feedLock.GetLock(TimeSpan.FromSeconds(1), "lock message", TestContext.Current.CancellationToken)).Should().BeTrue();
+
+                // Simulate the feed being forcibly unlocked while the lock is held.
+                File.Delete(lockPath);
+
+                feedLock.Release();
+
+                feedLock.IsLocked.Should().BeFalse();
+                File.Exists(lockPath).Should().BeFalse();
+                log.GetMessages(LogLevel.Warning).Should().BeEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task PhysicalFileSystemLock_ReleaseRetriesWhileLockFileIsInUse()
+        {
+            using (var target = new TestFolder())
+            {
+                var token = TestContext.Current.CancellationToken;
+                var log = new TestLogger();
+                var lockPath = Path.Combine(target.Root, PhysicalFileSystemLock.LockFile);
+                var feedLock = new PhysicalFileSystemLock(lockPath, log);
+
+                (await feedLock.GetLock(TimeSpan.FromSeconds(1), "lock message", token)).Should().BeTrue();
+
+                // A waiting client reads the lock file to show its message. On Windows this blocks the
+                // delete until the file is closed, so the release has to retry instead of giving up.
+                using (var waitingClientRead = File.OpenRead(lockPath))
+                {
+                    var closeRead = Task.Run(async () =>
+                    {
+                        await Task.Delay(TimeSpan.FromMilliseconds(500), token);
+                        waitingClientRead.Dispose();
+                    }, token);
+
+                    feedLock.Release();
+                    await closeRead;
+                }
+
+                feedLock.IsLocked.Should().BeFalse();
+                File.Exists(lockPath).Should().BeFalse();
+                log.GetMessages(LogLevel.Warning).Should().BeEmpty();
             }
         }
     }

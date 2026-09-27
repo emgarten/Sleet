@@ -82,12 +82,11 @@ namespace Sleet
                 {
                     try
                     {
-                        if (File.Exists(LockPath))
-                        {
-                            File.Delete(LockPath);
-                            success = true;
-                            IsLocked = false;
-                        }
+                        // File.Delete is a no-op if the lock file was already removed, for example to forcibly
+                        // unlock the feed. Other failures, such as unavailable storage, throw and are retried.
+                        File.Delete(LockPath);
+                        success = true;
+                        IsLocked = false;
                     }
                     catch (Exception ex)
                     {
