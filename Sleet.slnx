@@ -30,6 +30,7 @@
     <Project Path="test/Sleet.CliTool.Tests/Sleet.CliTool.Tests.csproj" />
     <Project Path="test/Sleet.CmdExe.Tests/Sleet.CmdExe.Tests.csproj" />
     <Project Path="test/Sleet.Integration.Tests/Sleet.Integration.Tests.csproj" />
+    <Project Path="test/Sleet.Tests/Sleet.Tests.csproj" />
     <Project Path="test/Sleet.Test.Common/Sleet.Test.Common.csproj" />
     <Project Path="test/SleetLib.Tests/SleetLib.Tests.csproj" />
   </Folder>
