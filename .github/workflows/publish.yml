@@ -1,4 +1,4 @@
-# This workflow will build a .NET project
+# Build, test, and publish the packages to nuget.org
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
 name: Publish to NuGet.org
@@ -8,24 +8,29 @@ on:
     types: [published]   # 🚀 auto-publish when a GitHub Release is published
   workflow_dispatch:      # ↩️ manual trigger fallback
 
+permissions:
+  contents: read
+
 jobs:
   build-win:
 
     runs-on: windows-latest
+    timeout-minutes: 60
     environment: release
     permissions:
       id-token: write   # request the GitHub OIDC token for trusted publishing
       contents: read    # checkout still needs read access
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-tags: true
         fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: Build
       run: ./build.ps1
       shell: pwsh
@@ -35,5 +40,7 @@ jobs:
       with:
         user: emgarten
     - name: Publish
-      run: dotnet nuget push artifacts\nupkgs\*.nupkg  --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push "artifacts/nupkgs/*.nupkg" --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json
       shell: pwsh
+      env:
+        NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}

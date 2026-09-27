@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet;
 using Xunit;

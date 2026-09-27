@@ -7,7 +7,6 @@ namespace Sleet
     public class ConsoleLogger : LoggerBase, IDisposable
     {
         private static readonly object _lockObj = new object();
-        private static readonly Lazy<bool> _isValidConsole = new Lazy<bool>(IsValidConsole);
         private static readonly Lazy<bool> _isCITrue = new Lazy<bool>(IsCIMode);
 
         /// <summary>
@@ -29,23 +28,14 @@ namespace Sleet
         public override void Log(ILogMessage message)
         {
             var level = (int)message.Level;
-            var color = GetColor(message);
 
             if (level >= (int)VerbosityLevel)
             {
-                // Replace or clear the color if needed
-                var updatedColor = GetColor(color, isCollapsed: false);
-
                 // Break up multi-line messages
                 var messages = SplitMessages(message.Message);
 
                 lock (_lockObj)
                 {
-                    if (updatedColor.HasValue)
-                    {
-                        Console.ForegroundColor = updatedColor.Value;
-                    }
-
                     for (var i = 0; i < messages.Length; i++)
                     {
                         // Modify message
@@ -54,11 +44,6 @@ namespace Sleet
 
                         // Write
                         Console.Write(updatedMessage);
-                    }
-
-                    if (updatedColor.HasValue)
-                    {
-                        Console.ResetColor();
                     }
                 }
             }
@@ -74,38 +59,6 @@ namespace Sleet
         public void Dispose()
         {
             GC.SuppressFinalize(this);
-        }
-
-        private static ConsoleColor? GetColor(ILogMessage message)
-        {
-            ConsoleColor? color = null;
-
-            if (message.Level == LogLevel.Error)
-            {
-                color = ConsoleColor.Red;
-            }
-            else if (message.Level == LogLevel.Warning)
-            {
-                color = ConsoleColor.Yellow;
-            }
-
-            return color;
-        }
-
-        private static ConsoleColor? GetColor(ConsoleColor? color, bool isCollapsed)
-        {
-            if (!color.HasValue && isCollapsed)
-            {
-                color = ConsoleColor.Gray;
-            }
-
-            if (!RuntimeEnvironmentHelper.IsWindows || !_isValidConsole.Value)
-            {
-                // Disallow colors for xplat
-                color = null;
-            }
-
-            return color;
         }
 
         private static string[] SplitMessages(string message)
@@ -131,43 +84,6 @@ namespace Sleet
             {
                 return result;
             }
-
-            return false;
-        }
-
-        private static bool IsValidConsole()
-        {
-#if IS_DESKTOP
-            try
-            {
-                // For non-interactive console such as on CIs use normal logging.
-                if (!Environment.UserInteractive)
-                {
-                    return false;
-                }
-
-                // Verify the console is valid and does not throw during any of these operations.
-                // Some web consoles have issues with Console.* properties.
-                if (!Console.CursorVisible)
-                {
-                    return false;
-                }
-
-                if (Console.WindowWidth < 50 || Console.WindowHeight < 20)
-                {
-                    return false;
-                }
-
-                var color = Console.ForegroundColor;
-                Console.ResetColor();
-
-                return true;
-            }
-            catch
-            {
-                // Fall back to normal console out.
-            }
-#endif
 
             return false;
         }

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using NuGet.Test.Helpers;

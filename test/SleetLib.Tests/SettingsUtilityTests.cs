@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using FluentAssertions;
+using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
 using Sleet;
 using Xunit;

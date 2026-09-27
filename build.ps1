@@ -10,69 +10,116 @@ param (
     [string]$AWSDefaultRegion
 )
 
-$RepoName = "Sleet"
+$ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
+
 $RepoRoot = $PSScriptRoot
-pushd $RepoRoot
+$ArtifactsDir = Join-Path $RepoRoot "artifacts"
+$DotnetDir = Join-Path $RepoRoot ".dotnet"
+$IsWindowsOS = $env:OS -eq "Windows_NT"
 
-# Load common build script helper methods
-. "$PSScriptRoot\build\common\common.ps1"
+Function Invoke-Exe {
+    param(
+        [string]$Exe,
+        [string[]]$Arguments
+    )
 
-# Set test account if available
-if ($StorageTestAccount)
-{
-  Write-Host "SLEET_TEST_ACCOUNT set"
-  $env:SLEET_TEST_ACCOUNT=$StorageTestAccount
+    Write-Host "[Exec] $Exe $Arguments" -ForegroundColor Cyan
+    & $Exe @Arguments
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Command failed with exit code $($LASTEXITCODE): $Exe $Arguments"
+    }
 }
 
-if ($UseDevStorage)
-{
-  Write-Host "SLEET_TEST_ACCOUNT set to dev storage"
-  $env:SLEET_TEST_ACCOUNT="UseDevelopmentStorage=true"
+# True if dotnet has the SDK from global.json and the runtimes used by the tests
+Function Test-Dotnet([string]$Dotnet) {
+    if (-not $Dotnet -or -not (Test-Path $Dotnet)) {
+        return $false
+    }
+
+    $ErrorActionPreference = "Continue"
+    & $Dotnet --version *> $null
+
+    if ($LASTEXITCODE -ne 0) {
+        return $false
+    }
+
+    $runtimes = (& $Dotnet --list-runtimes) -join "`n"
+    return $runtimes -match "(?m)^Microsoft\.NETCore\.App 8\." -and $runtimes -match "(?m)^Microsoft\.NETCore\.App 9\."
 }
 
-# Set AWS S3 storage test values
-if ($AWSAccessKeyId) {
-    Write-Host "Setting AWS_ACCESS_KEY_ID"
-    $env:AWS_ACCESS_KEY_ID=$AWSAccessKeyId
+# Install the SDK from global.json and the runtimes used by the tests to .dotnet
+Function Install-Dotnet {
+    New-Item -ItemType Directory -Force -Path $DotnetDir | Out-Null
+    $installScript = Join-Path $DotnetDir "dotnet-install.ps1"
+    Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile $installScript -UseBasicParsing
+
+    & $installScript -JsonFile (Join-Path $RepoRoot "global.json") -InstallDir $DotnetDir -NoPath
+    & $installScript -Runtime dotnet -Channel 8.0 -InstallDir $DotnetDir -NoPath
+    & $installScript -Runtime dotnet -Channel 9.0 -InstallDir $DotnetDir -NoPath
 }
 
-if ($AWSSecretAccessKey) {
-    Write-Host "Setting AWS_SECRET_ACCESS_KEY"
-    $env:AWS_SECRET_ACCESS_KEY=$AWSSecretAccessKey
+# Settings for the Azure and AWS S3 functional tests
+if ($StorageTestAccount) { $env:SLEET_TEST_ACCOUNT = $StorageTestAccount }
+if ($UseDevStorage) { $env:SLEET_TEST_ACCOUNT = "UseDevelopmentStorage=true" }
+if ($AWSAccessKeyId) { $env:AWS_ACCESS_KEY_ID = $AWSAccessKeyId }
+if ($AWSSecretAccessKey) { $env:AWS_SECRET_ACCESS_KEY = $AWSSecretAccessKey }
+if ($AWSDefaultRegion) { $env:AWS_DEFAULT_REGION = $AWSDefaultRegion }
+
+$originalPath = $env:PATH
+$originalDotnetRoot = $env:DOTNET_ROOT
+Push-Location $RepoRoot
+
+try {
+    $env:DOTNET_NOLOGO = "1"
+    $env:DOTNET_CLI_TELEMETRY_OPTOUT = "1"
+    $env:MSBUILDDISABLENODEREUSE = "1"
+
+    # Prefer dotnet on PATH, otherwise use the repo local .dotnet
+    $DotnetExe = (Get-Command dotnet -CommandType Application -TotalCount 1 -ErrorAction Ignore).Path
+
+    if (-not (Test-Dotnet $DotnetExe)) {
+        $DotnetExe = Join-Path $DotnetDir $(if ($IsWindowsOS) { "dotnet.exe" } else { "dotnet" })
+
+        if (-not (Test-Dotnet $DotnetExe)) {
+            Install-Dotnet
+        }
+
+        $env:DOTNET_ROOT = $DotnetDir
+        $env:PATH = "$DotnetDir$([IO.Path]::PathSeparator)$env:PATH"
+    }
+
+    Invoke-Exe $DotnetExe @("--info")
+
+    if (Test-Path $ArtifactsDir) {
+        Remove-Item $ArtifactsDir -Force -Recurse
+    }
+
+    Invoke-Exe $DotnetExe @("msbuild", "build/version.proj", "-nologo", "-v:m")
+    Invoke-Exe $DotnetExe @("build", "Sleet.slnx", "-c", $Configuration)
+
+    if ($IsWindowsOS) {
+        # Sleet.exe for the SleetExe package and the CmdExe tests
+        Invoke-Exe $DotnetExe @("publish", "src/Sleet/Sleet.csproj", "-c", $Configuration, "-f", "net10.0", "-p:PublishSingleFile=true", "-o", (Join-Path $ArtifactsDir "publish"))
+    }
+
+    if (-not $SkipPack) {
+        Invoke-Exe $DotnetExe @("pack", "Sleet.slnx", "-c", $Configuration, "--no-build")
+
+        if ($IsWindowsOS) {
+            Invoke-Exe $DotnetExe @("pack", "src/Sleet/Sleet.csproj", "-c", $Configuration, "--no-build", "-p:PackageId=SleetExe")
+        }
+    }
+
+    if (-not $SkipTests) {
+        Invoke-Exe $DotnetExe @("test", "--solution", "Sleet.slnx", "-c", $Configuration, "--no-build", "--results-directory", (Join-Path $ArtifactsDir "TestResults"), "--report-trx", "--hangdump", "--hangdump-timeout", "20m", "--hangdump-type", "Mini")
+    }
+}
+finally {
+    Pop-Location
+    $env:PATH = $originalPath
+    $env:DOTNET_ROOT = $originalDotnetRoot
 }
 
-if ($AWSDefaultRegion) {
-    Write-Host "Setting AWS_DEFAULT_REGION"
-    $env:AWS_DEFAULT_REGION=$AWSDefaultRegion
-}
-
-# Download tools
-Install-CommonBuildTools $RepoRoot
-
-# Clean and write git info
-Remove-Artifacts $RepoRoot
-Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Clean;WriteGitInfo", "/p:Configuration=$Configuration")
-
-# Restore
-Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Restore", "/p:Configuration=$Configuration")
-
-# Run build.proj
-Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Build", "/p:Configuration=$Configuration")
-
-# Build Exe
-Invoke-DotnetExe $RepoRoot ("publish", "--force", "-r", "win-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=false", "--self-contained", "true", "-f", "net10.0", "-o", (Join-Path $RepoRoot "artifacts\publish"), (Join-Path $RepoRoot "\src\Sleet\Sleet.csproj"))
-
-# Pack
-if (-not $SkipPack)
-{
-    Invoke-DotnetMSBuild $RepoRoot ("build\build.proj", "/t:Pack", "/p:Configuration=$Configuration")
-}
-
-# Test
-if (-not $SkipTests)
-{
-    Invoke-DotnetExe $RepoRoot ("test", "Sleet.sln")
-}
-
-popd
 Write-Host "Success!"

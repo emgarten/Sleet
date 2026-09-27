@@ -10,7 +10,7 @@ using NuGet.Test.Helpers;
 
 namespace Sleet.AmazonS3.Tests
 {
-    public class AmazonS3TestContext : IDisposable
+    public class AmazonS3TestContext : IAsyncDisposable
     {
         public const string EnvAccessKeyId = "AWS_ACCESS_KEY_ID";
         public const string EnvSecretAccessKey = "AWS_SECRET_ACCESS_KEY";
@@ -79,13 +79,14 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
+            GC.SuppressFinalize(this);
             LocalCache.Dispose();
 
             if (!cleanupDone)
             {
-                CleanupAsync().Wait();
+                await CleanupAsync();
             }
         }
 

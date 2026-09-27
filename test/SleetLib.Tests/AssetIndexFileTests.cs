@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using Sleet;
+using Sleet.Test.Common;
 using Xunit;
 
 namespace SleetLib.Tests

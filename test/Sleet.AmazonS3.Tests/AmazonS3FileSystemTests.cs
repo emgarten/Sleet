@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
 
@@ -14,7 +14,7 @@ namespace Sleet.AmazonS3.Tests
         [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
         public async Task GivenAS3AccountVerifyBucketOperations()
         {
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 testContext.CreateBucketOnInit = false;
                 await testContext.InitAsync();

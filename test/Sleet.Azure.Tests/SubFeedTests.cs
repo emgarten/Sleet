@@ -1,5 +1,5 @@
 using Azure.Storage.Blobs;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
 
@@ -11,8 +11,8 @@ namespace Sleet.Azure.Tests
         public async Task SubFeed_InitMultipleFeedsVerifyDestroyDoesNotModifyOthers()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
-            using (var testContext2 = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
+            await using (var testContext2 = new AzureTestContext())
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeedA";
@@ -64,7 +64,7 @@ namespace Sleet.Azure.Tests
         public async Task SubFeed_PushAndVerifyNoFilesInRoot()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeed";
@@ -109,8 +109,8 @@ namespace Sleet.Azure.Tests
         public async Task SubFeed_PushAndVerifyWithNestedFeedsVerifySuccess()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
-            using (var testContext2 = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
+            await using (var testContext2 = new AzureTestContext())
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeed";

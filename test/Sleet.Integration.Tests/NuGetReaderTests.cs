@@ -59,7 +59,7 @@ namespace Sleet.Integration.Test
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
-                var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
+                var resource = await localSource.GetResourceAsync<PackageMetadataResource>(TestContext.Current.CancellationToken);
                 var packages = (await resource.GetMetadataAsync("packageA", true, true, sourceCacheContext, log, CancellationToken.None)).ToList();
 
                 // Assert
@@ -107,7 +107,7 @@ namespace Sleet.Integration.Test
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
-                var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
+                var resource = await localSource.GetResourceAsync<PackageMetadataResource>(TestContext.Current.CancellationToken);
                 var packages = (await resource.GetMetadataAsync("packageA", true, true, sourceCacheContext, log, CancellationToken.None)).ToList();
 
                 // Assert
@@ -151,7 +151,7 @@ namespace Sleet.Integration.Test
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
-                var resource = await localSource.GetResourceAsync<MetadataResource>();
+                var resource = await localSource.GetResourceAsync<MetadataResource>(TestContext.Current.CancellationToken);
                 var latest = await resource.GetLatestVersion("packageA", true, true, sourceCacheContext, log, CancellationToken.None);
 
                 // Assert
@@ -194,7 +194,7 @@ namespace Sleet.Integration.Test
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
-                var resource = await localSource.GetResourceAsync<FindPackageByIdResource>();
+                var resource = await localSource.GetResourceAsync<FindPackageByIdResource>(TestContext.Current.CancellationToken);
 
                 var cacheContext = new SourceCacheContext()
                 {
@@ -244,7 +244,7 @@ namespace Sleet.Integration.Test
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
-                var resource = await localSource.GetResourceAsync<DownloadResource>();
+                var resource = await localSource.GetResourceAsync<DownloadResource>(TestContext.Current.CancellationToken);
 
                 var cacheContext = new SourceCacheContext()
                 {
@@ -300,7 +300,7 @@ namespace Sleet.Integration.Test
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
-                var resource = await localSource.GetResourceAsync<AutoCompleteResource>();
+                var resource = await localSource.GetResourceAsync<AutoCompleteResource>(TestContext.Current.CancellationToken);
                 var ids = await resource.IdStartsWith("p", true, log, CancellationToken.None);
                 var versions = await resource.VersionStartsWith("packageA", "1", true, sourceCacheContext, log, CancellationToken.None);
 
@@ -403,7 +403,7 @@ namespace Sleet.Integration.Test
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
-                var resource = await localSource.GetResourceAsync<PackageMetadataResource>();
+                var resource = await localSource.GetResourceAsync<PackageMetadataResource>(TestContext.Current.CancellationToken);
                 var results = await resource.GetMetadataAsync("packageA", true, true, sourceCacheContext, log, CancellationToken.None);
                 var resultArray = results.OrderBy(e => e.Identity.Version).ToArray();
 
@@ -535,7 +535,7 @@ namespace Sleet.Integration.Test
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
-                var resource = await localSource.GetResourceAsync<PackageSearchResource>();
+                var resource = await localSource.GetResourceAsync<PackageSearchResource>(TestContext.Current.CancellationToken);
                 var results = await resource.SearchAsync(string.Empty, new SearchFilter(includePrerelease: true), 0, 10, log, CancellationToken.None);
                 var result = results.Single();
 
@@ -611,7 +611,7 @@ namespace Sleet.Integration.Test
                 var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
                 var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
 
-                var dependencyInfoResource = await localSource.GetResourceAsync<DependencyInfoResource>();
+                var dependencyInfoResource = await localSource.GetResourceAsync<DependencyInfoResource>(TestContext.Current.CancellationToken);
 
                 var dependencyPackagesNet46 = await dependencyInfoResource.ResolvePackages("packageA", NuGetFramework.Parse("net46"), sourceCacheContext, log, CancellationToken.None);
                 var dependencyPackageNet46 = dependencyPackagesNet46.Single();

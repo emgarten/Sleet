@@ -1,18 +1,14 @@
-<Project ToolsVersion="15.0">
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\test.props" />
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\test.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <TestProject>true</TestProject>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
-    <PackageReference Include="DotNetConfig" Version="$(DotNetConfigVersion)" />
+    <PackageReference Include="DotNetConfig" />
+    <PackageReference Include="NuGet.Test.Helpers" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +16,5 @@
     <ProjectReference Include="..\Sleet.Test.Common\Sleet.Test.Common.csproj" />
   </ItemGroup>
 
-  <Import Project="$(BuildCommonDirectory)\common.targets" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

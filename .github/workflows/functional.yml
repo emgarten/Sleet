@@ -12,20 +12,25 @@ on:
       - 'doc/**'
       - '*.md'
 
+permissions:
+  contents: read
+
 jobs:
   build-linux:
 
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-tags: true
         fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: Build
       run: ./build.sh
       shell: bash
@@ -35,19 +40,29 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_DEFAULT_REGION: us-east-1
         CIBUILD: true
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: functional-test-results-linux
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7
   build-mac:
 
     runs-on: macos-latest
+    timeout-minutes: 60
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-tags: true
         fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: Build
       run: ./build.sh
       shell: bash
@@ -57,19 +72,29 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_DEFAULT_REGION: us-east-1
         CIBUILD: true
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: functional-test-results-mac
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7
   build-win:
 
     runs-on: windows-latest
+    timeout-minutes: 60
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-tags: true
         fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: Build
       run: ./build.ps1
       shell: pwsh
@@ -79,3 +104,11 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_DEFAULT_REGION: us-east-1
         CIBUILD: true
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: functional-test-results-win
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7
