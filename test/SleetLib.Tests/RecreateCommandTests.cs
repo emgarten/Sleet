@@ -211,5 +211,107 @@ namespace SleetLib.Tests
                 log.GetMessages().Should().Contain("Feed recreation complete.");
             }
         }
+
+        [Fact]
+        public async Task GivenDestroyFailsVerifyRecreateReturnsFalseAndKeepsDownloadedNupkgs()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                await InitCommand.RunAsync(settings, fileSystem, log);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+
+                var faultingFileSystem = new FaultInjectingFileSystem(new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root)))
+                {
+                    DestroyAsync = (logger, token) => Task.FromResult(false)
+                };
+
+                var success = await RecreateCommand.RunAsync(settings, faultingFileSystem, outputFolder.Root, false, log);
+
+                success.Should().BeFalse();
+                Directory.Exists(outputFolder.Root).Should().BeFalse();
+                log.GetMessages().Should().Contain("Unable to completely remove the old feed before recreating. Use --force to skip this check.");
+            }
+        }
+
+        [Fact]
+        public async Task GivenInitFailsVerifyRecreateReturnsFalseAndKeepsDownloadedNupkgs()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                await InitCommand.RunAsync(settings, fileSystem, log);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+
+                var inner = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var faultingFileSystem = new FaultInjectingFileSystem(inner)
+                {
+                    CommitAsync = async (count, logger, token) =>
+                    {
+                        var result = await inner.Commit(logger, token);
+                        return count != 2 && result;
+                    }
+                };
+
+                var success = await RecreateCommand.RunAsync(settings, faultingFileSystem, outputFolder.Root, false, log);
+
+                success.Should().BeFalse();
+                Directory.GetFiles(outputFolder.Root, "*.nupkg", SearchOption.AllDirectories).Select(Path.GetFileName).Should().Contain("a.1.0.0.nupkg");
+                log.GetMessages().Should().Contain("Unable to initialize the new feed. The feed is currently broken and must be repaired manually.");
+                log.GetMessages().Should().Contain($"Nupkgs have been saved to: {outputFolder.Root}");
+            }
+        }
+
+        [Fact]
+        public async Task GivenValidateFailsVerifyRecreateReturnsFalseAndKeepsDownloadedNupkgs()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                await InitCommand.RunAsync(settings, fileSystem, log);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+
+                var inner = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var faultingFileSystem = new FaultInjectingFileSystem(inner)
+                {
+                    AfterCommit = count =>
+                    {
+                        if (count == 3)
+                        {
+                            File.Delete(Path.Combine(target.Root, "autocomplete", "query"));
+                            inner.Reset();
+                        }
+                    }
+                };
+
+                var success = await RecreateCommand.RunAsync(settings, faultingFileSystem, outputFolder.Root, false, log);
+
+                success.Should().BeFalse();
+                Directory.GetFiles(outputFolder.Root, "*.nupkg", SearchOption.AllDirectories).Select(Path.GetFileName).Should().Contain("a.1.0.0.nupkg");
+                log.GetMessages().Should().Contain("Something went wrong when recreating the feed. Feed validation has failed.");
+                log.GetMessages().Should().Contain($"Nupkgs have been saved to: {outputFolder.Root}");
+            }
+        }
     }
 }
