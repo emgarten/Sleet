@@ -29,10 +29,14 @@ namespace Sleet
 
             try
             {
-                if (File.Exists(LockFile))
+                if (File.Exists(LockPath))
                 {
-                    // Read message from existing lock file
-                    json = await JsonUtility.LoadJsonAsync(LockPath);
+                    // Read message from existing lock file.
+                    // Open the file directly since the lock holder may remove it at any time.
+                    using (var stream = File.OpenRead(LockPath))
+                    {
+                        json = await JsonUtility.LoadJsonAsync(stream);
+                    }
                 }
                 else
                 {
