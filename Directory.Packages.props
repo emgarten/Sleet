@@ -11,7 +11,7 @@
     <PackageVersion Include="Azure.Identity" Version="1.18.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.27.0" />
     <PackageVersion Include="DotNetConfig" Version="1.2.0" />
-    <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="5.0.1" />
+    <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="5.1.0" />
     <PackageVersion Include="Microsoft.DiaSymReader.PortablePdb" Version="1.6.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="NuGet.Packaging" Version="7.6.0" />
