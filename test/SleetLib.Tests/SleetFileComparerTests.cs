@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
@@ -44,6 +46,41 @@ namespace SleetLib.Tests
 
             comparer.Compare(a, b).Should().BeNegative();
             comparer.Compare(a, upper).Should().Be(0);
+        }
+
+        [Fact]
+        public void Compare_OrdersFilesByUploadPriority()
+        {
+            var files = new List<ISleetFile>()
+            {
+                new PureSleetFile("https://example/search/query"),
+                new PureSleetFile("https://example/registration/a/index.json"),
+                new PureSleetFile("https://example/catalog/data/a.json"),
+                new PureSleetFile("https://example/flatcontainer/a/1.0.0/a.nuspec"),
+                new PureSleetFile("https://example/flatcontainer/a/1.0.0/a.1.0.0.nupkg")
+            };
+
+            files.Sort(new SleetFileComparer());
+
+            files.Select(e => e.EntityUri.AbsoluteUri).Should().Equal(
+                "https://example/flatcontainer/a/1.0.0/a.1.0.0.nupkg",
+                "https://example/flatcontainer/a/1.0.0/a.nuspec",
+                "https://example/catalog/data/a.json",
+                "https://example/registration/a/index.json",
+                "https://example/search/query");
+        }
+
+        [Theory]
+        [InlineData("https://example/flatcontainer/a/1.0.0/A.1.0.0.NUPKG")]
+        [InlineData("https://example/flatcontainer/a/1.0.0/A.NUSPEC")]
+        public void Compare_WithUpperCaseExtension_OrdersPackageFilesBeforeMiscFiles(string packageFileUri)
+        {
+            var packageFile = new PureSleetFile(packageFileUri);
+            var misc = new PureSleetFile("https://example/catalog/data/a.json");
+            var comparer = new SleetFileComparer();
+
+            comparer.Compare(packageFile, misc).Should().BeNegative();
+            comparer.Compare(misc, packageFile).Should().BePositive();
         }
 
         private sealed class PureSleetFile : ISleetFile

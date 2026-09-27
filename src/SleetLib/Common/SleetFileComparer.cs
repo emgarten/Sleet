@@ -65,9 +65,9 @@ namespace Sleet
                     var extension = Path.GetExtension(fileName).ToLowerInvariant();
                     switch (extension)
                     {
-                        case "nupkg":
+                        case ".nupkg":
                             return 1;
-                        case "nuspec":
+                        case ".nuspec":
                             return 2;
                     }
                 }
