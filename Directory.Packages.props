@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Analyzers">
-    <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="5.0.0" />
     <PackageVersion Include="ToStringWithoutOverrideAnalyzer" Version="0.6.0" />
   </ItemGroup>
 
