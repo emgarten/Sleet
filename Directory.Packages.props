@@ -8,8 +8,8 @@
     <PackageVersion Include="AWSSDK.SecurityToken" Version="4.0.101" />
     <PackageVersion Include="AWSSDK.SSO" Version="4.0.100.16" />
     <PackageVersion Include="AWSSDK.SSOOIDC" Version="4.0.100.15" />
-    <PackageVersion Include="Azure.Identity" Version="1.18.0" />
-    <PackageVersion Include="Azure.Storage.Blobs" Version="12.27.0" />
+    <PackageVersion Include="Azure.Identity" Version="1.21.0" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.2" />
     <PackageVersion Include="DotNetConfig" Version="1.2.0" />
     <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="5.1.0" />
     <PackageVersion Include="Microsoft.DiaSymReader.PortablePdb" Version="1.6.0" />
