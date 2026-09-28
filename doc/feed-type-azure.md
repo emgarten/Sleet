@@ -1,16 +1,39 @@
-# Creating an azure feed
+# Create an Azure feed
 
-This guide is used to setup a new feed hosted on azure storage.
+This quick start creates a public NuGet v3 feed in an Azure Blob Storage container. Sleet signs in with Microsoft Entra ID, which is the recommended way to give it access to your storage account.
 
-## Creating a config for azure feed
+## Prerequisites
 
-Create a `sleet.json` config file to define a new package feed hosted on azure storage.
+- An Azure storage account. The examples use an account named `myaccount` and a container named `feed`.
+- Sleet installed. See [Install Sleet](install.md).
+- An Entra ID identity with the **Storage Blob Data Contributor** role on the storage account. For your own user account, sign in with the Azure CLI (`az login`). See [Azure authentication](auth-azure.md) for role assignment, service principals, and managed identities.
 
-``sleet createconfig --azure``
+## Allow anonymous read access
 
-Edit `sleet.json` using your editor of choice to set the url of your storage account and the connection string.
+NuGet reads the feed anonymously, so the container must allow anonymous reads. Storage accounts created since November 2023 don't allow anonymous access by default.
 
-``notepad sleet.json``
+To allow it in the Azure portal, open the storage account, go to **Settings** > **Configuration**, and set **Allow Blob anonymous access** to **Enabled**. With the Azure CLI:
+
+```bash
+az storage account update --name myaccount --resource-group my-resource-group --allow-blob-public-access true
+```
+
+If you skip this step, the first push fails with a `PublicAccessNotPermitted` error when Sleet tries to create the container.
+
+> [!NOTE]
+> Anonymous access on the account doesn't make any data public by itself. Each container also has an access level, and only containers set to allow anonymous access can be read without credentials. To keep the feed private instead, see [private feeds](private-feeds.md).
+
+## Create the config file
+
+Create a starter `sleet.json` file:
+
+```bash
+sleet createconfig --azure
+```
+
+The template uses a connection string. Replace the source with one that uses `path`, and delete the `connectionString` property:
+
+sleet.json:
 
 ```json
 {
@@ -19,33 +42,76 @@ Edit `sleet.json` using your editor of choice to set the url of your storage acc
       "name": "feed",
       "type": "azure",
       "container": "feed",
-      "connectionString": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint="
+      "path": "https://myaccount.blob.core.windows.net/feed/"
     }
   ]
 }
 ```
 
-For `.netconfig`, just create or edit the file directly in the [desired location](https://dotnetconfig.org/#what):
+.netconfig:
 
-```gitconfig
+```ini
 [sleet "feed"]
     type = azure
     container = feed
-    connectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint="
+    path = https://myaccount.blob.core.windows.net/feed/
 ```
 
-## Using Microsoft Entra ID
+| Property | Use |
+| --- | --- |
+| `container` | The container that stores the feed. |
+| `path` | The container URL. Sleet uses it to find the storage account and to sign in with Entra ID. It must start with the URL of the container. |
+| `baseURI` | Optional URL written into the feed files, such as a CDN URL. See [CDN and caching](cdn-caching.md). |
 
-Alternatively you can use Entra ID to provide a service principal or managed identity to access the storage account.
+When `path` is set and `connectionString` isn't, Sleet signs in with Entra ID. If a `connectionString` property is present, even with the empty template value, Sleet uses it instead and fails with an error such as `Invalid connectionString for azure account.` For all properties, see [Azure properties](client-settings.md#azure-properties).
 
-For the list of environment variables that can be used see:
-https://learn.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet
+## Push packages
 
-`path` must be set to the full uri of the feed including the container name. This gives sleet context on which account and container to use the Entra ID with.
+Sign in, then push a package or a folder of packages:
 
-Sleet will pick up the environment variables using the Microsoft Identity package and use to authenticate with the storage account.
+```bash
+az login
+sleet push ./nupkgs
+```
 
-### sleet.json
+On the first push, Sleet does the following:
+
+- Creates the container if it doesn't exist, with the access level **Container**, which allows anonymous reads and blob listing.
+- Initializes the feed with the default [feed settings](feed-settings.md).
+
+If the container already exists, Sleet doesn't change its access level. Create the container yourself when you want a different level. **Blob** is enough for NuGet, and it doesn't allow anonymous listing.
+
+To turn on the catalog or the [symbol server](symbol-server.md) from the start, run [init](commands.md#init) before the first push:
+
+```bash
+sleet init --with-symbols
+```
+
+## Use the feed
+
+The package source URL is the container URL plus `index.json`:
+
+```text
+https://myaccount.blob.core.windows.net/feed/index.json
+```
+
+Check that it works. Sleet stores JSON files compressed, so tell curl to decompress:
+
+```bash
+curl --compressed https://myaccount.blob.core.windows.net/feed/index.json
+```
+
+Then add the source to NuGet. See [Use a feed with NuGet](consume-feed.md).
+
+```bash
+dotnet nuget add source https://myaccount.blob.core.windows.net/feed/index.json --name sleet
+```
+
+## Use a connection string
+
+Sleet also accepts a storage account connection string with an account key. This is simpler to set up, but the key gives full access to the whole storage account, so prefer Entra ID. Sleet logs a warning about it when you run with `--verbosity detailed`.
+
+Keep the key out of the file with a [token](client-settings.md#tokens). This example reads the value from the `AZURE_STORAGE_CONNECTION_STRING` environment variable:
 
 ```json
 {
@@ -54,39 +120,19 @@ Sleet will pick up the environment variables using the Microsoft Identity packag
       "name": "feed",
       "type": "azure",
       "container": "feed",
-      "path": "https://<your feed>.blob.core.windows.net/feed/"
+      "connectionString": "$AZURE_STORAGE_CONNECTION_STRING$"
     }
   ]
 }
 ```
 
-### .netconfig
+See [connection strings](auth-azure.md#connection-strings) for details.
 
-```gitconfig
-[sleet "feed"]
-    type = azure
-    container = feed
-    path = "https://<your feed>.blob.core.windows.net/feed/"
-```
+## Next steps
 
-
-## Adding packages
-
-Add packages to the feed with the push command, this can be used with either a path to a single nupkg or a folder of nupkgs.
-
-``sleet push d:\nupkgsToPush``
-
-## Initializing the feed
-
-For a new feed the first push will do the following:
-
-* Create the container and set access to public read
-* Initialize the feed with the default settings
-
-If the container already exists the access will *not* be modified. Private feeds should set up the container before pushing for the first time.
-
-To create a feed with custom feed settings, such as with a catalog or symbols feed, use the `init` first.
-
-## Using the feed
-
-Add the feed as a source to your `NuGet.Config` file. In the example above the package source URL is ``https://yourStorageAccount.blob.core.windows.net/feed/index.json``
+- [Azure authentication](auth-azure.md)
+- [Publish from CI](ci-server.md)
+- [Private feeds](private-feeds.md)
+- [CDN and caching](cdn-caching.md)
+- [Multiple feeds](multiple-feeds.md)
+- [Azure properties](client-settings.md#azure-properties)

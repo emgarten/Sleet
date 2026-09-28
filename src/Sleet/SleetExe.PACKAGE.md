@@ -24,6 +24,7 @@ Download the package from NuGet.org and extract *tools/Sleet.exe*.
 
 ## Documentation
 
+* [Documentation site](https://emgarten.github.io/Sleet/)
 * [Commands](https://github.com/emgarten/Sleet/blob/main/doc/commands.md)
 * [Release notes](https://github.com/emgarten/Sleet/blob/main/ReleaseNotes.md)
 
