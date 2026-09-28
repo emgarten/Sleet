@@ -1,45 +1,196 @@
-# Sleet client settings
+# Configuration
 
-# sleet.json
+Sleet reads feed settings from a `sleet.json` file, a `.netconfig` file, or [environment variables](environment-variables.md). This page lists every setting and explains how Sleet finds them.
 
-The standard way of setting up feeds is with a *sleet.json* file.
+## sleet.json
 
-To get started use the *createconfig* command to generate a sample *sleet.json* file.
+Create a starter file in the current folder with `createconfig`:
 
-```
+```bash
 sleet createconfig --azure
 ```
 
-The example file contains a set of sources. If only feed exists in the file sleet will automatically use it. Once there two or more sources the ``--source`` parameter will be required to select the correct source.
+Use `--s3`, `--local`, or `--none` for other templates. `createconfig` fails if `sleet.json` already exists.
 
+A `sleet.json` file has a list of sources, plus optional global and proxy settings:
+
+```json
+{
+  "config": {
+    "feedLockTimeoutMinutes": 10
+  },
+  "proxy": {
+    "useDefaultCredentials": false
+  },
+  "sources": [
+    {
+      "name": "feed",
+      "type": "azure",
+      "container": "feed",
+      "path": "https://myaccount.blob.core.windows.net/feed/"
+    }
+  ]
+}
+```
+
+Files made by `createconfig` also have `username` and `useremail` properties. Sleet doesn't use them, so you can remove them.
+
+Property names aren't case-sensitive.
+
+## .netconfig
+
+Sleet can also read settings from a [.netconfig](https://github.com/dotnetconfig/dotnet-config) file. It uses the same format as git config files, and several .NET tools can share one file. Each `[sleet "name"]` section is a source, and the name in quotes is the source name:
+
+```ini
+[sleet]
+    feedLockTimeoutMinutes = 10
+
+[sleet "feed"]
+    type = azure
+    container = feed
+    path = https://myaccount.blob.core.windows.net/feed/
+```
+
+The `[sleet]` section holds the [global settings](#global-settings) and the [proxy setting](#proxy-settings). The source properties are the same as in `sleet.json`.
+
+The format has a few rules to watch for:
+
+- `;` and `#` start a comment. Put values that contain them, such as connection strings, in double quotes.
+- `\` starts an escape sequence. Write Windows paths with `/` or `\\`, for example `C:/feeds/main` or `C:\\feeds\\main`.
+- A property with no value means `true`. Otherwise, write `true` or `false`.
+- Use an absolute `path` for local feeds. A relative path starts from the current folder, not from the folder that holds `.netconfig`.
+
+### Where Sleet looks for .netconfig
+
+Sleet reads every `.netconfig` file it finds, in this order:
+
+1. `.netconfig.user` and `.netconfig` in the current folder, then in each parent folder.
+2. `.netconfig` in your user profile folder.
+3. `.netconfig` in the system folder.
+
+This lets you define a feed once in your user profile and use it from any folder.
+
+You can't set the same property of the same source in two files. If you do, Sleet fails with `Can not add property ... Property with the same name already exists on object.` You can split one source across files, though. For example, keep the source in `.netconfig` in source control, and put its secret in `.netconfig.user`, which most `.gitignore` files already exclude:
+
+```ini
 # .netconfig
+[sleet "feed"]
+    type = azure
+    container = feed
+```
 
-Additionally, Sleet supports configuration via [.netconfig](https://dotnetconfig.org) which provides a uniform way of configuring multiple tools with a single file and format. In addition, using `.netconfig` brings support for hierarchical configurations (i.e. reuse source configurations across the entire machine, with a single `.netconfig` in your user profile root directory).
+```ini
+# .netconfig.user
+[sleet "feed"]
+    connectionString = "DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=...;EndpointSuffix=core.windows.net"
+```
 
-## Source properties
+## Common source properties
+
+Every source has these properties:
 
 | Property | Description |
-| --- | ------ |
-| name | Feed name used for ``--source`` *[Required]* |
-| type | Feed type *[Required]*  |
-| baseURI | Specify a URI to write to the feed json files instead of the container's URI. Useful if serving up the content from a different endpoint. |
+| --- | --- |
+| `name` | Required. The name you pass to `--source`. In `.netconfig`, the name comes from the section header. |
+| `type` | Required. `azure`, `s3`, or `local`. |
+| `path` | Where Sleet writes the feed. For Azure and S3, this is the URL of the container, bucket, or sub folder. For local feeds, it's a folder path. |
+| `baseURI` | Optional. The URL that Sleet writes into the feed files, and that NuGet uses to read them. Set it when clients read the feed from a different URL than `path`, such as a CDN, proxy, or web server. Defaults to `path`. |
+| `feedSubPath` | Optional. Azure and S3 only. Puts the feed in a sub folder. See [multiple feeds](multiple-feeds.md). |
 
+Set `baseURI` before the first push. Sleet writes it into every feed file, and changing it later needs a rebuild. See [change baseURI or path in place](backup-migration.md#change-baseuri-or-path-in-place).
 
-## Azure specific properties
+## Azure properties
 
-By default, the sleet will use the credentials types specified by [DefaultAzureCredential](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential?view=azure-dotnet).
-If you need to use a service principal credential type, set the `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, and `AZURE_CLIENT_CERTIFICATE_PATH` environment variables for the [EnvironmentalCredential](https://learn.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet).
-More options can be found in the [Azure.Identity README](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/README.md#environment-variables).
+| Property | Description |
+| --- | --- |
+| `container` | Required. The blob container name. |
+| `path` | The container URL, for example `https://myaccount.blob.core.windows.net/feed/`. It must start with the container URL. Add a folder to the end to put the feed in a sub folder. When you set `path` without `connectionString`, Sleet signs in with Microsoft Entra ID. |
+| `connectionString` | A storage account connection string. Sleet uses it instead of Entra ID. Without `path`, Sleet uses the container URL from the connection string. |
+| `feedSubPath` | A sub folder for the feed. A sub folder in `path` takes precedence. |
+| `immutableCacheControl` | See [cache-control properties](#cache-control-properties). |
+| `mutableCacheControl` | See [cache-control properties](#cache-control-properties). |
 
+Set `path`, `connectionString`, or both. See [Azure authentication](auth-azure.md) for the sign-in options.
 
-| Property | Description                                                                                                                                                                               |
-| --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| container | Name of an existing container in the storage account. *[Required]*                                                                                                                        |
-| connectionString | Azure storage connection string. Note, either connectionString or path *must* be specified. *[Discouraged]*                                                                               |
-| path | Full URI of the azure storage container. If specified this value will be verified against the container's URI. Note, either connectionString or path *must* be specified. *[Encouraged]*. |
-| feedSubPath | Provides a sub directory path within the container where the feed should be added. This allows for multiple feeds within a single container.                                              |
+```json
+{
+  "name": "feed",
+  "type": "azure",
+  "container": "feed",
+  "path": "https://myaccount.blob.core.windows.net/feed/"
+}
+```
 
-`sleet.json`:
+## Amazon S3 properties
+
+| Property | Description |
+| --- | --- |
+| `bucketName` | Required. The bucket name. |
+| `region` | The AWS Region of the bucket, such as `us-west-2`. Set `region`, `serviceURL`, or both. With `serviceURL`, Sleet only uses `region` to sign requests. |
+| `serviceURL` | The S3 API endpoint, for S3-compatible storage. Required when `provider` is `r2` or `minio`. See [S3-compatible storage](s3-compatible.md). |
+| `provider` | The service that hosts the bucket: `aws`, `r2` for [Cloudflare R2](feed-type-cloudflare.md), or `minio` for MinIO. The default is `aws`. It sets the defaults of `disablePayloadSigning`, `forcePathStyle`, and `checksumMode`. See [provider settings](s3-compatible.md#provider-settings). |
+| `path` | The bucket URL that clients use, such as `https://my-bucket-feed.s3.us-west-2.amazonaws.com/`. Always set it. Without it, Sleet builds a path-style URL from `region`, or from `serviceURL` and `bucketName`. For Cloudflare R2, set `baseURI` to the public URL instead. |
+| `feedSubPath` | A sub folder for the feed. When you set it, `path` must end with the same folder. See [multiple feeds](multiple-feeds.md). |
+| `profileName` | A profile in your AWS credentials or config file. |
+| `accessKeyId` | An access key ID. Use it with `secretAccessKey`. |
+| `secretAccessKey` | The secret for `accessKeyId`. |
+| `serverSideEncryptionMethod` | `None` or `AES256`. The default is `None`, which uses the bucket's default encryption. |
+| `compress` | `true` or `false`. When `true`, Sleet gzips JSON files. The default is `true`. See [compression](how-it-works.md#compression). |
+| `acl` | A canned ACL, such as `public-read`, for each uploaded file. By default, Sleet doesn't set one. When Sleet creates the bucket, it also sets this ACL on the bucket. Buckets with ACLs turned off, which is the default for buckets you create yourself, reject uploads that set an ACL. |
+| `disablePayloadSigning` | `true` or `false`. Set it to `true` for S3-compatible storage that doesn't support payload signing. The default is `false`, or `true` when `provider` is `r2`. |
+| `forcePathStyle` | `true` or `false`. When `true`, Sleet uses path-style URLs such as `https://s3.example.com/my-bucket-feed/` instead of virtual-hosted-style URLs such as `https://my-bucket-feed.s3.example.com/`. The default is `false`, or `true` when `provider` is `minio`. |
+| `checksumMode` | `whenSupported` or `whenRequired`. Controls when the AWS SDK adds checksums to requests. Use `whenRequired` for S3-compatible storage that rejects them. The default is `whenSupported`, or `whenRequired` when `provider` is `r2`. |
+| `immutableCacheControl` | See [cache-control properties](#cache-control-properties). |
+| `mutableCacheControl` | See [cache-control properties](#cache-control-properties). |
+
+If you don't set `profileName` or the access keys, Sleet uses the AWS environment variables, then the container credentials, then the default AWS credential chain. See [AWS authentication](auth-aws.md).
+
+```json
+{
+  "name": "feed",
+  "type": "s3",
+  "bucketName": "my-bucket-feed",
+  "region": "us-west-2",
+  "path": "https://my-bucket-feed.s3.us-west-2.amazonaws.com/",
+  "profileName": "sleetProfile"
+}
+```
+
+## Local folder properties
+
+| Property | Description |
+| --- | --- |
+| `path` | Required. The feed folder. A relative path starts from the folder that holds `sleet.json`. |
+| `baseURI` | The URL of the web server that serves the folder. Without it, the feed only works as a file path. |
+
+Local feeds don't support `feedSubPath` or the cache-control properties.
+
+```json
+{
+  "name": "feed",
+  "type": "local",
+  "path": "C:\\feeds\\main",
+  "baseURI": "https://packages.example.com/"
+}
+```
+
+You can't use a relative `path` with [environment variables](environment-variables.md). Sleet fails with `Cannot use a relative 'path' without a sleet.json file.`
+
+## Cache-control properties
+
+Azure and S3 sources can set the `Cache-Control` header that Sleet uses for each file it uploads:
+
+| Property | Description |
+| --- | --- |
+| `immutableCacheControl` | For files that don't change after they're pushed, such as `.nupkg` and `.nuspec` files. The default is `no-store`. |
+| `mutableCacheControl` | For files that change, such as `index.json` and the package lists. The default is `no-store`. |
+
+Sleet only sets the header when it uploads a file. See [CDN and caching](cdn-caching.md) for the files in each group and the values to use.
+
+## Tokens
+
+Any string value in `sleet.json` or `.netconfig` can use `$NAME$` tokens. Sleet replaces each token with a [command line property](environment-variables.md#command-line-properties) passed with `-p NAME=value`, or else with the environment variable `NAME`. Use tokens to keep secrets out of the file:
+
 ```json
 {
   "sources": [
@@ -47,285 +198,78 @@ More options can be found in the [Azure.Identity README](https://github.com/Azur
       "name": "feed",
       "type": "azure",
       "container": "feed",
-      "path": "https://yourStorageAccount.blob.core.windows.net/feed"
+      "connectionString": "$SLEET_CONNECTION_STRING$"
     }
   ]
 }
 ```
 
-`.netconfig`:
-
-```gitconfig
-[sleet "feed"]
-    type = azure
-    container = feed
-    path = https://yourStorageAccount.blob.core.windows.net/feed/
+```bash
+sleet push ./nupkgs -p "SLEET_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=...;EndpointSuffix=core.windows.net"
 ```
 
-## Amazon s3 specific properties
+How tokens work:
 
-| Property                   | Description                                                                                                                                                                                                                                                                                                                  |
-|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| profileName                | AWS [credentials file](https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file) profile name. *[Cannot be used with accessKeyId or secretAccessKey]*                                                                                                                                  |
-| accessKeyId                | Access key id *[Cannot be used with profileName]*                                                                                                                                                                                                                                                                            |
-| secretAccessKey            | Secret access key *[Cannot be used with profileName]*                                                                                                                                                                                                                                                                        |
-| bucketName                 | S3 bucket name *[Required]*                                                                                                                                                                                                                                                                                                  |
-| region                     | S3 region. When used with serviceURL the region is only used to sign requests.                                                                                                                                                                                                                                              |
-| serviceURL                 | S3 service URL, used for S3 compatible storage. *[Required for provider r2 and minio]*                                                                                                                                                                                                                                       |
-| path                       | Full URI of the storage bucket. If not specified a default URI will be used.                                                                                                                                                                                                                                                 |
-| feedSubPath                | Provides a sub directory path within the bucket where the feed should be added. This allows for multiple feeds within a single bucket.                                                                                                                                                                                       |
-| serverSideEncryptionMethod | The encryption to use for uploaded objects. Only `AES256` and `None` are currently supported. Default is `None`                                                                                                                                                                                                              |
-| compress                   | Compress JSON files with GZIP before uploading. Default is *true*                                                                                                                                                                                                                                                            |
-| acl                        | A acl can be set for uploaded files. By default, no specific canned acl is set and bucket defaults and/or policies are in effect. If the bucket is created by sleet and an acl is set, then the default bucket acl will be set to that acl. |
-|disablePayloadSigning                       | S3 payload signing is a requirement of AWS SigV4, some S3 compatible storage providers do not implement this. Default is `false`, `true` for provider `r2`
-| provider                   | S3 compatible service the bucket is hosted on: `aws` (default), `r2` for [Cloudflare R2](feed-type-cloudflare.md), or `minio`. Sets the defaults for disablePayloadSigning, forcePathStyle, and checksumMode. |
-| forcePathStyle             | Use path style bucket urls, `serviceURL/bucketName`, instead of virtual hosted style urls, `bucketName.serviceURL`. Default is `false`, `true` for provider `minio` |
-| checksumMode               | When the AWS SDK adds checksums to requests: `whenSupported` or `whenRequired`. Use `whenRequired` for services that reject the checksums. Default is `whenSupported`, `whenRequired` for provider `r2` |
+- A value can hold several tokens, mixed with text, like `https://$ACCOUNT$.blob.core.windows.net/feed/`.
+- If a token's value has tokens of its own, Sleet replaces those too.
+- If Sleet can't find a value, or the environment variable is empty, the token stays as it is.
+- To write a `$` sign, use `$$`.
 
-Either `region` or `serviceURL` must be specified.
+## Global settings
 
-### Using an AWS credentials file
+These settings apply to every source in the file:
 
-`sleet.json`:
-```json
-{
-  "sources": [
-    {
-      "name": "feed",
-      "type": "s3",
-      "path": "https://s3.amazonaws.com/my-bucket-feed/",
-      "profileName": "sleetProfile",
-      "bucketName": "my-bucket-feed",
-      "region": "us-west-2"
-    }
-  ]
-}
-```
+| sleet.json | .netconfig | Description |
+| --- | --- | --- |
+| `config.feedLockTimeoutMinutes` | `feedLockTimeoutMinutes` in `[sleet]` | How long Sleet waits for another client to release the [feed lock](locking.md), in whole minutes. By default, Sleet waits forever. |
 
-`.netconfig`:
+You can't set `feedLockTimeoutMinutes` with environment variables.
 
-```gitconfig
-[sleet "feed"]
-    type = s3
-    path = https://s3.amazonaws.com/my-bucket-feed/
-    profileName = sleetProfile
-    bucketName = my-bucket-feed
-    region = us-west-2
-```
+## Proxy settings
 
-### Using accessKeyId and secretAccessKey in sleet.json
-
-`sleet.json`:
-```json
-{
-  "sources": [
-    {
-      "name": "feed",
-      "type": "s3",
-      "path": "https://s3.amazonaws.com/my-bucket-feed/",
-      "bucketName": "my-bucket-feed",
-      "region": "us-east-1",
-      "accessKeyId": "IAM_ACCESS_KEY_ID",
-      "secretAccessKey": "IAM_SECRET_ACCESS_KEY"
-    }
-  ]
-}
-```
-
-`.netconfig`:
-```gitconfig
-[sleet "feed"]
-    type = s3
-    path = https://s3.amazonaws.com/my-bucket-feed/
-    bucketName = my-bucket-feed
-    region = us-west-2
-    accessKeyId = IAM_ACCESS_KEY_ID
-    secretAccessKey = IAM_SECRET_ACCESS_KEY
-```
-
-### Using AWS environments
-
-`sleet.json`:
-```json
-{
-  "sources": [
-    {
-      "name": "feed",
-      "type": "s3",
-      "path": "https://s3.amazonaws.com/my-bucket-feed/",
-      "bucketName": "my-bucket-feed",
-      "region": "us-east-1"
-    }
-  ]
-}
-```
-
-`.netconfig`:
-```gitconfig
-[sleet "feed"]
-    type = s3
-    path = https://s3.amazonaws.com/my-bucket-feed/
-    bucketName = my-bucket-feed
-    region = us-west-2
-```
-
-### Using serviceURL
-
-`sleet.json`:
-```json
-{
-  "sources": [
-    {
-      "name": "feed",
-      "type": "s3",
-      "path": "https://s3.amazonaws.com/my-bucket-feed/",
-      "bucketName": "my-bucket-feed",
-      "serviceURL": "https://s3.us-east-1.amazonaws.com"
-    }
-  ]
-}
-```
-
-`.netconfig`:
-```gitconfig
-[sleet "feed"]
-    type = s3
-    path = https://s3.amazonaws.com/my-bucket-feed/
-    bucketName = my-bucket-feed
-    serviceURL = https://s3.us-east-1.amazonaws.com
-```
-
-
-When running Sleet with [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) leave accessKeyId, secretAccessKey, and profileName blank. If these properties are not set in sleet.json Sleet will try to set up the S3 feed using the environment.
-
-## Folder feed specific properties
-
-| Property | Description |
-| --- | ------ |
-| path | Path is the output directory of the feed. |
-
-`sleet.json`:
-```json
-{
-  "sources": [
-    {
-      "name": "myLocalFeed",
-      "type": "local",
-      "path": "C:\\myFeed"
-    }
-  ]
-}
-```
-
-`.netconfig`:
-```gitconfig
-[sleet "myLocalFeed"]
-    type = local
-    path = C:\\myFeed
-```
-
-## Tokens in configuration
-
-Property values in *sleet.json* and *.netconfig* can be tokenized similar to nuget *.pp* files.
-
-Given an environment variable ``myKey`` the following file would replace `$myKey$` with the value of the environment variable if it exists.
-
-`sleet.json`:
-```json
-{
-  "sources": [
-    {
-      "name": "feed",
-      "type": "azure",
-      "container": "feed",
-      "connectionString": "DefaultEndpointsProtocol=https;AccountName=;AccountKey=$myKey$;BlobEndpoint="
-    }
-  ]
-}
-```
-
-`.netconfig`:
-```gitconfig
-[sleet "feed"]
-    type = azure
-    container = feed
-    connectionString = "DefaultEndpointsProtocol=https;AccountName=;AccountKey=$myKey$;BlobEndpoint="
-```
-
-Tokens that resolve to a tokenized string will also be resolved, allowing environment variables to point to and combine additional environment variables.
-
-To escape `$` use `$$`.
-
-## Caching configuration
-It is possible to configure caching header for both Azure and S3 backed feeds. This is useful when serving the feed content through a CDN. By default, caching is disabled with a value of `no-store`. You can configure caching for both mutable and immutable files. Immutable files (files which aren't supposed to change, since they are stored per version - `.nupkg`, `/readme`, `/icon`, `.nuspec`, `.xml`, `.dll`, `.pdb`) should have a long cache lifetime (unless you are making changes to live packages). Mutable files (files which are expected to change, such as `index.json` and `flatcontainer/{id}/index.json`) should have a short cache lifetime (~1 hour or whatever you are comfortable with), since it can make clients see stale feed.
-
-| Property                   | Description                                                                                                                                                          |
-|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| immutableCacheControl      | Cache-Control header value for immutable versioned files (.nupkg, /readme, /icon, .nuspec, .xml, .dll, .pdb). Default is `no-store`. Example: `public, max-age=31536000, immutable`  |
-| mutableCacheControl        | Cache-Control header value for mutable files (.json, .svg). Default is `no-store`. Example: `public, max-age=300, must-revalidate`                                   |
-
-## Sleet.json loading order
-
-1. If `--config` was passed the path given will be used.
-1. If no config path was given sleet will search all parent directories starting with the working directory for sleet.json files.
-1. Environment variables will be used if no sleet.json files were found.
-
-## .netconfig loading order
-
-1. If `--config` was passed the path given will be used.
-1. Standard `.netconfig` probing happens next (current directory and all parent directories, plus [global](https://docs.microsoft.com/en-us/dotnet/api/system.environment.specialfolder?view=netstandard-2.0#fields) and [system](https://docs.microsoft.com/en-us/dotnet/api/system.environment.specialfolder?view=netstandard-2.0#fields) locations).
-1. Environment variables will be used if no sleet setting is found.
-
-
-# Environment variables
-
-Feeds can be defined using only environment variables.
-
-`SLEET_FEED_{property}` env vars will be treated the same as properties under a source.
-
-Example of defining an azure feed using only environment variables:
-
-| Property | Value |
-| --- | ------ |
-| `SLEET_FEED_TYPE` | `azure` |
-| `SLEET_FEED_CONTAINER` | `feed` |
-| `SLEET_FEED_CONNECTIONSTRING` | `DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint=` |
-
-To avoid loading up any *sleet.json* files when using env vars pass `--config none` to block it from loading.
-
-Note that if *sleet.json* is used environment variables will be ignored. It is not possible to mix settings between the two input options.
-
-# Command line properties
-
-Key value pairs can be passed on the command line and are treated the same as environment variables would be.
-
-Command line properties are favored over environment variables.
-
-Properties can be passed with `-p` or `--property` with a format of `"key=value"`.
-
-In this example a new feed is initialized *without* a sleet.json file. All values are passed in on the command line.
-
-```
-sleet init --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=feed \
- -p "SLEET_FEED_CONNECTIONSTRING=DefaultEndpointsProtocol=https;AccountName=;AccountKey=;BlobEndpoint="
-```
-
-# Network proxy settings
-
-Authenticated proxy that use windows credentials should enable the following setting in *sleet.json*
+If your network uses a proxy that needs your Windows sign-in, turn on `useDefaultCredentials`:
 
 ```json
 {
   "proxy": {
     "useDefaultCredentials": true
   },
-  "sources": [
-  ]
+  "sources": []
 }
 ```
 
-This setting can be set through an environment variable or command line property if *sleet.json* is not used.
+In `.netconfig`, set `proxy-useDefaultCredentials = true` in the `[sleet]` section. With environment variables, set `SLEET_FEED_PROXY_USEDEFAULTCREDENTIALS=true`.
 
-| Property | Value |
-| --- | ------ |
-| `SLEET_FEED_PROXY_USEDEFAULTCREDENTIALS` | `true` |
+Sleet uses the system proxy settings. This setting only makes it send your default credentials to the proxy.
+
+## How Sleet finds settings
+
+Sleet uses the first settings it finds, in this order:
+
+1. The file passed with `--config`. It can be a JSON file with any name, or a `.netconfig` file.
+2. A `sleet.json` file in the current folder or one of its parent folders.
+3. `.netconfig` files, if any of them has a `sleet` section. See [where Sleet looks for .netconfig](#where-sleet-looks-for-netconfig).
+4. [Environment variables](environment-variables.md), if `SLEET_FEED_TYPE` is set as an environment variable or a `-p` property.
+
+Sleet doesn't combine these. When it finds a file, it ignores the `SLEET_FEED_*` variables. Environment variables and `-p` properties still fill in [tokens](#tokens).
+
+A `sleet.json` file in a parent folder takes precedence over a `.netconfig` file in the current folder.
+
+To skip all files and use only environment variables, pass `--config none`.
+
+## Choose a source
+
+If there's only one source, Sleet uses it. If there are several, pass the source name with `--source`:
+
+```bash
+sleet push ./nupkgs --source feed
+```
+
+Source names aren't case-sensitive. These errors mean Sleet couldn't pick a source:
+
+| Error | Fix |
+| --- | --- |
+| `The local settings file contains multiple sources. Use --source to specify the feed to use.` | Pass `--source`. |
+| `Unable to find source. Verify that the --source parameter is correct and that sleet.json contains the named source.` | Check the name, and check which file Sleet loaded. |
+| `Unable to find source settings. Specify the path to a sleet.json settings file.` | Sleet found no file and no `SLEET_FEED_TYPE` variable. |
+| `Unable to find source settings. File not found '...'.` | Fix the `--config` path. |

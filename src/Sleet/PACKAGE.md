@@ -44,11 +44,13 @@ sleet push ./packages
 
 ## Documentation
 
+* [Documentation site](https://emgarten.github.io/Sleet/)
 * [Commands](https://github.com/emgarten/Sleet/blob/main/doc/commands.md)
 * [Azure Storage feeds](https://github.com/emgarten/Sleet/blob/main/doc/feed-type-azure.md)
 * [Amazon S3 feeds](https://github.com/emgarten/Sleet/blob/main/doc/feed-type-s3.md)
 * [Local feeds](https://github.com/emgarten/Sleet/blob/main/doc/feed-type-local.md)
 * [CI integration](https://github.com/emgarten/Sleet/blob/main/doc/ci-server.md)
+* [Troubleshooting](https://github.com/emgarten/Sleet/blob/main/doc/troubleshooting.md)
 * [Release notes](https://github.com/emgarten/Sleet/blob/main/ReleaseNotes.md)
 
 Source code and issues: [github.com/emgarten/Sleet](https://github.com/emgarten/Sleet)

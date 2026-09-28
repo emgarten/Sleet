@@ -246,3 +246,9 @@ _Pvt_Extensions
 
 # Feed snapshot golden files mirror feed paths such as symbols/a.pdb/
 !test/SleetLib.Tests/Snapshots/**
+
+# MkDocs build output
+/site/
+
+# Python virtual environment for the docs preview
+/.venv/

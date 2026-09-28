@@ -41,3 +41,13 @@ updates:
       github-actions:
         patterns:
           - "*"
+
+  # Documentation site build tools
+  - package-ecosystem: pip
+    directory: /doc
+    schedule:
+      interval: weekly
+    groups:
+      docs:
+        patterns:
+          - "*"

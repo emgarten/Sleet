@@ -11,7 +11,8 @@ dotnet tool install -g sleet
 ## Documentation
 
 * [Sleet overview](https://github.com/emgarten/Sleet#readme)
-* [Documentation](https://github.com/emgarten/Sleet/blob/main/doc/index.md)
+* [Documentation site](https://emgarten.github.io/Sleet/)
+* [Using SleetLib](https://github.com/emgarten/Sleet/blob/main/doc/sleetlib.md)
 * [Release notes](https://github.com/emgarten/Sleet/blob/main/ReleaseNotes.md)
 
 Source code and issues: [github.com/emgarten/Sleet](https://github.com/emgarten/Sleet)

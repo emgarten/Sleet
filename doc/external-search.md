@@ -1,31 +1,45 @@
-# External search service
+# External search
 
-Sleet uses a static search resources by default which returns all packages on the feed. Dynamic search results can be provided through an external service.
+Sleet includes a static search resource by default. You can replace it with an external NuGet Search API service when clients need server-side filtering and paging.
 
-## Setting an external search provider
+## Static search behavior
 
-To update a feed set *externalsearch* to the url of the external search provider 
-using the feed settings command.
+The built-in `search/query` resource is a static JSON file. Sleet writes every package id into one response with all versions for each id. It does not apply the NuGet search query parameters, so it does not filter by `q`, `skip`, `take`, `prerelease`, or `semVerLevel`.
 
-```
-feed-settings --set "externalsearch:http://example.org/search/query"
-```
+This is enough for small feeds. On large feeds, clients such as Visual Studio can show incomplete browse or search results because they expect a paged search service.
 
-The above command will store the external url in *sleet.settings.json* and update
-the service index in the main *index.json* for the feed. NuGet will discover the
-url through the service index and send along the query, prerelease, skip, and take 
-parameters to the new endpoint.
+## Set an external search URL
 
+Set the `externalsearch` feed setting to the Search API endpoint:
 
-## Reverting to static search
-If you no longer wish to use the external search service you can switch back
-by unsetting *externalsearch*
-
-```
-feed-settings --unset "externalsearch"
+```bash
+sleet feed-settings --set externalsearch:https://example.org/search/query
 ```
 
-## Example external search providers
+Sleet stores the value in `sleet.settings.json` and immediately updates the `SearchQueryService/3.0.0-beta` resource in `index.json` to use that URL. `sleet recreate` is not needed for this setting, even though `feed-settings` prints a general reminder to run `recreate`.
 
-* [Sleet.Search](https://github.com/emgarten/Sleet.Search) - Dockerized azure function that provides filtering for sleet feeds
+## Revert to static search
 
+Unset `externalsearch` to point the search resource back to Sleet's static `search/query` file:
+
+```bash
+sleet feed-settings --unset externalsearch
+```
+
+This also updates `index.json` immediately.
+
+## External service requirements
+
+The external service must implement the NuGet Search API. NuGet clients discover it from the service index and call it with query parameters such as:
+
+| Parameter | Purpose |
+| --- | --- |
+| `q` | Search text. |
+| `skip` | Number of results to skip. |
+| `take` | Number of results to return. |
+| `prerelease` | Whether prerelease packages are included. |
+| `semVerLevel` | SemVer compatibility level requested by the client. |
+
+See Microsoft's [NuGet Search API documentation](https://learn.microsoft.com/en-us/nuget/api/search-query-service-resource) for the full protocol. [Sleet.Search](https://github.com/emgarten/Sleet.Search) is an example external search service for Sleet feeds.
+
+See [feed settings](feed-settings.md#externalsearch) for the setting reference.

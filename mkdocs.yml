@@ -1,0 +1,126 @@
+# Documentation site for Sleet, published to GitHub Pages by .github/workflows/docs.yml
+# Preview locally with: pip install -r doc/requirements.txt && mkdocs serve
+
+site_name: Sleet
+site_description: Sleet creates static NuGet v3 feeds on Azure Storage, Amazon S3, S3-compatible storage, and local folders.
+site_url: https://emgarten.github.io/Sleet/
+repo_url: https://github.com/emgarten/Sleet
+repo_name: emgarten/Sleet
+edit_uri: edit/main/doc/
+docs_dir: doc
+copyright: Copyright &copy; 2016 Justin Emgarten. Sleet is licensed under the MIT License.
+
+exclude_docs: |
+  requirements.txt
+
+theme:
+  name: material
+  features:
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
+    - navigation.footer
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/emgarten/Sleet
+      name: Sleet on GitHub
+    - icon: simple/nuget
+      link: https://www.nuget.org/packages/Sleet
+      name: Sleet on NuGet.org
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - github-callouts
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      # Match the heading anchors GitHub generates so links work on both GitHub and the site.
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+nav:
+  - Home: index.md
+  - Get started:
+      - Install Sleet: install.md
+      - Create an Azure feed: feed-type-azure.md
+      - Create an Amazon S3 feed: feed-type-s3.md
+      - Create a Cloudflare R2 feed: feed-type-cloudflare.md
+      - Create a local feed: feed-type-local.md
+      - Use a feed with NuGet: consume-feed.md
+  - Guides:
+      - Authentication:
+          - Azure authentication: auth-azure.md
+          - AWS authentication: auth-aws.md
+      - Automation:
+          - Publish from CI: ci-server.md
+          - Use SleetLib from .NET: sleetlib.md
+      - Private feeds:
+          - Private feed options: private-feeds.md
+          - Private feed on AWS: private-feed-s3.md
+      - Hosting:
+          - S3-compatible storage: s3-compatible.md
+          - Web servers and static hosting: static-hosting.md
+          - CDN and caching: cdn-caching.md
+          - Multiple feeds: multiple-feeds.md
+      - Feed features:
+          - Symbol server: symbol-server.md
+          - Version badges: badges.md
+          - External search: external-search.md
+      - Maintenance:
+          - Package retention: retention.md
+          - Backup and migration: backup-migration.md
+  - Reference:
+      - Commands: commands.md
+      - Configuration: client-settings.md
+      - Environment variables: environment-variables.md
+      - Feed settings: feed-settings.md
+  - Concepts:
+      - How Sleet works: how-it-works.md
+      - Feed locking: locking.md
+      - Limitations: limitations.md
+  - Help:
+      - Troubleshooting: troubleshooting.md
+      - FAQ: faq.md
+      - Release notes: https://github.com/emgarten/Sleet/blob/main/ReleaseNotes.md

@@ -1,222 +1,174 @@
-# Creating an Amazon S3 feed
+# Create an Amazon S3 feed
 
-This guide is used to setup a new feed hosted on Amazon S3 storage.
+This quick start creates a public NuGet v3 feed in Amazon S3. It covers the Sleet config, the first package push, and the bucket policy change that avoids 403 responses for missing packages.
 
-## Creating a config for Amazon S3 feed
+## Prerequisites
 
-Create a `sleet.json` config file to define a new package feed hosted on Amazon S3 storage.
+- An AWS account with permission to create or write to the bucket.
+- Sleet installed. See [Install Sleet](install.md).
+- AWS credentials configured for Sleet. See [AWS authentication](auth-aws.md).
 
-``sleet createconfig --s3``
+Use bucket names without dots. Dots in bucket names can break TLS with virtual-hosted S3 URLs.
 
-Edit `sleet.json` using your editor of choice to set the url of your s3 bucket and access key.
+## Create the config file
 
-``notepad sleet.json``
+Create a starter `sleet.json` file:
 
-For `.netconfig`, just create or edit the file directly in the [desired location](https://dotnetconfig.org/#what).
+```bash
+sleet createconfig --s3
+```
 
-### Using an AWS credentials file
+The generated source looks like this:
 
-`sleet.json`:
 ```json
 {
+  "username": "",
+  "useremail": "",
   "sources": [
     {
-      "name": "feed",
+      "name": "myAmazonS3Feed",
       "type": "s3",
-      "path": "https://s3.amazonaws.com/my-bucket-feed/",
-      "profileName": "sleetProfile",
-      "bucketName": "my-bucket-feed",
-      "region": "us-west-2"
-    }
-  ]
-}
-```
-
-`.netconfig`:
-```gitconfig
-[sleet "feed"]
-    type = s3
-    path = https://s3.amazonaws.com/my-bucket-feed/
-    profileName = sleetProfile
-    bucketName = my-bucket-feed
-    region = us-west-2
-```
-
-For details on creating a credentials file go [here](https://docs.aws.amazon.com/sdk-for-net/v2/developer-guide/net-dg-config-creds.html#creds-file)
-
-#### Using SSO profiles
-
-If you are using an SSO profile, you must first log in using the AWS CLI before running sleet to allow SSO profiles to be used.
-
-Sleet will not prompt for SSO login.
-
-```
-aws sso login --profile my-sso-profile
-```
-
-
-### Using accessKeyId and secretAccessKey in sleet.json
-
-`sleet.json`:
-```json
-{
-  "sources": [
-    {
-      "name": "feed",
-      "type": "s3",
-      "path": "https://s3.amazonaws.com/my-bucket-feed/",
-      "bucketName": "my-bucket-feed",
+      "bucketName": "bucketname",
       "region": "us-east-1",
-      "accessKeyId": "IAM_ACCESS_KEY_ID",
-      "secretAccessKey": "IAM_SECRET_ACCESS_KEY"
+      "profileName": "credentialsFileProfileName"
     }
   ]
 }
 ```
 
-`.netconfig`:
-```gitconfig
-[sleet "feed"]
-    type = s3
-    path = https://s3.amazonaws.com/my-bucket-feed/
-    bucketName = my-bucket-feed
-    region = us-east-1
-    accessKeyId = IAM_ACCESS_KEY_ID
-    secretAccessKey = IAM_SECRET_ACCESS_KEY
-```
+Edit it for your bucket and region. Set `path` explicitly to the public URL that NuGet clients will use:
 
-This example specifies the access key id and secret key directly in sleet.json/.netconfig.
+sleet.json:
 
-### Using an EC2 instance profile
-
-`sleet.json`:
 ```json
 {
   "sources": [
     {
       "name": "feed",
       "type": "s3",
-      "path": "https://s3.amazonaws.com/my-bucket-feed/",
       "bucketName": "my-bucket-feed",
-      "region": "us-west-2"
+      "region": "us-west-2",
+      "path": "https://my-bucket-feed.s3.us-west-2.amazonaws.com/",
+      "profileName": "sleetProfile"
     }
   ]
 }
 ```
 
-`.netconfig`:
-```gitconfig
+You can also use [.netconfig](client-settings.md#netconfig):
+
+```ini
 [sleet "feed"]
     type = s3
-    path = https://s3.amazonaws.com/my-bucket-feed/
     bucketName = my-bucket-feed
     region = us-west-2
+    path = https://my-bucket-feed.s3.us-west-2.amazonaws.com/
+    profileName = sleetProfile
 ```
 
-To use [AWS environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) create an s3 feed config without an *accessKeyId* or *secretAccessKey*. Sleet will attempt to automatically configure the feed based on the environment.
+For the full property list, see [Amazon S3 properties](client-settings.md#amazon-s3-properties).
 
-### Using S3 compatible storage
+| Property | Use |
+| --- | --- |
+| `bucketName` | The S3 bucket that stores the feed. |
+| `region` | The AWS Region for the bucket. Use this for AWS S3. |
+| `path` | The public feed root URL. Set it explicitly. |
+| `profileName` | The AWS shared profile Sleet should use. |
+| `baseURI` | Optional URL written into feed JSON, such as a CDN URL. |
 
-`sleet.json`:
+## Push packages
+
+Push one package or a folder of packages:
+
+```bash
+sleet push ./nupkgs
+```
+
+On the first push, Sleet creates the bucket if it does not exist, removes the bucket public access block, sets Object Ownership to `BucketOwnerPreferred`, and adds a public-read bucket policy for `s3:GetObject` on `arn:aws:s3:::my-bucket-feed/*`. If you set `acl`, Sleet also applies that canned bucket ACL.
+
+Sleet never changes the policy or public access settings for an existing bucket. Create private buckets yourself before the first push.
+
+> [!WARNING]
+> Account-level S3 Block Public Access can still block the public bucket policy. If bucket creation fails, Sleet logs: `Unable to update S3 bucket. Ensure that the login info used has AmazonS3FullAccess and that the AWS account allows public access buckets: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-publicaccessblockconfiguration.html`.
+
+## Fix 403 responses for missing packages
+
+Sleet's auto-created public policy grants `s3:GetObject`, but not `s3:ListBucket`. With S3, anonymous requests for missing keys return 403 unless the caller also has `s3:ListBucket`. NuGet queries every configured source for every package. A 403 from one source can make restore fail or prompt for credentials instead of continuing to the next source.
+
+Add `s3:ListBucket` if this is a public feed:
+
 ```json
 {
-  "sources": [
+  "Version": "2012-10-17",
+  "Statement": [
     {
-      "name": "feed",
-      "type": "s3",
-      "path": "https://nupkg.website.yandexcloud.net/",
-      "bucketName": "nupkg",
-      "serviceURL": "https://storage.yandexcloud.net",
-      "accessKeyId": "IAM_ACCESS_KEY_ID",
-      "secretAccessKey": "IAM_SECRET_ACCESS_KEY",
-      "disablePayloadSigning": false
+      "Sid": "AllowPublicRead",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::my-bucket-feed/*"
+      ]
+    },
+    {
+      "Sid": "AllowPublicListForMissingPackage404",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::my-bucket-feed"
+      ]
     }
   ]
 }
 ```
 
-`.netconfig`:
-```gitconfig
-[sleet "feed"]
-    type = s3
-    path = https://nupkg.website.yandexcloud.net/
-    bucketName = nupkg
-    serviceURL = https://storage.yandexcloud.net
-    accessKeyId = IAM_ACCESS_KEY_ID
-    secretAccessKey = IAM_SECRET_ACCESS_KEY
+> [!WARNING]
+> `s3:ListBucket` makes the object listing public. Do not add it to buckets that must hide object names.
+
+## Create the bucket yourself
+
+If you create the bucket before running Sleet, create it in the target Region, allow public bucket policies, and apply the full public-read policy above. Save the policy as `public-feed-policy.json` first.
+
+For Regions other than `us-east-1`:
+
+```bash
+aws s3api create-bucket \
+  --bucket my-bucket-feed \
+  --region us-west-2 \
+  --create-bucket-configuration LocationConstraint=us-west-2
+
+aws s3api put-public-access-block \
+  --bucket my-bucket-feed \
+  --public-access-block-configuration BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false
+
+aws s3api put-bucket-policy \
+  --bucket my-bucket-feed \
+  --policy file://public-feed-policy.json
 ```
 
-To use S3 compatible storage create an s3 feed config with *serviceURL*. If the service requires a specific signing region also set *region*. Set *disablePayloadSigning*, *forcePathStyle*, or *checksumMode* if the service does not support the AWS defaults, see [client settings](client-settings.md).
+For `us-east-1`, omit `--create-bucket-configuration`.
 
-Set *provider* to use the defaults for a supported service:
+## Use the feed
 
-* `r2` for Cloudflare R2, see [Creating a Cloudflare R2 feed](feed-type-cloudflare.md)
-* `minio` for MinIO
+The package source URL is:
 
-`sleet createconfig --provider <name>` creates a config template for the service.
-
-### Using MinIO
-
-`sleet.json`:
-```json
-{
-  "sources": [
-    {
-      "name": "feed",
-      "type": "s3",
-      "provider": "minio",
-      "bucketName": "my-bucket-feed",
-      "serviceURL": "http://localhost:9000",
-      "accessKeyId": "MINIO_ACCESS_KEY",
-      "secretAccessKey": "MINIO_SECRET_KEY"
-    }
-  ]
-}
+```text
+https://my-bucket-feed.s3.us-west-2.amazonaws.com/index.json
 ```
 
-`.netconfig`:
-```gitconfig
-[sleet "feed"]
-    type = s3
-    provider = minio
-    bucketName = my-bucket-feed
-    serviceURL = http://localhost:9000
-    accessKeyId = MINIO_ACCESS_KEY
-    secretAccessKey = MINIO_SECRET_KEY
-```
+Add it to NuGet clients. See [Use a feed with NuGet](consume-feed.md).
 
-The `minio` provider uses path style urls such as `http://localhost:9000/my-bucket-feed/`. Set *region* if the MinIO server is configured with a region other than `us-east-1`.
+## Next steps
 
-### Additional feed settings
-
-Help on additional feed settings such as *baseURI* and *feedSubPath* can be found under [Sleet client settings](client-settings.md)
-
-## Adding packages
-
-Add packages to the feed with the push command, this can be used with either a path to a single nupkg or a folder of nupkgs.
-
-``sleet push d:\nupkgsToPush``
-
-## Initializing the feed
-
-For a new feed the first push will do the following:
-
-* Create the bucket and set the policy to public read-only
-* Initialize the feed with the default settings
-
-If the bucket already exists the policy will *not* be modified. Private feeds should set up the bucket before pushing for the first time.
-
-To create a feed with custom feed settings, such as with a catalog or symbols feed, use the `init` first.
-
-## Using the feed
-
-Add the feed as a source to your `NuGet.Config` file. In the example above the package source URL is ``https://s3.amazonaws.com/my-bucket-feed/index.json``
-
-## Creating a private S3 feed
-
-Private feeds can be created by creating a lambda function to authenticate clients. 
-
-For help setting up S3 go [here](private-feed-s3.md)
-
-In *sleet.json* set *baseURI* for the feed to the CloudFront address, this will write the CloudFront URI to the feed json files instead of the restricted S3 bucket which the client cannot access.
-
+- [AWS authentication](auth-aws.md)
+- [Private feed options](private-feeds.md)
+- [Private feed on AWS](private-feed-s3.md)
+- [S3-compatible storage](s3-compatible.md)
+- [Multiple feeds](multiple-feeds.md)
+- [CDN and caching](cdn-caching.md)
+- [Amazon S3 properties](client-settings.md#amazon-s3-properties)
