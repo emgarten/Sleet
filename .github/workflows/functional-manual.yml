@@ -18,8 +18,6 @@ permissions:
 
 jobs:
   emulators:
-    name: emulators (${{ matrix.script }})
-
     # Docker runs Linux containers on the Linux runners only
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -27,11 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - script: bash
-            run: ./functional-tests.sh
-          - script: pwsh
-            run: pwsh -NoProfile -File ./functional-tests.ps1
+        shell: [bash, pwsh]
 
     steps:
       - name: Checkout PR head
@@ -56,33 +50,32 @@ jobs:
           global-json-file: global.json
 
       - name: Functional tests
-        run: ${{ matrix.run }}
+        if: matrix.shell == 'bash'
+        run: ./functional-tests.sh
         shell: bash
+
+      - name: Functional tests
+        if: matrix.shell == 'pwsh'
+        run: ./functional-tests.ps1
+        shell: pwsh
 
       - name: Upload test results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: functional-test-results-emulators-${{ matrix.script }}
+          name: functional-test-results-emulators-${{ matrix.shell }}
           path: artifacts/TestResults
           if-no-files-found: ignore
           retention-days: 7
 
   cloud:
-    name: cloud (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
 
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            run: ./functional-tests.sh --target cloud
-          - os: macos-latest
-            run: ./functional-tests.sh --target cloud
-          - os: windows-latest
-            run: pwsh -NoProfile -File ./functional-tests.ps1 -Target cloud
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - name: Checkout PR head
@@ -107,8 +100,19 @@ jobs:
           global-json-file: global.json
 
       - name: Functional tests
-        run: ${{ matrix.run }}
+        if: runner.os != 'Windows'
+        run: ./functional-tests.sh --target cloud
         shell: bash
+        env:
+          SLEET_TEST_ACCOUNT: ${{ secrets.SLEET_TEST_ACCOUNT }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Functional tests
+        if: runner.os == 'Windows'
+        run: ./functional-tests.ps1 -Target cloud
+        shell: pwsh
         env:
           SLEET_TEST_ACCOUNT: ${{ secrets.SLEET_TEST_ACCOUNT }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

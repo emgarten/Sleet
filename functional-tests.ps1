@@ -213,3 +213,4 @@ finally {
 }
 
 Write-Host "Success!"
+exit 0

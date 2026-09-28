@@ -21,7 +21,6 @@ concurrency:
 
 jobs:
   emulators:
-    name: emulators (${{ matrix.script }})
     if: github.event.pull_request.head.repo.full_name != github.repository || github.actor == 'dependabot[bot]'
 
     # Docker runs Linux containers on the Linux runners only
@@ -31,11 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - script: bash
-            run: ./functional-tests.sh
-          - script: pwsh
-            run: pwsh -NoProfile -File ./functional-tests.ps1
+        shell: [bash, pwsh]
 
     steps:
     - uses: actions/checkout@v7
@@ -46,13 +41,18 @@ jobs:
       with:
         global-json-file: global.json
     - name: Functional tests
-      run: ${{ matrix.run }}
+      if: matrix.shell == 'bash'
+      run: ./functional-tests.sh
       shell: bash
+    - name: Functional tests
+      if: matrix.shell == 'pwsh'
+      run: ./functional-tests.ps1
+      shell: pwsh
     - name: Upload test results
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v7
       with:
-        name: functional-test-results-emulators-${{ matrix.script }}
+        name: functional-test-results-emulators-${{ matrix.shell }}
         path: artifacts/TestResults
         if-no-files-found: ignore
         retention-days: 7
