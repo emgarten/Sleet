@@ -160,7 +160,7 @@ Set the feed `baseURI` to the test URL before you create the feed, such as `http
 </configuration>
 ```
 
-If the feed already exists with a different `baseURI`, rebuild it with the steps in [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate). The `recreate` command doesn't work for local feeds with a `baseURI`.
+If the feed already exists with a different `baseURI`, rebuild it with the steps in [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate). The `recreate` command doesn't work for local feeds whose `baseURI` is different from `path`.
 
 ## Other static hosts
 

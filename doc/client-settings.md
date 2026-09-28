@@ -128,7 +128,7 @@ Set `path`, `connectionString`, or both. See [Azure authentication](auth-azure.m
 | `bucketName` | Required. The bucket name. |
 | `region` | The AWS Region of the bucket, such as `us-west-2`. Set `region` or `serviceURL`, but not both. |
 | `serviceURL` | The S3 API endpoint, for S3-compatible storage. Set `region` or `serviceURL`, but not both. See [S3-compatible storage](s3-compatible.md). |
-| `path` | The bucket URL that clients use, such as `https://my-bucket-feed.s3.us-west-2.amazonaws.com/`. Always set it. Without it, Sleet builds a path-style URL from `region`. |
+| `path` | The bucket URL that clients use, such as `https://my-bucket-feed.s3.us-west-2.amazonaws.com/`. Always set it. Without it, Sleet builds a path-style URL from `region`. Required with `serviceURL`. |
 | `feedSubPath` | A sub folder for the feed. When you set it, `path` must end with the same folder. See [multiple feeds](multiple-feeds.md). |
 | `profileName` | A profile in your AWS credentials or config file. |
 | `accessKeyId` | An access key ID. Use it with `secretAccessKey`. |

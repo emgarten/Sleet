@@ -19,7 +19,7 @@ sleet recreate
 
 The `feed-settings` command updates `sleet.settings.json`, but it doesn't add the symbol server to `index.json`. `recreate` downloads the packages, destroys the feed files, initializes the feed again with the current settings, and pushes the packages back. After that, `index.json` lists the symbol server and packages that were already on the feed are indexed.
 
-For a local feed with a `baseURI`, `recreate` doesn't work. Follow [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) and run `init --with-symbols`.
+For a local feed whose `baseURI` is different from `path`, `recreate` doesn't work. Follow [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) and run `init --with-symbols`.
 
 ## Disable symbols
 

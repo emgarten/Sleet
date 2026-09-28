@@ -9,7 +9,7 @@ Sleet can publish to storage providers that expose an S3-compatible API. This pa
 
 Use `serviceURL` instead of `region` for non-AWS S3 APIs. Sleet requires exactly one of those properties.
 
-Always set `path` to the public URL that NuGet clients will use. Sleet's built-in default path is built from an AWS Region, such as `https://s3-us-west-2.amazonaws.com/my-bucket-feed/`. With only `serviceURL`, the AWS Region can be null, and that default is wrong for other providers.
+Always set `path` to the public URL that NuGet clients will use. Sleet builds its default path from the AWS Region, such as `https://s3-us-west-2.amazonaws.com/my-bucket-feed/`. A source with `serviceURL` has no Region, so without `path`, Sleet fails with `Object reference not set to an instance of an object`.
 
 sleet.json:
 

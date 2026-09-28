@@ -68,6 +68,14 @@ Cannot use a relative 'path' without a sleet.json file.
 
 A local feed defined with environment variables needs an absolute `SLEET_FEED_PATH`.
 
+### S3 source with serviceURL and no path
+
+```text
+[System.NullReferenceException] Object reference not set to an instance of an object.
+```
+
+An S3 source that sets `serviceURL` also needs `path`, the public URL of the bucket. See [S3-compatible storage](s3-compatible.md#configure-the-source).
+
 ### Problems with .netconfig values
 
 | Error | Cause |

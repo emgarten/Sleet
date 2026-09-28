@@ -33,7 +33,7 @@ Useful options:
 
 ## Storage-native copies
 
-Tools such as `azcopy` and `aws s3 sync` can copy the raw feed files. A raw copy keeps JSON files exactly as they are, including absolute URLs written from `baseURI`. A raw copy is directly usable only at the same public URL. If the URL changes, run `sleet recreate` after the copy to rewrite feed JSON with the new `baseURI`. For a local feed with a `baseURI`, follow [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate) instead.
+Tools such as `azcopy` and `aws s3 sync` can copy the raw feed files. A raw copy keeps JSON files exactly as they are, including absolute URLs written from `baseURI`. A raw copy is directly usable only at the same public URL. If the URL changes, run `sleet recreate` after the copy to rewrite feed JSON with the new `baseURI`. For a local feed whose `baseURI` is different from `path`, follow [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate) instead.
 
 ## Restore to a new feed
 
@@ -81,7 +81,7 @@ Use this same approach after a storage-native copy to a new `path`: update `path
 
 If the new `path` does not already contain a raw copy of the old feed, do not use `recreate` against the new source. Download from the old source, initialize the new source, and push the backup folder instead.
 
-For a local feed with a `baseURI`, don't use `recreate`. Update `sleet.json`, then follow [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate).
+For a local feed whose `baseURI` is different from `path`, don't use `recreate`. Update `sleet.json`, then follow [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate).
 
 ## Recreate safety
 
@@ -89,7 +89,7 @@ For a local feed with a `baseURI`, don't use `recreate`. Update `sleet.json`, th
 
 ## Rebuild a local feed without recreate
 
-`recreate` fails on local feeds whose `baseURI` is different from `path`. It stops with this error and leaves the feed without its packages:
+`recreate` fails on local feeds whose `baseURI` is different from `path`, such as a folder that a web server serves at `https://example.com/feed/`. It stops with this error and leaves the feed without its packages:
 
 ```text
 Something went wrong when recreating the feed. Feed validation has failed.
@@ -142,7 +142,7 @@ sleet feed-settings --set symbolsfeedenabled:true
 sleet recreate
 ```
 
-The setting enables the feature for future operations. `recreate` adds the catalog or symbol server to `index.json` and indexes packages already on the feed. Until you recreate, clients can't find the new resources. For a local feed with a `baseURI`, use [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate) with `init --with-catalog` or `init --with-symbols`.
+The setting enables the feature for future operations. `recreate` adds the catalog or symbol server to `index.json` and indexes packages already on the feed. Until you recreate, clients can't find the new resources. For a local feed whose `baseURI` is different from `path`, use [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate) with `init --with-catalog` or `init --with-symbols`.
 
 ## Move packages from another server
 

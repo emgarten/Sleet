@@ -33,7 +33,7 @@ Edit the file before you push packages:
 - Set `baseURI` to the URL that will serve `index.json`, such as `https://example.com/feed/`.
 
 > [!TIP]
-> Set `baseURI` before the first push. Sleet writes it into the feed files, so changing it later means rebuilding the feed. The `recreate` command doesn't work for local feeds with a `baseURI`, see [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate).
+> Set `baseURI` before the first push. Sleet writes it into the feed files, so changing it later means rebuilding the feed. The `recreate` command doesn't work when `baseURI` is different from `path`. See [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate).
 
 Relative `path` values are resolved relative to the folder that contains `sleet.json`. Relative paths only work when Sleet loaded a settings file. If you configure a local feed from environment variables or command-line properties and use a relative path, Sleet fails with:
 

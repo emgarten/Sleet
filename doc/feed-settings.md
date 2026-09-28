@@ -34,7 +34,7 @@ Keys aren't case-sensitive. Sleet doesn't check key names, so a misspelled key i
 | [`retentionmaxprereleaseversions`](#retention-settings) | Not set | On the next push. |
 | [`retentiongroupbyfirstprereleaselabelcount`](#retention-settings) | Not set | On the next push. |
 
-`recreate` doesn't work on local feeds that have a `baseURI`. For those feeds, use [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) wherever this page says to run `recreate`.
+`recreate` doesn't work on local feeds whose `baseURI` is different from `path`. For those feeds, use [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) wherever this page says to run `recreate`.
 
 ## catalogenabled
 

@@ -10,7 +10,7 @@ Badges are off on new feeds. Turn them on with the `badgesenabled` [feed setting
 sleet feed-settings --set badgesenabled:true
 ```
 
-Sleet updates a badge when a push or delete changes the latest version of a package. To create badges for packages that are already on the feed, run `sleet recreate` after you turn badges on. For a local feed with a `baseURI`, use [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) instead.
+Sleet updates a badge when a push or delete changes the latest version of a package. To create badges for packages that are already on the feed, run `sleet recreate` after you turn badges on. For a local feed whose `baseURI` is different from `path`, use [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) instead.
 
 To stop updating badges, set the value back to `false`:
 
