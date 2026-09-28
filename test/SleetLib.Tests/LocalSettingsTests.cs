@@ -83,7 +83,7 @@ namespace SleetLib.Tests
 
                 settings.Path.Should().BeNull();
                 settings.Json["username"].ToString().Should().Be("mapped-user");
-                settings.Json["sources"][0]["name"].ToString().Should().Be("envirnoment_feed");
+                settings.Json["sources"][0]["name"].ToString().Should().Be("environment_feed");
                 settings.Json["sources"][0]["type"].ToString().Should().Be("local");
                 settings.Json["sources"][0]["path"].ToString().Should().Be("relative-feed");
             }
