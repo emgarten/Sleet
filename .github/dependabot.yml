@@ -52,7 +52,12 @@ updates:
         patterns:
           - "*"
 
+  # Emulator images for the functional tests
   - package-ecosystem: docker-compose
-    directory: /build/emulators
+    directory: /local-env
     schedule:
       interval: weekly
+    groups:
+      local-env:
+        patterns:
+          - "*"

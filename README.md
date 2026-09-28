@@ -167,7 +167,7 @@ Also see this [getting started blog post](https://emgarten.com/posts/how-to-host
 
 We welcome contributions! If you are interested in contributing to Sleet, report an issue or open a pull request to propose a change. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to build, test, and preview the documentation.
 
-To build and run tests locally:
+To build and run the unit tests locally:
 
 ```bash
 # Linux / macOS
@@ -177,21 +177,17 @@ To build and run tests locally:
 ./build.ps1
 ```
 
-The Azure functional tests can run against [Azurite](https://github.com/Azure/Azurite), a local storage emulator, without an Azure account:
+The functional tests run against Azure Storage and Amazon S3. By default, they run the Azure tests against a local emulator in [Docker](https://docs.docker.com/get-started/get-docker/), so you don't need a cloud account:
 
 ```bash
-# Start Azurite with Docker
-docker compose -f build/emulators/docker-compose.yml up -d
-
-# Or run it with Node.js 22+ in a separate terminal
-npx -y -p azurite azurite-blob --inMemoryPersistence --skipApiVersionCheck
-
 # Linux / macOS
-./build.sh --use-dev-storage
+./functional-tests.sh
 
 # Windows
-./build.ps1 -UseDevStorage
+./functional-tests.ps1
 ```
+
+See [functional tests](CONTRIBUTING.md#functional-tests) to run them against real accounts.
 
 CI runs on Linux, macOS, and Windows.
 

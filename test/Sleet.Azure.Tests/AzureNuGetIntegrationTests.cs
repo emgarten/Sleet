@@ -8,8 +8,8 @@ using Sleet.Test.Common;
 namespace Sleet.Azure.Tests
 {
     /// <summary>
-    /// These tests can run locally against developer storage by changing
-    /// EnvVarExistsFactAttribute -> Fact and starting up the emulator.
+    /// Run these tests against Azurite with functional-tests.ps1 or functional-tests.sh. To run them from an IDE,
+    /// start local-env and set SLEET_TEST_ACCOUNT=UseDevelopmentStorage=true.
     /// </summary>
     public class AzureNuGetIntegrationTests
     {

@@ -1,44 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# No options are needed to run a basic build and unit tests.
-# To run functional tests against azure and or aws, use the following options.
-# --use-dev-storage runs the azure tests against a local Azurite, see build/emulators/docker-compose.yml
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --azure-conn)
-        export SLEET_TEST_ACCOUNT="$2"
-        shift 2
-        ;;
-    --use-dev-storage)
-        export SLEET_TEST_ACCOUNT="UseDevelopmentStorage=true"
-        shift
-        ;;
-    --aws-key)
-        export AWS_ACCESS_KEY_ID="$2"
-        shift 2
-        ;;
-    --aws-secret)
-        export AWS_SECRET_ACCESS_KEY="$2"
-        shift 2
-        ;;
-    --aws-region)
-        export AWS_DEFAULT_REGION="$2"
-        shift 2
-        ;;
-    --)
-        shift
-        break
-        ;;
-    --*)
-        echo "Unknown option: $1" >&2
-        exit 1
-        ;;
-    *)
-        break
-        ;;
-  esac
-done
+# Builds, packs, and runs the unit tests. Run the functional tests with functional-tests.sh
+if [[ $# -gt 0 ]]; then
+  echo "Unknown option: $1. build.sh has no options, run the functional tests with ./functional-tests.sh" >&2
+  exit 1
+fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ARTIFACTS_DIR="$REPO_ROOT/artifacts"
@@ -90,6 +57,7 @@ run_command rm -rf "$ARTIFACTS_DIR"
 run_command "$DOTNET" msbuild build/version.proj -nologo -v:m
 run_command "$DOTNET" build Sleet.slnx -c "$CONFIGURATION"
 run_command "$DOTNET" pack Sleet.slnx -c "$CONFIGURATION" --no-build
-run_command "$DOTNET" test --solution Sleet.slnx -c "$CONFIGURATION" --no-build --results-directory "$ARTIFACTS_DIR/TestResults" --report-trx --hangdump --hangdump-timeout 20m --hangdump-type Mini
+# The functional tests need Docker or cloud accounts, run them with functional-tests.sh
+run_command "$DOTNET" test --solution Sleet.slnx -c "$CONFIGURATION" --no-build --results-directory "$ARTIFACTS_DIR/TestResults" --report-trx --hangdump --hangdump-timeout 20m --hangdump-type Mini -p:ExcludeFunctionalTests=true
 
 echo "Success!"

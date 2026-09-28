@@ -1,0 +1,38 @@
+# Local test environment for the functional tests, see README.md.
+# Start it with start.ps1 or start.sh, which wait until each service is healthy.
+#
+# Ports are bound to 127.0.0.1 only. The data is removed when the environment is stopped.
+
+name: sleet-local-env
+
+# Check quickly while a service starts, then less often once it's healthy.
+x-healthcheck: &healthcheck
+  interval: 30s
+  timeout: 5s
+  retries: 3
+  start_period: 60s
+  start_interval: 1s
+
+services:
+  # Azure Blob Storage emulator
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.37.0
+    # Blob only and in memory. Skip the API version check so newer Azure SDK versions work with this Azurite version.
+    command: azurite-blob --blobHost 0.0.0.0 --inMemoryPersistence --skipApiVersionCheck
+    ports:
+      - "127.0.0.1:10000:10000"
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "nc", "-z", "127.0.0.1", "10000"]
+
+  # S3 compatible storage. The Amazon S3 tests don't use it yet, they need https://github.com/emgarten/Sleet/pull/239
+  rustfs:
+    image: rustfs/rustfs:1.0.0
+    environment:
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin
+    ports:
+      - "127.0.0.1:9100:9000"
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:9000/health"]

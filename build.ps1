@@ -2,12 +2,7 @@ param (
     [switch]$SkipTests,
     [switch]$SkipPack,
     [ValidateSet("Debug", "Release")]
-    [string]$Configuration = "Release",
-    [string]$StorageTestAccount,
-    [switch]$UseDevStorage,
-    [string]$AWSAccessKeyId,
-    [string]$AWSSecretAccessKey,
-    [string]$AWSDefaultRegion
+    [string]$Configuration = "Release"
 )
 
 $ErrorActionPreference = "Stop"
@@ -60,13 +55,6 @@ Function Install-Dotnet {
     & $installScript -Runtime dotnet -Channel 9.0 -InstallDir $DotnetDir -NoPath
 }
 
-# Settings for the Azure and AWS S3 functional tests
-if ($StorageTestAccount) { $env:SLEET_TEST_ACCOUNT = $StorageTestAccount }
-if ($UseDevStorage) { $env:SLEET_TEST_ACCOUNT = "UseDevelopmentStorage=true" }
-if ($AWSAccessKeyId) { $env:AWS_ACCESS_KEY_ID = $AWSAccessKeyId }
-if ($AWSSecretAccessKey) { $env:AWS_SECRET_ACCESS_KEY = $AWSSecretAccessKey }
-if ($AWSDefaultRegion) { $env:AWS_DEFAULT_REGION = $AWSDefaultRegion }
-
 $originalPath = $env:PATH
 $originalDotnetRoot = $env:DOTNET_ROOT
 Push-Location $RepoRoot
@@ -113,7 +101,8 @@ try {
     }
 
     if (-not $SkipTests) {
-        Invoke-Exe $DotnetExe @("test", "--solution", "Sleet.slnx", "-c", $Configuration, "--no-build", "--results-directory", (Join-Path $ArtifactsDir "TestResults"), "--report-trx", "--hangdump", "--hangdump-timeout", "20m", "--hangdump-type", "Mini")
+        # The functional tests need Docker or cloud accounts, run them with functional-tests.ps1
+        Invoke-Exe $DotnetExe @("test", "--solution", "Sleet.slnx", "-c", $Configuration, "--no-build", "--results-directory", (Join-Path $ArtifactsDir "TestResults"), "--report-trx", "--hangdump", "--hangdump-timeout", "20m", "--hangdump-type", "Mini", "-p:ExcludeFunctionalTests=true")
     }
 }
 finally {

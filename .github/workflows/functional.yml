@@ -1,3 +1,10 @@
+# Runs the functional tests the same way as a local run, see CONTRIBUTING.md#functional-tests
+#
+# The emulator tests run against the local test environment in local-env, and the cloud tests run against the test
+# accounts in the repository secrets. Pull requests from forks and Dependabot can't use the secrets, so these jobs
+# skip them and functional-emulators.yml runs their emulator tests instead. functional-manual.yml runs these jobs
+# for one of those pull requests.
+
 name: Functional Tests
 
 on:
@@ -16,99 +23,82 @@ permissions:
   contents: read
 
 jobs:
-  build-linux:
+  emulators:
+    name: emulators (${{ matrix.script }})
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
 
+    # Docker runs Linux containers on the Linux runners only
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - script: bash
+            run: ./functional-tests.sh
+          - script: pwsh
+            run: pwsh -NoProfile -File ./functional-tests.ps1
 
     steps:
     - uses: actions/checkout@v7
       with:
-        fetch-tags: true
-        fetch-depth: 0
         persist-credentials: false
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
       with:
         global-json-file: global.json
-    - name: Build
-      run: ./build.sh
+    - name: Functional tests
+      run: ${{ matrix.run }}
+      shell: bash
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: functional-test-results-emulators-${{ matrix.script }}
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7
+
+  cloud:
+    name: cloud (${{ matrix.os }})
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            run: ./functional-tests.sh --target cloud
+          - os: macos-latest
+            run: ./functional-tests.sh --target cloud
+          - os: windows-latest
+            run: pwsh -NoProfile -File ./functional-tests.ps1 -Target cloud
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+    - name: Functional tests
+      run: ${{ matrix.run }}
       shell: bash
       env:
         SLEET_TEST_ACCOUNT: ${{ secrets.SLEET_TEST_ACCOUNT }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_DEFAULT_REGION: us-east-1
-        CIBUILD: true
     - name: Upload test results
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v7
       with:
-        name: functional-test-results-linux
-        path: artifacts/TestResults
-        if-no-files-found: ignore
-        retention-days: 7
-  build-mac:
-
-    runs-on: macos-latest
-    timeout-minutes: 60
-
-    steps:
-    - uses: actions/checkout@v7
-      with:
-        fetch-tags: true
-        fetch-depth: 0
-        persist-credentials: false
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v6
-      with:
-        global-json-file: global.json
-    - name: Build
-      run: ./build.sh
-      shell: bash
-      env:
-        SLEET_TEST_ACCOUNT: ${{ secrets.SLEET_TEST_ACCOUNT }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_DEFAULT_REGION: us-east-1
-        CIBUILD: true
-    - name: Upload test results
-      if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v7
-      with:
-        name: functional-test-results-mac
-        path: artifacts/TestResults
-        if-no-files-found: ignore
-        retention-days: 7
-  build-win:
-
-    runs-on: windows-latest
-    timeout-minutes: 60
-
-    steps:
-    - uses: actions/checkout@v7
-      with:
-        fetch-tags: true
-        fetch-depth: 0
-        persist-credentials: false
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v6
-      with:
-        global-json-file: global.json
-    - name: Build
-      run: ./build.ps1
-      shell: pwsh
-      env:
-        SLEET_TEST_ACCOUNT: ${{ secrets.SLEET_TEST_ACCOUNT }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_DEFAULT_REGION: us-east-1
-        CIBUILD: true
-    - name: Upload test results
-      if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v7
-      with:
-        name: functional-test-results-win
+        name: functional-test-results-cloud-${{ matrix.os }}
         path: artifacts/TestResults
         if-no-files-found: ignore
         retention-days: 7

@@ -8,6 +8,10 @@ Run `build.ps1` to build and run all unit test and validations.
 
 Run `build.sh` to build and run all unit tests and validations.
 
+### Functional tests
+
+The build scripts don't run the Azure and Amazon S3 functional tests. When you change the Azure or Amazon S3 code, also run `functional-tests.ps1` on Windows or `functional-tests.sh` on Linux. They need Docker to run the tests against the local emulators in `local-env`.
+
 ## Rules
 
 All builds and tests must pass successfully before stopping. All errors or test failures must be fixed.
