@@ -2,6 +2,7 @@
 
 ## 8.0.0
 * Fixed `sleet` failing to start when installed with `dotnet tool install --allow-roll-forward` [Issue](https://github.com/emgarten/Sleet/issues/247)
+* Fixed `envirnoment_feed` typo, environment variable feeds are now named `environment_feed`. The old name still works with `--source` for existing scripts.
 
 ## 7.2.0
 * Added `--verbosity <level>` (`-V`) option to control console output
