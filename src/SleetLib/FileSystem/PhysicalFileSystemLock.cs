@@ -29,10 +29,14 @@ namespace Sleet
 
             try
             {
-                if (File.Exists(LockFile))
+                if (File.Exists(LockPath))
                 {
-                    // Read message from existing lock file
-                    json = await JsonUtility.LoadJsonAsync(LockPath);
+                    // Read message from existing lock file.
+                    // Open the file directly since the lock holder may remove it at any time.
+                    using (var stream = File.OpenRead(LockPath))
+                    {
+                        json = await JsonUtility.LoadJsonAsync(stream);
+                    }
                 }
                 else
                 {
@@ -78,12 +82,11 @@ namespace Sleet
                 {
                     try
                     {
-                        if (File.Exists(LockPath))
-                        {
-                            File.Delete(LockPath);
-                            success = true;
-                            IsLocked = false;
-                        }
+                        // File.Delete is a no-op if the lock file was already removed, for example to forcibly
+                        // unlock the feed. Other failures, such as unavailable storage, throw and are retried.
+                        File.Delete(LockPath);
+                        success = true;
+                        IsLocked = false;
                     }
                     catch (Exception ex)
                     {
