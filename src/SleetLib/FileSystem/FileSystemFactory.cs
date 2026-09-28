@@ -101,6 +101,7 @@ namespace Sleet
                     }
                     else if (type == "s3")
                     {
+                        var provider = S3Provider.Get(JsonUtility.GetValueCaseInsensitive(sourceEntry, "provider"));
                         var profileName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "profileName");
                         var accessKeyId = JsonUtility.GetValueCaseInsensitive(sourceEntry, "accessKeyId");
                         var secretAccessKey = JsonUtility.GetValueCaseInsensitive(sourceEntry, "secretAccessKey");
@@ -110,7 +111,9 @@ namespace Sleet
                         var serverSideEncryptionMethod = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serverSideEncryptionMethod") ?? "None";
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
                         var acl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "acl");
-                        var disablePayloadSigning = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "disablePayloadSigning", false);
+                        var disablePayloadSigning = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "disablePayloadSigning", provider.DisablePayloadSigning);
+                        var forcePathStyle = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "forcePathStyle", provider.ForcePathStyle);
+                        var checksumMode = GetChecksumMode(sourceEntry) ?? provider.ChecksumMode;
                         var immutableCacheControl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "immutableCacheControl");
                         if (string.IsNullOrWhiteSpace(immutableCacheControl))
                         {
@@ -125,16 +128,24 @@ namespace Sleet
 
                         if (string.IsNullOrEmpty(bucketName))
                         {
-                            throw new ArgumentException("Missing bucketName for Amazon S3 account.");
+                            throw new ArgumentException($"Missing bucketName for {provider.DisplayName} account.");
+                        }
+
+                        // region alone selects an Amazon S3 endpoint
+                        if (string.IsNullOrEmpty(serviceURL) && provider != S3Provider.Aws)
+                        {
+                            throw new ArgumentException($"Missing serviceURL for {provider.DisplayName} account.");
+                        }
+
+                        // The S3 API of these services is not public, clients must read the feed from baseURI
+                        if (provider.ExternalPublicAccess && string.IsNullOrEmpty(baseURIString))
+                        {
+                            throw new ArgumentException($"Missing baseURI for {provider.DisplayName} account. Set baseURI to the public url of the bucket: {provider.HelpUrl}");
                         }
 
                         if (string.IsNullOrEmpty(region) && string.IsNullOrEmpty(serviceURL))
                         {
                             throw new ArgumentException("Either 'region' or 'serviceURL' must be specified for an Amazon S3 account");
-                        }
-                        if (!string.IsNullOrEmpty(region) && !string.IsNullOrEmpty(serviceURL))
-                        {
-                            throw new ArgumentException("Options 'region' and 'serviceURL' cannot be used together");
                         }
 
                         if (serverSideEncryptionMethod != "None" && serverSideEncryptionMethod != "AES256")
@@ -158,13 +169,27 @@ namespace Sleet
                         var config = new AmazonS3Config()
                         {
                             Timeout = TimeSpan.FromSeconds(100),
-                            ProxyCredentials = CredentialCache.DefaultNetworkCredentials
+                            ProxyCredentials = CredentialCache.DefaultNetworkCredentials,
+                            ForcePathStyle = forcePathStyle
                         };
 
+                        if (checksumMode != null)
+                        {
+                            config.RequestChecksumCalculation = checksumMode.Value;
+                            config.ResponseChecksumValidation = checksumMode == RequestChecksumCalculation.WHEN_REQUIRED
+                                ? ResponseChecksumValidation.WHEN_REQUIRED
+                                : ResponseChecksumValidation.WHEN_SUPPORTED;
+                        }
 
-                        if (serviceURL != null)
+                        if (!string.IsNullOrEmpty(serviceURL))
                         {
                             config.ServiceURL = serviceURL;
+
+                            // RegionEndpoint cannot be used with ServiceURL, region is only used to sign requests
+                            if (!string.IsNullOrEmpty(region))
+                            {
+                                config.AuthenticationRegion = region;
+                            }
                         }
                         else
                         {
@@ -221,17 +246,21 @@ namespace Sleet
                         // Assume IAM role
                         else
                         {
-                            using (var client = new AmazonSecurityTokenServiceClient(config.RegionEndpoint))
+                            // STS is an Amazon service, other services use the default credentials directly
+                            if (config.RegionEndpoint != null)
                             {
-                                try
+                                using (var client = new AmazonSecurityTokenServiceClient(config.RegionEndpoint))
                                 {
-                                    var identity = await client.GetCallerIdentityAsync(new GetCallerIdentityRequest());
-                                }
-                                catch (Exception ex)
-                                {
-                                    throw new ArgumentException(
-                                        "Failed to determine AWS identity - ensure you have an IAM " +
-                                        "role set, have set up default credentials or have specified a profile/key pair.", ex);
+                                    try
+                                    {
+                                        var identity = await client.GetCallerIdentityAsync(new GetCallerIdentityRequest());
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        throw new ArgumentException(
+                                            "Failed to determine AWS identity - ensure you have an IAM " +
+                                            "role set, have set up default credentials or have specified a profile/key pair.", ex);
+                                    }
                                 }
                             }
 
@@ -241,7 +270,9 @@ namespace Sleet
                         if (pathUri == null)
                         {
                             // Find the default path
-                            pathUri = AmazonS3Utility.GetBucketPath(bucketName, config.RegionEndpoint.SystemName);
+                            pathUri = config.RegionEndpoint != null
+                                ? AmazonS3Utility.GetBucketPath(bucketName, config.RegionEndpoint.SystemName)
+                                : UriUtility.EnsureTrailingSlash(UriUtility.CreateUri($"{serviceURL!.TrimEnd('/')}/{bucketName}"));
                         }
 
                         if (baseUri == null)
@@ -262,12 +293,38 @@ namespace Sleet
                             disablePayloadSigning,
                             immutableCacheControl,
                             mutableCacheControl
-                        );
+                        )
+                        {
+                            Provider = provider
+                        };
                     }
                 }
             }
 
             return result;
+        }
+
+        // Read checksumMode, null if it is not set
+        private static RequestChecksumCalculation? GetChecksumMode(JObject sourceEntry)
+        {
+            var value = JsonUtility.GetValueCaseInsensitive(sourceEntry, "checksumMode");
+
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+
+            if (value.Equals("whenSupported", StringComparison.OrdinalIgnoreCase))
+            {
+                return RequestChecksumCalculation.WHEN_SUPPORTED;
+            }
+
+            if (value.Equals("whenRequired", StringComparison.OrdinalIgnoreCase))
+            {
+                return RequestChecksumCalculation.WHEN_REQUIRED;
+            }
+
+            throw new ArgumentException($"Invalid checksumMode '{value}'. Valid values are: whenSupported, whenRequired");
         }
 
         private static async Task<BlobServiceClient> GetBlobServiceClient(

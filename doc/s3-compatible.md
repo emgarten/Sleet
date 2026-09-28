@@ -7,9 +7,9 @@ Sleet can publish to storage providers that expose an S3-compatible API. This pa
 
 ## Configure the source
 
-Use `serviceURL` instead of `region` for non-AWS S3 APIs. Sleet requires exactly one of those properties.
+Use `serviceURL` instead of `region` for non-AWS S3 APIs. If the provider needs a specific signing Region, also set `region`. With `serviceURL`, Sleet only uses `region` to sign requests.
 
-Always set `path` to the public URL that NuGet clients will use. Sleet builds its default path from the AWS Region, such as `https://s3-us-west-2.amazonaws.com/my-bucket-feed/`. A source with `serviceURL` has no Region, so without `path`, Sleet fails with `Object reference not set to an instance of an object`.
+Always set `path` to the public URL that NuGet clients will use. Without `path`, Sleet uses `serviceURL` followed by the bucket name, such as `https://s3.example.com/my-bucket-feed/`. For Cloudflare R2, set `baseURI` to the public URL instead, see [Create a Cloudflare R2 feed](feed-type-cloudflare.md).
 
 sleet.json:
 
@@ -31,9 +31,46 @@ sleet.json:
 
 You can also omit `accessKeyId` and `secretAccessKey` and use `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN` environment variables. See [AWS authentication](auth-aws.md).
 
+## Provider settings
+
+Set `provider` to use the defaults that a service needs. Settings in the source override these defaults.
+
+| `provider` | Service | Defaults |
+| --- | --- | --- |
+| `aws` | Amazon S3, and providers that work with the AWS defaults. This is the default. | The AWS SDK defaults. |
+| `r2` | Cloudflare R2 | `disablePayloadSigning` is `true` and `checksumMode` is `whenRequired`. `serviceURL` and `baseURI` are required. Sleet doesn't change public access on buckets it creates. See [Create a Cloudflare R2 feed](feed-type-cloudflare.md). |
+| `minio` | MinIO | `forcePathStyle` is `true`, because MinIO only supports virtual-hosted-style URLs when `MINIO_DOMAIN` is set. `serviceURL` is required. |
+
+For other providers, set `disablePayloadSigning`, `checksumMode`, or `forcePathStyle` yourself if the provider doesn't support the AWS defaults. See [Amazon S3 properties](client-settings.md#amazon-s3-properties).
+
+`createconfig` creates a template for a provider:
+
+```bash
+sleet createconfig --provider minio
+```
+
+MinIO uses path-style URLs, so the bucket URL is the server URL followed by the bucket name. Set `region` if the MinIO server uses a Region other than `us-east-1`.
+
+```json
+{
+  "sources": [
+    {
+      "name": "feed",
+      "type": "s3",
+      "provider": "minio",
+      "bucketName": "my-bucket-feed",
+      "serviceURL": "http://localhost:9000",
+      "path": "http://localhost:9000/my-bucket-feed/",
+      "accessKeyId": "$S3_ACCESS_KEY_ID$",
+      "secretAccessKey": "$S3_SECRET_ACCESS_KEY$"
+    }
+  ]
+}
+```
+
 ## Signing and compression
 
-Some providers reject AWS SigV4 payload signing. Set `disablePayloadSigning` to `true` for those providers. Cloudflare R2 commonly needs this setting.
+Some providers reject AWS SigV4 payload signing. Set `disablePayloadSigning` to `true` for those providers. Some also reject the checksums that the AWS SDK adds to requests. Set `checksumMode` to `whenRequired` for those providers. The `r2` provider sets both for Cloudflare R2.
 
 ```json
 {
@@ -53,7 +90,7 @@ See [Compression](how-it-works.md#compression) for how Sleet writes feed files.
 
 ## Create buckets outside Sleet
 
-Sleet's automatic bucket creation uses AWS-specific APIs. It removes the bucket public access block, sets S3 Object Ownership, and writes an AWS bucket policy. Many S3-compatible providers do not support all of those APIs.
+Sleet's automatic bucket creation uses AWS-specific APIs. It removes the bucket public access block, sets S3 Object Ownership, and writes an AWS bucket policy. Sleet skips the public access block and Object Ownership if the provider rejects them, but bucket creation fails if the provider rejects the bucket policy. With the `r2` provider, Sleet skips all three and the new bucket stays private.
 
 Create the bucket with the provider's tools first. Configure public read access for public feeds, or private access for private feeds, before you run `sleet push`.
 
@@ -61,8 +98,8 @@ Create the bucket with the provider's tools first. Configure public read access 
 
 | Provider | `serviceURL` | `path` for clients | Notes |
 | --- | --- | --- | --- |
-| Cloudflare R2 | `https://<account-id>.r2.cloudflarestorage.com` | `https://<public-id>.r2.dev/` or a custom domain | Public access uses an R2 public bucket URL or custom domain. Set `disablePayloadSigning` to `true`. See [R2 S3 API](https://developers.cloudflare.com/r2/api/s3/api/) and [public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/). |
-| MinIO | Your MinIO API endpoint, such as `https://minio.example.com` | The public URL for the bucket, such as `https://minio.example.com/my-bucket-feed/` or a reverse-proxied custom domain | Configure anonymous read access with MinIO policy tools. See [MinIO anonymous access](https://docs.min.io/aistor/reference/cli/mc-anonymous/) and [policy-based access control](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html). |
+| Cloudflare R2 | `https://<account-id>.r2.cloudflarestorage.com` | `https://<public-id>.r2.dev/` or a custom domain | Set `provider` to `r2`, and set `baseURI` to the public URL. See [Create a Cloudflare R2 feed](feed-type-cloudflare.md), [R2 S3 API](https://developers.cloudflare.com/r2/api/s3/api/), and [public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/). |
+| MinIO | Your MinIO API endpoint, such as `https://minio.example.com` | The public URL for the bucket, such as `https://minio.example.com/my-bucket-feed/` or a reverse-proxied custom domain | Set `provider` to `minio`. Configure anonymous read access with MinIO policy tools. See [MinIO anonymous access](https://docs.min.io/aistor/reference/cli/mc-anonymous/) and [policy-based access control](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html). |
 | DigitalOcean Spaces | `https://<region>.digitaloceanspaces.com` | `https://my-bucket-feed.<region>.digitaloceanspaces.com/`, a CDN endpoint, or a custom domain | Use the Spaces public endpoint that clients can reach. See [Spaces API](https://docs.digitalocean.com/reference/api/spaces/) and [Spaces docs](https://docs.digitalocean.com/products/spaces/). |
 | Backblaze B2 | `https://s3.<region>.backblazeb2.com` | `https://my-bucket-feed.s3.<region>.backblazeb2.com/` | Use the endpoint for the bucket's region. See [Backblaze S3-compatible API](https://www.backblaze.com/docs/cloud-storage-call-the-s3-compatible-api). |
 | Wasabi | `https://s3.<region>.wasabisys.com` | `https://my-bucket-feed.s3.<region>.wasabisys.com/` | Some regions also have legacy endpoint aliases. See [Wasabi service URLs](https://docs.wasabi.com/docs/service-url-endpoints). |

@@ -143,6 +143,7 @@ Get started:
 * [Install Sleet](doc/install.md)
 * [Create an Azure feed](doc/feed-type-azure.md)
 * [Create an Amazon S3 feed](doc/feed-type-s3.md)
+* [Create a Cloudflare R2 feed](doc/feed-type-cloudflare.md)
 * [Create a local feed](doc/feed-type-local.md)
 * [Use a feed with NuGet](doc/consume-feed.md)
 

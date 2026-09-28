@@ -126,9 +126,10 @@ Set `path`, `connectionString`, or both. See [Azure authentication](auth-azure.m
 | Property | Description |
 | --- | --- |
 | `bucketName` | Required. The bucket name. |
-| `region` | The AWS Region of the bucket, such as `us-west-2`. Set `region` or `serviceURL`, but not both. |
-| `serviceURL` | The S3 API endpoint, for S3-compatible storage. Set `region` or `serviceURL`, but not both. See [S3-compatible storage](s3-compatible.md). |
-| `path` | The bucket URL that clients use, such as `https://my-bucket-feed.s3.us-west-2.amazonaws.com/`. Always set it. Without it, Sleet builds a path-style URL from `region`. Required with `serviceURL`. |
+| `region` | The AWS Region of the bucket, such as `us-west-2`. Set `region`, `serviceURL`, or both. With `serviceURL`, Sleet only uses `region` to sign requests. |
+| `serviceURL` | The S3 API endpoint, for S3-compatible storage. Required when `provider` is `r2` or `minio`. See [S3-compatible storage](s3-compatible.md). |
+| `provider` | The service that hosts the bucket: `aws`, `r2` for [Cloudflare R2](feed-type-cloudflare.md), or `minio` for MinIO. The default is `aws`. It sets the defaults of `disablePayloadSigning`, `forcePathStyle`, and `checksumMode`. See [provider settings](s3-compatible.md#provider-settings). |
+| `path` | The bucket URL that clients use, such as `https://my-bucket-feed.s3.us-west-2.amazonaws.com/`. Always set it. Without it, Sleet builds a path-style URL from `region`, or from `serviceURL` and `bucketName`. For Cloudflare R2, set `baseURI` to the public URL instead. |
 | `feedSubPath` | A sub folder for the feed. When you set it, `path` must end with the same folder. See [multiple feeds](multiple-feeds.md). |
 | `profileName` | A profile in your AWS credentials or config file. |
 | `accessKeyId` | An access key ID. Use it with `secretAccessKey`. |
@@ -136,7 +137,9 @@ Set `path`, `connectionString`, or both. See [Azure authentication](auth-azure.m
 | `serverSideEncryptionMethod` | `None` or `AES256`. The default is `None`, which uses the bucket's default encryption. |
 | `compress` | `true` or `false`. When `true`, Sleet gzips JSON files. The default is `true`. See [compression](how-it-works.md#compression). |
 | `acl` | A canned ACL, such as `public-read`, for each uploaded file. By default, Sleet doesn't set one. When Sleet creates the bucket, it also sets this ACL on the bucket. Buckets with ACLs turned off, which is the default for buckets you create yourself, reject uploads that set an ACL. |
-| `disablePayloadSigning` | `true` or `false`. Set it to `true` for S3-compatible storage that doesn't support payload signing. The default is `false`. |
+| `disablePayloadSigning` | `true` or `false`. Set it to `true` for S3-compatible storage that doesn't support payload signing. The default is `false`, or `true` when `provider` is `r2`. |
+| `forcePathStyle` | `true` or `false`. When `true`, Sleet uses path-style URLs such as `https://s3.example.com/my-bucket-feed/` instead of virtual-hosted-style URLs such as `https://my-bucket-feed.s3.example.com/`. The default is `false`, or `true` when `provider` is `minio`. |
+| `checksumMode` | `whenSupported` or `whenRequired`. Controls when the AWS SDK adds checksums to requests. Use `whenRequired` for S3-compatible storage that rejects them. The default is `whenSupported`, or `whenRequired` when `provider` is `r2`. |
 | `immutableCacheControl` | See [cache-control properties](#cache-control-properties). |
 | `mutableCacheControl` | See [cache-control properties](#cache-control-properties). |
 

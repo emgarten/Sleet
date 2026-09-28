@@ -17,6 +17,9 @@ namespace Sleet
             var awss3 = cmd.Option("--s3", "Add a template entry for an Amazon S3 storage feed.",
                 CommandOptionType.NoValue);
 
+            var provider = cmd.Option("--provider", "S3 compatible service for the --s3 template: aws (default), r2, minio. Implies --s3.",
+                CommandOptionType.SingleValue);
+
             var azure = cmd.Option("--azure", "Add a template entry for an azure storage feed.",
                 CommandOptionType.NoValue);
 
@@ -39,11 +42,11 @@ namespace Sleet
 
                 var outputPath = output.HasValue() ? output.Value() : null;
 
-                var storageType = awss3.HasValue() ? FileSystemStorageType.S3 :
+                var storageType = awss3.HasValue() || provider.HasValue() ? FileSystemStorageType.S3 :
                     azure.HasValue() ? FileSystemStorageType.Azure :
                     folder.HasValue() ? FileSystemStorageType.Local :
                     FileSystemStorageType.Unspecified;
-                var success = await CreateConfigCommand.RunAsync(storageType, outputPath, log);
+                var success = await CreateConfigCommand.RunAsync(storageType, outputPath, provider.Value(), log);
 
                 return success ? 0 : 1;
             });
