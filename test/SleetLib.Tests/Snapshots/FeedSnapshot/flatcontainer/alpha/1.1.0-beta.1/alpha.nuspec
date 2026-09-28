@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>alpha</id>
+    <version>1.1.0-beta.1</version>
+    <authors>alpha authors</authors>
+    <description>Alpha prerelease package</description>
+    <tags>alpha prerelease</tags>
+  </metadata>
+</package>

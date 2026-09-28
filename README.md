@@ -12,6 +12,8 @@ A static NuGet package feed generator. ☁️ + 📦 = ❄️
   - [Why use static feeds?](#why-use-static-feeds)
   - [Getting Sleet](#getting-sleet)
     - [Install as a dotnet global tool (recommended)](#install-as-a-dotnet-global-tool-recommended)
+    - [Install as a local tool](#install-as-a-local-tool)
+    - [Run without installing](#run-without-installing)
     - [Manually getting sleet.exe](#manually-getting-sleetexe)
     - [Using SleetLib as a library](#using-sleetlib-as-a-library)
   - [Quick start](#quick-start)
@@ -54,6 +56,31 @@ dotnet tool install -g sleet
 ```
 
 `sleet` should now be on your *PATH*.
+
+In CI scripts, pin a major version so a new major release can't change your build unexpectedly:
+
+```
+dotnet tool install -g sleet --version "7.*"
+```
+
+### Install as a local tool
+
+A [local tool manifest](https://learn.microsoft.com/dotnet/core/tools/local-tools-how-to-use) pins an exact Sleet version for a repository:
+
+```
+dotnet new tool-manifest
+dotnet tool install sleet
+```
+
+Commit the *dotnet-tools.json* file it creates, then run `dotnet tool restore` and use `dotnet sleet`.
+
+### Run without installing
+
+With the .NET 10 SDK or later, [dnx](https://learn.microsoft.com/dotnet/core/tools/dotnet-tool-exec) downloads and runs Sleet in one step:
+
+```
+dnx sleet createconfig
+```
 
 ### Manually getting sleet.exe
 

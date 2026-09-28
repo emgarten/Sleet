@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using NuGet.Common;
 using Xunit;
 
@@ -7,25 +8,46 @@ namespace Sleet.Test.Common
     public sealed class WindowsFactAttribute
         : FactAttribute
     {
-        public override string? Skip => RuntimeEnvironmentHelper.IsWindows ? null : "Windows only test";
+        public WindowsFactAttribute(
+            [CallerFilePath] string? sourceFilePath = null,
+            [CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
+        {
+            if (!RuntimeEnvironmentHelper.IsWindows)
+            {
+                Skip = "Windows only test";
+            }
+        }
     }
 
     public sealed class WindowsTheoryAttribute
-    : TheoryAttribute
+        : TheoryAttribute
     {
-        public override string? Skip => RuntimeEnvironmentHelper.IsWindows ? null : "Windows only test";
+        public WindowsTheoryAttribute(
+            [CallerFilePath] string? sourceFilePath = null,
+            [CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
+        {
+            if (!RuntimeEnvironmentHelper.IsWindows)
+            {
+                Skip = "Windows only test";
+            }
+        }
     }
 
     public sealed class EnvVarExistsFactAttribute
         : FactAttribute
     {
-        private readonly string _envVar;
-
-        public EnvVarExistsFactAttribute(string envVar)
+        public EnvVarExistsFactAttribute(
+            string envVar,
+            [CallerFilePath] string? sourceFilePath = null,
+            [CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
         {
-            _envVar = envVar;
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(envVar)))
+            {
+                Skip = $"Set env var: {envVar} to run this test. This can be ignored for non CI scenarios.";
+            }
         }
-
-        public override string? Skip => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(_envVar)) ? null : $"Set env var: {_envVar} to run this test. This can be ignored for non CI scenarios.";
     }
 }

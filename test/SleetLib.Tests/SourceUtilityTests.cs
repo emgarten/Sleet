@@ -1,7 +1,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet;
 using Xunit;
@@ -39,6 +39,18 @@ namespace SleetLib.Tests
 
                 foundEx.Message.Should().Contain("https://tempuri.org/");
             }
+        }
+
+        [Theory]
+        [InlineData("local", FileSystemStorageType.Local)]
+        [InlineData("Physical", FileSystemStorageType.Unspecified)]
+        [InlineData("azure", FileSystemStorageType.Azure)]
+        [InlineData("s3", FileSystemStorageType.S3)]
+        [InlineData("unknown", FileSystemStorageType.Unspecified)]
+        [InlineData("", FileSystemStorageType.Unspecified)]
+        public void GetFeedType_ParsesKnownValuesCaseInsensitivelyOrReturnsUnspecified(string value, FileSystemStorageType expected)
+        {
+            SourceUtility.GetFeedType(value).Should().Be(expected);
         }
     }
 }

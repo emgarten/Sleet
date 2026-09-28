@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
 using Sleet.Test.Common;
 
@@ -13,7 +13,7 @@ namespace Sleet.Azure.Tests
         [EnvVarExistsFact(AzureTestContext.EnvVarName)]
         public async Task GivenAStorageAccountVerifyContainerOperations()
         {
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 testContext.CreateContainerOnInit = false;
                 await testContext.InitAsync();
@@ -41,7 +41,7 @@ namespace Sleet.Azure.Tests
         [EnvVarExistsFact(AzureTestContext.EnvVarName)]
         public async Task GivenAStorageAccountConnStringVerifyFileSystemFactoryCreatesFS()
         {
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 testContext.CreateContainerOnInit = false;
                 await testContext.InitAsync();

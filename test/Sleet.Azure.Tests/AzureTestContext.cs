@@ -5,7 +5,7 @@ using NuGet.Test.Helpers;
 namespace Sleet.Azure.Tests
 {
 
-    public class AzureTestContext : IDisposable
+    public class AzureTestContext : IAsyncDisposable
     {
         public LocalSettings LocalSettings { get; }
 
@@ -45,19 +45,20 @@ namespace Sleet.Azure.Tests
         }
 
         private bool _cleanupDone = false;
-        public Task CleanupAsync()
+        public async Task CleanupAsync()
         {
             _cleanupDone = true;
-            return Container.DeleteIfExistsAsync();
+            await Container.DeleteIfExistsAsync();
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
+            GC.SuppressFinalize(this);
             LocalCache.Dispose();
 
             if (!_cleanupDone)
             {
-                CleanupAsync().Wait();
+                await CleanupAsync();
             }
         }
 

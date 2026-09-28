@@ -14,19 +14,19 @@ namespace Sleet.Test.Common
     public static class CmdRunner
     {
         /// <summary>
-        /// Search the current directory and up for a path.
+        /// Search the test output directory and its parents for a relative path.
         /// </summary>
         /// <remarks>throws if not found</remarks>
         public static string GetPath(string relativePath)
         {
             relativePath = relativePath.Replace('/', Path.DirectorySeparatorChar);
-            var root = new DirectoryInfo(Directory.GetCurrentDirectory());
+            var root = new DirectoryInfo(AppContext.BaseDirectory);
 
             while (root != null)
             {
                 var path = Path.Combine(root.FullName, relativePath);
 
-                if (File.Exists(path))
+                if (File.Exists(path) || Directory.Exists(path))
                 {
                     return path;
                 }
@@ -106,11 +106,7 @@ namespace Sleet.Test.Common
             {
                 foreach (var envVar in envVars)
                 {
-#if !IS_CORECLR
-                    processInfo.EnvironmentVariables[envVar.Key] = envVar.Value;
-#else
                     processInfo.Environment[envVar.Key] = envVar.Value;
-#endif
                 }
             }
         }

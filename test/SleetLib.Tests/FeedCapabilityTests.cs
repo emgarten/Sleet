@@ -1,5 +1,5 @@
 using System;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Versioning;
 using Sleet;
 using Xunit;

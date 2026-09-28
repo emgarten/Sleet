@@ -1,7 +1,9 @@
+using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet;
 using Xunit;
@@ -231,6 +233,31 @@ namespace SleetLib.Tests
                 rootJson.ToString().Should().NotContain("catalog/index.json");
                 rootJson.ToString().Should().NotContain("Catalog/3.0.0");
                 rootJson.ToString().Should().NotContain("symbols/packages/index.json");
+            }
+        }
+
+        [Fact]
+        public async Task GivenInitOnInitializedFeedVerifyCommandSucceedsWithoutDuplicatingResources()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+                var rootFile = fileSystem.Get("index.json");
+                var before = await rootFile.GetJson(log, TestContext.Current.CancellationToken);
+                var beforeCount = before["resources"].Count();
+
+                // InitCommand's "already initialized" check compares a DeepClone with JToken.Equals, which is
+                // reference equality for JObject, so re-running init rewrites the feed instead of throwing.
+                var success = await InitCommand.RunAsync(settings, fileSystem, log);
+                var after = await rootFile.GetJson(log, TestContext.Current.CancellationToken);
+
+                success.Should().BeTrue();
+                after["resources"].Count().Should().Be(beforeCount);
             }
         }
     }

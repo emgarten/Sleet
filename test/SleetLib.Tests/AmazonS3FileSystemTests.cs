@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.Runtime;
-using Amazon.Runtime.SharedInterfaces;
 using Amazon.S3;
 using Amazon.S3.Model;
-using FluentAssertions;
-using Newtonsoft.Json.Linq;
+using Amazon.Runtime.SharedInterfaces;
+using AwesomeAssertions;
+using Moq;
+using NuGet.Common;
 using NuGet.Test.Helpers;
 using Sleet;
 using Xunit;
@@ -20,170 +19,337 @@ namespace SleetLib.Tests
 {
     public class AmazonS3FileSystemTests
     {
-        [Fact]
-        public async Task CreateBucket_WithAmazonS3_SetsPublicReadPolicy()
+        [Theory]
+        [InlineData(null, "a.json", "a.json")]
+        [InlineData("/feed/sub/", "a.json", "feed/sub/a.json")]
+        public void AmazonS3FileSystem_GetRelativePath_AddsNormalizedFeedSubPath(string feedSubPath, string path, string expected)
         {
-            var (fileSystem, client) = await CreateFileSystemWithFakeClientAsync(source => source["region"] = "us-east-1");
+            using (var cache = new LocalCache())
+            {
+                var root = AmazonS3TestUtility.RootUri();
+                var fileSystem = new AmazonS3FileSystem(cache, root, root, AmazonS3TestUtility.CreateClient().Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None, feedSubPath: feedSubPath);
 
-            await fileSystem.CreateBucket(new TestLogger(), CancellationToken.None);
+                fileSystem.GetRelativePath(fileSystem.GetPath(path)).Should().Be(expected);
+            }
+        }
 
-            client.Calls.Should().ContainInOrder("EnsureBucketExistsAsync", "PutPublicAccessBlockAsync", "PutBucketOwnershipControlsAsync", "PutBucketPolicyAsync", "PutObjectAsync");
-            client.Calls.Should().NotContain("PutBucketAclAsync");
+        [Fact]
+        public void AmazonS3FileSystem_Get_MapsDisplayUriToS3KeyWithFeedSubPath()
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = AmazonS3TestUtility.CreateClient();
+                var root = AmazonS3TestUtility.RootUri();
+                var baseUri = new Uri("https://example.test/packages/");
+                var fileSystem = new AmazonS3FileSystem(cache, root, baseUri, client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None, feedSubPath: "v3");
+
+                var file = fileSystem.Get(new Uri("https://example.test/packages/index.json"));
+
+                file.RootPath.AbsoluteUri.Should().Be("https://test-bucket.s3.amazonaws.com/index.json");
+                file.EntityUri.AbsoluteUri.Should().Be("https://example.test/packages/index.json");
+                fileSystem.GetRelativePath(file.RootPath).Should().Be("v3/index.json");
+            }
+        }
+
+        [Fact]
+        public async Task AmazonS3FileSystem_GetFiles_FiltersSubPathStripsItSkipsLockAndFollowsPaging()
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = AmazonS3TestUtility.CreateClient();
+                var requests = new List<ListObjectsV2Request>();
+                var continuationTokens = new List<string>();
+                var responses = new Queue<ListObjectsV2Response>(new[]
+                {
+                    new ListObjectsV2Response
+                    {
+                        IsTruncated = true,
+                        NextContinuationToken = "next",
+                        S3Objects = new List<S3Object>
+                        {
+                            new S3Object { Key = "feed/a.json" },
+                            new S3Object { Key = "other/b.json" }
+                        }
+                    },
+                    new ListObjectsV2Response
+                    {
+                        S3Objects = new List<S3Object>
+                        {
+                            new S3Object { Key = "feed/.feedlock" },
+                            new S3Object { Key = "feed/c.json" }
+                        }
+                    }
+                });
+                // The same request object is reused for each page, so the continuation token is recorded per call.
+                client.Setup(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>()))
+                    .Callback<ListObjectsV2Request, CancellationToken>((r, _) =>
+                    {
+                        requests.Add(r);
+                        continuationTokens.Add(r.ContinuationToken);
+                    })
+                    .ReturnsAsync(() => responses.Dequeue());
+                var root = AmazonS3TestUtility.RootUri();
+                var fileSystem = new AmazonS3FileSystem(cache, root, root, client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None, feedSubPath: "feed");
+
+                var files = await fileSystem.GetFiles(new TestLogger(), TestContext.Current.CancellationToken);
+
+                files.Select(e => e.EntityUri.AbsoluteUri).Should().BeEquivalentTo(new[]
+                {
+                    "https://test-bucket.s3.amazonaws.com/a.json",
+                    "https://test-bucket.s3.amazonaws.com/c.json"
+                });
+                requests.Should().HaveCount(2);
+                requests[0].BucketName.Should().Be(AmazonS3TestUtility.BucketName);
+                requests[0].MaxKeys.Should().Be(100);
+                continuationTokens[1].Should().Be("next");
+            }
+        }
+
+        [Fact]
+        public async Task AmazonS3FileSystem_Validate_LogsErrorWhenBucketMissingAndCachesResult()
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = AmazonS3TestUtility.CreateClient();
+                client.Setup(c => c.GetBucketAclAsync(It.IsAny<GetBucketAclRequest>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(new AmazonS3Exception("missing") { ErrorCode = "NoSuchBucket", StatusCode = HttpStatusCode.NotFound });
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
+                var log = new TestLogger();
+
+                var first = await fileSystem.Validate(log, TestContext.Current.CancellationToken);
+                var second = await fileSystem.HasBucket(log, TestContext.Current.CancellationToken);
+
+                first.Should().BeFalse();
+                second.Should().BeFalse();
+                log.GetMessages().Should().Contain("Unable to find test-bucket");
+                client.Verify(
+                    c => c.GetBucketAclAsync(It.Is<GetBucketAclRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName), It.IsAny<CancellationToken>()),
+                    Times.Once());
+            }
+        }
+
+        [Fact]
+        public async Task AmazonS3FileSystem_CreateBucket_CallsSetupAclAndCreateReleaseLock()
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = CreateClientWithMissingBucket();
+                var coreClient = client.As<ICoreAmazonS3>();
+                coreClient.Setup(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName)).Returns(Task.CompletedTask);
+                client.Setup(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutPublicAccessBlockResponse());
+                client.Setup(c => c.PutBucketOwnershipControlsAsync(It.IsAny<PutBucketOwnershipControlsRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketOwnershipControlsResponse());
+                client.Setup(c => c.PutBucketPolicyAsync(It.IsAny<PutBucketPolicyRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketPolicyResponse());
+                client.Setup(c => c.PutBucketAclAsync(It.IsAny<PutBucketAclRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketAclResponse());
+                client.SetupSequence(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new ListObjectsV2Response())
+                    .ReturnsAsync(new ListObjectsV2Response { S3Objects = new List<S3Object> { new S3Object { Key = AmazonS3FileSystemLock.LockFile } } });
+                client.Setup(c => c.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutObjectResponse());
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.AES256, acl: S3CannedACL.PublicRead, disablePayloadSigning: true);
+
+                await fileSystem.CreateBucket(new TestLogger(), TestContext.Current.CancellationToken);
+
+                coreClient.Verify(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName), Times.Once());
+                client.Verify(c => c.PutPublicAccessBlockAsync(It.Is<PutPublicAccessBlockRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName && r.PublicAccessBlockConfiguration.BlockPublicAcls == false), It.IsAny<CancellationToken>()), Times.Once());
+                client.Verify(c => c.PutBucketOwnershipControlsAsync(It.Is<PutBucketOwnershipControlsRequest>(r => r.OwnershipControls.Rules[0].ObjectOwnership == ObjectOwnership.BucketOwnerPreferred), It.IsAny<CancellationToken>()), Times.Once());
+                client.Verify(c => c.PutBucketPolicyAsync(It.Is<PutBucketPolicyRequest>(r => r.Policy.Contains("arn:aws:s3:::test-bucket/*")), It.IsAny<CancellationToken>()), Times.Once());
+                client.Verify(c => c.PutBucketAclAsync(It.Is<PutBucketAclRequest>(r => r.ACL == S3CannedACL.PublicRead), It.IsAny<CancellationToken>()), Times.Once());
+                client.Verify(c => c.PutObjectAsync(It.Is<PutObjectRequest>(r => r.Key == AmazonS3FileSystemLock.LockFile && r.ServerSideEncryptionMethod == ServerSideEncryptionMethod.AES256 && r.DisablePayloadSigning == true), It.IsAny<CancellationToken>()), Times.Once());
+                client.Verify(c => c.DeleteObjectAsync(AmazonS3TestUtility.BucketName, AmazonS3FileSystemLock.LockFile, It.IsAny<CancellationToken>()), Times.Once());
+            }
+        }
+
+        [Fact]
+        public async Task AmazonS3FileSystem_CreateBucket_DoesNotSetAclWhenAclIsNullAndIgnoresConflict()
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = CreateClientWithMissingBucket();
+                client.As<ICoreAmazonS3>()
+                    .Setup(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.Conflict));
+                client.Setup(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutPublicAccessBlockResponse());
+                client.Setup(c => c.PutBucketOwnershipControlsAsync(It.IsAny<PutBucketOwnershipControlsRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketOwnershipControlsResponse());
+                client.Setup(c => c.PutBucketPolicyAsync(It.IsAny<PutBucketPolicyRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketPolicyResponse());
+                client.Setup(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>())).ReturnsAsync(new ListObjectsV2Response());
+                client.Setup(c => c.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutObjectResponse());
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
+                var log = new TestLogger();
+
+                await fileSystem.CreateBucket(log, TestContext.Current.CancellationToken);
+
+                log.GetMessages().Should().Contain("Bucket already created");
+                client.Verify(c => c.PutBucketAclAsync(It.IsAny<PutBucketAclRequest>(), It.IsAny<CancellationToken>()), Times.Never());
+            }
         }
 
         [Theory]
-        [InlineData(HttpStatusCode.NotImplemented, "NotImplemented")]
-        [InlineData(HttpStatusCode.MethodNotAllowed, "MethodNotAllowed")]
-        [InlineData(HttpStatusCode.BadRequest, "MalformedXML")]
-        public async Task CreateBucket_WhenPublicAccessBlockIsNotSupported_SetsPublicReadPolicy(HttpStatusCode statusCode, string errorCode)
+        [InlineData(HttpStatusCode.Unauthorized)]
+        public async Task AmazonS3FileSystem_CreateBucket_DoesNotRetryUnauthorized(HttpStatusCode statusCode)
         {
-            var (fileSystem, client) = await CreateFileSystemWithFakeClientAsync(source =>
+            using (var cache = new LocalCache())
             {
-                source["provider"] = "minio";
-                source["serviceURL"] = "http://localhost:9000";
-            });
+                var client = CreateClientForRetryTest(statusCode, false);
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
 
-            client.Failures["PutPublicAccessBlockAsync"] = CreateException(statusCode, errorCode);
-            client.Failures["PutBucketOwnershipControlsAsync"] = CreateException(statusCode, errorCode);
+                var exception = await Assert.ThrowsAsync<AmazonS3Exception>(async () => await fileSystem.CreateBucket(new TestLogger(), TestContext.Current.CancellationToken));
 
-            await fileSystem.CreateBucket(new TestLogger(), CancellationToken.None);
-
-            // Errors that retrying will not fix are not retried
-            client.Calls.Count(e => e == "PutPublicAccessBlockAsync").Should().Be(1);
-            client.Calls.Count(e => e == "PutBucketOwnershipControlsAsync").Should().Be(1);
-            client.Calls.Should().ContainInOrder("PutBucketPolicyAsync", "PutObjectAsync");
+                exception.StatusCode.Should().Be(statusCode);
+                client.Verify(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>()), Times.Once());
+            }
         }
 
         [Fact]
-        public async Task CreateBucket_WhenPublicAccessBlockIsForbidden_Throws()
+        public async Task AmazonS3FileSystem_CreateBucket_ForbiddenLogsWarningsAndDoesNotRetry()
         {
-            var (fileSystem, client) = await CreateFileSystemWithFakeClientAsync(source => source["region"] = "us-east-1");
-            client.Failures["PutPublicAccessBlockAsync"] = CreateException(HttpStatusCode.Forbidden, "AccessDenied");
+            using (var cache = new LocalCache())
+            {
+                var client = CreateClientForRetryTest(HttpStatusCode.Forbidden, false);
+                var log = new TestLogger();
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
 
-            Func<Task> act = () => fileSystem.CreateBucket(new TestLogger(), CancellationToken.None);
+                await Assert.ThrowsAsync<AmazonS3Exception>(async () => await fileSystem.CreateBucket(log, TestContext.Current.CancellationToken));
 
-            await act.Should().ThrowAsync<AmazonS3Exception>();
-            client.Calls.Should().NotContain("PutBucketPolicyAsync");
+                log.GetMessages().Should().Contain("AmazonS3FullAccess");
+                client.Verify(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>()), Times.Once());
+            }
         }
 
         [Fact]
-        public async Task CreateBucket_WhenBucketPolicyIsNotImplemented_Throws()
+        public async Task AmazonS3FileSystem_CreateBucket_RetriesOtherStatusCodesOnce()
         {
-            var (fileSystem, client) = await CreateFileSystemWithFakeClientAsync(source => source["region"] = "us-east-1");
-            client.Failures["PutBucketPolicyAsync"] = CreateException(HttpStatusCode.NotImplemented, "NotImplemented");
+            using (var cache = new LocalCache())
+            {
+                var client = CreateClientForRetryTest(HttpStatusCode.InternalServerError, true);
+                var log = new TestLogger();
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
 
-            Func<Task> act = () => fileSystem.CreateBucket(new TestLogger(), CancellationToken.None);
+                await fileSystem.CreateBucket(log, TestContext.Current.CancellationToken);
 
-            await act.Should().ThrowAsync<AmazonS3Exception>();
-            client.Calls.Count(e => e == "PutBucketPolicyAsync").Should().Be(1);
-            client.Calls.Should().NotContain("PutObjectAsync");
+                log.GetMessages().Should().Contain("Trying again");
+                client.Verify(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            }
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)] // MinIO returns MalformedXML
+        [InlineData(HttpStatusCode.MethodNotAllowed)]
+        [InlineData(HttpStatusCode.NotImplemented)]
+        public async Task AmazonS3FileSystem_CreateBucket_SkipsUnsupportedPublicAccessSettingsWithoutRetrying(HttpStatusCode statusCode)
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = CreateClientForRetryTest(statusCode, false);
+                client.Setup(c => c.PutBucketOwnershipControlsAsync(It.IsAny<PutBucketOwnershipControlsRequest>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(statusCode));
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
+
+                await fileSystem.CreateBucket(new TestLogger(), TestContext.Current.CancellationToken);
+
+                client.Verify(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>()), Times.Once());
+                client.Verify(c => c.PutBucketOwnershipControlsAsync(It.IsAny<PutBucketOwnershipControlsRequest>(), It.IsAny<CancellationToken>()), Times.Once());
+                client.Verify(c => c.PutBucketPolicyAsync(It.IsAny<PutBucketPolicyRequest>(), It.IsAny<CancellationToken>()), Times.Once());
+            }
         }
 
         [Fact]
-        public async Task CreateBucket_WithCloudflareR2_SkipsPublicAccessSettings()
+        public async Task AmazonS3FileSystem_CreateBucket_WhenBucketPolicyIsNotSupported_ThrowsWithoutRetrying()
         {
-            var (fileSystem, client) = await CreateFileSystemWithFakeClientAsync(source =>
+            using (var cache = new LocalCache())
+            {
+                var client = CreateClientForRetryTest(HttpStatusCode.NotImplemented, false);
+                client.Setup(c => c.PutBucketPolicyAsync(It.IsAny<PutBucketPolicyRequest>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.NotImplemented));
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
+
+                var exception = await Assert.ThrowsAsync<AmazonS3Exception>(async () => await fileSystem.CreateBucket(new TestLogger(), TestContext.Current.CancellationToken));
+
+                exception.StatusCode.Should().Be(HttpStatusCode.NotImplemented);
+                client.Verify(c => c.PutBucketPolicyAsync(It.IsAny<PutBucketPolicyRequest>(), It.IsAny<CancellationToken>()), Times.Once());
+            }
+        }
+
+        [Fact]
+        public async Task AmazonS3FileSystem_CreateBucket_WithCloudflareR2_SkipsPublicAccessSettings()
+        {
+            var fileSystem = await FileSystemFactoryTests.CreateS3FileSystemAsync(source =>
             {
                 source["provider"] = "r2";
                 source["serviceURL"] = "https://account.r2.cloudflarestorage.com";
                 source["baseURI"] = "https://nuget.example.com/";
                 source["acl"] = "public-read";
             });
+            var client = CreateClientWithMissingBucket();
+            var coreClient = client.As<ICoreAmazonS3>();
+            coreClient.Setup(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName)).Returns(Task.CompletedTask);
+            client.Setup(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>())).ReturnsAsync(new ListObjectsV2Response());
+            client.Setup(c => c.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutObjectResponse());
+
+            // The provider is internal and only set from sleet.json, replace the client created by the factory
+            typeof(AmazonS3FileSystem).GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(fileSystem, client.Object);
             var log = new TestLogger();
 
-            await fileSystem.CreateBucket(log, CancellationToken.None);
+            await fileSystem.CreateBucket(log, TestContext.Current.CancellationToken);
 
-            client.Calls.Should().ContainInOrder("EnsureBucketExistsAsync", "PutObjectAsync");
-            client.Calls.Should().NotContain(new[] { "PutPublicAccessBlockAsync", "PutBucketOwnershipControlsAsync", "PutBucketPolicyAsync", "PutBucketAclAsync" });
+            coreClient.Verify(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName), Times.Once());
+            client.Verify(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>()), Times.Never());
+            client.Verify(c => c.PutBucketOwnershipControlsAsync(It.IsAny<PutBucketOwnershipControlsRequest>(), It.IsAny<CancellationToken>()), Times.Never());
+            client.Verify(c => c.PutBucketPolicyAsync(It.IsAny<PutBucketPolicyRequest>(), It.IsAny<CancellationToken>()), Times.Never());
+            client.Verify(c => c.PutBucketAclAsync(It.IsAny<PutBucketAclRequest>(), It.IsAny<CancellationToken>()), Times.Never());
             log.GetMessages().Should().Contain("Cloudflare R2 buckets are private by default");
         }
 
-        [Theory]
-        [InlineData("flatcontainer/a/1.0.0/icon", "image/png")]
-        [InlineData("flatcontainer/a/1.0.0/readme", "text/markdown")]
-        public async Task Commit_WithIconOrReadme_SetsContentType(string path, string contentType)
+        [Fact]
+        public async Task AmazonS3FileSystem_DeleteBucket_IgnoresNotFoundAndClearsCachedHasBucket()
         {
-            var (fileSystem, client) = await CreateFileSystemWithFakeClientAsync(source => source["region"] = "us-east-1");
-            var log = new TestLogger();
-
-            await fileSystem.Get(path).Write(new MemoryStream(new byte[] { 1, 2, 3 }), log, CancellationToken.None);
-            await fileSystem.Commit(log, CancellationToken.None);
-
-            client.PutObjectRequests.Should().ContainSingle().Which.ContentType.Should().Be(contentType);
-        }
-
-        private static async Task<(AmazonS3FileSystem FileSystem, FakeS3Client Client)> CreateFileSystemWithFakeClientAsync(Action<JObject> configure)
-        {
-            var fileSystem = await FileSystemFactoryTests.CreateS3FileSystemAsync(configure);
-            var client = new FakeS3Client();
-
-            SetPrivateField(fileSystem, "_client", client);
-
-            // Skip the bucket exists check
-            SetPrivateField(fileSystem, "_hasBucket", false);
-
-            return (fileSystem, client);
-        }
-
-        private static void SetPrivateField(AmazonS3FileSystem fileSystem, string name, object value)
-        {
-            typeof(AmazonS3FileSystem)
-                .GetField(name, BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(fileSystem, value);
-        }
-
-        private static AmazonS3Exception CreateException(HttpStatusCode statusCode, string errorCode)
-        {
-            return new AmazonS3Exception($"{errorCode} test error", ErrorType.Sender, errorCode, "requestId", statusCode);
-        }
-
-        /// <summary>
-        /// Records the calls made to S3. Calls succeed unless a failure is set for the method name.
-        /// </summary>
-        private class FakeS3Client : AmazonS3Client, ICoreAmazonS3
-        {
-            public FakeS3Client()
-                : base(new BasicAWSCredentials("key", "secret"), new AmazonS3Config { ServiceURL = "https://s3.example.com" })
+            using (var cache = new LocalCache())
             {
+                var client = AmazonS3TestUtility.CreateClient();
+                client.Setup(c => c.GetBucketAclAsync(It.IsAny<GetBucketAclRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new GetBucketAclResponse());
+                client.Setup(c => c.DeleteBucketAsync(AmazonS3TestUtility.BucketName, It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.NotFound));
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
+                var log = new TestLogger();
+
+                await fileSystem.DeleteBucket(log, TestContext.Current.CancellationToken);
+                var exists = await fileSystem.HasBucket(log, TestContext.Current.CancellationToken);
+
+                exists.Should().BeFalse();
+                log.GetMessages().Should().Contain("does not exist any more");
+                client.Verify(c => c.GetBucketAclAsync(It.IsAny<GetBucketAclRequest>(), It.IsAny<CancellationToken>()), Times.Once());
+            }
+        }
+
+        private static Mock<IAmazonS3> CreateClientWithMissingBucket()
+        {
+            var client = AmazonS3TestUtility.CreateClient();
+            // EnsureBucketExistsAsync goes through ICoreAmazonS3, which must be added before the mock object is created.
+            client.As<ICoreAmazonS3>();
+            client.Setup(c => c.GetBucketAclAsync(It.IsAny<GetBucketAclRequest>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new AmazonS3Exception("missing") { ErrorCode = "NoSuchBucket", StatusCode = HttpStatusCode.NotFound });
+            return client;
+        }
+
+        private static Mock<IAmazonS3> CreateClientForRetryTest(HttpStatusCode statusCode, bool succeedsOnSecondTry)
+        {
+            var client = CreateClientWithMissingBucket();
+            client.As<ICoreAmazonS3>().Setup(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName)).Returns(Task.CompletedTask);
+            if (succeedsOnSecondTry)
+            {
+                client.SetupSequence(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(statusCode))
+                    .ReturnsAsync(new PutPublicAccessBlockResponse());
+            }
+            else
+            {
+                client.Setup(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(statusCode));
             }
 
-            public List<string> Calls { get; } = new List<string>();
-
-            public Dictionary<string, Exception> Failures { get; } = new Dictionary<string, Exception>();
-
-            Task ICoreAmazonS3.EnsureBucketExistsAsync(string bucketName) => Record<object>("EnsureBucketExistsAsync", null);
-
-            public override Task<PutPublicAccessBlockResponse> PutPublicAccessBlockAsync(PutPublicAccessBlockRequest request, CancellationToken cancellationToken = default)
-                => Record(nameof(PutPublicAccessBlockAsync), new PutPublicAccessBlockResponse());
-
-            public override Task<PutBucketOwnershipControlsResponse> PutBucketOwnershipControlsAsync(PutBucketOwnershipControlsRequest request, CancellationToken cancellationToken = default)
-                => Record(nameof(PutBucketOwnershipControlsAsync), new PutBucketOwnershipControlsResponse());
-
-            public override Task<PutBucketPolicyResponse> PutBucketPolicyAsync(PutBucketPolicyRequest request, CancellationToken cancellationToken = default)
-                => Record(nameof(PutBucketPolicyAsync), new PutBucketPolicyResponse());
-
-            public override Task<PutBucketAclResponse> PutBucketAclAsync(PutBucketAclRequest request, CancellationToken cancellationToken = default)
-                => Record(nameof(PutBucketAclAsync), new PutBucketAclResponse());
-
-            public override Task<ListObjectsV2Response> ListObjectsV2Async(ListObjectsV2Request request, CancellationToken cancellationToken = default)
-                => Record(nameof(ListObjectsV2Async), new ListObjectsV2Response());
-
-            public List<PutObjectRequest> PutObjectRequests { get; } = new List<PutObjectRequest>();
-
-            public override Task<PutObjectResponse> PutObjectAsync(PutObjectRequest request, CancellationToken cancellationToken = default)
-            {
-                PutObjectRequests.Add(request);
-                return Record(nameof(PutObjectAsync), new PutObjectResponse());
-            }
-
-            private Task<T> Record<T>(string name, T response)
-            {
-                Calls.Add(name);
-
-                return Failures.TryGetValue(name, out var failure)
-                    ? Task.FromException<T>(failure)
-                    : Task.FromResult(response);
-            }
+            client.Setup(c => c.PutBucketOwnershipControlsAsync(It.IsAny<PutBucketOwnershipControlsRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketOwnershipControlsResponse());
+            client.Setup(c => c.PutBucketPolicyAsync(It.IsAny<PutBucketPolicyRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketPolicyResponse());
+            client.Setup(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>())).ReturnsAsync(new ListObjectsV2Response());
+            client.Setup(c => c.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutObjectResponse());
+            return client;
         }
     }
 }

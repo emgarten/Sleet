@@ -1,7 +1,0 @@
-<Project ToolsVersion="15.0" DefaultTargets="Run">
-  <!-- Import the default build targets and helpers.  -->
-  <Import Project="common\build.shared.proj" />
-  
-  <!-- Add custom targets and overrides here -->
-
-</Project>

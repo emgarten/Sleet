@@ -1,0 +1,42 @@
+<Project>
+  <PropertyGroup>
+    <ArtifactsPath>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', 'artifacts'))</ArtifactsPath>
+    <PackageOutputPath>$(ArtifactsPath)\nupkgs\</PackageOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LangVersion>14.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Features>strict</Features>
+    <DebugType>embedded</DebugType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <NoWarn>$(NoWarn);CA1051;CA1308;CA2007;CA2211</NoWarn>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>emgarten</Authors>
+    <Copyright>Copyright © $([System.DateTime]::Now.ToString(`yyyy`)) Justin Emgarten</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/emgarten/Sleet</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>nuget nugetserver nugetfeed sleet</PackageTags>
+    <RepositoryUrl>https://github.com/emgarten/Sleet</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)icons\icon.png" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)' != 'true'">
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="ToStringWithoutOverrideAnalyzer" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Written by version.proj -->
+  <Import Project="$(ArtifactsPath)\obj\git.props" Condition="Exists('$(ArtifactsPath)\obj\git.props')" />
+</Project>

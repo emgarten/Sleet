@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet;
 using Sleet.Test.Common;
@@ -12,6 +12,7 @@ using Xunit;
 
 namespace SleetLib.Tests
 {
+    [Collection(WorkingDirectoryCollection.Name)]
     public class FeedTests
     {
         [Theory]

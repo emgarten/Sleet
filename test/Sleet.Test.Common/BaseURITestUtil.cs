@@ -14,19 +14,26 @@ namespace Sleet.Test.Common
     {
         public static async Task VerifyBaseUris(IEnumerable<string> filePaths, Uri baseUri)
         {
+            var count = 0;
+
             foreach (var file in filePaths)
             {
                 var fileJson = await JsonUtility.LoadJsonAsync(new FileInfo(file));
 
                 foreach (var entityId in BaseURITestUtil.GetEntityIds(fileJson))
                 {
+                    count++;
                     Assert.True(entityId.StartsWith(baseUri.AbsoluteUri, StringComparison.Ordinal), $"{entityId} in {file}");
                 }
             }
+
+            Assert.True(count > 0, "No @id values were found to verify.");
         }
 
         public static async Task VerifyBaseUris(IEnumerable<ISleetFile> files, Uri baseUri)
         {
+            var count = 0;
+
             foreach (var file in files)
             {
                 if (file.RootPath.AbsoluteUri.EndsWith(".json", StringComparison.Ordinal))
@@ -37,49 +44,53 @@ namespace Sleet.Test.Common
                     {
                         foreach (var entityId in BaseURITestUtil.GetEntityIds(fileJson))
                         {
+                            count++;
                             Assert.True(entityId.StartsWith(baseUri.AbsoluteUri, StringComparison.Ordinal), $"{entityId} in {fileJson}");
                         }
                     }
                 }
             }
+
+            Assert.True(count > 0, "No @id values were found to verify.");
         }
 
         /// <summary>
-        /// Get all instance of @id outside of the context
+        /// Get all instances of @id outside of any @context
         /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public static IEnumerable<string> GetEntityIds(JObject json)
+        public static IEnumerable<string> GetEntityIds(JToken json)
         {
-            foreach (var node in json.Children())
+            if (json is JObject jObj)
             {
-                if (node.Type == JTokenType.Property)
+                foreach (var prop in jObj.Properties())
                 {
-                    var prop = (JProperty)node;
-
-                    if (prop.Name != "@context")
+                    if (prop.Name == "@context")
                     {
-                    if (prop.Value is JObject jObj)
-                    {
-                        foreach (var desc in jObj.DescendantsAndSelf())
-                        {
-                            var descProp = (JProperty)node;
-
-                            if (descProp.Name == "@id")
-                            {
-                                var value = descProp.Value.ToObject<string>();
-                                if (value != null)
-                                {
-                                    yield return value;
-                                }
-                            }
-                        }
+                        continue;
                     }
+
+                    if (prop.Name == "@id" && prop.Value.Type == JTokenType.String)
+                    {
+                        yield return prop.Value.ToObject<string>()!;
+                    }
+                    else
+                    {
+                        foreach (var id in GetEntityIds(prop.Value))
+                        {
+                            yield return id;
+                        }
                     }
                 }
             }
-
-            yield break;
+            else if (json is JArray jArray)
+            {
+                foreach (var item in jArray)
+                {
+                    foreach (var id in GetEntityIds(item))
+                    {
+                        yield return id;
+                    }
+                }
+            }
         }
     }
 }

@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
-using NuGet.Packaging;
-using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
-using NuGet.Versioning;
 using Sleet;
 
 namespace Sleet.Test.Common
@@ -59,22 +55,11 @@ namespace Sleet.Test.Common
         }
 
         /// <summary>
-        /// Create a package input from a zip file and register it for disposal.
+        /// Create a package input from a nupkg, symbols packages are detected automatically.
         /// </summary>
         public static PackageInput GetPackageInput(FileInfo zipFile)
         {
-            return GetPackageInput(zipFile, isSymbols: false);
-        }
-
-        /// <summary>
-        /// Create a package input from a zip file and register it for disposal.
-        /// </summary>
-        public static PackageInput GetPackageInput(FileInfo zipFile, bool isSymbols)
-        {
-            using (var reader = new PackageArchiveReader(zipFile.FullName))
-            {
-                return new PackageInput(zipFile.FullName, isSymbols, reader.NuspecReader);
-            }
+            return PackageInput.Create(zipFile.FullName);
         }
 
         public Task Commit()

@@ -1,79 +1,43 @@
-<Project ToolsVersion="15.0">
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\common.props" />
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <ToolCommandName>sleet</ToolCommandName>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(PackSleetDotnetTool)' == 'true' ">
-    <IsTool>true</IsTool>
-    <PackAsTool>true</PackAsTool>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <OutputType>Exe</OutputType>
     <Description>Sleet is a static NuGet package feed generator.</Description>
-    <AssemblyName>Sleet</AssemblyName>
-    <PackProject>true</PackProject>
-    <PublishProject>true</PublishProject>
-    <SkipDocs>true</SkipDocs>
-    <PublishTrimmed>false</PublishTrimmed>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>sleet</ToolCommandName>
+    <RollForward>Major</RollForward>
+    <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <!-- Sleet.exe settings -->
-  <PropertyGroup Condition=" '$(PublishSingleFile)' == 'true' ">
-    <PublishSingleFile>true</PublishSingleFile>
+  <!-- Single file Sleet.exe, see build.ps1 -->
+  <PropertyGroup Condition="'$(PublishSingleFile)' == 'true'">
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <PublishTrimmed>true</PublishTrimmed>
     <PublishReadyToRun>true</PublishReadyToRun>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
+  <!-- SleetExe package, see build.ps1 -->
+  <PropertyGroup Condition="'$(PackageId)' == 'SleetExe'">
+    <PackAsTool>false</PackAsTool>
+    <NuspecFile>SleetExe.nuspec</NuspecFile>
+    <NuspecProperties>version=$(Version);copyright=$(Copyright);branch=$(RepositoryBranch);commit=$(RepositoryCommit)</NuspecProperties>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="$(CommandLineUtilsVersion)" />
+    <None Include="PACKAGE.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SleetLib\SleetLib.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Common\" />
-  </ItemGroup>
-
-  <Import Project="$(BuildCommonDirectory)\common.targets" />
-
-  <!--
-    ============================================================
-    Create Sleet package
-    ============================================================
-  -->
-  <Target Name="PackProjects">
-    <PropertyGroup>
-      <MergedExePath>$(PublishOutputDirectory)$(AssemblyName).exe</MergedExePath>
-      <MergedExePathExists Condition="Exists($(MergedExePath))">true</MergedExePathExists>
-      <NuspecProperties>version=$(Version);configuration=$(Configuration);branch=$(RepositoryBranch);commit=$(RepositoryCommit);</NuspecProperties>
-    </PropertyGroup>
-
-    <Error Condition=" '$(IsXPlat)' != 'true' AND '$(MergedExePathExists)' != 'true' " Text="Missing $(MergedExePath)" />
-
-    <!-- This project packs both the dotnet tool package: Sleet and the exe package: SleetExe.
-         NuGet pack currently rejects dotnet tool packages with desktop framework TFMs, to get
-         around this we pass PackAsTool=true only during the dotnet tool pack, and exclude the
-         desktop framework at that time. -->
-
-    <!-- Pack Sleet -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Properties="Configuration=$(Configuration);PackageOutputPath=$(NupkgOutputDirectory);PackSleetDotnetTool=true" />
-    <!-- Pack Sleet Exe -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack" Condition=" '$(MergedExePathExists)' == 'true' " Properties="Configuration=$(Configuration);PackageOutputPath=$(NupkgOutputDirectory);NoPackageAnalysis=true;IncludeSymbols=false;NuspecFile=$(MSBuildProjectDirectory)\SleetExe.nuspec;NuspecProperties=$(NuspecProperties);PackageId=SleetExe" />
-  </Target>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

@@ -290,7 +290,7 @@ namespace Sleet
             return _client.PutBucketPolicyAsync(policyRequest, token);
         }
 
-        // Retry S3 exceptions except for auth errors and bad requests
+        // Retry S3 exceptions except for auth errors, bad requests, and requests the service does not support
         private static async Task Retry(Func<ILogger, CancellationToken, Task> func, ILogger log, CancellationToken token)
         {
             var start = DateTime.UtcNow;

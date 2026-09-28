@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Common;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -18,7 +18,7 @@ namespace Sleet.AmazonS3.Tests
         public async Task GivenPushCreatesAnS3BucketVerifyNuGetCanRead()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             using (var sourceContext = new SourceCacheContext())
             {
                 // Skip creation and allow it to be done during push.

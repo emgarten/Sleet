@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>alpha</id>
+    <version>1.0.0</version>
+    <authors>alpha authors</authors>
+    <description>Alpha stable package</description>
+    <summary>Alpha stable summary</summary>
+    <projectUrl>https://example.org/alpha</projectUrl>
+    <tags>alpha stable</tags>
+    <dependencies>
+      <group>
+        <dependency id="beta" version="2.0.0" />
+      </group>
+      <group targetFramework="net8.0">
+        <dependency id="gamma" version="[3.0.0]" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
