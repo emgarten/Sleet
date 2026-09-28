@@ -177,6 +177,22 @@ To build and run tests locally:
 ./build.ps1
 ```
 
+The Azure functional tests can run against [Azurite](https://github.com/Azure/Azurite), a local storage emulator, without an Azure account:
+
+```bash
+# Start Azurite with Docker
+docker compose -f build/emulators/docker-compose.yml up -d
+
+# Or run it with Node.js 22+ in a separate terminal
+npx -y -p azurite azurite-blob --inMemoryPersistence --skipApiVersionCheck
+
+# Linux / macOS
+./build.sh --use-dev-storage
+
+# Windows
+./build.ps1 -UseDevStorage
+```
+
 CI runs on Linux, macOS, and Windows.
 
 ## History

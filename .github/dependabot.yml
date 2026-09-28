@@ -51,3 +51,8 @@ updates:
       docs:
         patterns:
           - "*"
+
+  - package-ecosystem: docker-compose
+    directory: /build/emulators
+    schedule:
+      interval: weekly

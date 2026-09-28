@@ -1,0 +1,68 @@
+# Run the functional tests against local storage emulators, no cloud account or secrets are needed.
+# The emulators are defined in build/emulators/docker-compose.yml
+
+name: Emulator Tests
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'doc/**'
+      - '*.md'
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'doc/**'
+      - '*.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+jobs:
+  azurite:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - name: Start emulators
+      run: docker compose -f build/emulators/docker-compose.yml up -d --wait azurite
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+    - name: Build
+      run: dotnet build test/Sleet.Azure.Tests/Sleet.Azure.Tests.csproj -c Release
+    - name: Wait for Azurite
+      run: curl -sS -o /dev/null --retry 30 --retry-delay 1 --retry-all-errors http://127.0.0.1:10000/
+    - name: Test
+      # --fail-skips makes the job fail if the tests are skipped instead of run
+      run: >-
+        dotnet test --project test/Sleet.Azure.Tests/Sleet.Azure.Tests.csproj -c Release --no-build
+        --results-directory artifacts/TestResults --report-trx
+        --hangdump --hangdump-timeout 20m --hangdump-type Mini
+        --fail-skips on
+      env:
+        SLEET_TEST_ACCOUNT: UseDevelopmentStorage=true
+    - name: Emulator logs
+      if: ${{ failure() }}
+      run: docker compose -f build/emulators/docker-compose.yml logs
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: emulator-test-results-azurite
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7

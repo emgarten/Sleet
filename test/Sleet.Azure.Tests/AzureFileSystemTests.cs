@@ -5,8 +5,8 @@ using Sleet.Test.Common;
 namespace Sleet.Azure.Tests
 {
     /// <summary>
-    /// These tests can run locally against developer storage by changing
-    /// EnvVarExistsFactAttribute -> Fact and starting up the emulator.
+    /// These tests can run locally against Azurite by starting build/emulators/docker-compose.yml
+    /// and setting SLEET_TEST_ACCOUNT=UseDevelopmentStorage=true.
     /// </summary>
     public class AzureFileSystemTests
     {

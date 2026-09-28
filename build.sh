@@ -2,12 +2,17 @@
 set -euo pipefail
 
 # No options are needed to run a basic build and unit tests.
-# To run functional tests against azure and or aws, use the following options:
+# To run functional tests against azure and or aws, use the following options.
+# --use-dev-storage runs the azure tests against a local Azurite, see build/emulators/docker-compose.yml
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --azure-conn)
         export SLEET_TEST_ACCOUNT="$2"
         shift 2
+        ;;
+    --use-dev-storage)
+        export SLEET_TEST_ACCOUNT="UseDevelopmentStorage=true"
+        shift
         ;;
     --aws-key)
         export AWS_ACCESS_KEY_ID="$2"
