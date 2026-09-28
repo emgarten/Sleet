@@ -1,16 +1,16 @@
-# Creating a locally hosted feed
+# Create a local feed
 
-This guide is used to setup a new feed hosted on a local IIS Webserver.
+A local feed writes the Sleet feed to a folder on disk. To use that feed over the network, serve the folder with a web server and set `baseURI` to the public URL. If `baseURI` is omitted, Sleet writes `file:///` URLs into the feed JSON.
 
-## Creating a config for local feed
+## Create a local configuration
 
-Create a `sleet.json` config file to define a new package feed hosted on IIS.
+Run `createconfig` to create a starter `sleet.json`:
 
-``sleet createconfig --local``
+```powershell
+sleet createconfig --local
+```
 
-Open `sleet.json` using your editor of choice, the file will look like similar to this
-
-``notepad sleet.json``
+The local template uses the current directory plus `myfeed` for `path`, and `https://example.com/feed/` for `baseURI`:
 
 ```json
 {
@@ -20,77 +20,79 @@ Open `sleet.json` using your editor of choice, the file will look like similar t
     {
       "name": "myLocalFeed",
       "type": "local",
-      "path": "C:\\myFeed",
+      "path": "C:\\path\\to\\current-directory\\myfeed",
       "baseURI": "https://example.com/feed/"
     }
   ]
 }
 ```
 
-For `.netconfig`, just create or edit the file directly in the [desired location](https://dotnetconfig.org/#what):
+Edit the file before you push packages:
 
-```gitconfig
-[sleet]
-    username = ""
-    useremail = ""
+- Set `path` to the folder Sleet should read and write.
+- Set `baseURI` to the URL that will serve `index.json`, such as `https://example.com/feed/`.
 
-[sleet "myLocalFeed"]
-    type = local
-    path = C:\\myFeed
-    baseURI = https://example.com/feed/
+> [!TIP]
+> Set `baseURI` before the first push. Sleet writes it into the feed files, so changing it later means rebuilding the feed. The `recreate` command doesn't work for local feeds with a `baseURI`, see [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate).
+
+Relative `path` values are resolved relative to the folder that contains `sleet.json`. Relative paths only work when Sleet loaded a settings file. If you configure a local feed from environment variables or command-line properties and use a relative path, Sleet fails with:
+
+```text
+Cannot use a relative 'path' without a sleet.json file.
 ```
 
-Set `path` to the local directory on disk where the feed json files will be written.
+In a `.netconfig` file, use an absolute `path`. A relative path there is resolved from the current folder, not from the folder of the `.netconfig` file.
 
-Change `baseURI` to the URI the http server will use to serve the feed.
+If the settings file contains more than one source, pass `-s` or `--source` with the source name.
 
-## Initialize the feed
+## Initialize and push packages
 
-Now initialize the feed, this creates the basic files needed to get started.
+You can initialize the feed explicitly:
 
-* The optional `config` value here corresponds to the filesystem path to the `sleet.json` or `.netconfig`
-* the `source` value here corresponds to the `name` property used in `sleet.json`
+```powershell
+sleet init -c C:\feeds\sleet.json -s myLocalFeed
+```
 
-``sleet init --config C:\sleet.json --source myLocalFeed``
+This step is optional for normal publishing. `push` creates the folder and initializes the feed on first use.
 
-``sleet init --config C:\.netconfig --source myLocalFeed``
+Push one package or a directory of packages:
 
-## Adding packages
+```powershell
+sleet push C:\packages -c C:\feeds\sleet.json -s myLocalFeed --skip-existing
+```
 
-Add packages to the feed with the push command, this can be used with either a path to a single nupkg or a folder of nupkgs.
+Sleet searches directory inputs recursively for `*.nupkg` files. Sleet does not expand wildcards itself. Pack to a folder, then push that folder.
 
-``sleet push -s myLocalFeed C:\PackagesFolder``
+## Serve the folder
 
-## Creating the feed's ASP.NET project
+A local feed is a static set of files. You can copy or sync the output folder to another machine or a static host, then serve it from the `baseURI` URL.
 
-Create an empty ASP.NET Website project.
+Do not copy or sync the folder while a `push`, `delete`, `destroy`, or `recreate` command is running. Wait for the feed lock to be released so clients do not see a partially updated feed.
 
-In the projects' `web.config` file add the following lines:
+See [Web servers and static hosting](static-hosting.md) for IIS, nginx, Apache, and static-host requirements.
+
+## Use the feed with NuGet
+
+When the folder is served over HTTPS, add the Sleet service index as the NuGet source. See [Use a feed with NuGet](consume-feed.md) for more options.
 
 ```xml
 <configuration>
-   <system.webServer>
-      <staticContent>
-          <mimeMap fileExtension=".nupkg" mimeType="application/zip"/>
-          <mimeMap fileExtension="." mimeType="application/json"/>
-      </staticContent>
-   </system.webServer>
+  <packageSources>
+    <add key="sleet-local" value="https://example.com/feed/index.json" />
+  </packageSources>
 </configuration>
 ```
 
-## Uploading the feed to IIS
+For local HTTP testing, see [local testing](static-hosting.md#test-a-local-server).
 
-Publish your ASP.NET website to your IIS server.
+## Direct disk access
 
-Copy the entire local feed output folder to a path on your IIS server (including all subfolders).
+NuGet can't restore packages straight from a Sleet local feed folder. Using the feed folder, its `flatcontainer` folder, or a `file:///` URL to `index.json` as a package source doesn't work. NuGet reports `NU1101` for the folders and `NU1301` for the `file:///` URL. Serve the folder over HTTPS instead.
 
-## Exposing the feed with IIS
+If you only need a folder or file share of packages, NuGet's built-in [local feeds](https://learn.microsoft.com/en-us/nuget/hosting-packages/local-feeds) are simpler and don't need Sleet.
 
-In `Internet Information Services Manager` open your website, right click and choose `Add Virtual Directory`
+## Locking
 
-* In `Alias` enter the URI you want to expose - in our example it's `feed`
-* In `Physical Path` enter the path on the server you copied your `path` output directory to.
+Local feeds use a `.lock` file in the feed root. Sleet creates it before changing the feed and removes it when the command completes.
 
-## Using the feed
-
-Add the feed as a source to your NuGet.Config file. In the example above the package source URL is ``https://example.com/feed/index.json``
+If a process stops while holding the lock, see [Feed locking](locking.md).
