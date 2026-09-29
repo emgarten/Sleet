@@ -14,8 +14,8 @@ Targets:
   all        All targets.
   azurite    The Azure tests against Azurite.
   azure      The Azure tests against SLEET_TEST_ACCOUNT, an Azure Storage connection string.
-  aws        The Amazon S3 tests against AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
-             AWS_DEFAULT_REGION defaults to us-east-1.
+  aws        The Amazon S3 tests against SLEET_TEST_S3_ACCESS_KEY_ID and SLEET_TEST_S3_SECRET_ACCESS_KEY.
+             SLEET_TEST_S3_REGION defaults to us-east-1.
 
 The emulator targets start the local test environment in local-env with Docker, and stop it
 afterwards if it wasn't already running.
@@ -60,7 +60,7 @@ RESULTS_DIR="$REPO_ROOT/artifacts/TestResults/functional"
 CONFIGURATION="Release"
 ALL_TARGETS="azurite azure aws"
 
-# Emulator targets list the local-env services they use and the env vars to set for them.
+# Emulator targets list the local-env services they use, and the account env vars to unset so the tests use local-env.
 # Cloud targets list the env vars they need.
 target_project()
 {
@@ -77,10 +77,10 @@ target_services()
   esac
 }
 
-target_env()
+target_unset_env()
 {
   case "$1" in
-    azurite) echo "SLEET_TEST_ACCOUNT=UseDevelopmentStorage=true" ;;
+    azurite) echo "SLEET_TEST_ACCOUNT" ;;
   esac
 }
 
@@ -88,7 +88,7 @@ target_required_env()
 {
   case "$1" in
     azure) echo "SLEET_TEST_ACCOUNT" ;;
-    aws) echo "AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY" ;;
+    aws) echo "SLEET_TEST_S3_ACCESS_KEY_ID SLEET_TEST_S3_SECRET_ACCESS_KEY" ;;
   esac
 }
 
@@ -218,9 +218,15 @@ FAILED=0
 SUMMARY=""
 
 for name in $SELECTED; do
-  # --fail-skips makes the run fail if the tests are skipped instead of run
-  # shellcheck disable=SC2046 # target_env returns NAME=value words
-  if run_command env $(target_env "$name") "$DOTNET" test --project "$(target_project "$name")" -c "$CONFIGURATION" --no-build \
+  ENV_ARGS=""
+
+  for var in $(target_unset_env "$name"); do
+    ENV_ARGS="$ENV_ARGS -u $var"
+  done
+
+  # --fail-skips makes the run fail if the tests are skipped instead of run, such as when they can't find local-env
+  # shellcheck disable=SC2086 # ENV_ARGS is a list of env options
+  if run_command env $ENV_ARGS "$DOTNET" test --project "$(target_project "$name")" -c "$CONFIGURATION" --no-build \
       --results-directory "$RESULTS_DIR/$name" --report-trx --hangdump --hangdump-timeout 20m --hangdump-type Mini --fail-skips on; then
     SUMMARY="$SUMMARY$(printf '  %-10s %s' "$name" passed)"$'\n'
   else

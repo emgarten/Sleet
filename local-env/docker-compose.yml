@@ -1,7 +1,9 @@
 # Local test environment for the functional tests, see README.md.
 # Start it with start.ps1 or start.sh, which wait until each service is healthy.
 #
-# Ports are bound to 127.0.0.1 only. The data is removed when the environment is stopped.
+# Ports are bound to 127.0.0.1 only, on host ports that don't clash with the default ports of the services, so a copy
+# that you run yourself can keep running. The tests look for the services on these ports. The data is removed when the
+# environment is stopped.
 
 name: sleet-local-env
 
@@ -20,7 +22,7 @@ services:
     # Blob only and in memory. Skip the API version check so newer Azure SDK versions work with this Azurite version.
     command: azurite-blob --blobHost 0.0.0.0 --inMemoryPersistence --skipApiVersionCheck
     ports:
-      - "127.0.0.1:10000:10000"
+      - "127.0.0.1:10100:10000"
     healthcheck:
       <<: *healthcheck
       test: ["CMD", "nc", "-z", "127.0.0.1", "10000"]

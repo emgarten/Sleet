@@ -12,9 +12,10 @@ namespace Sleet.AmazonS3.Tests
 {
     public class AmazonS3TestContext : IAsyncDisposable
     {
-        public const string EnvAccessKeyId = "AWS_ACCESS_KEY_ID";
-        public const string EnvSecretAccessKey = "AWS_SECRET_ACCESS_KEY";
-        public const string EnvDefaultRegion = "AWS_DEFAULT_REGION";
+        // Sleet specific names, so that AWS credentials in the environment don't run the tests against a real account
+        public const string EnvAccessKeyId = "SLEET_TEST_S3_ACCESS_KEY_ID";
+        public const string EnvSecretAccessKey = "SLEET_TEST_S3_SECRET_ACCESS_KEY";
+        public const string EnvRegion = "SLEET_TEST_S3_REGION";
 
         private bool cleanupDone = false;
 
@@ -24,20 +25,36 @@ namespace Sleet.AmazonS3.Tests
             LocalCache = new LocalCache();
             LocalSettings = new LocalSettings();
 
-            var accessKeyId = Environment.GetEnvironmentVariable(EnvAccessKeyId);
-            var secretAccessKey = Environment.GetEnvironmentVariable(EnvSecretAccessKey);
-            var region = Environment.GetEnvironmentVariable(EnvDefaultRegion) ?? "us-east-1";
+            var region = Region;
             var config = new AmazonS3Config()
             {
                 Timeout = TimeSpan.FromSeconds(100),
                 RegionEndpoint = RegionEndpoint.GetBySystemName(region)
             };
-            Client = new AmazonS3Client(accessKeyId, secretAccessKey, config);
+            Client = new AmazonS3Client(AccessKeyId, SecretAccessKey, config);
             Uri = AmazonS3Utility.GetBucketPath(BucketName, region);
 
             FileSystem = new AmazonS3FileSystem(LocalCache, Uri, Client, BucketName, acl);
             Logger = new TestLogger();
         }
+
+        public static string AccessKeyId => Environment.GetEnvironmentVariable(EnvAccessKeyId);
+
+        public static string SecretAccessKey => Environment.GetEnvironmentVariable(EnvSecretAccessKey);
+
+        public static string Region
+        {
+            get
+            {
+                var region = Environment.GetEnvironmentVariable(EnvRegion);
+                return string.IsNullOrEmpty(region) ? "us-east-1" : region;
+            }
+        }
+
+        /// <summary>
+        /// True if the access key and secret are set.
+        /// </summary>
+        public static bool IsAvailable => !string.IsNullOrEmpty(AccessKeyId) && !string.IsNullOrEmpty(SecretAccessKey);
 
         public string BucketName { get; }
 

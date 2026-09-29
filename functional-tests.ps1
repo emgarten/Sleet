@@ -15,8 +15,8 @@ What to test:
   all        All targets.
   azurite    The Azure tests against Azurite.
   azure      The Azure tests against SLEET_TEST_ACCOUNT, an Azure Storage connection string.
-  aws        The Amazon S3 tests against AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
-             AWS_DEFAULT_REGION defaults to us-east-1.
+  aws        The Amazon S3 tests against SLEET_TEST_S3_ACCESS_KEY_ID and SLEET_TEST_S3_SECRET_ACCESS_KEY.
+             SLEET_TEST_S3_REGION defaults to us-east-1.
 
 .EXAMPLE
 ./functional-tests.ps1
@@ -45,12 +45,12 @@ $Configuration = "Release"
 $AzureTests = "test/Sleet.Azure.Tests/Sleet.Azure.Tests.csproj"
 $AmazonS3Tests = "test/Sleet.AmazonS3.Tests/Sleet.AmazonS3.Tests.csproj"
 
-# Emulator targets list the local-env services they use and the env vars to set for them.
+# Emulator targets list the local-env services they use, and the account env vars to unset so the tests use local-env.
 # Cloud targets list the env vars they need.
 $Targets = [ordered]@{
-    azurite = @{ Project = $AzureTests; Services = @("azurite"); Env = @{ SLEET_TEST_ACCOUNT = "UseDevelopmentStorage=true" }; Required = @() }
-    azure   = @{ Project = $AzureTests; Services = @(); Env = @{}; Required = @("SLEET_TEST_ACCOUNT") }
-    aws     = @{ Project = $AmazonS3Tests; Services = @(); Env = @{}; Required = @("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY") }
+    azurite = @{ Project = $AzureTests; Services = @("azurite"); Unset = @("SLEET_TEST_ACCOUNT"); Required = @() }
+    azure   = @{ Project = $AzureTests; Services = @(); Unset = @(); Required = @("SLEET_TEST_ACCOUNT") }
+    aws     = @{ Project = $AmazonS3Tests; Services = @(); Unset = @(); Required = @("SLEET_TEST_S3_ACCESS_KEY_ID", "SLEET_TEST_S3_SECRET_ACCESS_KEY") }
 }
 
 $Groups = @{
@@ -166,14 +166,14 @@ try {
         $settings = $Targets[$name]
         $savedEnv = @{}
 
-        foreach ($var in $settings.Env.Keys) {
+        foreach ($var in $settings.Unset) {
             $savedEnv[$var] = [Environment]::GetEnvironmentVariable($var)
-            [Environment]::SetEnvironmentVariable($var, $settings.Env[$var])
-            Write-Host "[Env] $var=$($settings.Env[$var])" -ForegroundColor Cyan
+            [Environment]::SetEnvironmentVariable($var, $null)
+            Write-Host "[Env] Unset $var" -ForegroundColor Cyan
         }
 
         try {
-            # --fail-skips makes the run fail if the tests are skipped instead of run
+            # --fail-skips makes the run fail if the tests are skipped instead of run, such as when they can't find local-env
             $arguments = @("test", "--project", $settings.Project, "-c", $Configuration, "--no-build", "--results-directory", (Join-Path $ResultsDir $name), "--report-trx", "--hangdump", "--hangdump-timeout", "20m", "--hangdump-type", "Mini", "--fail-skips", "on")
             Write-Host "[Exec] $DotnetExe $arguments" -ForegroundColor Cyan
             & $DotnetExe @arguments

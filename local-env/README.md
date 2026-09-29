@@ -22,8 +22,10 @@ The same script runs the tests against Azure and Amazon S3 accounts. See [functi
 
 | Service | Emulates | Endpoint | Settings |
 | --- | --- | --- | --- |
-| `azurite` | Azure Blob Storage | `http://127.0.0.1:10000` | Connection string `UseDevelopmentStorage=true` |
+| `azurite` | Azure Blob Storage | `http://127.0.0.1:10100` | The [well-known account and key](https://learn.microsoft.com/azure/storage/common/storage-connect-azurite#use-a-well-known-storage-account-and-key) `devstoreaccount1`, with `BlobEndpoint=http://127.0.0.1:10100/devstoreaccount1` |
 | `rustfs` | Amazon S3 | `http://127.0.0.1:9100` | Access key `rustfsadmin`, secret key `rustfsadmin` |
+
+The services use different ports from their defaults, so they don't clash with copies that you run yourself. The tests look for them on these ports.
 
 The Amazon S3 tests don't use RustFS yet. They need [#239](https://github.com/emgarten/Sleet/pull/239) to work with it.
 
@@ -51,7 +53,7 @@ Start the environment yourself to keep it running between test runs, or to run t
 
 The start script waits until each service is healthy. The stop script removes the containers and their data.
 
-To run the Azure tests from an IDE or with `dotnet test`, start the environment and set `SLEET_TEST_ACCOUNT` to `UseDevelopmentStorage=true`. Without it, the tests are skipped.
+To run the Azure tests from an IDE or with `dotnet test`, start the environment. The tests find Azurite on its port and run against it, and they're skipped when the environment isn't running. If `SLEET_TEST_ACCOUNT` is set, they use that account instead.
 
 ## CI
 
@@ -65,8 +67,9 @@ The emulator tests run on Linux because the GitHub hosted macOS and Windows runn
 
 ## Add a service
 
-1. Add the service to [docker-compose.yml](docker-compose.yml). Pin the image version, bind the ports to `127.0.0.1`, and add a healthcheck so the start script can wait for it.
-1. Add a target for it to [functional-tests.ps1](../functional-tests.ps1) and [functional-tests.sh](../functional-tests.sh), with the services it uses and the environment variables that point the tests at it. Add the target to the `emulators` group.
+1. Add the service to [docker-compose.yml](docker-compose.yml). Pin the image version, bind the ports to `127.0.0.1` on a host port that isn't the service's default, and add a healthcheck so the start script can wait for it.
+1. Make the tests use the service when their account environment variables aren't set and its port is open. See `AzureTestContext.IsAvailable` and `AzureFactAttribute` in [Sleet.Azure.Tests](../test/Sleet.Azure.Tests).
+1. Add a target for it to [functional-tests.ps1](../functional-tests.ps1) and [functional-tests.sh](../functional-tests.sh), with the services it uses and the account environment variables to unset, so the tests use the service. Add the target to the `emulators` group.
 1. Add the service to the table above and the target to [functional tests](../CONTRIBUTING.md#functional-tests).
 
 Dependabot keeps the image versions in `docker-compose.yml` up to date.

@@ -14,6 +14,9 @@ if (-not (Get-Command docker -CommandType Application -ErrorAction Ignore)) {
     exit 1
 }
 
+# Native commands write progress to stderr, which must not stop the script
+$ErrorActionPreference = "Continue"
+
 # --volumes removes the anonymous data volumes that the images declare
 $arguments = @("compose", "-f", $ComposeFile, "down", "--volumes", "--remove-orphans")
 Write-Host "[Exec] docker $arguments" -ForegroundColor Cyan

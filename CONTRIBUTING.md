@@ -60,15 +60,15 @@ To run the tests against your own accounts, set their environment variables and 
 
 ```powershell
 $env:SLEET_TEST_ACCOUNT = "<connection string>"
-$env:AWS_ACCESS_KEY_ID = "<key id>"
-$env:AWS_SECRET_ACCESS_KEY = "<secret>"
+$env:SLEET_TEST_S3_ACCESS_KEY_ID = "<key id>"
+$env:SLEET_TEST_S3_SECRET_ACCESS_KEY = "<secret>"
 ./functional-tests.ps1 -Target cloud
 ```
 
 ```bash
 export SLEET_TEST_ACCOUNT="<connection string>"
-export AWS_ACCESS_KEY_ID="<key id>"
-export AWS_SECRET_ACCESS_KEY="<secret>"
+export SLEET_TEST_S3_ACCESS_KEY_ID="<key id>"
+export SLEET_TEST_S3_SECRET_ACCESS_KEY="<secret>"
 ./functional-tests.sh --target cloud
 ```
 
@@ -79,14 +79,17 @@ export AWS_SECRET_ACCESS_KEY="<secret>"
 | `all` | All targets. | Docker and the variables for `azure` and `aws` |
 | `azurite` | Azure Storage tests against Azurite. | Docker |
 | `azure` | Azure Storage tests against a storage account. | `SLEET_TEST_ACCOUNT`, set to a storage account connection string |
-| `aws` | Amazon S3 tests against AWS. | `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. `AWS_DEFAULT_REGION` defaults to `us-east-1`. |
+| `aws` | Amazon S3 tests against AWS. | `SLEET_TEST_S3_ACCESS_KEY_ID` and `SLEET_TEST_S3_SECRET_ACCESS_KEY`. `SLEET_TEST_S3_REGION` defaults to `us-east-1`. |
 
-To run more than one target, list them: `-Target azurite, azure` or `--target azurite,azure`. If a variable that a target needs isn't set, the script stops before it runs any tests. The Amazon S3 tests don't have an emulator target yet, so they run only with the `aws` target.
+To run more than one target, list them: `-Target azurite, azure` or `--target azurite,azure`. If a variable that a target needs isn't set, the script stops before it runs any tests. The emulator targets ignore the account variables, so they always run against the local test environment. The Amazon S3 tests don't have an emulator target yet, so they run only with the `aws` target.
 
 > [!WARNING]
 > The cloud targets create and delete containers and buckets named `sleet-test-{guid}`. Use a test account, not one that holds production feeds.
 
-To run the tests from an IDE, see [start and stop the environment](local-env/README.md#start-and-stop-the-environment).
+You can also run the functional tests from an IDE or with `dotnet test`. They're skipped unless they have somewhere to run:
+
+- The Azure tests run against `SLEET_TEST_ACCOUNT` if it's set, otherwise against Azurite in the local test environment if it's running. Start it with `./local-env/start.ps1` or `./local-env/start.sh`, see [start and stop the environment](local-env/README.md#start-and-stop-the-environment).
+- The Amazon S3 tests run when `SLEET_TEST_S3_ACCESS_KEY_ID` and `SLEET_TEST_S3_SECRET_ACCESS_KEY` are set. They don't use the standard `AWS_*` variables, so AWS credentials in your environment don't run them against your account.
 
 CI runs the same scripts. Pull requests from branches in this repository run the emulator and the cloud tests. Pull requests from forks run only the emulator tests, and a maintainer can run the cloud tests for them with the [manual workflow](.github/workflows/functional-manual.yml).
 

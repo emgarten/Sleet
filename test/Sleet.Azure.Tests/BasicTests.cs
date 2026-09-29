@@ -5,12 +5,11 @@ using Sleet.Test.Common;
 namespace Sleet.Azure.Tests
 {
     /// <summary>
-    /// Run these tests against Azurite with functional-tests.ps1 or functional-tests.sh. To run them from an IDE,
-    /// start local-env and set SLEET_TEST_ACCOUNT=UseDevelopmentStorage=true.
+    /// Run these tests with functional-tests.ps1 or functional-tests.sh, or start local-env and run them from an IDE.
     /// </summary>
     public class BasicTests
     {
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task GivenAStorageAccountVerifyInitSucceeds()
         {
             await using (var testContext = new AzureTestContext())
@@ -34,7 +33,7 @@ namespace Sleet.Azure.Tests
             }
         }
 
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task GivenAStorageAccountVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
@@ -69,7 +68,7 @@ namespace Sleet.Azure.Tests
             }
         }
 
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task GivenAStorageAccountWithNoContainerVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
@@ -100,7 +99,7 @@ namespace Sleet.Azure.Tests
             }
         }
 
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task GivenAStorageAccountWithNoInitVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
@@ -129,7 +128,7 @@ namespace Sleet.Azure.Tests
             }
         }
 
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task GivenAStorageAccountVerifyPushAndRemoveSucceed()
         {
             using (var packagesFolder = new TestFolder())
@@ -201,7 +200,7 @@ namespace Sleet.Azure.Tests
             }
         }
 
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task GivenAStorageAccountVerifyPushWithBaseURI()
         {
             using (var packagesFolder = new TestFolder())

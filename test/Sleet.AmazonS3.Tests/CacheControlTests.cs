@@ -1,14 +1,13 @@
 using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
-using Sleet.Test.Common;
 using System.Net.Http.Headers;
 
 namespace Sleet.AmazonS3.Tests
 {
     public class CacheControlTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenDefaultSettings_VerifyCacheControlIsNoStore()
         {
             using (var packagesFolder = new TestFolder())
@@ -51,7 +50,7 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenCustomCacheControl_VerifyHeadersAreSet()
         {
             using (var packagesFolder = new TestFolder())
@@ -127,7 +126,7 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenCustomCacheControlViaFactory_VerifyHeadersAreSet()
         {
             using (var packagesFolder = new TestFolder())
@@ -138,10 +137,6 @@ namespace Sleet.AmazonS3.Tests
                 var immutableCacheControl = "public, max-age=604800";
                 var mutableCacheControl = "public, max-age=60";
 
-                var accessKeyId = Environment.GetEnvironmentVariable(AmazonS3TestContext.EnvAccessKeyId);
-                var secretAccessKey = Environment.GetEnvironmentVariable(AmazonS3TestContext.EnvSecretAccessKey);
-                var region = Environment.GetEnvironmentVariable(AmazonS3TestContext.EnvDefaultRegion) ?? "us-east-1";
-
                 var settings = LocalSettings.Load(new JObject(
                     new JProperty("sources",
                         new JArray(
@@ -149,9 +144,9 @@ namespace Sleet.AmazonS3.Tests
                                 new JProperty("name", "s3"),
                                 new JProperty("type", "s3"),
                                 new JProperty("bucketName", testContext.BucketName),
-                                new JProperty("region", region),
-                                new JProperty("accessKeyId", accessKeyId),
-                                new JProperty("secretAccessKey", secretAccessKey),
+                                new JProperty("region", AmazonS3TestContext.Region),
+                                new JProperty("accessKeyId", AmazonS3TestContext.AccessKeyId),
+                                new JProperty("secretAccessKey", AmazonS3TestContext.SecretAccessKey),
                                 new JProperty("immutableCacheControl", immutableCacheControl),
                                 new JProperty("mutableCacheControl", mutableCacheControl))))));
 
