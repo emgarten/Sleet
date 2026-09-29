@@ -1,3 +1,7 @@
+# Runs the jobs from functional.yml for a pull request, including the cloud tests with the repository secrets.
+# Use this for pull requests from forks and Dependabot, which functional.yml skips. Review the changes first,
+# because this runs the pull request code with the secrets.
+
 name: Functional Tests (manual dispatch, with secrets)
 
 on:
@@ -13,15 +17,20 @@ permissions:
   pull-requests: read
 
 jobs:
-  build-linux:
+  emulators:
+    # Docker runs Linux containers on the Linux runners only
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [bash, pwsh]
+
     steps:
       - name: Checkout PR head
         uses: actions/checkout@v7
         with:
-          fetch-tags: true
-          fetch-depth: 0
           persist-credentials: false
           # Check out the PR's head commit (works for fork PRs too)
           ref: refs/pull/${{ inputs.pr_number }}/head
@@ -40,34 +49,38 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Build
-        run: ./build.sh
+      - name: Functional tests
+        if: matrix.shell == 'bash'
+        run: ./functional-tests.sh
         shell: bash
-        env:
-          SLEET_TEST_ACCOUNT: ${{ secrets.SLEET_TEST_ACCOUNT }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_DEFAULT_REGION: us-east-1
-          CIBUILD: true
+
+      - name: Functional tests
+        if: matrix.shell == 'pwsh'
+        run: ./functional-tests.ps1
+        shell: pwsh
 
       - name: Upload test results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: functional-test-results-linux
+          name: functional-test-results-emulators-${{ matrix.shell }}
           path: artifacts/TestResults
           if-no-files-found: ignore
           retention-days: 7
 
-  build-mac:
-    runs-on: macos-latest
+  cloud:
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
     steps:
       - name: Checkout PR head
         uses: actions/checkout@v7
         with:
-          fetch-tags: true
-          fetch-depth: 0
           persist-credentials: false
           # Check out the PR's head commit (works for fork PRs too)
           ref: refs/pull/${{ inputs.pr_number }}/head
@@ -86,67 +99,31 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Build
-        run: ./build.sh
+      - name: Functional tests
+        if: runner.os != 'Windows'
+        run: ./functional-tests.sh --target cloud
         shell: bash
         env:
           SLEET_TEST_ACCOUNT: ${{ secrets.SLEET_TEST_ACCOUNT }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_DEFAULT_REGION: us-east-1
-          CIBUILD: true
+          SLEET_TEST_S3_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          SLEET_TEST_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          SLEET_TEST_S3_REGION: us-east-1
 
-      - name: Upload test results
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: functional-test-results-mac
-          path: artifacts/TestResults
-          if-no-files-found: ignore
-          retention-days: 7
-
-  build-win:
-    runs-on: windows-latest
-    timeout-minutes: 60
-    steps:
-      - name: Checkout PR head
-        uses: actions/checkout@v7
-        with:
-          fetch-tags: true
-          fetch-depth: 0
-          persist-credentials: false
-          # Check out the PR's head commit (works for fork PRs too)
-          ref: refs/pull/${{ inputs.pr_number }}/head
-
-      - name: Show checked out ref
-        shell: pwsh
-        env:
-          PR_NUMBER: ${{ inputs.pr_number }}
-        run: |
-          Write-Host "PR: #$env:PR_NUMBER"
-          Write-Host "SHA: $(git rev-parse HEAD)"
-          git log -1 --oneline
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v6
-        with:
-          global-json-file: global.json
-
-      - name: Build
-        run: ./build.ps1
+      - name: Functional tests
+        if: runner.os == 'Windows'
+        run: ./functional-tests.ps1 -Target cloud
         shell: pwsh
         env:
           SLEET_TEST_ACCOUNT: ${{ secrets.SLEET_TEST_ACCOUNT }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_DEFAULT_REGION: us-east-1
-          CIBUILD: true
+          SLEET_TEST_S3_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          SLEET_TEST_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          SLEET_TEST_S3_REGION: us-east-1
 
       - name: Upload test results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: functional-test-results-win
+          name: functional-test-results-cloud-${{ matrix.os }}
           path: artifacts/TestResults
           if-no-files-found: ignore
           retention-days: 7

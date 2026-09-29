@@ -1,13 +1,12 @@
 using Azure.Storage.Blobs;
 using AwesomeAssertions;
 using NuGet.Test.Helpers;
-using Sleet.Test.Common;
 
 namespace Sleet.Azure.Tests
 {
     public class SubFeedTests
     {
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task SubFeed_InitMultipleFeedsVerifyDestroyDoesNotModifyOthers()
         {
             using (var packagesFolder = new TestFolder())
@@ -60,7 +59,7 @@ namespace Sleet.Azure.Tests
             }
         }
 
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task SubFeed_PushAndVerifyNoFilesInRoot()
         {
             using (var packagesFolder = new TestFolder())
@@ -105,7 +104,7 @@ namespace Sleet.Azure.Tests
             }
         }
 
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task SubFeed_PushAndVerifyWithNestedFeedsVerifySuccess()
         {
             using (var packagesFolder = new TestFolder())

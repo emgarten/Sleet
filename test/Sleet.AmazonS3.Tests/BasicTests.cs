@@ -12,7 +12,7 @@ namespace Sleet.AmazonS3.Tests
 {
     public class BasicTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenAStorageAccountVerifyInitSucceeds()
         {
             await using (var testContext = new AmazonS3TestContext())
@@ -36,7 +36,7 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenAStorageAccountVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
@@ -71,7 +71,7 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenAStorageAccountWithNoContainerVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
@@ -102,7 +102,7 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenAStorageAccountWithNoContainerPublicAclVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
@@ -133,7 +133,7 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenAStorageAccountWithNoInitVerifyPushSucceeds()
         {
             using (var packagesFolder = new TestFolder())
@@ -162,7 +162,7 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenAStorageAccountVerifyPushAndRemoveSucceed()
         {
             using (var packagesFolder = new TestFolder())
@@ -234,7 +234,7 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenAStorageAccountVerifyPushAndSucceedWithBaseURI()
         {
             using (var packagesFolder = new TestFolder())

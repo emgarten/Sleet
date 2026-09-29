@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 using Amazon.S3;
 using AwesomeAssertions;
 using NuGet.Test.Helpers;
-using Sleet.Test.Common;
 
 namespace Sleet.AmazonS3.Tests
 {
     public class SubFeedTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task SubFeed_InitMultipleFeedsVerifyDestroyDoesNotModifyOthers()
         {
             using (var packagesFolder = new TestFolder())
@@ -77,7 +76,7 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task SubFeed_PushAndVerifyNoFilesInRoot()
         {
             using (var packagesFolder = new TestFolder())
@@ -126,7 +125,7 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task SubFeed_PushAndVerifyWithNestedFeedsVerifySuccess()
         {
             using (var packagesFolder = new TestFolder())
