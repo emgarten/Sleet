@@ -290,11 +290,11 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task CreateFileSystemAsync_WithS3Type_WithMinioProvider_UsesPathStyle()
+        public async Task CreateFileSystemAsync_WithS3Type_WithSelfHostedProvider_UsesPathStyle()
         {
             var fileSystem = await CreateS3FileSystemAsync(source =>
             {
-                source["provider"] = "minio";
+                source["provider"] = "self-hosted";
                 source["serviceURL"] = "http://localhost:9000";
             });
 
@@ -327,12 +327,12 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task CreateFileSystemAsync_WithS3Type_WithMinioProviderAndForcePathStyleFalse_UsesVirtualHostStyle()
+        public async Task CreateFileSystemAsync_WithS3Type_WithSelfHostedProviderAndForcePathStyleFalse_UsesVirtualHostStyle()
         {
             var fileSystem = await CreateS3FileSystemAsync(source =>
             {
-                source["provider"] = "minio";
-                source["serviceURL"] = "https://minio.example.com";
+                source["provider"] = "self-hosted";
+                source["serviceURL"] = "https://s3.example.com";
                 source["forcePathStyle"] = false;
                 source["checksumMode"] = "WhenRequired";
             });
@@ -344,7 +344,7 @@ namespace SleetLib.Tests
 
         [Theory]
         [InlineData("r2", "Missing serviceURL for Cloudflare R2 account.")]
-        [InlineData("minio", "Missing serviceURL for MinIO account.")]
+        [InlineData("self-hosted", "Missing serviceURL for self-hosted S3 account.")]
         public async Task CreateFileSystemAsync_WithS3Type_WithProviderAndWithoutServiceURL_ThrowsArgumentException(string provider, string message)
         {
             var settings = GetS3Settings(source =>
@@ -412,7 +412,7 @@ namespace SleetLib.Tests
             Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, new LocalCache(), "s3", NullLogger.Instance);
 
             var ex = await Assert.ThrowsAsync<ArgumentException>(act);
-            Assert.Contains("Unknown provider 'gcs' for s3 source. Valid values are: aws, r2, minio", ex.Message);
+            Assert.Contains("Unknown provider 'gcs' for s3 source. Valid values are: aws, r2, self-hosted", ex.Message);
         }
 
         [Fact]

@@ -105,25 +105,25 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task CreateConfigCommand_WithS3StorageTypeAndMinioProvider_CreatesValidConfig()
+        public async Task CreateConfigCommand_WithS3StorageTypeAndSelfHostedProvider_CreatesValidConfig()
         {
             using (var testDir = new TestFolder())
             {
                 var configPath = Path.Combine(testDir.Root, "sleet.json");
-                var result = await CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "minio", NullLogger.Instance);
+                var result = await CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "self-hosted", NullLogger.Instance);
 
                 result.Should().BeTrue();
 
                 var json = JObject.Parse(File.ReadAllText(configPath));
                 var source = json["sources"][0];
-                source["name"].Value<string>().Should().Be("myMinioFeed");
+                source["name"].Value<string>().Should().Be("mySelfHostedFeed");
                 source["type"].Value<string>().Should().Be("s3");
-                source["provider"].Value<string>().Should().Be("minio");
+                source["provider"].Value<string>().Should().Be("self-hosted");
                 source["bucketName"].Value<string>().Should().Be("bucketname");
                 source["serviceURL"].Value<string>().Should().Be("http://localhost:9000");
                 source["region"].Should().BeNull();
 
-                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(new LocalSettings { Json = json }, new LocalCache(), "myMinioFeed", NullLogger.Instance);
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(new LocalSettings { Json = json }, new LocalCache(), "mySelfHostedFeed", NullLogger.Instance);
                 fileSystem.Should().BeOfType<AmazonS3FileSystem>();
             }
         }

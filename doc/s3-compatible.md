@@ -39,17 +39,17 @@ Set `provider` to use the defaults that a service needs. Settings in the source 
 | --- | --- | --- |
 | `aws` | Amazon S3, and providers that work with the AWS defaults. This is the default. | The AWS SDK defaults. |
 | `r2` | Cloudflare R2 | `disablePayloadSigning` is `true` and `checksumMode` is `whenRequired`. `serviceURL` and `baseURI` are required. Sleet doesn't change public access on buckets it creates. See [Create a Cloudflare R2 feed](feed-type-cloudflare.md). |
-| `minio` | MinIO | `forcePathStyle` is `true`, because MinIO only supports virtual-hosted-style URLs when `MINIO_DOMAIN` is set. `serviceURL` is required. |
+| `self-hosted` | S3 servers that you run yourself, such as MinIO and RustFS | `forcePathStyle` is `true`, because these servers usually only support virtual-hosted-style URLs when a server domain is configured. `serviceURL` is required. |
 
 For other providers, set `disablePayloadSigning`, `checksumMode`, or `forcePathStyle` yourself if the provider doesn't support the AWS defaults. See [Amazon S3 properties](client-settings.md#amazon-s3-properties).
 
 `createconfig` creates a template for a provider:
 
 ```bash
-sleet createconfig --provider minio
+sleet createconfig --provider self-hosted
 ```
 
-MinIO uses path-style URLs, so the bucket URL is the server URL followed by the bucket name. Set `region` if the MinIO server uses a Region other than `us-east-1`.
+The `self-hosted` provider uses path-style URLs, so the bucket URL is the server URL followed by the bucket name. Set `region` if the server uses a Region other than `us-east-1`.
 
 ```json
 {
@@ -57,7 +57,7 @@ MinIO uses path-style URLs, so the bucket URL is the server URL followed by the 
     {
       "name": "feed",
       "type": "s3",
-      "provider": "minio",
+      "provider": "self-hosted",
       "bucketName": "my-bucket-feed",
       "serviceURL": "http://localhost:9000",
       "path": "http://localhost:9000/my-bucket-feed/",
@@ -101,8 +101,8 @@ Create the bucket with the provider's tools first. Configure public read access 
 | Provider | `serviceURL` | `path` for clients | Notes |
 | --- | --- | --- | --- |
 | Cloudflare R2 | `https://<account-id>.r2.cloudflarestorage.com` | `https://<public-id>.r2.dev/` or a custom domain | Set `provider` to `r2`, and set `baseURI` to the public URL. See [Create a Cloudflare R2 feed](feed-type-cloudflare.md), [R2 S3 API](https://developers.cloudflare.com/r2/api/s3/api/), and [public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/). |
-| MinIO | Your MinIO API endpoint, such as `https://minio.example.com` | The public URL for the bucket, such as `https://minio.example.com/my-bucket-feed/` or a reverse-proxied custom domain | Set `provider` to `minio`. Configure anonymous read access with MinIO policy tools. See [MinIO anonymous access](https://docs.min.io/aistor/reference/cli/mc-anonymous/) and [policy-based access control](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html). |
-| RustFS | Your RustFS API endpoint, such as `https://rustfs.example.com` | `https://rustfs.example.com/my-bucket-feed/` | Set `forcePathStyle` to `true`, because RustFS only supports virtual-hosted-style URLs when `RUSTFS_SERVER_DOMAINS` is set. Sleet can create the bucket with public read access. See [RustFS virtual host style](https://docs.rustfs.com/en/integration/virtual). |
+| MinIO | Your MinIO API endpoint, such as `https://minio.example.com` | The public URL for the bucket, such as `https://minio.example.com/my-bucket-feed/` or a reverse-proxied custom domain | Set `provider` to `self-hosted`, because MinIO only supports virtual-hosted-style URLs when `MINIO_DOMAIN` is set. Configure anonymous read access with MinIO policy tools. See [MinIO anonymous access](https://docs.min.io/aistor/reference/cli/mc-anonymous/) and [policy-based access control](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html). |
+| RustFS | Your RustFS API endpoint, such as `https://rustfs.example.com` | `https://rustfs.example.com/my-bucket-feed/` | Set `provider` to `self-hosted`, because RustFS only supports virtual-hosted-style URLs when `RUSTFS_SERVER_DOMAINS` is set. Sleet can create the bucket with public read access. See [RustFS virtual host style](https://docs.rustfs.com/en/integration/virtual). |
 | DigitalOcean Spaces | `https://<region>.digitaloceanspaces.com` | `https://my-bucket-feed.<region>.digitaloceanspaces.com/`, a CDN endpoint, or a custom domain | Use the Spaces public endpoint that clients can reach. See [Spaces API](https://docs.digitalocean.com/reference/api/spaces/) and [Spaces docs](https://docs.digitalocean.com/products/spaces/). |
 | Backblaze B2 | `https://s3.<region>.backblazeb2.com` | `https://my-bucket-feed.s3.<region>.backblazeb2.com/` | Use the endpoint for the bucket's region. See [Backblaze S3-compatible API](https://www.backblaze.com/docs/cloud-storage-call-the-s3-compatible-api). |
 | Wasabi | `https://s3.<region>.wasabisys.com` | `https://my-bucket-feed.s3.<region>.wasabisys.com/` | Some regions also have legacy endpoint aliases. See [Wasabi service URLs](https://docs.wasabi.com/docs/service-url-endpoints). |

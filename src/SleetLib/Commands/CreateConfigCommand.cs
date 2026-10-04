@@ -16,7 +16,7 @@ namespace Sleet
         /// <summary>
         /// Create a sleet.json template.
         /// </summary>
-        /// <param name="provider">S3 compatible service for S3 feeds: aws, r2, or minio. Null uses aws.</param>
+        /// <param name="provider">S3 compatible service for S3 feeds: aws, r2, or self-hosted. Null uses aws.</param>
         public static async Task<bool> RunAsync(FileSystemStorageType storageType, string? output, string? provider, ILogger log)
         {
             var s3Provider = S3Provider.Get(provider);
@@ -120,13 +120,13 @@ namespace Sleet
                 };
             }
 
-            if (provider == S3Provider.Minio)
+            if (provider == S3Provider.SelfHosted)
             {
-                log.Log(LogLevel.Minimal, "Set serviceURL to the url of your MinIO server, and accessKeyId and secretAccessKey to a MinIO access key.");
+                log.Log(LogLevel.Minimal, "Set serviceURL to the S3 API url of your server, and accessKeyId and secretAccessKey to an access key for the server. See: https://github.com/emgarten/Sleet/blob/main/doc/s3-compatible.md");
 
                 return new JObject
                 {
-                    { "name", "myMinioFeed" },
+                    { "name", "mySelfHostedFeed" },
                     { "type", "s3" },
                     { "provider", provider.Name },
                     { "bucketName", "bucketname" },

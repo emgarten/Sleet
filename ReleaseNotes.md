@@ -3,7 +3,7 @@
 ## 8.0.0
 * Fixed `sleet` failing to start when installed with `dotnet tool install --allow-roll-forward` [Issue](https://github.com/emgarten/Sleet/issues/247)
 * Added a `provider` setting for `s3` feeds hosted on S3 compatible storage
-  * `aws` (default), `r2` for Cloudflare R2, and `minio` for MinIO
+  * `aws` (default), `r2` for Cloudflare R2, and `self-hosted` for S3 servers you run yourself, such as MinIO and RustFS
   * `sleet createconfig --provider <name>` creates a config template for the service
   * Added a [Cloudflare R2 setup guide](doc/feed-type-cloudflare.md)
 * Added `forcePathStyle` and `checksumMode` settings for S3 compatible storage

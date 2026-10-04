@@ -65,16 +65,16 @@ namespace Sleet
             HelpUrl = "https://developers.cloudflare.com/r2/buckets/public-buckets/"
         };
 
-        public static readonly S3Provider Minio = new()
+        public static readonly S3Provider SelfHosted = new()
         {
-            Name = "minio",
-            DisplayName = "MinIO",
+            Name = "self-hosted",
+            DisplayName = "self-hosted S3",
 
-            // MinIO only supports virtual host style urls when MINIO_DOMAIN is set
+            // Servers such as MinIO and RustFS only support virtual host style urls when they are configured with a domain
             ForcePathStyle = true
         };
 
-        private static readonly S3Provider[] All = [Aws, CloudflareR2, Minio];
+        private static readonly S3Provider[] All = [Aws, CloudflareR2, SelfHosted];
 
         /// <summary>
         /// Find a provider by name. Null or empty returns Amazon S3.

@@ -55,7 +55,7 @@ sleet createconfig [--azure | --s3 | --local] [--provider <name>] [--output <pat
 | --- | --- |
 | `--azure` | Add a template source for an Azure Storage feed. |
 | `--s3` | Add a template source for an Amazon S3 feed. |
-| `--provider` | Add a template source for an S3 feed on the given service: `aws`, `r2` for Cloudflare R2, or `minio` for MinIO. The default is `aws`. Implies `--s3`. See [S3-compatible storage](s3-compatible.md#provider-settings). |
+| `--provider` | Add a template source for an S3 feed on the given service: `aws`, `r2` for Cloudflare R2, or `self-hosted` for S3 servers that you run yourself, such as MinIO and RustFS. The default is `aws`. Implies `--s3`. See [S3-compatible storage](s3-compatible.md#provider-settings). |
 | `--local` | Add a template source for a local folder feed. |
 | `--output` | Folder or file path to write. The default is sleet.json in the current folder. |
 | `-V`, `--verbosity` | Console output level. |
