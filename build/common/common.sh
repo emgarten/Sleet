@@ -7,12 +7,9 @@ run_command()
   "$@"
 }
 
-run_standard_tests()
+# Download the dotnet cli to .cli if it is missing and set DOTNET to its path
+install_dotnet_cli()
 {
-  pushd $(pwd)
-
-  # Download dotnet cli
-  REPO_ROOT=$(pwd)
   DOTNET=$(pwd)/.cli/dotnet
 
   if [ ! -f $DOTNET ]; then
@@ -34,6 +31,15 @@ run_standard_tests()
   echo "===> Displaying .NET SDK info..."
   echo ""
   run_command $DOTNET --info
+}
+
+run_standard_tests()
+{
+  pushd $(pwd)
+
+  # Download dotnet cli
+  REPO_ROOT=$(pwd)
+  install_dotnet_cli
 
   # clean
   echo ""

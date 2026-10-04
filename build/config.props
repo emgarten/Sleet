@@ -14,6 +14,7 @@
     <AWSSDKSSOOIDCVersion>4.0.3.9</AWSSDKSSOOIDCVersion>
     <DotNetConfigVersion>1.2.0</DotNetConfigVersion>
     <AzureIdentityVersion>1.18.0</AzureIdentityVersion>
+    <PlaywrightVersion>1.63.0</PlaywrightVersion>
   </PropertyGroup>
 
   <!-- Config -->

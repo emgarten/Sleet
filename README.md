@@ -2,7 +2,7 @@
 
 A static NuGet package feed generator. ☁️ + 📦 = ❄️
 
-[![NuGet](https://img.shields.io/nuget/v/sleet.svg)](https://www.nuget.org/packages/sleet) [![.NET test](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml) [![Functional Tests](https://github.com/emgarten/Sleet/actions/workflows/functional.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/functional.yml)
+[![NuGet](https://img.shields.io/nuget/v/sleet.svg)](https://www.nuget.org/packages/sleet) [![.NET test](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml) [![Functional Tests](https://github.com/emgarten/Sleet/actions/workflows/functional.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/functional.yml) [![UX Tests](https://github.com/emgarten/Sleet/actions/workflows/ux-tests.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/ux-tests.yml)
 
 ## Table of Contents
 
@@ -126,6 +126,8 @@ To build and run tests locally:
 # Windows
 ./build.ps1
 ```
+
+The [package gallery](doc/gallery.md) has browser tests that are not part of the build. Run them with `./ux-tests.sh` or `./ux-tests.ps1` when changing the gallery. They need Google Chrome or Microsoft Edge, or set `SLEET_UX_BROWSER` to the path of another Chromium based browser.
 
 CI runs on Linux, macOS, and Windows.
 

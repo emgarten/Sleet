@@ -4,4 +4,9 @@
   
   <!-- Add custom targets and overrides here -->
 
+  <!-- The UX tests need a browser, they are run by ux-tests.ps1 and ux-tests.sh instead. -->
+  <ItemGroup>
+    <SolutionProjects Remove="$(RepositoryRootDirectory)test\Sleet.UX.Tests\Sleet.UX.Tests.csproj" />
+  </ItemGroup>
+
 </Project>

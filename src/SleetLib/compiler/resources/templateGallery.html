@@ -310,8 +310,8 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
         licenseUrl: safeUrl(e.licenseUrl),
         tags: list(e.tags),
         authors: list(e.authors),
-        // An empty iconUrl is dropped when the registration is written, so its
-        // presence is a reliable signal that the package embedded an icon.
+        // Sleet writes an empty iconUrl when the package does not embed an
+        // icon, so a value is a reliable signal that the icon file exists.
         hasIcon: !!text(e.iconUrl).trim(),
         groups: dependencyGroups(e.dependencyGroups)
       };
