@@ -10,7 +10,7 @@ This quick start creates a public NuGet v3 feed in [Cloudflare R2](https://devel
 
 - Your Cloudflare **account ID**. The R2 S3 API URL is `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`. Buckets created in a [jurisdiction](https://developers.cloudflare.com/r2/reference/data-location/#using-jurisdictions-with-the-s3-api) use a URL such as `https://<ACCOUNT_ID>.eu.r2.cloudflarestorage.com`.
 - A bucket with public access turned on. See [make the bucket public](#make-the-bucket-public).
-- An **R2 API token**, which provides the access key ID and secret access key. Pushing packages needs *Object Read & Write*. See [R2 authentication](https://developers.cloudflare.com/r2/api/tokens/).
+- R2 credentials, such as an **R2 API token**. See [Credentials](#credentials).
 - Sleet installed. See [Install Sleet](install.md).
 
 ## Make the bucket public
@@ -21,6 +21,14 @@ NuGet clients read the feed anonymously, so the bucket must be publicly readable
 - **r2.dev URL**: Cloudflare serves the bucket from `https://pub-<id>.r2.dev`. This URL is rate limited and intended for development.
 
 Set `baseURI` to the public URL. Sleet writes this URL into the feed files. The S3 API URL is only used to upload files.
+
+## Credentials
+
+Sleet connects to R2 with an S3 access key ID and secret access key. Use one of these:
+
+- **R2 API token**: [create an R2 API token](https://developers.cloudflare.com/r2/api/tokens/) and copy its access key ID and secret access key. *Object Read & Write* can push to an existing bucket. *Admin Read & Write* is needed if Sleet creates the bucket.
+- **Cloudflare API token**: an API token with an R2 permission, such as *Workers R2 Storage Write*, also works. The access key ID is the token ID, and the secret access key is the hex-encoded SHA-256 hash of the token value. See [S3 API credentials from an API token](https://developers.cloudflare.com/r2/api/tokens/#get-s3-api-credentials-from-an-api-token).
+- **Temporary credentials**: [temporary credentials](https://developers.cloudflare.com/r2/api/s3/temporary-credentials/) are short-lived and scoped to one bucket. Leave the keys out of the config, and set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`. See [AWS environment variables](auth-aws.md#aws-environment-variables).
 
 ## Create the config file
 
