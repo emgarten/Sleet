@@ -71,7 +71,8 @@ namespace Sleet.AmazonS3.Tests
                     feedSubPath: null,
                     compress: true,
                     acl: null,
-                    disablePayloadSigning: false,
+                    // R2 doesn't support the streaming uploads that are used with payload signing
+                    disablePayloadSigning: AmazonS3TestContext.IsCloudflareR2,
                     immutableCacheControl: immutableCacheControl,
                     mutableCacheControl: mutableCacheControl);
 

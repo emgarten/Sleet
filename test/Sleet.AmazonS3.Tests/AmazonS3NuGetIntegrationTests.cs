@@ -8,6 +8,7 @@ using NuGet.Common;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Test.Helpers;
+using Xunit;
 
 namespace Sleet.AmazonS3.Tests
 {
@@ -16,6 +17,8 @@ namespace Sleet.AmazonS3.Tests
         [AmazonS3Fact]
         public async Task GivenPushCreatesAnS3BucketVerifyNuGetCanRead()
         {
+            Assert.SkipWhen(AmazonS3TestContext.IsCloudflareR2, "Sleet can't make Cloudflare R2 buckets public, so NuGet can't read the feed.");
+
             using (var packagesFolder = new TestFolder())
             await using (var testContext = new AmazonS3TestContext())
             using (var sourceContext = new SourceCacheContext())

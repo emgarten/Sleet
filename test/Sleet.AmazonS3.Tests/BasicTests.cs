@@ -267,7 +267,7 @@ namespace Sleet.AmazonS3.Tests
             await using (var testContext = new AmazonS3TestContext())
             {
                 var baseUri = new Uri("http://tempuri.org/abc/");
-                testContext.FileSystem = await testContext.CreateFileSystemAsync(source => source.Add("baseURI", baseUri.AbsoluteUri));
+                testContext.FileSystem = await testContext.CreateFileSystemAsync(source => source["baseURI"] = baseUri.AbsoluteUri);
 
                 await testContext.InitAsync();
 

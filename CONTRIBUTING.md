@@ -62,6 +62,9 @@ To run the tests against your own accounts, set their environment variables and 
 $env:SLEET_TEST_ACCOUNT = "<connection string>"
 $env:SLEET_TEST_S3_ACCESS_KEY_ID = "<key id>"
 $env:SLEET_TEST_S3_SECRET_ACCESS_KEY = "<secret>"
+$env:SLEET_TEST_R2_ACCESS_KEY_ID = "<key id>"
+$env:SLEET_TEST_R2_SECRET_ACCESS_KEY = "<secret>"
+$env:SLEET_TEST_R2_SERVICE_URL = "https://<account id>.r2.cloudflarestorage.com"
 ./functional-tests.ps1 -Target cloud
 ```
 
@@ -69,18 +72,22 @@ $env:SLEET_TEST_S3_SECRET_ACCESS_KEY = "<secret>"
 export SLEET_TEST_ACCOUNT="<connection string>"
 export SLEET_TEST_S3_ACCESS_KEY_ID="<key id>"
 export SLEET_TEST_S3_SECRET_ACCESS_KEY="<secret>"
+export SLEET_TEST_R2_ACCESS_KEY_ID="<key id>"
+export SLEET_TEST_R2_SECRET_ACCESS_KEY="<secret>"
+export SLEET_TEST_R2_SERVICE_URL="https://<account id>.r2.cloudflarestorage.com"
 ./functional-tests.sh --target cloud
 ```
 
 | Target | Tests | Needs |
 | --- | --- | --- |
 | `emulators` | All the emulator targets. This is the default. | Docker |
-| `cloud` | All the cloud targets. | The variables for `azure` and `aws` |
-| `all` | All targets. | Docker and the variables for `azure` and `aws` |
+| `cloud` | All the cloud targets. | The variables for `azure`, `aws`, and `r2` |
+| `all` | All targets. | Docker and the variables for `azure`, `aws`, and `r2` |
 | `azurite` | Azure Storage tests against Azurite. | Docker |
 | `rustfs` | Amazon S3 tests against RustFS. | Docker |
 | `azure` | Azure Storage tests against a storage account. | `SLEET_TEST_ACCOUNT`, set to a storage account connection string |
 | `aws` | Amazon S3 tests against AWS. | `SLEET_TEST_S3_ACCESS_KEY_ID` and `SLEET_TEST_S3_SECRET_ACCESS_KEY`. `SLEET_TEST_S3_REGION` defaults to `us-east-1`. Set `SLEET_TEST_S3_SERVICE_URL` to test S3-compatible storage instead of AWS. |
+| `r2` | Amazon S3 tests against Cloudflare R2. The tests that need a public bucket are skipped. | `SLEET_TEST_R2_ACCESS_KEY_ID` and `SLEET_TEST_R2_SECRET_ACCESS_KEY`, from an R2 API token with the **Admin Read & Write** permission so the tests can create buckets. `SLEET_TEST_R2_SERVICE_URL`, set to the S3 API URL of the account. |
 
 To run more than one target, list them: `-Target azurite, azure` or `--target azurite,azure`. If a variable that a target needs isn't set, the script stops before it runs any tests. The emulator targets ignore the account variables, so they always run against the local test environment.
 
@@ -90,7 +97,7 @@ To run more than one target, list them: `-Target azurite, azure` or `--target az
 You can also run the functional tests from an IDE or with `dotnet test`. They're skipped unless they have somewhere to run:
 
 - The Azure tests run against `SLEET_TEST_ACCOUNT` if it's set, otherwise against Azurite in the local test environment if it's running. Start it with `./local-env/start.ps1` or `./local-env/start.sh`, see [start and stop the environment](local-env/README.md#start-and-stop-the-environment).
-- The Amazon S3 tests run against the account in `SLEET_TEST_S3_ACCESS_KEY_ID` and `SLEET_TEST_S3_SECRET_ACCESS_KEY` if they're set, otherwise against RustFS in the local test environment if it's running. They don't use the standard `AWS_*` variables, so AWS credentials in your environment don't run them against your account.
+- The Amazon S3 tests run against the account in `SLEET_TEST_S3_ACCESS_KEY_ID` and `SLEET_TEST_S3_SECRET_ACCESS_KEY` if they're set, otherwise against RustFS in the local test environment if it's running. They don't use the standard `AWS_*` variables, so AWS credentials in your environment don't run them against your account. With `SLEET_TEST_S3_SERVICE_URL`, they use the `self-hosted` provider, or the provider in `SLEET_TEST_S3_PROVIDER`, such as `r2`.
 
 CI runs the same scripts. Pull requests from branches in this repository run the emulator and the cloud tests. Pull requests from forks run only the emulator tests, and a maintainer can run the cloud tests for them with the [manual workflow](.github/workflows/functional-manual.yml).
 

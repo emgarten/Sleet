@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon;
+using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Newtonsoft.Json.Linq;
@@ -19,6 +21,7 @@ namespace Sleet.AmazonS3.Tests
         public const string EnvSecretAccessKey = "SLEET_TEST_S3_SECRET_ACCESS_KEY";
         public const string EnvRegion = "SLEET_TEST_S3_REGION";
         public const string EnvServiceUrl = "SLEET_TEST_S3_SERVICE_URL";
+        public const string EnvProvider = "SLEET_TEST_S3_PROVIDER";
 
         /// <summary>
         /// The host port of RustFS in local-env.
@@ -58,6 +61,13 @@ namespace Sleet.AmazonS3.Tests
                 config.AuthenticationRegion = Region;
                 config.ForcePathStyle = true;
                 Uri = new Uri($"{ServiceUrl.TrimEnd('/')}/{BucketName}/");
+
+                if (IsCloudflareR2)
+                {
+                    // The same checksums as the r2 provider
+                    config.RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED;
+                    config.ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED;
+                }
             }
 
             Client = new AmazonS3Client(AccessKeyId, SecretAccessKey, config);
@@ -79,14 +89,26 @@ namespace Sleet.AmazonS3.Tests
         /// </summary>
         public static string ServiceUrl => HasAccount ? Environment.GetEnvironmentVariable(EnvServiceUrl) : $"http://127.0.0.1:{LocalEnvPort}";
 
-        public static string Region
+        /// <summary>
+        /// The region to sign requests for.
+        /// </summary>
+        public static string Region => string.IsNullOrEmpty(RegionSetting) ? "us-east-1" : RegionSetting;
+
+        private static string RegionSetting => HasAccount ? Environment.GetEnvironmentVariable(EnvRegion) : null;
+
+        /// <summary>
+        /// The provider setting of the source, self-hosted by default for S3 compatible storage. Null for Amazon S3.
+        /// </summary>
+        public static string Provider
         {
             get
             {
-                var region = HasAccount ? Environment.GetEnvironmentVariable(EnvRegion) : null;
-                return string.IsNullOrEmpty(region) ? "us-east-1" : region;
+                var provider = HasAccount ? Environment.GetEnvironmentVariable(EnvProvider) : null;
+                return string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(ServiceUrl) ? "self-hosted" : provider;
             }
         }
+
+        public static bool IsCloudflareR2 => string.Equals(Provider, "r2", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// True if the access key and secret are set or RustFS in local-env is running.
@@ -113,7 +135,7 @@ namespace Sleet.AmazonS3.Tests
         public bool CreateBucketOnInit = true;
 
         /// <summary>
-        /// The s3 source for sleet.json that uses the test bucket.
+        /// The s3 source for sleet.json that uses the test bucket, with the settings from the docs.
         /// </summary>
         public JObject GetSourceSettings(string name)
         {
@@ -121,14 +143,29 @@ namespace Sleet.AmazonS3.Tests
                 new JProperty("name", name),
                 new JProperty("type", "s3"),
                 new JProperty("bucketName", BucketName),
-                new JProperty("region", Region),
                 new JProperty("accessKeyId", AccessKeyId),
                 new JProperty("secretAccessKey", SecretAccessKey));
 
+            if (!string.IsNullOrEmpty(Provider))
+            {
+                source.Add("provider", Provider);
+            }
+
             if (!string.IsNullOrEmpty(ServiceUrl))
             {
-                source.Add("provider", "self-hosted");
                 source.Add("serviceURL", ServiceUrl);
+            }
+
+            // S3 compatible storage only needs a region if it doesn't use us-east-1
+            if (string.IsNullOrEmpty(ServiceUrl) || !string.IsNullOrEmpty(RegionSetting))
+            {
+                source.Add("region", Region);
+            }
+
+            // R2 needs the public url of the bucket. The test buckets aren't public, so use the bucket url.
+            if (IsCloudflareR2)
+            {
+                source.Add("baseURI", Uri.AbsoluteUri);
             }
 
             if (acl != null)
@@ -159,8 +196,15 @@ namespace Sleet.AmazonS3.Tests
         {
             return CreateFileSystemAsync(source =>
             {
-                source.Add("path", UriUtility.GetPath(Uri, feedSubPath).AbsoluteUri);
+                var path = UriUtility.GetPath(Uri, feedSubPath).AbsoluteUri;
+                source.Add("path", path);
                 source.Add("feedSubPath", feedSubPath);
+
+                // baseURI must also end with the feed sub path
+                if (source.ContainsKey("baseURI"))
+                {
+                    source["baseURI"] = path;
+                }
             });
         }
 
@@ -168,7 +212,7 @@ namespace Sleet.AmazonS3.Tests
         {
             cleanupDone = true;
 
-            if (await Amazon.S3.Util.AmazonS3Util.DoesS3BucketExistV2Async(Client, BucketName))
+            try
             {
                 var s3Objects = (await AmazonS3FileSystemAbstraction
                     .GetFilesAsync(Client, BucketName, CancellationToken.None))
@@ -185,6 +229,10 @@ namespace Sleet.AmazonS3.Tests
                 }
 
                 await Client.DeleteBucketAsync(BucketName);
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                // The bucket wasn't created, or the test deleted it
             }
         }
 
