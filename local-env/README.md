@@ -61,7 +61,7 @@ GitHub Actions runs the same scripts, so a run that passes locally should pass i
 - [functional-emulators.yml](../.github/workflows/functional-emulators.yml) runs only the emulator tests for pull requests from forks and Dependabot, which can't use the repository secrets.
 - [functional-manual.yml](../.github/workflows/functional-manual.yml) lets a maintainer run both for a pull request from a fork.
 
-The emulator tests run on Linux because the GitHub hosted macOS and Windows runners can't run Linux containers.
+The emulator and cloud tests run on Linux only. The GitHub hosted macOS and Windows runners can't run Linux containers, and running the cloud tests on one OS keeps the usage of the test accounts low. [dotnet.yml](../.github/workflows/dotnet.yml) runs the unit tests on Linux, macOS, and Windows.
 
 ## Add a service
 

@@ -99,7 +99,7 @@ You can also run the functional tests from an IDE or with `dotnet test`. They're
 - The Azure tests run against `SLEET_TEST_ACCOUNT` if it's set, otherwise against Azurite in the local test environment if it's running. Start it with `./local-env/start.ps1` or `./local-env/start.sh`, see [start and stop the environment](local-env/README.md#start-and-stop-the-environment).
 - The Amazon S3 tests run against the account in `SLEET_TEST_S3_ACCESS_KEY_ID` and `SLEET_TEST_S3_SECRET_ACCESS_KEY` if they're set, otherwise against RustFS in the local test environment if it's running. They don't use the standard `AWS_*` variables, so AWS credentials in your environment don't run them against your account. With `SLEET_TEST_S3_SERVICE_URL`, they use the `self-hosted` provider, or the provider in `SLEET_TEST_S3_PROVIDER`, such as `r2`.
 
-CI runs the same scripts. Pull requests from branches in this repository run the emulator and the cloud tests. Pull requests from forks run only the emulator tests, and a maintainer can run the cloud tests for them with the [manual workflow](.github/workflows/functional-manual.yml).
+CI runs the same scripts on Linux. Pull requests from branches in this repository run the emulator and the cloud tests. Pull requests from forks run only the emulator tests, and a maintainer can run the cloud tests for them with the [manual workflow](.github/workflows/functional-manual.yml).
 
 ### Project conventions
 
