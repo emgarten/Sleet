@@ -22,6 +22,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+env:
+  # Runs the tests that are too slow for local builds
+  CIBUILD: true
+
 jobs:
   build-linux:
 

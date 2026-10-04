@@ -44,6 +44,12 @@ theme:
   icon:
     repo: fontawesome/brands/github
 
+plugins:
+  - search:
+      # Split on the punctuation around words, so netconfig finds .netconfig and sas finds (SAS),
+      # but keep names like sleet.json and SLEET_FEED_TYPE as one search term.
+      separator: '[\s\u200b\-,:;!?=\[\]{}()"''`/\\*$%]+\.?|^\.|\.(?!\S)|&[lg]t;'
+
 extra:
   social:
     - icon: fontawesome/brands/github

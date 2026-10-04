@@ -5,13 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using NuGet.Test.Helpers;
-using Sleet.Test.Common;
 
 namespace Sleet.AmazonS3.Tests
 {
     public class AmazonS3FileSystemTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenAS3AccountVerifyBucketOperations()
         {
             await using (var testContext = new AmazonS3TestContext())

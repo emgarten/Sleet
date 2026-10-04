@@ -8,13 +8,12 @@ using NuGet.Common;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Test.Helpers;
-using Sleet.Test.Common;
 
 namespace Sleet.AmazonS3.Tests
 {
     public class AmazonS3NuGetIntegrationTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenPushCreatesAnS3BucketVerifyNuGetCanRead()
         {
             using (var packagesFolder = new TestFolder())

@@ -4,6 +4,7 @@
   </Folder>
   <Folder Name="/.github/workflows/">
     <File Path=".github/workflows/dotnet.yml" />
+    <File Path=".github/workflows/functional-emulators.yml" />
     <File Path=".github/workflows/functional-manual.yml" />
     <File Path=".github/workflows/functional.yml" />
     <File Path=".github/workflows/publish.yml" />
@@ -17,8 +18,18 @@
     <File Path="build/test.props" />
     <File Path="build/version.proj" />
     <File Path="Directory.Packages.props" />
+    <File Path="functional-tests.ps1" />
+    <File Path="functional-tests.sh" />
     <File Path="global.json" />
     <File Path="NuGet.Config" />
+  </Folder>
+  <Folder Name="/local-env/">
+    <File Path="local-env/docker-compose.yml" />
+    <File Path="local-env/README.md" />
+    <File Path="local-env/start.ps1" />
+    <File Path="local-env/start.sh" />
+    <File Path="local-env/stop.ps1" />
+    <File Path="local-env/stop.sh" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Sleet/Sleet.csproj" />
