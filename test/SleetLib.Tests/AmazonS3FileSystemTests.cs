@@ -111,8 +111,8 @@ namespace SleetLib.Tests
             using (var cache = new LocalCache())
             {
                 var client = AmazonS3TestUtility.CreateClient();
-                client.Setup(c => c.GetBucketAclAsync(It.IsAny<GetBucketAclRequest>(), It.IsAny<CancellationToken>()))
-                    .ThrowsAsync(new AmazonS3Exception("missing") { ErrorCode = "NoSuchBucket", StatusCode = HttpStatusCode.NotFound });
+                client.Setup(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.NotFound));
                 var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
                 var log = new TestLogger();
 
@@ -123,8 +123,47 @@ namespace SleetLib.Tests
                 second.Should().BeFalse();
                 log.GetMessages().Should().Contain("Unable to find test-bucket");
                 client.Verify(
-                    c => c.GetBucketAclAsync(It.Is<GetBucketAclRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName), It.IsAny<CancellationToken>()),
+                    c => c.HeadBucketAsync(It.Is<HeadBucketRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName), It.IsAny<CancellationToken>()),
                     Times.Once());
+            }
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Forbidden, true)]
+        [InlineData(HttpStatusCode.MovedPermanently, true)]
+        [InlineData(HttpStatusCode.NotFound, false)]
+        public async Task AmazonS3FileSystem_HasBucket_MapsHeadBucketErrors(HttpStatusCode statusCode, bool expected)
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = AmazonS3TestUtility.CreateClient();
+                client.Setup(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(statusCode));
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
+
+                var exists = await fileSystem.HasBucket(new TestLogger(), TestContext.Current.CancellationToken);
+
+                exists.Should().Be(expected);
+            }
+        }
+
+        [Fact]
+        public async Task AmazonS3FileSystem_HasBucket_ThrowsOtherErrorsAndDoesNotCacheThem()
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = AmazonS3TestUtility.CreateClient();
+                client.SetupSequence(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.InternalServerError))
+                    .ReturnsAsync(new HeadBucketResponse());
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
+                var log = new TestLogger();
+
+                var exception = await Assert.ThrowsAsync<AmazonS3Exception>(async () => await fileSystem.HasBucket(log, TestContext.Current.CancellationToken));
+                var exists = await fileSystem.HasBucket(log, TestContext.Current.CancellationToken);
+
+                exception.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+                exists.Should().BeTrue();
             }
         }
 
@@ -304,7 +343,7 @@ namespace SleetLib.Tests
             using (var cache = new LocalCache())
             {
                 var client = AmazonS3TestUtility.CreateClient();
-                client.Setup(c => c.GetBucketAclAsync(It.IsAny<GetBucketAclRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new GetBucketAclResponse());
+                client.Setup(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new HeadBucketResponse());
                 client.Setup(c => c.DeleteBucketAsync(AmazonS3TestUtility.BucketName, It.IsAny<CancellationToken>()))
                     .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.NotFound));
                 var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
@@ -315,7 +354,7 @@ namespace SleetLib.Tests
 
                 exists.Should().BeFalse();
                 log.GetMessages().Should().Contain("does not exist any more");
-                client.Verify(c => c.GetBucketAclAsync(It.IsAny<GetBucketAclRequest>(), It.IsAny<CancellationToken>()), Times.Once());
+                client.Verify(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>()), Times.Once());
             }
         }
 
@@ -324,8 +363,8 @@ namespace SleetLib.Tests
             var client = AmazonS3TestUtility.CreateClient();
             // EnsureBucketExistsAsync goes through ICoreAmazonS3, which must be added before the mock object is created.
             client.As<ICoreAmazonS3>();
-            client.Setup(c => c.GetBucketAclAsync(It.IsAny<GetBucketAclRequest>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new AmazonS3Exception("missing") { ErrorCode = "NoSuchBucket", StatusCode = HttpStatusCode.NotFound });
+            client.Setup(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.NotFound));
             return client;
         }
 

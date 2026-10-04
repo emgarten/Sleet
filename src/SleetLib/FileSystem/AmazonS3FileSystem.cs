@@ -1,7 +1,6 @@
 using System.Net;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.S3.Util;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using static Sleet.AmazonS3FileSystemAbstraction;
@@ -145,12 +144,29 @@ namespace Sleet
 
         public override async Task<bool> HasBucket(ILogger log, CancellationToken token)
         {
-            if (_hasBucket == null)
-            {
-                _hasBucket = await AmazonS3Util.DoesS3BucketExistV2Async(_client, _bucketName);
-            }
+            _hasBucket ??= await BucketExists(token);
 
             return _hasBucket == true;
+        }
+
+        // HeadBucket is part of the core S3 API. GetBucketAcl, used by AmazonS3Util.DoesS3BucketExistV2Async, isn't implemented
+        // by every S3 compatible service, and Cloudflare R2 documents it as unsupported.
+        private async Task<bool> BucketExists(CancellationToken token)
+        {
+            try
+            {
+                await _client.HeadBucketAsync(new HeadBucketRequest() { BucketName = _bucketName }, token);
+                return true;
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.MovedPermanently)
+            {
+                // Same as the SDK, the bucket exists but these credentials can't read it or it is in another region
+                return true;
+            }
         }
 
         public override async Task CreateBucket(ILogger log, CancellationToken token)
