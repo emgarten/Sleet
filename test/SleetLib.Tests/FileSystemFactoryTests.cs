@@ -67,6 +67,29 @@ namespace SleetLib.Tests
         }
 
         [Fact]
+        public async Task CreateFileSystemAsync_WithLegacyMisspelledEnvFeedName_ResolvesRenamedFeed()
+        {
+            var settings = new LocalSettings();
+            settings.Json = new JObject
+            {
+                ["sources"] = new JArray
+                {
+                    new JObject
+                    {
+                        ["name"] = "environment_feed",
+                        ["type"] = "local",
+                        ["path"] = "/tmp/test"
+                    }
+                }
+            };
+            var cache = new LocalCache();
+
+            var result = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "envirnoment_feed", NullLogger.Instance);
+
+            result.Should().NotBeNull();
+        }
+
+        [Fact]
         public async Task CreateFileSystemAsync_WithLocalType_WithoutPath_ThrowsArgumentException()
         {
             var settings = new LocalSettings();

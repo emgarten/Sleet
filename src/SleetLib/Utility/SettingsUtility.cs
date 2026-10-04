@@ -70,7 +70,7 @@ namespace Sleet
                 json["useremail"] = GetTokenValue($"{EnvVarPrefix}USEREMAIL", mappings, string.Empty);
 
                 // keep a default name to avoid confusion
-                source["name"] = "envirnoment_feed";
+                source["name"] = "environment_feed";
 
                 // load all env vars with SLEET_FEED_ into the source config
                 // prefer mappings over env vars

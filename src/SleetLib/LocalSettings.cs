@@ -157,7 +157,9 @@ namespace Sleet
                 {
                     var name = sourceEntry["name"]?.ToObject<string>();
 
-                    if (StringComparer.OrdinalIgnoreCase.Equals(sourceName, name))
+                    if (StringComparer.OrdinalIgnoreCase.Equals(sourceName, name) ||
+                        (StringComparer.OrdinalIgnoreCase.Equals(sourceName, "envirnoment_feed") &&
+                         StringComparer.OrdinalIgnoreCase.Equals(name, "environment_feed")))
                     {
                         return sourceEntry as JObject ?? new JObject();
                     }

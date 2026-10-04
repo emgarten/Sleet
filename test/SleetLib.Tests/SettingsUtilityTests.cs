@@ -163,7 +163,7 @@ namespace SleetLib.Tests
                 json["proxy"]["useDefaultCredentials"].Value<bool>().Should().BeTrue();
 
                 var source = (JObject)json["sources"].Single();
-                source["name"].ToString().Should().Be("envirnoment_feed");
+                source["name"].ToString().Should().Be("environment_feed");
                 source["type"].ToString().Should().Be("local");
                 source["path"].ToString().Should().Be("environment-path");
                 source["baseuri"].ToString().Should().Be("https://example.test/feed/");
