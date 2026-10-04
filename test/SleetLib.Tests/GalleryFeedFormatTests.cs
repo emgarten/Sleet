@@ -46,7 +46,7 @@ namespace SleetLib.Tests
 
                 // Assert
                 // The gallery shows ids as they are written here and takes the first
-                // stable version as the latest one without sorting the list itself.
+                // stable version as the latest one without sorting the versions itself.
                 var index = (JObject)json["packages"];
                 index.Properties().Select(e => e.Name).Should().Equal("Contoso.Core", "Contoso.Meta");
                 index["Contoso.Core"].Values<string>().Should().Equal("2.0.0-Beta.1", "1.1.0", "1.0.0");
@@ -136,7 +136,7 @@ namespace SleetLib.Tests
                 entry["licenseUrl"].ToString().Should().Be("https://example.com/license");
                 DateTimeOffset.Parse(entry["published"].ToString(), CultureInfo.InvariantCulture).Year.Should().BeGreaterThan(1901);
 
-                // A non empty iconUrl tells the version pages that the icon can be requested.
+                // A non empty iconUrl tells the package and version pages that the icon can be requested.
                 entry["iconUrl"].ToString().Should().Be(BaseUri + "flatcontainer/contoso.core/1.0.0/icon");
 
                 // Each target framework is a separate group, with the short folder name
@@ -172,7 +172,7 @@ namespace SleetLib.Tests
                 var entry = await GetCatalogEntryAsync(target, "contoso.util");
 
                 // Assert
-                // The version pages only request an icon when iconUrl has a value.
+                // The package and version pages only request an icon when iconUrl has a value.
                 ((string)entry["iconUrl"] ?? string.Empty).Should().BeEmpty();
                 File.Exists(Path.Combine(target.Root, "flatcontainer", "contoso.util", "1.0.0", "icon")).Should().BeFalse();
             }

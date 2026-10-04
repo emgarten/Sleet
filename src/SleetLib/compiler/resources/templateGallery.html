@@ -132,7 +132,8 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   // has moved on are dropped instead of drawn into the wrong view.
   var generation = 0;
 
-  // The most recent list route, used by the back link on a package page.
+  // The most recent list route, so the All packages breadcrumb returns to the
+  // same filter and page.
   var listHash = "#";
 
   var loaded = false;
@@ -292,7 +293,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
 
   // Sleet writes the whole version history of a package into a single inline
   // registration page ordered oldest first, so one request per package returns
-  // everything the detail view needs and no paging has to be followed.
+  // everything its package and version views need, with no paging to follow.
   function fromRegistration(json) {
     var leaves = [];
     ((json && json.items) || []).forEach(function (page) {
@@ -392,8 +393,8 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     return "#" + parts.join("&");
   }
 
-  // A version is optional. Leaving it off addresses the latest version, which
-  // keeps the link stable as new versions are pushed.
+  // Without a version the link opens the package's version list, and with one
+  // it opens the details of that version.
   function packageHash(id, version) {
     return "#package/" + encodeURIComponent(id) +
       (version ? "/" + encodeURIComponent(version) : "");
@@ -456,9 +457,9 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
     return nav;
   }
 
-  // The top level lists ids only. Everything it shows comes from the package
-  // index that is already loaded, so a page of the list costs no extra
-  // requests no matter how large the feed is.
+  // A row of the top level list. Everything but the icon comes from the
+  // package index that is already loaded, so a page of the list only requests
+  // the icons it shows, no matter how large the feed is.
   function row(pkg) {
     var box = el("div", "pkg");
     var head = el("div", "pkg-head");
@@ -837,9 +838,9 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   window.addEventListener("hashchange", route);
 
   // sleet.packageindex.json is the smallest complete view of the feed. It
-  // carries every id and version, which is everything the top level list, the
-  // id filter and paging need, and a package only pulls its own metadata when
-  // the reader opens it.
+  // carries every id and version, which is all the top level list, the id
+  // filter and paging need apart from icons, and a package only pulls its own
+  // metadata when the reader opens it.
   getJson("sleet.packageindex.json").then(function (json) {
     var src = (json && json.packages) || {};
 
