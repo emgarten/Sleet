@@ -27,8 +27,6 @@ The same script runs the tests against Azure and Amazon S3 accounts. See [functi
 
 The services use different ports from their defaults, so they don't clash with copies that you run yourself. The tests look for them on these ports.
 
-The Amazon S3 tests don't use RustFS yet. They need [#239](https://github.com/emgarten/Sleet/pull/239) to work with it.
-
 The services keep their data in the containers, so it's removed when the environment stops.
 
 ## Start and stop the environment
@@ -53,7 +51,7 @@ Start the environment yourself to keep it running between test runs, or to run t
 
 The start script waits until each service is healthy. The stop script removes the containers and their data.
 
-To run the Azure tests from an IDE or with `dotnet test`, start the environment. The tests find Azurite on its port and run against it, and they're skipped when the environment isn't running. If `SLEET_TEST_ACCOUNT` is set, they use that account instead.
+To run the tests from an IDE or with `dotnet test`, start the environment. The Azure tests find Azurite on its port and the Amazon S3 tests find RustFS on its port, and they're skipped when the environment isn't running. If `SLEET_TEST_ACCOUNT` is set, the Azure tests use that account instead. If `SLEET_TEST_S3_ACCESS_KEY_ID` and `SLEET_TEST_S3_SECRET_ACCESS_KEY` are set, the Amazon S3 tests use that account instead.
 
 ## CI
 

@@ -137,18 +137,11 @@ namespace Sleet.AmazonS3.Tests
                 var immutableCacheControl = "public, max-age=604800";
                 var mutableCacheControl = "public, max-age=60";
 
-                var settings = LocalSettings.Load(new JObject(
-                    new JProperty("sources",
-                        new JArray(
-                            new JObject(
-                                new JProperty("name", "s3"),
-                                new JProperty("type", "s3"),
-                                new JProperty("bucketName", testContext.BucketName),
-                                new JProperty("region", AmazonS3TestContext.Region),
-                                new JProperty("accessKeyId", AmazonS3TestContext.AccessKeyId),
-                                new JProperty("secretAccessKey", AmazonS3TestContext.SecretAccessKey),
-                                new JProperty("immutableCacheControl", immutableCacheControl),
-                                new JProperty("mutableCacheControl", mutableCacheControl))))));
+                var source = testContext.GetSourceSettings("s3");
+                source.Add("immutableCacheControl", immutableCacheControl);
+                source.Add("mutableCacheControl", mutableCacheControl);
+
+                var settings = LocalSettings.Load(new JObject(new JProperty("sources", new JArray(source))));
 
                 var fs = await FileSystemFactory.CreateFileSystemAsync(settings, testContext.LocalCache, "s3", testContext.Logger);
 

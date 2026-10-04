@@ -178,7 +178,7 @@ To build and run the unit tests locally:
 ./build.ps1
 ```
 
-The functional tests run against Azure Storage and Amazon S3. By default, they run the Azure tests against a local emulator in [Docker](https://docs.docker.com/get-started/get-docker/), so you don't need a cloud account:
+The functional tests run against Azure Storage and Amazon S3. By default, they run against local emulators in [Docker](https://docs.docker.com/get-started/get-docker/), so you don't need a cloud account:
 
 ```bash
 # Linux / macOS

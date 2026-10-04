@@ -14,9 +14,11 @@ What to test:
   cloud      The cloud targets. They need the account environment variables.
   all        All targets.
   azurite    The Azure tests against Azurite.
+  rustfs     The Amazon S3 tests against RustFS.
   azure      The Azure tests against SLEET_TEST_ACCOUNT, an Azure Storage connection string.
   aws        The Amazon S3 tests against SLEET_TEST_S3_ACCESS_KEY_ID and SLEET_TEST_S3_SECRET_ACCESS_KEY.
-             SLEET_TEST_S3_REGION defaults to us-east-1.
+             SLEET_TEST_S3_REGION defaults to us-east-1. Set SLEET_TEST_S3_SERVICE_URL to test S3 compatible
+             storage instead of Amazon S3.
 
 .EXAMPLE
 ./functional-tests.ps1
@@ -27,7 +29,7 @@ $env:SLEET_TEST_ACCOUNT = "<connection string>"
 #>
 param (
     [Parameter(Position = 0)]
-    [ValidateSet("emulators", "cloud", "all", "azurite", "azure", "aws")]
+    [ValidateSet("emulators", "cloud", "all", "azurite", "rustfs", "azure", "aws")]
     [string[]]$Target = @("emulators")
 )
 
@@ -49,13 +51,14 @@ $AmazonS3Tests = "test/Sleet.AmazonS3.Tests/Sleet.AmazonS3.Tests.csproj"
 # Cloud targets list the env vars they need.
 $Targets = [ordered]@{
     azurite = @{ Project = $AzureTests; Unset = @("SLEET_TEST_ACCOUNT"); Required = @() }
+    rustfs  = @{ Project = $AmazonS3Tests; Unset = @("SLEET_TEST_S3_ACCESS_KEY_ID", "SLEET_TEST_S3_SECRET_ACCESS_KEY"); Required = @() }
     azure   = @{ Project = $AzureTests; Unset = @(); Required = @("SLEET_TEST_ACCOUNT") }
     aws     = @{ Project = $AmazonS3Tests; Unset = @(); Required = @("SLEET_TEST_S3_ACCESS_KEY_ID", "SLEET_TEST_S3_SECRET_ACCESS_KEY") }
 }
 
 # The emulator targets run against local-env
 $Groups = @{
-    emulators = @("azurite")
+    emulators = @("azurite", "rustfs")
     cloud     = @("azure", "aws")
     all       = @($Targets.Keys)
 }
