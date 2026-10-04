@@ -253,12 +253,20 @@ namespace SleetLib.Tests
             fileSystem.BaseURI.AbsoluteUri.Should().Be("https://s3.fr-par.scw.cloud/test-bucket/");
         }
 
-        [Fact]
-        public async Task CreateFileSystemAsync_WithS3Type_WithoutProvider_UsesAmazonS3Defaults()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("aws")]
+        [InlineData(" ")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithDefaultProvider_UsesAmazonS3Defaults(string provider)
         {
             var fileSystem = await CreateS3FileSystemAsync(source =>
             {
                 source["region"] = "us-west-2";
+
+                if (provider != null)
+                {
+                    source["provider"] = provider;
+                }
             });
 
             var config = GetS3Config(fileSystem);
@@ -271,6 +279,7 @@ namespace SleetLib.Tests
         [Theory]
         [InlineData("r2")]
         [InlineData("R2")]
+        [InlineData(" r2 ")]
         public async Task CreateFileSystemAsync_WithS3Type_WithCloudflareR2Provider_UsesR2Defaults(string provider)
         {
             var fileSystem = await CreateS3FileSystemAsync(source =>
@@ -289,13 +298,15 @@ namespace SleetLib.Tests
             fileSystem.BaseURI.AbsoluteUri.Should().Be("https://nuget.example.com/");
         }
 
-        [Fact]
-        public async Task CreateFileSystemAsync_WithS3Type_WithSelfHostedProvider_UsesPathStyle()
+        [Theory]
+        [InlineData("http://localhost:9000")]
+        [InlineData("http://localhost:9000/")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithSelfHostedProvider_UsesPathStyle(string serviceURL)
         {
             var fileSystem = await CreateS3FileSystemAsync(source =>
             {
                 source["provider"] = "self-hosted";
-                source["serviceURL"] = "http://localhost:9000";
+                source["serviceURL"] = serviceURL;
             });
 
             var config = GetS3Config(fileSystem);
@@ -340,6 +351,7 @@ namespace SleetLib.Tests
             var config = GetS3Config(fileSystem);
             config.ForcePathStyle.Should().BeFalse();
             config.RequestChecksumCalculation.Should().Be(RequestChecksumCalculation.WHEN_REQUIRED);
+            config.ResponseChecksumValidation.Should().Be(ResponseChecksumValidation.WHEN_REQUIRED);
         }
 
         [Theory]
@@ -400,12 +412,14 @@ namespace SleetLib.Tests
             Assert.Contains($"Invalid checksumMode '{checksumMode}'. Valid values are: whenSupported, whenRequired", ex.Message);
         }
 
-        [Fact]
-        public async Task CreateFileSystemAsync_WithS3Type_WithUnknownProvider_ThrowsArgumentException()
+        [Theory]
+        [InlineData("gcs")]
+        [InlineData(" gcs ")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithUnknownProvider_ThrowsArgumentException(string provider)
         {
             var settings = GetS3Settings(source =>
             {
-                source["provider"] = "gcs";
+                source["provider"] = provider;
                 source["serviceURL"] = "https://storage.googleapis.com";
             });
 
@@ -678,6 +692,43 @@ namespace SleetLib.Tests
 
                 var fileSystem = Assert.IsType<AmazonS3FileSystem>(result);
                 fileSystem.Root.AbsoluteUri.Should().Be("https://s3-us-east-2.amazonaws.com/test-bucket/");
+            }
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithServiceURLAndDefaultCredentials_CreatesAmazonS3FileSystem()
+        {
+            using (var testDir = new TestFolder())
+            {
+                var credentialsFile = Path.Combine(testDir.Root, "credentials");
+                var configFile = Path.Combine(testDir.Root, "config");
+                File.WriteAllText(credentialsFile, @"
+[default]
+aws_access_key_id = default-access-key
+aws_secret_access_key = default-secret-key
+");
+                File.WriteAllText(configFile, string.Empty);
+
+                using (new EnvironmentVariableScope(
+                    ("AWS_SHARED_CREDENTIALS_FILE", credentialsFile),
+                    ("AWS_CONFIG_FILE", configFile),
+                    ("AWS_EC2_METADATA_DISABLED", "true")))
+                {
+                    var settings = CreateSettings("s3", new JObject
+                    {
+                        ["type"] = "s3",
+                        ["provider"] = "self-hosted",
+                        ["bucketName"] = "test-bucket",
+                        ["serviceURL"] = "http://localhost:9000"
+                    });
+
+                    // Fake credentials would fail an STS check, it must be skipped without a region endpoint
+                    var result = await FileSystemFactory.CreateFileSystemAsync(settings, new LocalCache(), "s3", NullLogger.Instance);
+
+                    var fileSystem = Assert.IsType<AmazonS3FileSystem>(result);
+                    GetS3Config(fileSystem).RegionEndpoint.Should().BeNull();
+                    fileSystem.Root.AbsoluteUri.Should().Be("http://localhost:9000/test-bucket/");
+                }
             }
         }
 

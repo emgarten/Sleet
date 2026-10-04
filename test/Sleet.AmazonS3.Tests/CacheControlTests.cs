@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using System.Net.Http.Headers;
 
@@ -137,17 +136,15 @@ namespace Sleet.AmazonS3.Tests
                 var immutableCacheControl = "public, max-age=604800";
                 var mutableCacheControl = "public, max-age=60";
 
-                var source = testContext.GetSourceSettings("s3");
-                source.Add("immutableCacheControl", immutableCacheControl);
-                source.Add("mutableCacheControl", mutableCacheControl);
-
-                var settings = LocalSettings.Load(new JObject(new JProperty("sources", new JArray(source))));
-
-                var fs = await FileSystemFactory.CreateFileSystemAsync(settings, testContext.LocalCache, "s3", testContext.Logger);
+                var fs = await testContext.CreateFileSystemAsync(source =>
+                {
+                    source.Add("immutableCacheControl", immutableCacheControl);
+                    source.Add("mutableCacheControl", mutableCacheControl);
+                });
 
                 // Initialize feed
                 await InitCommand.RunAsync(
-                    settings,
+                    testContext.LocalSettings,
                     fs,
                     enableCatalog: false,
                     enableSymbols: false,
@@ -160,7 +157,7 @@ namespace Sleet.AmazonS3.Tests
 
                 // Push package
                 await PushCommand.RunAsync(
-                    settings,
+                    testContext.LocalSettings,
                     fs,
                     new List<string> { zipFile.FullName },
                     force: false,

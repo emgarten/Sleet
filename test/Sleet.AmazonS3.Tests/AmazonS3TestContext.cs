@@ -30,14 +30,17 @@ namespace Sleet.AmazonS3.Tests
         /// </summary>
         public const string LocalEnvCredential = "rustfsadmin";
 
+        private readonly string acl;
         private bool cleanupDone = false;
 
         public AmazonS3TestContext(string acl = null)
         {
+            this.acl = acl;
             BucketName = $"sleet-test-{Guid.NewGuid().ToString()}";
             LocalCache = new LocalCache();
             LocalSettings = new LocalSettings();
 
+            // Client used by the tests to create, inspect and delete the bucket
             var config = new AmazonS3Config()
             {
                 Timeout = TimeSpan.FromSeconds(100)
@@ -58,7 +61,6 @@ namespace Sleet.AmazonS3.Tests
             }
 
             Client = new AmazonS3Client(AccessKeyId, SecretAccessKey, config);
-            FileSystem = new AmazonS3FileSystem(LocalCache, Uri, Client, BucketName, acl);
             Logger = new TestLogger();
         }
 
@@ -97,6 +99,9 @@ namespace Sleet.AmazonS3.Tests
 
         public LocalSettings LocalSettings { get; }
 
+        /// <summary>
+        /// The file system under test. InitAsync creates it from GetSourceSettings if it isn't set.
+        /// </summary>
         public AmazonS3FileSystem FileSystem { get; set; }
 
         public LocalCache LocalCache { get; }
@@ -122,11 +127,41 @@ namespace Sleet.AmazonS3.Tests
 
             if (!string.IsNullOrEmpty(ServiceUrl))
             {
+                source.Add("provider", "self-hosted");
                 source.Add("serviceURL", ServiceUrl);
-                source.Add("forcePathStyle", true);
+            }
+
+            if (acl != null)
+            {
+                source.Add("acl", acl);
             }
 
             return source;
+        }
+
+        /// <summary>
+        /// Create the file system for the test bucket from sleet.json settings, the same as the sleet commands do.
+        /// </summary>
+        public async Task<AmazonS3FileSystem> CreateFileSystemAsync(Action<JObject> configure = null)
+        {
+            var source = GetSourceSettings("s3");
+            configure?.Invoke(source);
+
+            var settings = LocalSettings.Load(new JObject(new JProperty("sources", new JArray(source))));
+
+            return (AmazonS3FileSystem)await FileSystemFactory.CreateFileSystemAsync(settings, LocalCache, "s3", Logger);
+        }
+
+        /// <summary>
+        /// Create the file system for a feed in a folder of the test bucket.
+        /// </summary>
+        public Task<AmazonS3FileSystem> CreateSubFeedFileSystemAsync(string feedSubPath)
+        {
+            return CreateFileSystemAsync(source =>
+            {
+                source.Add("path", UriUtility.GetPath(Uri, feedSubPath).AbsoluteUri);
+                source.Add("feedSubPath", feedSubPath);
+            });
         }
 
         public async Task CleanupAsync()
@@ -166,6 +201,8 @@ namespace Sleet.AmazonS3.Tests
 
         public async Task InitAsync()
         {
+            FileSystem ??= await CreateFileSystemAsync();
+
             if (CreateBucketOnInit)
             {
                 await Client.EnsureBucketExistsAsync(BucketName);

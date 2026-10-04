@@ -37,6 +37,10 @@ namespace Sleet
 
             cmd.OnExecuteAsync(async _ =>
             {
+                // Validate parameters
+                // Provider selects the S3 template
+                CmdUtils.VerifyMutallyExclusiveOptions(new[] { provider }, new[] { azure, folder });
+
                 // Init logger
                 Util.SetVerbosity(log, verbose.HasValue(), verbosity.Value());
 

@@ -10,6 +10,7 @@
 * `region` can now be used with `serviceURL` to set the signing region
 * `path` is no longer required when using `serviceURL` [Issue](https://github.com/emgarten/Sleet/issues/253)
 * Credentials from the default AWS credential chain can now be used with `serviceURL`
+* Fixed `sleet init` failing when the S3 bucket doesn't exist
 * Creating a bucket on S3 compatible storage skips the Amazon S3 public access block and object ownership settings if the service does not support them
 * Fixed the file path shown in verbose S3 log messages
 

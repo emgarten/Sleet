@@ -86,8 +86,10 @@ namespace Sleet
                 return Aws;
             }
 
-            return All.FirstOrDefault(e => e.Name.Equals(name.Trim(), StringComparison.OrdinalIgnoreCase))
-                ?? throw new ArgumentException($"Unknown provider '{name}' for s3 source. Valid values are: {string.Join(", ", All.Select(e => e.Name))}");
+            var trimmed = name.Trim();
+
+            return All.FirstOrDefault(e => e.Name.Equals(trimmed, StringComparison.OrdinalIgnoreCase))
+                ?? throw new ArgumentException($"Unknown provider '{trimmed}' for s3 source. Valid values are: {string.Join(", ", All.Select(e => e.Name))}");
         }
     }
 }
