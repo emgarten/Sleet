@@ -20,11 +20,11 @@ For a large change or a new feature, open an issue first to discuss it. Small fi
 1. Make the change, and add or update tests.
 1. Add a short, user-focused entry to [ReleaseNotes.md](ReleaseNotes.md) for changes that users will notice. Internal changes don't need an entry.
 1. Update the documentation in [/doc](doc) if the change affects how Sleet is used.
-1. Run the build and tests, then open a pull request.
+1. Run the build and tests, then open a pull request. If you changed the Azure or Amazon S3 code, run the [functional tests](#functional-tests) too.
 
 ## Build and test
 
-The build scripts install the .NET SDK from [global.json](global.json) and the runtimes the tests need into `.dotnet` if they aren't already installed. Then they build, pack, and run all tests.
+The build scripts install the .NET SDK from [global.json](global.json) and the runtimes the tests need into `.dotnet` if they aren't already installed. Then they build, pack, and run the unit tests.
 
 On Windows:
 
@@ -42,29 +42,56 @@ The packages are written to `artifacts/nupkgs`, and the test results to `artifac
 
 ### Functional tests
 
-Tests that use Azure Storage or Amazon S3 are skipped unless you set their environment variables:
+The functional tests run Sleet against Azure Storage and Amazon S3. They need Docker or a cloud account, so the build scripts don't run them.
 
-| Variable | Tests |
-| --- | --- |
-| `SLEET_TEST_ACCOUNT` | Azure Storage tests. Set it to a storage account connection string, or to `UseDevelopmentStorage=true` to use [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite). |
-| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` | Amazon S3 tests. The region defaults to `us-east-1`. |
-
-The build scripts can set them for you:
+By default, they run against local emulators, so you don't need a cloud account. Start [Docker](https://docs.docker.com/get-started/get-docker/), then run:
 
 ```powershell
-# Azure tests against Azurite, which must be running
-./build.ps1 -UseDevStorage
-
-# Azure and Amazon S3 tests against real accounts
-./build.ps1 -StorageTestAccount "<connection string>" -AWSAccessKeyId "<key id>" -AWSSecretAccessKey "<secret>" -AWSDefaultRegion us-east-1
+./functional-tests.ps1
 ```
 
 ```bash
-./build.sh --azure-conn "<connection string>" --aws-key "<key id>" --aws-secret "<secret>" --aws-region us-east-1
+./functional-tests.sh
 ```
 
+The script starts the [local test environment](local-env/README.md), builds and runs the tests, and then stops the environment. The test results and the container logs are written to `artifacts/TestResults/functional`.
+
+To run the tests against your own accounts, set their environment variables and pick a cloud target:
+
+```powershell
+$env:SLEET_TEST_ACCOUNT = "<connection string>"
+$env:SLEET_TEST_S3_ACCESS_KEY_ID = "<key id>"
+$env:SLEET_TEST_S3_SECRET_ACCESS_KEY = "<secret>"
+./functional-tests.ps1 -Target cloud
+```
+
+```bash
+export SLEET_TEST_ACCOUNT="<connection string>"
+export SLEET_TEST_S3_ACCESS_KEY_ID="<key id>"
+export SLEET_TEST_S3_SECRET_ACCESS_KEY="<secret>"
+./functional-tests.sh --target cloud
+```
+
+| Target | Tests | Needs |
+| --- | --- | --- |
+| `emulators` | All the emulator targets. This is the default. | Docker |
+| `cloud` | All the cloud targets. | The variables for `azure` and `aws` |
+| `all` | All targets. | Docker and the variables for `azure` and `aws` |
+| `azurite` | Azure Storage tests against Azurite. | Docker |
+| `azure` | Azure Storage tests against a storage account. | `SLEET_TEST_ACCOUNT`, set to a storage account connection string |
+| `aws` | Amazon S3 tests against AWS. | `SLEET_TEST_S3_ACCESS_KEY_ID` and `SLEET_TEST_S3_SECRET_ACCESS_KEY`. `SLEET_TEST_S3_REGION` defaults to `us-east-1`. |
+
+To run more than one target, list them: `-Target azurite, azure` or `--target azurite,azure`. If a variable that a target needs isn't set, the script stops before it runs any tests. The emulator targets ignore the account variables, so they always run against the local test environment. The Amazon S3 tests don't have an emulator target yet, so they run only with the `aws` target.
+
 > [!WARNING]
-> The functional tests create and delete containers and buckets named `sleet-test-{guid}`. Use a test account, not one that holds production feeds.
+> The cloud targets create and delete containers and buckets named `sleet-test-{guid}`. Use a test account, not one that holds production feeds.
+
+You can also run the functional tests from an IDE or with `dotnet test`. They're skipped unless they have somewhere to run:
+
+- The Azure tests run against `SLEET_TEST_ACCOUNT` if it's set, otherwise against Azurite in the local test environment if it's running. Start it with `./local-env/start.ps1` or `./local-env/start.sh`, see [start and stop the environment](local-env/README.md#start-and-stop-the-environment).
+- The Amazon S3 tests run when `SLEET_TEST_S3_ACCESS_KEY_ID` and `SLEET_TEST_S3_SECRET_ACCESS_KEY` are set. They don't use the standard `AWS_*` variables, so AWS credentials in your environment don't run them against your account.
+
+CI runs the same scripts. Pull requests from branches in this repository run the emulator and the cloud tests. Pull requests from forks run only the emulator tests, and a maintainer can run the cloud tests for them with the [manual workflow](.github/workflows/functional-manual.yml).
 
 ### Project conventions
 

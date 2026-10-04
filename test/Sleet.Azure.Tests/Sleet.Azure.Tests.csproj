@@ -6,6 +6,12 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
+  <!-- The build scripts set this to skip these tests. Run them with functional-tests.ps1 or functional-tests.sh -->
+  <PropertyGroup Condition="'$(ExcludeFunctionalTests)' == 'true'">
+    <IsTestProject>false</IsTestProject>
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="NuGet.Protocol" />
     <PackageReference Include="NuGet.Test.Helpers" />

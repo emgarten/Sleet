@@ -1,6 +1,7 @@
 using Azure.Storage.Blobs;
 using NuGet.Common;
 using NuGet.Test.Helpers;
+using Sleet.Test.Common;
 
 namespace Sleet.Azure.Tests
 {
@@ -64,15 +65,31 @@ namespace Sleet.Azure.Tests
 
         public const string EnvVarName = "SLEET_TEST_ACCOUNT";
 
+        /// <summary>
+        /// The host port of Azurite in local-env.
+        /// </summary>
+        public const int LocalEnvPort = 10100;
+
+        /// <summary>
+        /// The Azurite development account in local-env. UseDevelopmentStorage=true can't be used because it
+        /// always connects to port 10000.
+        /// </summary>
+        public static readonly string LocalEnvConnectionString = $"DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:{LocalEnvPort}/devstoreaccount1;";
+
+        /// <summary>
+        /// True if SLEET_TEST_ACCOUNT is set or Azurite in local-env is running.
+        /// </summary>
+        public static bool IsAvailable => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvVarName)) || LocalEnvironment.IsListening(LocalEnvPort);
+
         public static string GetConnectionString()
         {
-            // Use a real azure storage account
+            // Use the account from the env var, such as a real Azure storage account
             var s = Environment.GetEnvironmentVariable(EnvVarName);
 
-            // Use this to run locally
+            // Otherwise use Azurite in local-env
             if (string.IsNullOrEmpty(s))
             {
-                s = "UseDevelopmentStorage=true";
+                s = LocalEnvConnectionString;
             }
 
             return s;

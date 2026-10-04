@@ -167,7 +167,7 @@ Also see this [getting started blog post](https://emgarten.com/posts/how-to-host
 
 We welcome contributions! If you are interested in contributing to Sleet, report an issue or open a pull request to propose a change. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to build, test, and preview the documentation.
 
-To build and run tests locally:
+To build and run the unit tests locally:
 
 ```bash
 # Linux / macOS
@@ -176,6 +176,18 @@ To build and run tests locally:
 # Windows
 ./build.ps1
 ```
+
+The functional tests run against Azure Storage and Amazon S3. By default, they run the Azure tests against a local emulator in [Docker](https://docs.docker.com/get-started/get-docker/), so you don't need a cloud account:
+
+```bash
+# Linux / macOS
+./functional-tests.sh
+
+# Windows
+./functional-tests.ps1
+```
+
+See [functional tests](CONTRIBUTING.md#functional-tests) to run them against real accounts.
 
 CI runs on Linux, macOS, and Windows.
 
