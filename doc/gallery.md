@@ -1,86 +1,140 @@
-# Gallery
+# Package gallery
 
-Sleet writes a package gallery to `index.html` at the root of the feed. It is a single
-self contained HTML file with no external dependencies and no build step. Opening it in a
-browser lists every package on the feed, filters by package id, and drills down from a
-package to its versions and then to a single version.
+Sleet feeds include a package gallery, a web page for browsing the packages on a feed. It
+lists every package with its icon, latest version, and number of versions, filters the
+list by package id, and opens a package to show its versions and the details of each
+version, including its dependencies, readme, and download links.
 
-The page reads the feed's own JSON files at runtime:
+The gallery is a single `index.html` file that Sleet writes to the root of the feed, next
+to `index.json`. It reads everything it shows from the feed's own files, so it needs no
+server or search service and is served by the same storage as the feed, such as Azure
+Storage, Amazon S3, or Cloudflare R2.
 
-* `sleet.packageindex.json` once on load. It holds every package id and version, which is
-  everything the top level list, the id filter, and paging need.
-* `registration/{id}/index.json` for a package's version history, metadata and
-  dependencies. This is requested only when a package is opened, so the cost of browsing
-  the list does not grow with the size of the feed.
-* `flatcontainer/{id}/{version}/icon` and `.../readme` when a package has them.
+The gallery is enabled by default and is turned on and off with the `galleryenabled` feed
+setting, see [enabling and disabling the gallery](#enabling-and-disabling-the-gallery).
 
-`search/query` is deliberately not used. It is a single large document covering the whole
-feed, and `externalsearch` can point it at a different service.
+The gallery has no sign in of its own. The browser reads the feed's files directly, so
+the gallery is intended for feeds that are publicly readable.
 
-All URLs in the page are relative, so the same file works from any host name the feed is
-served under and never requires CORS configuration. The browser reads the feed without
-credentials, so the gallery needs a feed that is publicly readable.
+## Opening the gallery
 
-The page is written by `sleet init`, by `sleet recreate`, and by the automatic
-initialization that happens on the first push to a new feed. Later pushes and all other
-commands leave it alone and never read it.
+The gallery is at `index.html` in the same location as the feed's `index.json`. Take the
+feed's package source URL and replace `index.json` with `index.html`.
 
-To add the gallery to a feed created with an older version of Sleet, run `sleet recreate`.
-
-## Browsing
-
-The gallery has three levels, and the current level is always kept in the URL fragment so
-that any view can be bookmarked, shared, and reached with the browser back button.
-
-| View | URL | Shows |
-| --- | --- | --- |
-| Packages | `#` | 20 package ids per page, each with its icon, latest version, and total number of versions |
-| Versions | `#package/Newtonsoft.Json` | Every version of one package with its publish date |
-| Version | `#package/Newtonsoft.Json/13.0.3` | Everything the feed knows about one specific version |
-
-The id filter and the current page are also kept in the fragment, as `#q=storage` and
-`#page=3`, and the breadcrumb on a package page returns to the list page it was opened
-from.
-
-Latest means the newest stable version, or the newest prerelease when a package has no
-stable version. Packages without an embedded icon fall back to a generic one.
-
-A version page shows the description, authors, tags, publish date, project and license
-links, a download link for the `.nupkg`, a link to the `.nuspec`, the dependencies of that
-version grouped by target framework, and its readme. Dependencies that are also on the
-feed link to their own package.
-
-Leaving the version off a package URL addresses the package rather than a single version,
-which keeps the link stable as new versions are pushed. Package ids and versions match
-regardless of case, and versions match in any form NuGet treats as equal, such as `1.0`
-for `1.0.0`. If a pinned version is not on the feed the page falls back to the latest
-version and says so.
-
-If a package's registration cannot be read the error is shown on that package's page
-rather than replacing the gallery, so the rest of the feed stays browsable.
-
-Readme files are shown as plain text rather than rendered markdown, since the content
-comes from the package author.
-
-## Package links in Visual Studio
-
-When the gallery is enabled the feed's `index.json` includes a `PackageDetailsUriTemplate`
-resource pointing at `index.html#package/{id}/{version}`. NuGet clients such as Visual
-Studio use it to link a package to its page in the gallery. NuGet only uses this link for
-feeds served over https.
-
-## Gallery URL
-
-| feed type | url |
-| --------- | --- |
+| feed type | gallery URL |
+| --------- | ----------- |
 | Azure Storage | `https://{account}.blob.core.windows.net/{container}/index.html` |
 | Amazon S3 | `https://{bucket}.s3.{region}.amazonaws.com/index.html` |
 | Any feed | `{feed url}/index.html` |
 
-Object storage REST endpoints do not support index documents, so the file name must be
-included in the URL. Requesting the bare feed root does not show the gallery.
+Include `index.html` in the URL. Storage endpoints do not serve a default page, so opening
+the bare feed URL does not show the gallery. To serve the gallery from the bare URL see
+[serving the gallery from the root URL](#serving-the-gallery-from-the-root-url).
 
-To serve the gallery from the bare root URL a static website endpoint or CDN is required:
+The page must be opened over http or https. Browsers do not let a page opened from disk
+read other files, so opening `index.html` directly from a local feed folder does not work.
+
+## Browsing packages
+
+The gallery has three views. Each view has its own URL, so it can be bookmarked, shared,
+and returned to with the browser's back button.
+
+| View | URL | Shows |
+| --- | --- | --- |
+| Packages | `index.html` | Package ids in alphabetical order, 20 per page, each with its icon, latest version, and number of versions |
+| Package | `index.html#package/{id}` | Every version of one package with its publish date |
+| Version | `index.html#package/{id}/{version}` | The details of one version |
+
+The filter box at the top of the page shows only the packages whose id contains the text
+typed, ignoring case. The filter and the page number are kept in the URL, for example
+`index.html#q=storage&page=2`.
+
+The latest version is the newest stable version, or the newest prerelease when a package
+has no stable version. Packages without an icon show a generic one.
+
+A version page shows the package's title, description, authors, publish date, tags,
+project and license links, links to download the `.nupkg` and view the `.nuspec`, the
+dependencies for each target framework, and the readme. Dependencies that are on the same
+feed link to their package. Readmes are shown as plain text rather than rendered markdown.
+
+Ids and versions in a URL match regardless of case, and versions match in any form NuGet
+treats as equal, such as `1.0` for `1.0.0`. If the version in a URL is not on the feed,
+the page shows the latest version instead and says so.
+
+## Enabling and disabling the gallery
+
+The gallery is controlled by the `galleryenabled` feed setting. Feed settings are stored
+in `sleet.settings.json` on the feed itself, so the setting applies to everyone who pushes
+to the feed. It defaults to `true`, and a feed that does not have the setting, such as one
+created by an older version of Sleet, is treated as enabled.
+
+Sleet applies the setting only when it creates or rebuilds the feed:
+
+* `sleet init`
+* the first `sleet push` to a new feed, which creates the feed
+* `sleet recreate`
+
+Changing the setting does not add or remove the gallery by itself, and pushing to an
+existing feed never adds, updates, or removes it. Run `sleet recreate` after changing the
+setting. `sleet recreate` downloads every package, deletes the feed, and creates it again
+from the same packages and settings, so it can take a while on a large feed.
+
+### Checking the setting
+
+`sleet feed-settings --get galleryenabled`
+
+The output `galleryenabled : not found!` means the setting is not set and the gallery is
+enabled.
+
+### Disabling the gallery
+
+```
+sleet feed-settings --set galleryenabled:false
+sleet recreate
+```
+
+This removes `index.html` and the package links from `index.json`. Later pushes do not add
+them back.
+
+To start a new feed without the gallery, create the feed with `sleet init` before pushing
+any packages, then disable the gallery and recreate the empty feed:
+
+```
+sleet init
+sleet feed-settings --set galleryenabled:false
+sleet recreate
+```
+
+### Enabling the gallery
+
+```
+sleet feed-settings --set galleryenabled:true
+sleet recreate
+```
+
+A feed created with an older version of Sleet does not have the setting, so running
+`sleet recreate` is enough to add the gallery.
+
+## Updating the gallery
+
+Sleet writes `index.html` when it creates the feed and does not change it afterwards. The
+footer of the page shows the version of Sleet that wrote it. To get the gallery from a
+newer version of Sleet, run `sleet recreate` with that version.
+
+Running `sleet recreate` with a version of Sleet that does not include the gallery removes
+the gallery from the feed.
+
+## Package links in Visual Studio
+
+While the gallery is enabled, the feed's `index.json` includes a
+`PackageDetailsUriTemplate` resource that points at `index.html#package/{id}/{version}`.
+Visual Studio and other NuGet clients use it to link each package to its page in the
+gallery. NuGet only shows these links for feeds served over https.
+
+## Serving the gallery from the root URL
+
+Object storage REST endpoints do not support index documents. To open the gallery from the
+bare feed URL a static website endpoint or CDN is required:
 
 * **Azure Storage** &mdash; the [static website endpoint](https://learn.microsoft.com/azure/storage/blobs/storage-blob-static-website)
   only serves the `$web` container. For a feed in `$web`, enable static website hosting
@@ -97,23 +151,35 @@ To serve the gallery from the bare root URL a static website endpoint or CDN is 
   rewrites `/` to `/index.html`. The `r2.dev` development URL does not support rules, so
   link directly to `index.html` there.
 
-## Customizing the gallery
+## Using a custom page
 
-Sleet only creates `index.html` when it does not already exist, so a custom page can be
-used instead. Upload your own `index.html` to the feed root and Sleet will leave it alone.
-While the gallery is enabled, package links from NuGet clients point at
-`index.html#package/{id}/{version}`, so a custom page receives those links too.
+Sleet only writes `index.html` when the feed does not already have one, so you can replace
+the gallery with your own page. Upload your own `index.html` to the root of the feed and
+Sleet leaves it in place when pushing. While the gallery is enabled, NuGet clients link
+packages to `index.html#package/{id}/{version}`, so your page receives those links too.
 
-Note that `sleet recreate` rebuilds the feed from scratch, so a custom page has to be
-uploaded again afterwards.
+`sleet recreate` deletes the feed's files, including a custom `index.html`, so upload the
+page again after running it.
 
-## How to disable the gallery
+## How the gallery reads the feed
 
-The gallery can be disabled in the feed settings using the following command
+The gallery is a single self contained HTML file with no external dependencies. It reads
+these files from the feed it was opened from:
 
-`sleet feed-settings --set galleryenabled:false`
+* `sleet.packageindex.json`, once when the page loads. It lists every package id and
+  version, which is all the package list, the filter, and paging need.
+* `registration/{id}/index.json`, when a package is opened, for its versions, metadata,
+  and dependencies. Browsing the package list never downloads these.
+* `flatcontainer/{id}/{version}/icon` and `flatcontainer/{id}/{version}/readme`, when a
+  package has them.
 
-Then run `sleet recreate` to rebuild the feed without `index.html` and without the package
-links in `index.json`.
+The search endpoint is not used. It is a single large document covering the whole feed,
+and `externalsearch` can point it at a different service.
 
-The gallery is enabled by default for new feeds.
+All requests use URLs relative to the page, so it works under any host name that serves
+the feed and never needs CORS configuration. A query string on the page URL, such as an
+Azure SAS token, is not passed on to these requests.
+
+If the page cannot read `sleet.packageindex.json` it shows *Unable to read this feed*,
+which usually means the feed is not publicly readable. If a single package cannot be read,
+the error is shown on that package's page and the rest of the feed stays browsable.

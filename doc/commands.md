@@ -198,7 +198,7 @@ Disable badges
 
 ``sleet feed-settings --set badgesenabled:false``
 
-Disable the package gallery
+Disable the package gallery. Run `sleet recreate` afterwards to remove it from the feed, see [gallery](gallery.md#enabling-and-disabling-the-gallery).
 
 ``sleet feed-settings --set galleryenabled:false``
 

@@ -5,7 +5,7 @@
 * [Setting up sources](client-settings.md)
 * [Setting a symbol server](symbol-server.md)
 * [Badges](badges.md)
-* [Gallery](gallery.md)
+* [Package gallery](gallery.md)
 * [Setting up an external search endpoint](external-search.md)
 * Quick start guides
   * [Local feed with IIS hosting](feed-type-local.md)

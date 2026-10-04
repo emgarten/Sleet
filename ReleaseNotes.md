@@ -7,7 +7,7 @@
   * Visual Studio links packages to their gallery page on feeds served over https
   * Run `sleet recreate` to add the gallery to an existing feed
   * Sleet does not overwrite an existing `index.html`, so a custom page can be used instead
-  * Disable with `sleet feed-settings --set galleryenabled:false`, see [gallery docs](doc/gallery.md)
+  * Disable with `sleet feed-settings --set galleryenabled:false` followed by `sleet recreate`, see [gallery docs](doc/gallery.md)
 
 ## 7.2.0
 * Added `--verbosity <level>` (`-V`) option to control console output

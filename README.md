@@ -32,6 +32,7 @@ A static NuGet package feed generator. ☁️ + 📦 = ❄️
 * **Simple.** A straightforward command line tool to add, remove, and update packages.
 * **Flexible.** Configure credentials via files, environment variables, command line args, .netconfig, or AWS-specific patterns to fit any workflow.
 * **Package retention.** Automatically prune old package versions with configurable stable/prerelease limits and release label grouping.
+* **Package gallery.** Browse and filter a feed's packages in the browser from a single page written to the feed. See [gallery](doc/gallery.md).
 * **Version badges.** Generate [shields.io](https://shields.io/)-compatible version badges for your packages.
 * **External search.** Plug in a custom search endpoint for dynamic query results.
 * **Cache control.** Set CDN-friendly `Cache-Control` headers for immutable and mutable feed files.

@@ -177,7 +177,7 @@ Add the feed as a source to your `NuGet.Config` file. In the example above the p
 
 Sleet writes a package gallery to the root of the feed. In the example above it can be opened at ``https://s3.amazonaws.com/my-bucket-feed/index.html``
 
-The S3 REST endpoint has no index document, so `index.html` must be included in the URL. See [gallery](gallery.md) for serving the page from the bare root URL.
+The S3 REST endpoint has no index document, so `index.html` must be included in the URL. See [gallery](gallery.md#serving-the-gallery-from-the-root-url) for serving the page from the bare root URL.
 
 ## Creating a private S3 feed
 
