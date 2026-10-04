@@ -14,7 +14,7 @@ Start Docker, then run the functional tests from the repository root:
 ./functional-tests.sh
 ```
 
-The script starts the environment, builds and runs the tests against it, and stops the environment when the tests finish. If the environment was already running, it's left running. The test results and the container logs are written to `artifacts/TestResults/functional`.
+The script starts every service in the environment, builds and runs the tests against it, and stops the environment when the tests finish. If the environment was already running, it's left running. The test results and the container logs are written to `artifacts/TestResults/functional`.
 
 The same script runs the tests against Azure and Amazon S3 accounts. See [functional tests](../CONTRIBUTING.md#functional-tests) for all the targets.
 
@@ -67,9 +67,9 @@ The emulator tests run on Linux because the GitHub hosted macOS and Windows runn
 
 ## Add a service
 
-1. Add the service to [docker-compose.yml](docker-compose.yml). Pin the image version, bind the ports to `127.0.0.1` on a host port that isn't the service's default, and add a healthcheck so the start script can wait for it.
+1. Add the service to [docker-compose.yml](docker-compose.yml). Pin the image version, bind the ports to `127.0.0.1` on a host port that isn't the service's default, and add a healthcheck so the start script can wait for it. The functional test script starts every service for the emulator targets, so CI checks that it starts before any tests use it.
 1. Make the tests use the service when their account environment variables aren't set and its port is open. See `AzureTestContext.IsAvailable` and `AzureFactAttribute` in [Sleet.Azure.Tests](../test/Sleet.Azure.Tests).
-1. Add a target for it to [functional-tests.ps1](../functional-tests.ps1) and [functional-tests.sh](../functional-tests.sh), with the services it uses and the account environment variables to unset, so the tests use the service. Add the target to the `emulators` group.
+1. Add a target for it to [functional-tests.ps1](../functional-tests.ps1) and [functional-tests.sh](../functional-tests.sh), with the account environment variables to unset so the tests use the service. Add the target to the `emulators` group.
 1. Add the service to the table above and the target to [functional tests](../CONTRIBUTING.md#functional-tests).
 
 Dependabot keeps the image versions in `docker-compose.yml` up to date.

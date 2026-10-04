@@ -58,22 +58,18 @@ LOCAL_ENV_DIR="$REPO_ROOT/local-env"
 COMPOSE_FILE="$LOCAL_ENV_DIR/docker-compose.yml"
 RESULTS_DIR="$REPO_ROOT/artifacts/TestResults/functional"
 CONFIGURATION="Release"
-ALL_TARGETS="azurite azure aws"
+# The emulator targets run against local-env
+EMULATOR_TARGETS="azurite"
+CLOUD_TARGETS="azure aws"
+ALL_TARGETS="$EMULATOR_TARGETS $CLOUD_TARGETS"
 
-# Emulator targets list the local-env services they use, and the account env vars to unset so the tests use local-env.
+# Emulator targets list the account env vars to unset so the tests use local-env.
 # Cloud targets list the env vars they need.
 target_project()
 {
   case "$1" in
     azurite|azure) echo "test/Sleet.Azure.Tests/Sleet.Azure.Tests.csproj" ;;
     aws) echo "test/Sleet.AmazonS3.Tests/Sleet.AmazonS3.Tests.csproj" ;;
-  esac
-}
-
-target_services()
-{
-  case "$1" in
-    azurite) echo "azurite" ;;
   esac
 }
 
@@ -96,8 +92,8 @@ REQUESTED=""
 
 for name in ${TARGET_ARG//,/ }; do
   case "$name" in
-    emulators) REQUESTED="$REQUESTED azurite" ;;
-    cloud) REQUESTED="$REQUESTED azure aws" ;;
+    emulators) REQUESTED="$REQUESTED $EMULATOR_TARGETS" ;;
+    cloud) REQUESTED="$REQUESTED $CLOUD_TARGETS" ;;
     all) REQUESTED="$REQUESTED $ALL_TARGETS" ;;
     azurite|azure|aws) REQUESTED="$REQUESTED $name" ;;
     *)
@@ -108,7 +104,7 @@ for name in ${TARGET_ARG//,/ }; do
 done
 
 SELECTED=""
-SERVICES=""
+USE_LOCAL_ENV=0
 PROJECTS=""
 MISSING=""
 
@@ -119,9 +115,9 @@ for name in $ALL_TARGETS; do
 
   SELECTED="$SELECTED $name"
 
-  for service in $(target_services "$name"); do
-    [[ " $SERVICES " == *" $service "* ]] || SERVICES="$SERVICES $service"
-  done
+  if [[ " $EMULATOR_TARGETS " == *" $name "* ]]; then
+    USE_LOCAL_ENV=1
+  fi
 
   project="$(target_project "$name")"
   [[ " $PROJECTS " == *" $project "* ]] || PROJECTS="$PROJECTS $project"
@@ -200,14 +196,14 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-if [[ -n "$SERVICES" ]]; then
-  # Leave the environment running afterwards if it's already running
+if [[ $USE_LOCAL_ENV -eq 1 ]]; then
+  # Start every service, including ones the tests don't use yet, so CI checks that they all start. Leave the
+  # environment running afterwards if it's already running.
   if command -v docker > /dev/null 2>&1 && RUNNING="$(docker compose -f "$COMPOSE_FILE" ps --services --status running 2> /dev/null)" && [[ -z "$RUNNING" ]]; then
     STARTED_ENV=1
   fi
 
-  # shellcheck disable=SC2086 # SERVICES is a list of names
-  "$LOCAL_ENV_DIR/start.sh" $SERVICES
+  "$LOCAL_ENV_DIR/start.sh"
 fi
 
 for project in $PROJECTS; do

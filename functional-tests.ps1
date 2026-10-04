@@ -45,14 +45,15 @@ $Configuration = "Release"
 $AzureTests = "test/Sleet.Azure.Tests/Sleet.Azure.Tests.csproj"
 $AmazonS3Tests = "test/Sleet.AmazonS3.Tests/Sleet.AmazonS3.Tests.csproj"
 
-# Emulator targets list the local-env services they use, and the account env vars to unset so the tests use local-env.
+# Emulator targets list the account env vars to unset so the tests use local-env.
 # Cloud targets list the env vars they need.
 $Targets = [ordered]@{
-    azurite = @{ Project = $AzureTests; Services = @("azurite"); Unset = @("SLEET_TEST_ACCOUNT"); Required = @() }
-    azure   = @{ Project = $AzureTests; Services = @(); Unset = @(); Required = @("SLEET_TEST_ACCOUNT") }
-    aws     = @{ Project = $AmazonS3Tests; Services = @(); Unset = @(); Required = @("SLEET_TEST_S3_ACCESS_KEY_ID", "SLEET_TEST_S3_SECRET_ACCESS_KEY") }
+    azurite = @{ Project = $AzureTests; Unset = @("SLEET_TEST_ACCOUNT"); Required = @() }
+    azure   = @{ Project = $AzureTests; Unset = @(); Required = @("SLEET_TEST_ACCOUNT") }
+    aws     = @{ Project = $AmazonS3Tests; Unset = @(); Required = @("SLEET_TEST_S3_ACCESS_KEY_ID", "SLEET_TEST_S3_SECRET_ACCESS_KEY") }
 }
 
+# The emulator targets run against local-env
 $Groups = @{
     emulators = @("azurite")
     cloud     = @("azure", "aws")
@@ -117,7 +118,7 @@ if ($missing.Count -gt 0) {
     exit 1
 }
 
-$services = @($selected | ForEach-Object { $Targets[$_].Services } | Select-Object -Unique)
+$useLocalEnv = @($selected | Where-Object { $Groups.emulators -contains $_ }).Count -gt 0
 $projects = @($selected | ForEach-Object { $Targets[$_].Project } | Select-Object -Unique)
 $results = [ordered]@{}
 $startedEnv = $false
@@ -148,10 +149,11 @@ try {
         Remove-Item $ResultsDir -Force -Recurse
     }
 
-    if ($services.Count -gt 0) {
-        # Leave the environment running afterwards if it's already running
+    if ($useLocalEnv) {
+        # Start every service, including ones the tests don't use yet, so CI checks that they all start. Leave the
+        # environment running afterwards if it's already running.
         $startedEnv = Test-LocalEnvStopped
-        & (Join-Path $LocalEnvDir "start.ps1") @services
+        & (Join-Path $LocalEnvDir "start.ps1")
 
         if ($LASTEXITCODE -ne 0) {
             exit 1
