@@ -20,6 +20,23 @@ NuGet clients read the feed anonymously, so the bucket must be publicly readable
 - **Custom domain** (recommended): connect a domain in your Cloudflare account to the bucket.
 - **r2.dev URL**: Cloudflare serves the bucket from `https://pub-<id>.r2.dev`. This URL is rate limited and intended for development.
 
+In the Cloudflare dashboard, open the bucket and select **Settings**. To connect a domain, select **Add** under **Custom Domains**. To turn on the r2.dev URL, select **Enable** under **Public Development URL**.
+
+With [Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/):
+
+```bash
+# Custom domain
+wrangler r2 bucket domain add my-bucket-feed --domain nuget.example.com --zone-id ZONE_ID
+
+# r2.dev URL, the get command shows the URL
+wrangler r2 bucket dev-url enable my-bucket-feed
+wrangler r2 bucket dev-url get my-bucket-feed
+```
+
+To find `ZONE_ID`, see [find zone and account IDs](https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/). For a bucket in a jurisdiction, add `--jurisdiction`, such as `--jurisdiction eu`.
+
+The r2.dev URL isn't known until the bucket exists, so create the bucket before the first push, for example with `wrangler r2 bucket create my-bucket-feed`.
+
 Set `baseURI` to the public URL. Sleet writes this URL into the feed files. The S3 API URL is only used to upload files.
 
 ## Credentials
