@@ -1,8 +1,11 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Amazon;
+using Amazon.Runtime;
+using Amazon.S3;
 using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
@@ -235,29 +238,195 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task CreateFileSystemAsync_WithS3Type_WithBothRegionAndServiceURL_ThrowsArgumentException()
+        public async Task CreateFileSystemAsync_WithS3Type_WithRegionAndServiceURL_UsesRegionToSignRequests()
         {
-            var settings = new LocalSettings();
-            settings.Json = new JObject
+            var fileSystem = await CreateS3FileSystemAsync(source =>
             {
-                ["sources"] = new JArray
-                {
-                    new JObject
-                    {
-                        ["name"] = "s3",
-                        ["type"] = "s3",
-                        ["bucketName"] = "test-bucket",
-                        ["region"] = "us-east-1",
-                        ["serviceURL"] = "https://s3.example.com"
-                    }
-                }
-            };
-            var cache = new LocalCache();
+                source["region"] = "fr-par";
+                source["serviceURL"] = "https://s3.fr-par.scw.cloud";
+            });
 
-            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, cache, "s3", NullLogger.Instance);
+            var config = GetS3Config(fileSystem);
+            config.AuthenticationRegion.Should().Be("fr-par");
+            config.RegionEndpoint.Should().BeNull();
+            fileSystem.Root.AbsoluteUri.Should().Be("https://s3.fr-par.scw.cloud/test-bucket/");
+            fileSystem.BaseURI.AbsoluteUri.Should().Be("https://s3.fr-par.scw.cloud/test-bucket/");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("aws")]
+        [InlineData(" ")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithDefaultProvider_UsesAmazonS3Defaults(string provider)
+        {
+            var fileSystem = await CreateS3FileSystemAsync(source =>
+            {
+                source["region"] = "us-west-2";
+
+                if (provider != null)
+                {
+                    source["provider"] = provider;
+                }
+            });
+
+            var config = GetS3Config(fileSystem);
+            config.RegionEndpoint.Should().Be(Amazon.RegionEndpoint.USWest2);
+            config.ForcePathStyle.Should().BeFalse();
+            config.RequestChecksumCalculation.Should().Be(RequestChecksumCalculation.WHEN_SUPPORTED);
+            GetDisablePayloadSigning(fileSystem).Should().BeFalse();
+        }
+
+        [Theory]
+        [InlineData("r2")]
+        [InlineData("R2")]
+        [InlineData(" r2 ")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithCloudflareR2Provider_UsesR2Defaults(string provider)
+        {
+            var fileSystem = await CreateS3FileSystemAsync(source =>
+            {
+                source["provider"] = provider;
+                source["serviceURL"] = "https://account.r2.cloudflarestorage.com";
+                source["baseURI"] = "https://nuget.example.com/";
+            });
+
+            var config = GetS3Config(fileSystem);
+            config.ForcePathStyle.Should().BeFalse();
+            config.RequestChecksumCalculation.Should().Be(RequestChecksumCalculation.WHEN_REQUIRED);
+            config.ResponseChecksumValidation.Should().Be(ResponseChecksumValidation.WHEN_REQUIRED);
+            GetDisablePayloadSigning(fileSystem).Should().BeTrue();
+            fileSystem.Root.AbsoluteUri.Should().Be("https://account.r2.cloudflarestorage.com/test-bucket/");
+            fileSystem.BaseURI.AbsoluteUri.Should().Be("https://nuget.example.com/");
+        }
+
+        [Theory]
+        [InlineData("http://localhost:9000")]
+        [InlineData("http://localhost:9000/")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithSelfHostedProvider_UsesPathStyle(string serviceURL)
+        {
+            var fileSystem = await CreateS3FileSystemAsync(source =>
+            {
+                source["provider"] = "self-hosted";
+                source["serviceURL"] = serviceURL;
+            });
+
+            var config = GetS3Config(fileSystem);
+            config.ForcePathStyle.Should().BeTrue();
+            config.RequestChecksumCalculation.Should().Be(RequestChecksumCalculation.WHEN_SUPPORTED);
+            GetDisablePayloadSigning(fileSystem).Should().BeFalse();
+            fileSystem.Root.AbsoluteUri.Should().Be("http://localhost:9000/test-bucket/");
+            fileSystem.BaseURI.AbsoluteUri.Should().Be("http://localhost:9000/test-bucket/");
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithSettings_OverridesProviderDefaults()
+        {
+            var fileSystem = await CreateS3FileSystemAsync(source =>
+            {
+                source["provider"] = "r2";
+                source["serviceURL"] = "https://account.r2.cloudflarestorage.com";
+                source["baseURI"] = "https://nuget.example.com/";
+                source["disablePayloadSigning"] = false;
+                source["checksumMode"] = "whenSupported";
+                source["forcePathStyle"] = true;
+            });
+
+            var config = GetS3Config(fileSystem);
+            config.ForcePathStyle.Should().BeTrue();
+            config.RequestChecksumCalculation.Should().Be(RequestChecksumCalculation.WHEN_SUPPORTED);
+            config.ResponseChecksumValidation.Should().Be(ResponseChecksumValidation.WHEN_SUPPORTED);
+            GetDisablePayloadSigning(fileSystem).Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithSelfHostedProviderAndForcePathStyleFalse_UsesVirtualHostStyle()
+        {
+            var fileSystem = await CreateS3FileSystemAsync(source =>
+            {
+                source["provider"] = "self-hosted";
+                source["serviceURL"] = "https://s3.example.com";
+                source["forcePathStyle"] = false;
+                source["checksumMode"] = "WhenRequired";
+            });
+
+            var config = GetS3Config(fileSystem);
+            config.ForcePathStyle.Should().BeFalse();
+            config.RequestChecksumCalculation.Should().Be(RequestChecksumCalculation.WHEN_REQUIRED);
+            config.ResponseChecksumValidation.Should().Be(ResponseChecksumValidation.WHEN_REQUIRED);
+        }
+
+        [Theory]
+        [InlineData("r2", "Missing serviceURL for Cloudflare R2 account.")]
+        [InlineData("self-hosted", "Missing serviceURL for self-hosted S3 account.")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithProviderAndWithoutServiceURL_ThrowsArgumentException(string provider, string message)
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = provider;
+                source["region"] = "us-east-1";
+                source["baseURI"] = "https://nuget.example.com/";
+            });
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, new LocalCache(), "s3", NullLogger.Instance);
 
             var ex = await Assert.ThrowsAsync<ArgumentException>(act);
-            Assert.Contains("Options 'region' and 'serviceURL' cannot be used together", ex.Message);
+            Assert.Contains(message, ex.Message);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("https://account.r2.cloudflarestorage.com/test-bucket/")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithCloudflareR2ProviderAndWithoutBaseURI_ThrowsArgumentException(string path)
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = "r2";
+                source["serviceURL"] = "https://account.r2.cloudflarestorage.com";
+
+                if (path != null)
+                {
+                    source["path"] = path;
+                }
+            });
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, new LocalCache(), "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Missing baseURI for Cloudflare R2 account.", ex.Message);
+        }
+
+        [Theory]
+        [InlineData("2")]
+        [InlineData("default")]
+        [InlineData("when_required")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithInvalidChecksumMode_ThrowsArgumentException(string checksumMode)
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["region"] = "us-east-1";
+                source["checksumMode"] = checksumMode;
+            });
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, new LocalCache(), "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains($"Invalid checksumMode '{checksumMode}'. Valid values are: whenSupported, whenRequired", ex.Message);
+        }
+
+        [Theory]
+        [InlineData("gcs")]
+        [InlineData(" gcs ")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithUnknownProvider_ThrowsArgumentException(string provider)
+        {
+            var settings = GetS3Settings(source =>
+            {
+                source["provider"] = provider;
+                source["serviceURL"] = "https://storage.googleapis.com";
+            });
+
+            Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, new LocalCache(), "s3", NullLogger.Instance);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+            Assert.Contains("Unknown provider 'gcs' for s3 source. Valid values are: aws, r2, self-hosted", ex.Message);
         }
 
         [Fact]
@@ -527,6 +696,43 @@ namespace SleetLib.Tests
         }
 
         [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithServiceURLAndDefaultCredentials_CreatesAmazonS3FileSystem()
+        {
+            using (var testDir = new TestFolder())
+            {
+                var credentialsFile = Path.Combine(testDir.Root, "credentials");
+                var configFile = Path.Combine(testDir.Root, "config");
+                File.WriteAllText(credentialsFile, @"
+[default]
+aws_access_key_id = default-access-key
+aws_secret_access_key = default-secret-key
+");
+                File.WriteAllText(configFile, string.Empty);
+
+                using (new EnvironmentVariableScope(
+                    ("AWS_SHARED_CREDENTIALS_FILE", credentialsFile),
+                    ("AWS_CONFIG_FILE", configFile),
+                    ("AWS_EC2_METADATA_DISABLED", "true")))
+                {
+                    var settings = CreateSettings("s3", new JObject
+                    {
+                        ["type"] = "s3",
+                        ["provider"] = "self-hosted",
+                        ["bucketName"] = "test-bucket",
+                        ["serviceURL"] = "http://localhost:9000"
+                    });
+
+                    // Fake credentials would fail an STS check, it must be skipped without a region endpoint
+                    var result = await FileSystemFactory.CreateFileSystemAsync(settings, new LocalCache(), "s3", NullLogger.Instance);
+
+                    var fileSystem = Assert.IsType<AmazonS3FileSystem>(result);
+                    GetS3Config(fileSystem).RegionEndpoint.Should().BeNull();
+                    fileSystem.Root.AbsoluteUri.Should().Be("http://localhost:9000/test-bucket/");
+                }
+            }
+        }
+
+        [Fact]
         public async Task CreateFileSystemAsync_WithS3Type_WithCredentialsProfile_CreatesAmazonS3FileSystem()
         {
             using (var testDir = new TestFolder())
@@ -592,6 +798,47 @@ aws_secret_access_key = profile-secret-key
         private static string GetAzureConnectionString()
         {
             return "DefaultEndpointsProtocol=https;AccountName=account;AccountKey=YWJjZA==;EndpointSuffix=core.windows.net";
+        }
+
+        internal static LocalSettings GetS3Settings(Action<JObject> configure)
+        {
+            var source = new JObject
+            {
+                ["type"] = "s3",
+                ["bucketName"] = "test-bucket",
+                ["accessKeyId"] = "key",
+                ["secretAccessKey"] = "secret"
+            };
+
+            configure(source);
+
+            return CreateSettings("s3", source);
+        }
+
+        internal static async Task<AmazonS3FileSystem> CreateS3FileSystemAsync(Action<JObject> configure)
+        {
+            var result = await FileSystemFactory.CreateFileSystemAsync(GetS3Settings(configure), new LocalCache(), "s3", NullLogger.Instance);
+
+            return result.Should().BeOfType<AmazonS3FileSystem>().Subject;
+        }
+
+        private static AmazonS3Config GetS3Config(AmazonS3FileSystem fileSystem)
+        {
+            var client = (IAmazonS3)GetPrivateField(fileSystem, "_client");
+
+            return (AmazonS3Config)client.Config;
+        }
+
+        private static bool GetDisablePayloadSigning(AmazonS3FileSystem fileSystem)
+        {
+            return (bool)GetPrivateField(fileSystem, "_disablePayloadSigning");
+        }
+
+        private static object GetPrivateField(AmazonS3FileSystem fileSystem, string name)
+        {
+            return typeof(AmazonS3FileSystem)
+                .GetField(name, BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(fileSystem);
         }
     }
 }

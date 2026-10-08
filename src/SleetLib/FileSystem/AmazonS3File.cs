@@ -50,7 +50,7 @@ namespace Sleet
 
         protected override async Task CopyFromSource(ILogger log, CancellationToken token)
         {
-            var absoluteUri = UriUtility.GetPath(RootPath, key);
+            var absoluteUri = RootPath;
             if (!await FileExistsAsync(client, bucketName, key, token).ConfigureAwait(false))
                 return;
 
@@ -84,7 +84,7 @@ namespace Sleet
 
         protected override async Task CopyToSource(ILogger log, CancellationToken token)
         {
-            var absoluteUri = UriUtility.GetPath(RootPath, key);
+            var absoluteUri = RootPath;
             if (!File.Exists(LocalCacheFile.FullName))
             {
                 if (await FileExistsAsync(client, bucketName, key, token).ConfigureAwait(false))

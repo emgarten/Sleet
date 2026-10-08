@@ -68,14 +68,6 @@ Cannot use a relative 'path' without a sleet.json file.
 
 A local feed defined with environment variables needs an absolute `SLEET_FEED_PATH`.
 
-### S3 source with serviceURL and no path
-
-```text
-[System.NullReferenceException] Object reference not set to an instance of an object.
-```
-
-An S3 source that sets `serviceURL` also needs `path`, the public URL of the bucket. See [S3-compatible storage](s3-compatible.md#configure-the-source).
-
 ### Problems with .netconfig values
 
 | Error | Cause |
@@ -214,6 +206,7 @@ NuGet couldn't get `index.json`. Common causes:
 - The feed isn't set up yet. Push a package or run `sleet init`.
 - On Azure, the storage account or the container doesn't allow anonymous access. The error response has a code such as `ResourceNotFound` or `PublicAccessNotPermitted`. See [allow anonymous read access](feed-type-azure.md#allow-anonymous-read-access).
 - On Amazon S3, the bucket policy doesn't allow public reads, or S3 Block Public Access is on. See [create an Amazon S3 feed](feed-type-s3.md).
+- On an S3-compatible service, curl shows `Content-Encoding: gzip, aws-chunked` and fails with `Unrecognized content encoding type`. See [signing and compression](s3-compatible.md#signing-and-compression).
 - A proxy or firewall blocks the request.
 
 ### NuGet returns 403 or asks for credentials

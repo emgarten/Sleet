@@ -143,6 +143,7 @@ Get started:
 * [Install Sleet](doc/install.md)
 * [Create an Azure feed](doc/feed-type-azure.md)
 * [Create an Amazon S3 feed](doc/feed-type-s3.md)
+* [Create a Cloudflare R2 feed](doc/feed-type-cloudflare.md)
 * [Create a local feed](doc/feed-type-local.md)
 * [Use a feed with NuGet](doc/consume-feed.md)
 
@@ -177,7 +178,7 @@ To build and run the unit tests locally:
 ./build.ps1
 ```
 
-The functional tests run against Azure Storage and Amazon S3. By default, they run the Azure tests against a local emulator in [Docker](https://docs.docker.com/get-started/get-docker/), so you don't need a cloud account:
+The functional tests run against Azure Storage and Amazon S3. By default, they run against local emulators in [Docker](https://docs.docker.com/get-started/get-docker/), so you don't need a cloud account:
 
 ```bash
 # Linux / macOS

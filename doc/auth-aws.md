@@ -73,7 +73,7 @@ If the access key variables are not set, Sleet checks the `AWS_CONTAINER_CREDENT
 
 ### AWS SDK default chain
 
-If none of the earlier options apply, Sleet uses the AWS SDK default credential chain. This can include EC2 instance profiles, web identity credentials, and other SDK-supported sources. Sleet first calls STS `GetCallerIdentity` to verify that credentials can be found. If that fails, Sleet reports: `Failed to determine AWS identity - ensure you have an IAM role set, have set up default credentials or have specified a profile/key pair.`
+If none of the earlier options apply, Sleet uses the AWS SDK default credential chain. This can include EC2 instance profiles, web identity credentials, and other SDK-supported sources. For sources without `serviceURL`, Sleet first calls STS `GetCallerIdentity` to verify that credentials can be found. If that fails, Sleet reports: `Failed to determine AWS identity - ensure you have an IAM role set, have set up default credentials or have specified a profile/key pair.`
 
 ## GitHub Actions with OIDC
 
@@ -165,7 +165,7 @@ This means Sleet reached the SDK default-chain path and STS `GetCallerIdentity` 
 
 ### Wrong region
 
-The bucket Region must match the `region` value in `sleet.json`. If you use S3-compatible storage, use `serviceURL` instead of `region`. Do not set both.
+The bucket Region must match the `region` value in `sleet.json`. If you use S3-compatible storage, use `serviceURL` instead of `region`. Set both only if the provider needs a specific signing Region.
 
 ### SSO token expired
 

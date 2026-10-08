@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.S3;
 using AwesomeAssertions;
 using NuGet.Test.Helpers;
 
@@ -21,19 +20,10 @@ namespace Sleet.AmazonS3.Tests
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeedA";
                 var subFeedName2 = "testSubFeedB";
-                var root = UriUtility.GetPath(testContext.Uri, subFeedName);
-                var root2 = UriUtility.GetPath(testContext.Uri, subFeedName2);
-                testContext.FileSystem = new AmazonS3FileSystem(
-                    testContext.LocalCache, root, root,
-                    testContext.Client, testContext.BucketName,
-                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName
-                    );
+                testContext.FileSystem = await testContext.CreateSubFeedFileSystemAsync(subFeedName);
 
-                testContext2.FileSystem = new AmazonS3FileSystem(
-                    testContext.LocalCache, root2, root2,
-                    testContext.Client, testContext.BucketName,
-                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName2
-                    );
+                // Use the same bucket for the second feed
+                testContext2.FileSystem = await testContext.CreateSubFeedFileSystemAsync(subFeedName2);
 
                 await testContext.InitAsync();
                 await testContext2.InitAsync();
@@ -84,12 +74,7 @@ namespace Sleet.AmazonS3.Tests
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeed";
-                var root = UriUtility.GetPath(testContext.Uri, subFeedName);
-                testContext.FileSystem = new AmazonS3FileSystem(
-                    testContext.LocalCache, root, root,
-                    testContext.Client, testContext.BucketName,
-                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName
-                    );
+                testContext.FileSystem = await testContext.CreateSubFeedFileSystemAsync(subFeedName);
 
                 await testContext.InitAsync();
 
@@ -134,12 +119,7 @@ namespace Sleet.AmazonS3.Tests
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeed";
-                var root = UriUtility.GetPath(testContext.Uri, subFeedName);
-                testContext.FileSystem = new AmazonS3FileSystem(
-                    testContext.LocalCache, root, root,
-                    testContext.Client, testContext.BucketName,
-                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName
-                    );
+                testContext.FileSystem = await testContext.CreateSubFeedFileSystemAsync(subFeedName);
 
                 await testContext.InitAsync();
                 await testContext2.InitAsync();

@@ -2,6 +2,18 @@
 
 ## 8.0.0
 * Fixed `sleet` failing to start when installed with `dotnet tool install --allow-roll-forward` [Issue](https://github.com/emgarten/Sleet/issues/247)
+* Added a `provider` setting for `s3` feeds hosted on S3 compatible storage
+  * `aws` (default), `r2` for Cloudflare R2, and `self-hosted` for S3 servers you run yourself, such as MinIO and RustFS
+  * `sleet createconfig --provider <name>` creates a config template for the service
+  * Added a [Cloudflare R2 setup guide](doc/feed-type-cloudflare.md)
+* Added `forcePathStyle` and `checksumMode` settings for S3 compatible storage
+* `region` can now be used with `serviceURL` to set the signing region
+* `path` is no longer required when using `serviceURL` [Issue](https://github.com/emgarten/Sleet/issues/253)
+* Credentials from the default AWS credential chain can now be used with `serviceURL`
+* Fixed `sleet init` failing when the S3 bucket doesn't exist
+* S3 feeds check that the bucket exists with `HeadBucket` instead of `GetBucketAcl`, which isn't supported by all S3 compatible services
+* Creating a bucket on S3 compatible storage skips the Amazon S3 public access block and object ownership settings if the service does not support them
+* Fixed the file path shown in verbose S3 log messages
 
 ## 7.2.0
 * Added `--verbosity <level>` (`-V`) option to control console output
