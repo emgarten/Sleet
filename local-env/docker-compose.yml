@@ -29,7 +29,7 @@ services:
 
   # S3 compatible storage. The Amazon S3 tests don't use it yet, they need https://github.com/emgarten/Sleet/pull/239
   rustfs:
-    image: rustfs/rustfs:1.0.0
+    image: rustfs/rustfs:1.0.1
     environment:
       RUSTFS_ACCESS_KEY: rustfsadmin
       RUSTFS_SECRET_KEY: rustfsadmin
