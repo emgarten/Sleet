@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.S3;
 using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
@@ -17,6 +16,33 @@ namespace Sleet.AmazonS3.Tests
         {
             await using (var testContext = new AmazonS3TestContext())
             {
+                await testContext.InitAsync();
+
+                var result = await InitCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    enableCatalog: true,
+                    enableSymbols: true,
+                    log: testContext.Logger,
+                    token: CancellationToken.None);
+
+                result &= await ValidateCommand.RunAsync(testContext.LocalSettings,
+                    testContext.FileSystem,
+                    testContext.Logger);
+
+                result.Should().BeTrue();
+
+                await testContext.CleanupAsync();
+            }
+        }
+
+        [AmazonS3Fact]
+        public async Task GivenAStorageAccountWithNoContainerVerifyInitSucceeds()
+        {
+            await using (var testContext = new AmazonS3TestContext())
+            {
+                // Skip creation and allow it to be done during init.
+                testContext.CreateBucketOnInit = false;
+
                 await testContext.InitAsync();
 
                 var result = await InitCommand.RunAsync(testContext.LocalSettings,
@@ -241,12 +267,7 @@ namespace Sleet.AmazonS3.Tests
             await using (var testContext = new AmazonS3TestContext())
             {
                 var baseUri = new Uri("http://tempuri.org/abc/");
-                var fileSystem = new AmazonS3FileSystem(
-                        testContext.LocalCache, testContext.Uri, baseUri,
-                        testContext.Client, testContext.BucketName, ServerSideEncryptionMethod.None
-                    );
-
-                testContext.FileSystem = fileSystem;
+                testContext.FileSystem = await testContext.CreateFileSystemAsync(source => source["baseURI"] = baseUri.AbsoluteUri);
 
                 await testContext.InitAsync();
 

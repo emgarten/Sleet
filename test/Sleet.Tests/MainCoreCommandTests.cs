@@ -115,6 +115,40 @@ namespace Sleet.Tests
             }
         }
 
+        [Fact]
+        public async Task MainCore_CreateConfigWithProvider_CreatesS3Template()
+        {
+            using (var root = new TestFolder())
+            {
+                var log = new TestLogger();
+
+                var exitCode = await RunAsync(log, "createconfig", "--provider", "r2", "--output", root.Root);
+
+                exitCode.Should().Be(0);
+                var source = JObject.Parse(File.ReadAllText(Path.Combine(root.Root, "sleet.json")))["sources"][0];
+                source["type"].Value<string>().Should().Be("s3");
+                source["provider"].Value<string>().Should().Be("r2");
+            }
+        }
+
+        [Theory]
+        [InlineData("provider may not be used with azure.", "--provider", "r2", "--azure")]
+        [InlineData("provider may not be used with local.", "--provider", "r2", "--local")]
+        [InlineData("Unknown provider 'gcs' for s3 source.", "--provider", "gcs")]
+        public async Task MainCore_CreateConfigWithInvalidProvider_ReturnsOneAndLogsError(string expected, params string[] options)
+        {
+            using (var root = new TestFolder())
+            {
+                var log = new TestLogger();
+
+                var exitCode = await RunAsync(log, new[] { "createconfig", "--output", root.Root }.Concat(options).ToArray());
+
+                exitCode.Should().Be(1);
+                log.GetMessages().Should().Contain(expected);
+                File.Exists(Path.Combine(root.Root, "sleet.json")).Should().BeFalse();
+            }
+        }
+
         [Theory]
         [InlineData("retention", "settings", "--stable", "not-a-number", "--prerelease", "1")]
         [InlineData("retention", "prune", "--stable", "not-a-number")]

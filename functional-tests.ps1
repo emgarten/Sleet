@@ -14,9 +14,14 @@ What to test:
   cloud      The cloud targets. They need the account environment variables.
   all        All targets.
   azurite    The Azure tests against Azurite.
+  rustfs     The Amazon S3 tests against RustFS.
   azure      The Azure tests against SLEET_TEST_ACCOUNT, an Azure Storage connection string.
   aws        The Amazon S3 tests against SLEET_TEST_S3_ACCESS_KEY_ID and SLEET_TEST_S3_SECRET_ACCESS_KEY.
-             SLEET_TEST_S3_REGION defaults to us-east-1.
+             SLEET_TEST_S3_REGION defaults to us-east-1. Set SLEET_TEST_S3_SERVICE_URL to test S3 compatible
+             storage instead of Amazon S3.
+  r2         The Amazon S3 tests against Cloudflare R2 with SLEET_TEST_R2_ACCESS_KEY_ID,
+             SLEET_TEST_R2_SECRET_ACCESS_KEY, and SLEET_TEST_R2_SERVICE_URL, the R2 S3 API URL of the account.
+             The tests that need a public bucket are skipped.
 
 .EXAMPLE
 ./functional-tests.ps1
@@ -27,7 +32,7 @@ $env:SLEET_TEST_ACCOUNT = "<connection string>"
 #>
 param (
     [Parameter(Position = 0)]
-    [ValidateSet("emulators", "cloud", "all", "azurite", "azure", "aws")]
+    [ValidateSet("emulators", "cloud", "all", "azurite", "rustfs", "azure", "aws", "r2")]
     [string[]]$Target = @("emulators")
 )
 
@@ -45,18 +50,34 @@ $Configuration = "Release"
 $AzureTests = "test/Sleet.Azure.Tests/Sleet.Azure.Tests.csproj"
 $AmazonS3Tests = "test/Sleet.AmazonS3.Tests/Sleet.AmazonS3.Tests.csproj"
 
-# Emulator targets list the account env vars to unset so the tests use local-env.
-# Cloud targets list the env vars they need.
+# Env lists the env vars to set for a target, $null unsets them. The emulator targets unset the account env vars so the
+# tests use local-env. Required lists the env vars that a cloud target needs.
 $Targets = [ordered]@{
-    azurite = @{ Project = $AzureTests; Unset = @("SLEET_TEST_ACCOUNT"); Required = @() }
-    azure   = @{ Project = $AzureTests; Unset = @(); Required = @("SLEET_TEST_ACCOUNT") }
-    aws     = @{ Project = $AmazonS3Tests; Unset = @(); Required = @("SLEET_TEST_S3_ACCESS_KEY_ID", "SLEET_TEST_S3_SECRET_ACCESS_KEY") }
+    azurite = @{ Project = $AzureTests; Env = @{ SLEET_TEST_ACCOUNT = $null }; Required = @() }
+    rustfs  = @{ Project = $AmazonS3Tests; Env = @{ SLEET_TEST_S3_ACCESS_KEY_ID = $null; SLEET_TEST_S3_SECRET_ACCESS_KEY = $null }; Required = @() }
+    azure   = @{ Project = $AzureTests; Env = @{}; Required = @("SLEET_TEST_ACCOUNT") }
+    aws     = @{ Project = $AmazonS3Tests; Env = @{}; Required = @("SLEET_TEST_S3_ACCESS_KEY_ID", "SLEET_TEST_S3_SECRET_ACCESS_KEY") }
+
+    # The S3 tests read the SLEET_TEST_S3_* env vars, so set them to the R2 account. R2 skips the tests that need a
+    # public bucket.
+    r2      = @{
+        Project    = $AmazonS3Tests
+        Env        = @{
+            SLEET_TEST_S3_ACCESS_KEY_ID     = $env:SLEET_TEST_R2_ACCESS_KEY_ID
+            SLEET_TEST_S3_SECRET_ACCESS_KEY = $env:SLEET_TEST_R2_SECRET_ACCESS_KEY
+            SLEET_TEST_S3_SERVICE_URL       = $env:SLEET_TEST_R2_SERVICE_URL
+            SLEET_TEST_S3_PROVIDER          = "r2"
+            SLEET_TEST_S3_REGION            = $null
+        }
+        Required   = @("SLEET_TEST_R2_ACCESS_KEY_ID", "SLEET_TEST_R2_SECRET_ACCESS_KEY", "SLEET_TEST_R2_SERVICE_URL")
+        AllowSkips = $true
+    }
 }
 
 # The emulator targets run against local-env
 $Groups = @{
-    emulators = @("azurite")
-    cloud     = @("azure", "aws")
+    emulators = @("azurite", "rustfs")
+    cloud     = @("azure", "aws", "r2")
     all       = @($Targets.Keys)
 }
 
@@ -168,15 +189,19 @@ try {
         $settings = $Targets[$name]
         $savedEnv = @{}
 
-        foreach ($var in $settings.Unset) {
+        foreach ($var in $settings.Env.Keys) {
             $savedEnv[$var] = [Environment]::GetEnvironmentVariable($var)
-            [Environment]::SetEnvironmentVariable($var, $null)
-            Write-Host "[Env] Unset $var" -ForegroundColor Cyan
+            [Environment]::SetEnvironmentVariable($var, $settings.Env[$var])
+
+            # Only log the name, the value may be a secret
+            $action = if ($null -eq $settings.Env[$var]) { "Unset" } else { "Set" }
+            Write-Host "[Env] $action $var" -ForegroundColor Cyan
         }
 
         try {
             # --fail-skips makes the run fail if the tests are skipped instead of run, such as when they can't find local-env
-            $arguments = @("test", "--project", $settings.Project, "-c", $Configuration, "--no-build", "--results-directory", (Join-Path $ResultsDir $name), "--report-trx", "--hangdump", "--hangdump-timeout", "20m", "--hangdump-type", "Mini", "--fail-skips", "on")
+            $failSkips = if ($settings.AllowSkips) { "off" } else { "on" }
+            $arguments = @("test", "--project", $settings.Project, "-c", $Configuration, "--no-build", "--results-directory", (Join-Path $ResultsDir $name), "--report-trx", "--hangdump", "--hangdump-timeout", "20m", "--hangdump-type", "Mini", "--fail-skips", $failSkips)
             Write-Host "[Exec] $DotnetExe $arguments" -ForegroundColor Cyan
             & $DotnetExe @arguments
             $results[$name] = if ($LASTEXITCODE -eq 0) { "passed" } else { "failed" }

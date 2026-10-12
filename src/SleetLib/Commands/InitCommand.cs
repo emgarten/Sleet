@@ -17,7 +17,10 @@ namespace Sleet
 
         public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, bool enableSymbols, ILogger log, CancellationToken token)
         {
-            var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
+            // A missing bucket has no settings to read, InitAsync creates it
+            var feedSettings = await source.HasBucket(log, token)
+                ? await FeedSettingsUtility.GetSettingsOrDefault(source, log, token)
+                : new FeedSettings();
 
             feedSettings.CatalogEnabled = enableCatalog;
             feedSettings.SymbolsEnabled = enableSymbols;

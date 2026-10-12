@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using System.Net.Http.Headers;
 
@@ -72,7 +71,8 @@ namespace Sleet.AmazonS3.Tests
                     feedSubPath: null,
                     compress: true,
                     acl: null,
-                    disablePayloadSigning: false,
+                    // R2 doesn't support the streaming uploads that are used with payload signing
+                    disablePayloadSigning: AmazonS3TestContext.IsCloudflareR2,
                     immutableCacheControl: immutableCacheControl,
                     mutableCacheControl: mutableCacheControl);
 
@@ -137,24 +137,15 @@ namespace Sleet.AmazonS3.Tests
                 var immutableCacheControl = "public, max-age=604800";
                 var mutableCacheControl = "public, max-age=60";
 
-                var settings = LocalSettings.Load(new JObject(
-                    new JProperty("sources",
-                        new JArray(
-                            new JObject(
-                                new JProperty("name", "s3"),
-                                new JProperty("type", "s3"),
-                                new JProperty("bucketName", testContext.BucketName),
-                                new JProperty("region", AmazonS3TestContext.Region),
-                                new JProperty("accessKeyId", AmazonS3TestContext.AccessKeyId),
-                                new JProperty("secretAccessKey", AmazonS3TestContext.SecretAccessKey),
-                                new JProperty("immutableCacheControl", immutableCacheControl),
-                                new JProperty("mutableCacheControl", mutableCacheControl))))));
-
-                var fs = await FileSystemFactory.CreateFileSystemAsync(settings, testContext.LocalCache, "s3", testContext.Logger);
+                var fs = await testContext.CreateFileSystemAsync(source =>
+                {
+                    source.Add("immutableCacheControl", immutableCacheControl);
+                    source.Add("mutableCacheControl", mutableCacheControl);
+                });
 
                 // Initialize feed
                 await InitCommand.RunAsync(
-                    settings,
+                    testContext.LocalSettings,
                     fs,
                     enableCatalog: false,
                     enableSymbols: false,
@@ -167,7 +158,7 @@ namespace Sleet.AmazonS3.Tests
 
                 // Push package
                 await PushCommand.RunAsync(
-                    settings,
+                    testContext.LocalSettings,
                     fs,
                     new List<string> { zipFile.FullName },
                     force: false,

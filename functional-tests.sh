@@ -13,9 +13,14 @@ Targets:
   cloud      The cloud targets. They need the account environment variables.
   all        All targets.
   azurite    The Azure tests against Azurite.
+  rustfs     The Amazon S3 tests against RustFS.
   azure      The Azure tests against SLEET_TEST_ACCOUNT, an Azure Storage connection string.
   aws        The Amazon S3 tests against SLEET_TEST_S3_ACCESS_KEY_ID and SLEET_TEST_S3_SECRET_ACCESS_KEY.
-             SLEET_TEST_S3_REGION defaults to us-east-1.
+             SLEET_TEST_S3_REGION defaults to us-east-1. Set SLEET_TEST_S3_SERVICE_URL to test S3 compatible
+             storage instead of Amazon S3.
+  r2         The Amazon S3 tests against Cloudflare R2 with SLEET_TEST_R2_ACCESS_KEY_ID,
+             SLEET_TEST_R2_SECRET_ACCESS_KEY, and SLEET_TEST_R2_SERVICE_URL, the R2 S3 API URL of the account.
+             The tests that need a public bucket are skipped.
 
 The emulator targets start the local test environment in local-env with Docker, and stop it
 afterwards if it wasn't already running.
@@ -59,32 +64,55 @@ COMPOSE_FILE="$LOCAL_ENV_DIR/docker-compose.yml"
 RESULTS_DIR="$REPO_ROOT/artifacts/TestResults/functional"
 CONFIGURATION="Release"
 # The emulator targets run against local-env
-EMULATOR_TARGETS="azurite"
-CLOUD_TARGETS="azure aws"
+EMULATOR_TARGETS="azurite rustfs"
+CLOUD_TARGETS="azure aws r2"
 ALL_TARGETS="$EMULATOR_TARGETS $CLOUD_TARGETS"
 
-# Emulator targets list the account env vars to unset so the tests use local-env.
-# Cloud targets list the env vars they need.
 target_project()
 {
   case "$1" in
     azurite|azure) echo "test/Sleet.Azure.Tests/Sleet.Azure.Tests.csproj" ;;
-    aws) echo "test/Sleet.AmazonS3.Tests/Sleet.AmazonS3.Tests.csproj" ;;
+    rustfs|aws|r2) echo "test/Sleet.AmazonS3.Tests/Sleet.AmazonS3.Tests.csproj" ;;
   esac
 }
 
-target_unset_env()
-{
-  case "$1" in
-    azurite) echo "SLEET_TEST_ACCOUNT" ;;
-  esac
-}
-
+# The env vars that a cloud target needs
 target_required_env()
 {
   case "$1" in
     azure) echo "SLEET_TEST_ACCOUNT" ;;
     aws) echo "SLEET_TEST_S3_ACCESS_KEY_ID SLEET_TEST_S3_SECRET_ACCESS_KEY" ;;
+    r2) echo "SLEET_TEST_R2_ACCESS_KEY_ID SLEET_TEST_R2_SECRET_ACCESS_KEY SLEET_TEST_R2_SERVICE_URL" ;;
+  esac
+}
+
+# Set the env vars of a target. The emulator targets unset the account env vars so the tests use local-env.
+target_env()
+{
+  case "$1" in
+    azurite) unset_env SLEET_TEST_ACCOUNT ;;
+    rustfs)
+        unset_env SLEET_TEST_S3_ACCESS_KEY_ID
+        unset_env SLEET_TEST_S3_SECRET_ACCESS_KEY
+        ;;
+    r2)
+        # The S3 tests read the SLEET_TEST_S3_* env vars, so set them to the R2 account
+        set_env SLEET_TEST_S3_ACCESS_KEY_ID "$SLEET_TEST_R2_ACCESS_KEY_ID"
+        set_env SLEET_TEST_S3_SECRET_ACCESS_KEY "$SLEET_TEST_R2_SECRET_ACCESS_KEY"
+        set_env SLEET_TEST_S3_SERVICE_URL "$SLEET_TEST_R2_SERVICE_URL"
+        set_env SLEET_TEST_S3_PROVIDER r2
+        unset_env SLEET_TEST_S3_REGION
+        ;;
+  esac
+}
+
+# --fail-skips makes the run fail if the tests are skipped instead of run, such as when they can't find local-env. R2
+# skips the tests that need a public bucket.
+target_fail_skips()
+{
+  case "$1" in
+    r2) echo "off" ;;
+    *) echo "on" ;;
   esac
 }
 
@@ -95,9 +123,9 @@ for name in ${TARGET_ARG//,/ }; do
     emulators) REQUESTED="$REQUESTED $EMULATOR_TARGETS" ;;
     cloud) REQUESTED="$REQUESTED $CLOUD_TARGETS" ;;
     all) REQUESTED="$REQUESTED $ALL_TARGETS" ;;
-    azurite|azure|aws) REQUESTED="$REQUESTED $name" ;;
+    azurite|rustfs|azure|aws|r2) REQUESTED="$REQUESTED $name" ;;
     *)
-        echo "Unknown target: $name. Use emulators, cloud, all, azurite, azure, or aws." >&2
+        echo "Unknown target: $name. Use emulators, cloud, all, azurite, rustfs, azure, aws, or r2." >&2
         exit 1
         ;;
   esac
@@ -149,6 +177,19 @@ run_command()
 {
   echo ">> $*"
   "$@"
+}
+
+# Only log the name of the env var, the value may be a secret
+set_env()
+{
+  echo ">> export $1"
+  export "$1=$2"
+}
+
+unset_env()
+{
+  echo ">> unset $1"
+  unset "$1"
 }
 
 # True if dotnet has the SDK from global.json. The functional tests don't need other runtimes.
@@ -214,16 +255,13 @@ FAILED=0
 SUMMARY=""
 
 for name in $SELECTED; do
-  ENV_ARGS=""
-
-  for var in $(target_unset_env "$name"); do
-    ENV_ARGS="$ENV_ARGS -u $var"
-  done
-
-  # --fail-skips makes the run fail if the tests are skipped instead of run, such as when they can't find local-env
-  # shellcheck disable=SC2086 # ENV_ARGS is a list of env options
-  if run_command env $ENV_ARGS "$DOTNET" test --project "$(target_project "$name")" -c "$CONFIGURATION" --no-build \
-      --results-directory "$RESULTS_DIR/$name" --report-trx --hangdump --hangdump-timeout 20m --hangdump-type Mini --fail-skips on; then
+  # Run each target in a subshell so its env vars don't apply to the other targets
+  if (
+    target_env "$name"
+    run_command "$DOTNET" test --project "$(target_project "$name")" -c "$CONFIGURATION" --no-build \
+      --results-directory "$RESULTS_DIR/$name" --report-trx --hangdump --hangdump-timeout 20m --hangdump-type Mini \
+      --fail-skips "$(target_fail_skips "$name")"
+  ); then
     SUMMARY="$SUMMARY$(printf '  %-10s %s' "$name" passed)"$'\n'
   else
     SUMMARY="$SUMMARY$(printf '  %-10s %s' "$name" failed)"$'\n'

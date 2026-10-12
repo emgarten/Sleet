@@ -27,7 +27,7 @@ services:
       <<: *healthcheck
       test: ["CMD", "nc", "-z", "127.0.0.1", "10000"]
 
-  # S3 compatible storage. The Amazon S3 tests don't use it yet, they need https://github.com/emgarten/Sleet/pull/239
+  # S3 compatible storage for the Amazon S3 tests
   rustfs:
     image: rustfs/rustfs:1.0.0
     environment:
