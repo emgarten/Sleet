@@ -1,0 +1,64 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # Dependencies are added to the first group they match
+      test:
+        patterns:
+          - "AwesomeAssertions"
+          - "Microsoft.NET.Test.Sdk"
+          - "Microsoft.Playwright"
+          - "Microsoft.Testing.*"
+          - "Moq*"
+          - "NuGet.Test.Helpers"
+          - "xunit*"
+      analyzers:
+        patterns:
+          - "Roslynator.*"
+          - "ToStringWithoutOverrideAnalyzer"
+      nuget-client:
+        patterns:
+          - "NuGet.*"
+      aws-sdk:
+        patterns:
+          - "AWSSDK.*"
+      azure-sdk:
+        patterns:
+          - "Azure.*"
+
+  - package-ecosystem: dotnet-sdk
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Documentation site build tools
+  - package-ecosystem: pip
+    directory: /doc
+    schedule:
+      interval: weekly
+    groups:
+      docs:
+        patterns:
+          - "*"
+
+  # Emulator images for the functional tests
+  - package-ecosystem: docker-compose
+    directory: /local-env
+    schedule:
+      interval: weekly
+    groups:
+      local-env:
+        patterns:
+          - "*"

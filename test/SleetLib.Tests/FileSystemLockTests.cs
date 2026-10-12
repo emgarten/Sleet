@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using Sleet;
@@ -36,7 +36,7 @@ namespace SleetLib.Tests
 
                 while (!log2.GetMessages().Contains($"Feed is locked by: {lockMessage}"))
                 {
-                    await Task.Delay(10);
+                    await Task.Delay(10, TestContext.Current.CancellationToken);
                 }
 
                 lockObj1.Release();
@@ -44,7 +44,7 @@ namespace SleetLib.Tests
 
                 while (!lockObj2.IsLocked)
                 {
-                    await Task.Delay(10);
+                    await Task.Delay(10, TestContext.Current.CancellationToken);
                 }
 
                 lockObj1.IsLocked.Should().BeFalse();

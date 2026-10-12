@@ -1,0 +1,166 @@
+{
+  "@id": "https://example.org/feed/registration/alpha/index.json",
+  "@type": [
+    "catalog:CatalogRoot",
+    "PackageRegistration",
+    "catalog:Permalink"
+  ],
+  "commitId": "<commitId>",
+  "commitTimeStamp": "<timestamp>",
+  "count": 1,
+  "items": [
+    {
+      "@id": "https://example.org/feed/registration/alpha/index.json#page/1.0.0/1.1.0-beta.1",
+      "@type": "catalog:CatalogPage",
+      "commitId": "<commitId>",
+      "commitTimeStamp": "<timestamp>",
+      "count": 2,
+      "lower": "1.0.0",
+      "parent": "https://example.org/feed/registration/alpha/index.json",
+      "upper": "1.1.0-beta.1",
+      "items": [
+        {
+          "@id": "https://example.org/feed/registration/alpha/1.0.0.json",
+          "@type": "Package",
+          "catalogEntry": {
+            "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json",
+            "@type": [
+              "PackageDetails",
+              "catalog:Permalink"
+            ],
+            "authors": "alpha authors",
+            "dependencyGroups": [
+              {
+                "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json#dependencygroup/any",
+                "@type": "PackageDependencyGroup",
+                "dependencies": [
+                  {
+                    "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json#dependencygroup/any/beta",
+                    "@type": "PackageDependency",
+                    "id": "beta",
+                    "range": "[2.0.0, )"
+                  }
+                ]
+              },
+              {
+                "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json#dependencygroup/net8.0",
+                "@type": "PackageDependencyGroup",
+                "targetFramework": "net8.0",
+                "dependencies": [
+                  {
+                    "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json#dependencygroup/net8.0/gamma",
+                    "@type": "PackageDependency",
+                    "id": "gamma",
+                    "range": "[3.0.0, 3.0.0]"
+                  }
+                ]
+              }
+            ],
+            "description": "Alpha stable package",
+            "iconUrl": "",
+            "id": "alpha",
+            "language": "",
+            "licenseUrl": "",
+            "listed": true,
+            "packageContent": "https://example.org/feed/flatcontainer/alpha/1.0.0/alpha.1.0.0.nupkg",
+            "projectUrl": "https://example.org/alpha",
+            "published": "<timestamp>",
+            "requireLicenseAcceptance": false,
+            "summary": "Alpha stable summary",
+            "tags": [
+              "alpha",
+              "stable"
+            ],
+            "version": "1.0.0"
+          },
+          "commitId": "<commitId>",
+          "commitTimeStamp": "<timestamp>",
+          "packageContent": "https://example.org/feed/flatcontainer/alpha/1.0.0/alpha.1.0.0.nupkg",
+          "registration": "https://example.org/feed/registration/alpha/index.json"
+        },
+        {
+          "@id": "https://example.org/feed/registration/alpha/1.1.0-beta.1.json",
+          "@type": "Package",
+          "catalogEntry": {
+            "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.1.0-beta.1__.json",
+            "@type": [
+              "PackageDetails",
+              "catalog:Permalink"
+            ],
+            "authors": "alpha authors",
+            "dependencyGroups": [],
+            "description": "Alpha prerelease package",
+            "iconUrl": "",
+            "id": "alpha",
+            "language": "",
+            "licenseUrl": "",
+            "listed": true,
+            "packageContent": "https://example.org/feed/flatcontainer/alpha/1.1.0-beta.1/alpha.1.1.0-beta.1.nupkg",
+            "projectUrl": "",
+            "published": "<timestamp>",
+            "requireLicenseAcceptance": false,
+            "summary": "",
+            "tags": [
+              "alpha",
+              "prerelease"
+            ],
+            "version": "1.1.0-beta.1"
+          },
+          "commitId": "<commitId>",
+          "commitTimeStamp": "<timestamp>",
+          "packageContent": "https://example.org/feed/flatcontainer/alpha/1.1.0-beta.1/alpha.1.1.0-beta.1.nupkg",
+          "registration": "https://example.org/feed/registration/alpha/index.json"
+        }
+      ]
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "sleet": "http://schema.emgarten.com/sleet#",
+    "items": {
+      "@id": "catalog:item",
+      "@container": "@set"
+    },
+    "commitTimeStamp": {
+      "@id": "catalog:commitTimeStamp",
+      "@type": "xsd:dateTime"
+    },
+    "commitId": {
+      "@id": "catalog:commitId"
+    },
+    "count": {
+      "@id": "catalog:count"
+    },
+    "parent": {
+      "@id": "catalog:parent",
+      "@type": "@id"
+    },
+    "tags": {
+      "@container": "@set",
+      "@id": "tag"
+    },
+    "packageTargetFrameworks": {
+      "@container": "@set",
+      "@id": "packageTargetFramework"
+    },
+    "dependencyGroups": {
+      "@container": "@set",
+      "@id": "dependencyGroup"
+    },
+    "dependencies": {
+      "@container": "@set",
+      "@id": "dependency"
+    },
+    "packageContent": {
+      "@type": "@id"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "registration": {
+      "@type": "@id"
+    }
+  }
+}

@@ -1,29 +1,24 @@
-<Project ToolsVersion="15.0">
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common\test.props" />
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\test.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <!--
     Browser tests for the gallery written to index.html. These need Chrome or Edge
-    and are run by ux-tests.ps1 and ux-tests.sh, they are not part of Sleet.sln or
+    and are run by ux-tests.ps1 and ux-tests.sh, they are not part of Sleet.slnx or
     the default build.
   -->
   <PropertyGroup>
-    <TargetFrameworks>net10.0</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <TestProject>true</TestProject>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Playwright" Version="$(PlaywrightVersion)" />
-    <PackageReference Include="NuGet.Test.Helpers" Version="$(NuGetTestHelpersVersion)" />
+    <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="NuGet.Test.Helpers" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Sleet.Test.Common\Sleet.Test.Common.csproj" />
   </ItemGroup>
 
-  <Import Project="$(BuildCommonDirectory)\common.targets" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

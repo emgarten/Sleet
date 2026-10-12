@@ -1,0 +1,14 @@
+{
+  "index": "sleet-static",
+  "totalHits": 2,
+  "data": [
+    "alpha",
+    "beta"
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "totalHits": {
+      "@type": "http://www.w3.org/2001/XMLSchema#integer"
+    }
+  }
+}

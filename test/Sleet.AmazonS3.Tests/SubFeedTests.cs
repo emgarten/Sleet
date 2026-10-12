@@ -3,38 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.S3;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
-using Sleet.Test.Common;
 
 namespace Sleet.AmazonS3.Tests
 {
     public class SubFeedTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task SubFeed_InitMultipleFeedsVerifyDestroyDoesNotModifyOthers()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
-            using (var testContext2 = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
+            await using (var testContext2 = new AmazonS3TestContext())
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeedA";
                 var subFeedName2 = "testSubFeedB";
-                var root = UriUtility.GetPath(testContext.Uri, subFeedName);
-                var root2 = UriUtility.GetPath(testContext.Uri, subFeedName2);
-                testContext.FileSystem = new AmazonS3FileSystem(
-                    testContext.LocalCache, root, root,
-                    testContext.Client, testContext.BucketName,
-                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName
-                    );
+                testContext.FileSystem = await testContext.CreateSubFeedFileSystemAsync(subFeedName);
 
-                testContext2.FileSystem = new AmazonS3FileSystem(
-                    testContext.LocalCache, root2, root2,
-                    testContext.Client, testContext.BucketName,
-                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName2
-                    );
+                // Use the same bucket for the second feed
+                testContext2.FileSystem = await testContext.CreateSubFeedFileSystemAsync(subFeedName2);
 
                 await testContext.InitAsync();
                 await testContext2.InitAsync();
@@ -77,20 +66,15 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task SubFeed_PushAndVerifyNoFilesInRoot()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeed";
-                var root = UriUtility.GetPath(testContext.Uri, subFeedName);
-                testContext.FileSystem = new AmazonS3FileSystem(
-                    testContext.LocalCache, root, root,
-                    testContext.Client, testContext.BucketName,
-                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName
-                    );
+                testContext.FileSystem = await testContext.CreateSubFeedFileSystemAsync(subFeedName);
 
                 await testContext.InitAsync();
 
@@ -126,21 +110,16 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task SubFeed_PushAndVerifyWithNestedFeedsVerifySuccess()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
-            using (var testContext2 = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
+            await using (var testContext2 = new AmazonS3TestContext())
             {
                 // Use a subfeed for the filesystem
                 var subFeedName = "testSubFeed";
-                var root = UriUtility.GetPath(testContext.Uri, subFeedName);
-                testContext.FileSystem = new AmazonS3FileSystem(
-                    testContext.LocalCache, root, root,
-                    testContext.Client, testContext.BucketName,
-                    ServerSideEncryptionMethod.None, feedSubPath: subFeedName
-                    );
+                testContext.FileSystem = await testContext.CreateSubFeedFileSystemAsync(subFeedName);
 
                 await testContext.InitAsync();
                 await testContext2.InitAsync();

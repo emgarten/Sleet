@@ -3,18 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
-using Sleet.Test.Common;
 
 namespace Sleet.AmazonS3.Tests
 {
     public class AmazonS3FileSystemTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenAS3AccountVerifyBucketOperations()
         {
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 testContext.CreateBucketOnInit = false;
                 await testContext.InitAsync();

@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.Playwright;
 using Xunit;
 
@@ -47,14 +47,14 @@ namespace Sleet.UX.Tests
 
         protected ILocator VersionLabel => Body.Locator(".pkg-head .ver");
 
-        public async Task InitializeAsync()
+        public async ValueTask InitializeAsync()
         {
             Context = await Fixture.NewContextAsync();
             Page = await Context.NewPageAsync();
             Page.PageError += (_, error) => _pageErrors.Enqueue(error);
         }
 
-        public async Task DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             if (Context != null)
             {

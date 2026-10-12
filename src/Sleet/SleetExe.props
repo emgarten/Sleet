@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Path to Sleet.exe for use in MSBuild targets -->
+    <Sleet>$(MSBuildThisFileDirectory)..\tools\Sleet.exe</Sleet>
+  </PropertyGroup>
+</Project>

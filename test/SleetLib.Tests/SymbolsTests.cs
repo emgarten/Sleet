@@ -3,12 +3,13 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Common;
 using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
 using NuGet.Versioning;
 using Sleet;
+using Sleet.Test.Common;
 using Xunit;
 
 namespace SleetLib.Tests
@@ -63,7 +64,7 @@ namespace SleetLib.Tests
                 testPackage.AddFile("lib/net45/SymbolsTestB.pdb", TestUtility.GetResource("SymbolsTestBpdb").GetBytes());
 
                 var zipFile = testPackage.Save(testContext.Packages);
-                var packageInput = testContext.GetPackageInput(zipFile);
+                var packageInput = SleetTestContext.GetPackageInput(zipFile);
 
                 var symbolsService = new Symbols(context);
                 await symbolsService.AddPackageAsync(packageInput);
@@ -101,7 +102,7 @@ namespace SleetLib.Tests
                 testPackage.AddFile("lib/netstandard1.3/SymbolsTest.pdb", TestUtility.GetResource("SymbolsTestBpdb").GetBytes());
 
                 var zipFile = testPackage.Save(testContext.Packages);
-                var packageInput = testContext.GetPackageInput(zipFile);
+                var packageInput = SleetTestContext.GetPackageInput(zipFile);
 
                 var symbolsService = new Symbols(context);
                 await symbolsService.AddPackageAsync(packageInput);
@@ -137,7 +138,7 @@ namespace SleetLib.Tests
                 testPackage.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
 
                 var zipFile = testPackage.Save(testContext.Packages);
-                var packageInput = testContext.GetPackageInput(zipFile);
+                var packageInput = SleetTestContext.GetPackageInput(zipFile);
 
                 var service = new Symbols(context);
                 await service.AddPackageAsync(packageInput);
@@ -165,7 +166,7 @@ namespace SleetLib.Tests
                 testPackage.Nuspec.IsSymbolPackage = true;
 
                 var zipFile = testPackage.Save(testContext.Packages);
-                var packageInput = testContext.GetPackageInput(zipFile);
+                var packageInput = SleetTestContext.GetPackageInput(zipFile);
 
                 var service = new Symbols(context);
                 await service.AddSymbolsPackageAsync(packageInput);
@@ -197,10 +198,10 @@ namespace SleetLib.Tests
                 symPkgA.Nuspec.IsSymbolPackage = true;
 
                 var pkgAZip = pkgA.Save(testContext.Packages);
-                var pkgAInput = testContext.GetPackageInput(pkgAZip);
+                var pkgAInput = SleetTestContext.GetPackageInput(pkgAZip);
 
                 var symPkgAZip = symPkgA.Save(testContext.Packages);
-                var symPkgAInput = testContext.GetPackageInput(symPkgAZip);
+                var symPkgAInput = SleetTestContext.GetPackageInput(symPkgAZip);
 
                 var service = new Symbols(context);
                 await service.AddPackageAsync(pkgAInput);
@@ -254,7 +255,7 @@ namespace SleetLib.Tests
                 pkgA.Files.Clear();
                 pkgA.AddFile("lib/net45/a.dll", TestUtility.GetResource("SymbolsTestAdll").GetBytes());
                 var pkgAZip = pkgA.Save(testContext.Packages);
-                var pkgAInput = testContext.GetPackageInput(pkgAZip);
+                var pkgAInput = SleetTestContext.GetPackageInput(pkgAZip);
 
                 await index.AddPackageAsync(pkgAInput);
 
@@ -284,7 +285,7 @@ namespace SleetLib.Tests
                 pkgA.Nuspec.IsSymbolPackage = true;
                 pkgA.AddFile("lib/net45/a.dll", TestUtility.GetResource("SymbolsTestAdll").GetBytes());
                 var pkgAZip = pkgA.Save(testContext.Packages);
-                var pkgAInput = testContext.GetPackageInput(pkgAZip);
+                var pkgAInput = SleetTestContext.GetPackageInput(pkgAZip);
 
                 await index.AddSymbolsPackageAsync(pkgAInput);
 
@@ -390,7 +391,7 @@ namespace SleetLib.Tests
                 pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
                 pkgA.Nuspec.IsSymbolPackage = isSymbols;
                 var zip = pkgA.Save(testContext.Packages);
-                var pkgInput = testContext.GetPackageInput(zip);
+                var pkgInput = SleetTestContext.GetPackageInput(zip);
 
                 // Init
                 var success = await InitCommand.RunAsync(
@@ -457,7 +458,7 @@ namespace SleetLib.Tests
                 pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
                 pkgA.Nuspec.IsSymbolPackage = true;
                 var zip = pkgA.Save(testContext.Packages);
-                var pkgInput = testContext.GetPackageInput(zip);
+                var pkgInput = SleetTestContext.GetPackageInput(zip);
 
                 // Init
                 var success = await InitCommand.RunAsync(
@@ -530,7 +531,7 @@ namespace SleetLib.Tests
                 var pkgA = new TestNupkg("a", "1.0.0");
                 pkgA.Nuspec.IsSymbolPackage = true;
                 var zip = pkgA.Save(testContext.Packages);
-                var pkgInput = testContext.GetPackageInput(zip);
+                var pkgInput = SleetTestContext.GetPackageInput(zip);
 
                 // Init
                 var success = await InitCommand.RunAsync(
@@ -590,7 +591,7 @@ namespace SleetLib.Tests
                 pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
                 pkgA.Nuspec.IsSymbolPackage = true;
                 var zip = pkgA.Save(testContext.Packages);
-                var pkgInput = testContext.GetPackageInput(zip);
+                var pkgInput = SleetTestContext.GetPackageInput(zip);
 
                 // Init
                 var success = await InitCommand.RunAsync(
@@ -639,7 +640,7 @@ namespace SleetLib.Tests
                 pkgA.Files.Clear();
                 pkgA.Nuspec.IsSymbolPackage = isSymbols;
                 var zip = pkgA.Save(testContext.Packages);
-                var pkgInput = testContext.GetPackageInput(zip);
+                var pkgInput = SleetTestContext.GetPackageInput(zip);
 
                 // Init
                 var success = await InitCommand.RunAsync(
@@ -694,7 +695,7 @@ namespace SleetLib.Tests
                 pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
                 pkgA.Nuspec.IsSymbolPackage = true;
                 var zip = pkgA.Save(testContext.Packages);
-                var pkgInput = testContext.GetPackageInput(zip);
+                var pkgInput = SleetTestContext.GetPackageInput(zip);
 
                 // File path
                 var nupkgPath = Path.Combine(testContext.Target, ToLocalPath(SymbolsIndexUtility.GetSymbolsNupkgPath(identity)));
@@ -779,7 +780,7 @@ namespace SleetLib.Tests
                 pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
                 pkgA.Nuspec.IsSymbolPackage = true;
                 var zip = pkgA.Save(testContext.Packages);
-                var pkgInput = testContext.GetPackageInput(zip);
+                var pkgInput = SleetTestContext.GetPackageInput(zip);
 
                 var identityB = new PackageIdentity("b", NuGetVersion.Parse("1.0.0"));
                 var pkgB = new TestNupkg("b", "1.0.0");
@@ -788,7 +789,7 @@ namespace SleetLib.Tests
                 pkgB.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
                 pkgB.Nuspec.IsSymbolPackage = true;
                 var zipB = pkgB.Save(testContext.Packages);
-                var pkgInputB = testContext.GetPackageInput(zipB);
+                var pkgInputB = SleetTestContext.GetPackageInput(zipB);
 
                 // File path
                 var dllPath = Path.Combine(testContext.Target, "symbols", "a.dll", "A7F83EF08000", "a.dll");
@@ -863,7 +864,7 @@ namespace SleetLib.Tests
                 pkgA.AddFile("lib/net45/a.dll", TestUtility.GetResource("SymbolsTestAdll").GetBytes());
                 pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
                 var zip = pkgA.Save(testContext.Packages);
-                var pkgInput = testContext.GetPackageInput(zip);
+                var pkgInput = SleetTestContext.GetPackageInput(zip);
 
                 var symPkgA = new TestNupkg("a", "1.0.0");
                 symPkgA.Files.Clear();
@@ -871,7 +872,7 @@ namespace SleetLib.Tests
                 symPkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
                 symPkgA.Nuspec.IsSymbolPackage = true;
                 var symZip = symPkgA.Save(testContext.Packages);
-                var symPkgInput = testContext.GetPackageInput(symZip);
+                var symPkgInput = SleetTestContext.GetPackageInput(symZip);
 
                 // Init
                 var success = await InitCommand.RunAsync(
@@ -966,7 +967,7 @@ namespace SleetLib.Tests
                 pkgA.AddFile("lib/net45/a.dll", TestUtility.GetResource("SymbolsTestAdll").GetBytes());
                 pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
                 var zip = pkgA.Save(testContext.Packages);
-                var pkgInput = testContext.GetPackageInput(zip);
+                var pkgInput = SleetTestContext.GetPackageInput(zip);
 
                 var symPkgA = new TestNupkg("a", "1.0.0");
                 symPkgA.Files.Clear();
@@ -974,7 +975,7 @@ namespace SleetLib.Tests
                 symPkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
                 symPkgA.Nuspec.IsSymbolPackage = true;
                 var symZip = symPkgA.Save(testContext.Packages);
-                var symPkgInput = testContext.GetPackageInput(symZip);
+                var symPkgInput = SleetTestContext.GetPackageInput(symZip);
 
                 var forcePushZip = zip.FullName;
 
@@ -1039,7 +1040,7 @@ namespace SleetLib.Tests
             pkgA.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
             pkgA.Nuspec.IsSymbolPackage = isSymbols;
             var zip = pkgA.Save(testContext.Packages);
-            var pkgInput = testContext.GetPackageInput(zip);
+            var pkgInput = SleetTestContext.GetPackageInput(zip);
 
             if (isSymbols)
             {
@@ -1065,10 +1066,10 @@ namespace SleetLib.Tests
             symPkgA.Nuspec.IsSymbolPackage = true;
 
             var pkgAZip = pkgA.Save(testContext.Packages);
-            var pkgAInput = testContext.GetPackageInput(pkgAZip);
+            var pkgAInput = SleetTestContext.GetPackageInput(pkgAZip);
 
             var symPkgAZip = symPkgA.Save(testContext.Packages);
-            var symPkgAInput = testContext.GetPackageInput(symPkgAZip);
+            var symPkgAInput = SleetTestContext.GetPackageInput(symPkgAZip);
 
 
             await service.AddPackageAsync(pkgAInput);

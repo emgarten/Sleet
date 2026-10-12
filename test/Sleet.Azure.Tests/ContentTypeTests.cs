@@ -1,17 +1,23 @@
-using FluentAssertions;
-using NuGet.Test.Helpers;
-using Sleet.Test.Common;
+using AwesomeAssertions;
 
 namespace Sleet.Azure.Tests
 {
     public class ContentTypeTests
     {
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task GivenInitVerifyGalleryContentTypeIsHtml()
         {
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 await testContext.InitAsync();
+
+                await InitCommand.RunAsync(
+                    testContext.LocalSettings,
+                    testContext.FileSystem,
+                    enableCatalog: false,
+                    enableSymbols: false,
+                    log: testContext.Logger,
+                    token: CancellationToken.None);
 
                 // The browser must receive text/html to render the gallery
                 // instead of downloading it.

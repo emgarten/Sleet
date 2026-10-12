@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using Sleet;
+using Sleet.Test.Common;
 using Xunit;
 
 namespace SleetLib.Tests
@@ -99,7 +100,7 @@ namespace SleetLib.Tests
             var testPackage = new TestNupkg(id, "1.0.0");
             testPackage.Nuspec.IsSymbolPackage = isSymbols;
             var zipFile = testPackage.Save(testContext.Packages);
-            return testContext.GetPackageInput(zipFile);
+            return SleetTestContext.GetPackageInput(zipFile);
         }
     }
 }

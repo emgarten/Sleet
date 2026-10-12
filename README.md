@@ -4,6 +4,10 @@ A static NuGet package feed generator. ☁️ + 📦 = ❄️
 
 [![NuGet](https://img.shields.io/nuget/v/sleet.svg)](https://www.nuget.org/packages/sleet) [![.NET test](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml) [![Functional Tests](https://github.com/emgarten/Sleet/actions/workflows/functional.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/functional.yml) [![UX Tests](https://github.com/emgarten/Sleet/actions/workflows/ux-tests.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/ux-tests.yml)
 
+Sleet creates and updates NuGet v3 feeds as static files on Azure Blob Storage, Amazon S3, S3-compatible storage, or a local folder. NuGet clients restore packages straight from those files, so there is no server to run.
+
+**Documentation: [emgarten.github.io/Sleet](https://emgarten.github.io/Sleet/)**
+
 ## Table of Contents
 
 - [Sleet](#sleet)
@@ -12,12 +16,13 @@ A static NuGet package feed generator. ☁️ + 📦 = ❄️
   - [Why use static feeds?](#why-use-static-feeds)
   - [Getting Sleet](#getting-sleet)
     - [Install as a dotnet global tool (recommended)](#install-as-a-dotnet-global-tool-recommended)
-    - [Manually getting sleet.exe](#manually-getting-sleetexe)
+    - [Install as a local tool](#install-as-a-local-tool)
+    - [Run without installing](#run-without-installing)
+    - [Sleet.exe for Windows](#sleetexe-for-windows)
     - [Using SleetLib as a library](#using-sleetlib-as-a-library)
   - [Quick start](#quick-start)
   - [Commands](#commands)
   - [Documentation](#documentation)
-    - [Quick start guides](#quick-start-guides)
   - [Contributing](#contributing)
   - [History](#history)
     - [How was sleet named?](#how-was-sleet-named)
@@ -26,16 +31,17 @@ A static NuGet package feed generator. ☁️ + 📦 = ❄️
 
 ## Features
 
-* **Serverless.** Create static feeds directly on *Azure Storage*, *Amazon S3*, or any S3-compatible storage (MinIO, Yandex Cloud, Scaleway, etc.). No compute required.
-* **Cross platform.** Sleet is built in .NET and runs anywhere the [dotnet CLI](https://github.com/dotnet/cli) is supported — Linux, macOS, and Windows.
-* **Fast.** Static feeds use the [NuGet v3 feed format](https://docs.microsoft.com/en-us/nuget/api/overview) so clients resolve packages with simple HTTP requests.
+* **Serverless.** Create static feeds directly on *Azure Storage*, *Amazon S3*, or any [S3-compatible storage](doc/s3-compatible.md) (Cloudflare R2, MinIO, Backblaze B2, etc.). No compute required.
+* **Cross platform.** Sleet is built in .NET and runs on Linux, macOS, and Windows.
+* **Fast.** Static feeds use the [NuGet v3 feed format](https://learn.microsoft.com/en-us/nuget/api/overview) so clients resolve packages with simple HTTP requests.
 * **Simple.** A straightforward command line tool to add, remove, and update packages.
-* **Flexible.** Configure credentials via files, environment variables, command line args, .netconfig, or AWS-specific patterns to fit any workflow.
-* **Package retention.** Automatically prune old package versions with configurable stable/prerelease limits and release label grouping.
-* **Package gallery.** Browse and filter a feed's packages in the browser from a single page written to the feed. See [gallery](doc/gallery.md).
-* **Version badges.** Generate [shields.io](https://shields.io/)-compatible version badges for your packages.
-* **External search.** Plug in a custom search endpoint for dynamic query results.
-* **Cache control.** Set CDN-friendly `Cache-Control` headers for immutable and mutable feed files.
+* **Flexible.** Configure credentials via [files](doc/client-settings.md), [environment variables](doc/environment-variables.md), command line args, .netconfig, or AWS-specific patterns to fit any workflow.
+* **Symbol server.** Serve `.pdb` files to debuggers from the same feed. See [symbol server](doc/symbol-server.md).
+* **Package retention.** Automatically prune old package versions with configurable stable/prerelease limits and release label grouping. See [package retention](doc/retention.md).
+* **Package gallery.** Browse and filter a feed's packages in a web browser, from a single page that Sleet writes to the feed. See [package gallery](doc/gallery.md).
+* **Version badges.** Generate [shields.io](https://shields.io/)-compatible [version badges](doc/badges.md) for your packages.
+* **External search.** Plug in a custom [search endpoint](doc/external-search.md) for dynamic query results.
+* **Cache control.** Set CDN-friendly `Cache-Control` headers for immutable and mutable feed files. See [CDN and caching](doc/cdn-caching.md).
 
 ## Why use static feeds?
 
@@ -46,24 +52,51 @@ A static NuGet package feed generator. ☁️ + 📦 = ❄️
 
 ## Getting Sleet
 
-Sleet requires [.NET 8.0](https://dotnet.microsoft.com/download) or later.
+Sleet requires the [.NET 8 SDK](https://dotnet.microsoft.com/download) or later. See [Install Sleet](doc/install.md) for all options.
 
 ### Install as a dotnet global tool (recommended)
 
-```
+```bash
 dotnet tool install -g sleet
 ```
 
 `sleet` should now be on your *PATH*.
 
-### Manually getting sleet.exe
+In CI scripts, pin a major version so a new major release can't change your build unexpectedly:
+
+```bash
+dotnet tool install -g sleet --version "7.*"
+```
+
+### Install as a local tool
+
+A [local tool manifest](https://learn.microsoft.com/dotnet/core/tools/local-tools-how-to-use) pins an exact Sleet version for a repository:
+
+```bash
+dotnet new tool-manifest
+dotnet tool install sleet
+```
+
+Commit the *dotnet-tools.json* file it creates, then run `dotnet tool restore` and use `dotnet sleet`.
+
+### Run without installing
+
+With the .NET 10 SDK or later, [dnx](https://learn.microsoft.com/dotnet/core/tools/dotnet-tool-exec) downloads and runs Sleet in one step:
+
+```bash
+dnx sleet createconfig
+```
+
+### Sleet.exe for Windows
+
+The [SleetExe](https://www.nuget.org/packages/SleetExe) package contains a self-contained *Sleet.exe* for Windows x64 that doesn't need .NET installed.
 
 1. Download the latest SleetExe nupkg from [NuGet.org](https://www.nuget.org/packages/SleetExe).
 1. Extract *tools/Sleet.exe* to a local folder and run it.
 
 ### Using SleetLib as a library
 
-Install the [SleetLib](https://www.nuget.org/packages/SleetLib) NuGet package to access Sleet functionality programmatically from your own .NET applications.
+Install the [SleetLib](https://www.nuget.org/packages/SleetLib) NuGet package to access Sleet functionality programmatically from your own .NET applications. See [SleetLib](doc/sleetlib.md).
 
 ## Quick start
 
@@ -79,7 +112,9 @@ sleet createconfig --azure
 sleet push mypackage.1.0.0.nupkg
 ```
 
-For other storage backends see the guides below.
+Then add the feed's `index.json` URL as a package source in NuGet. See [Use a feed with NuGet](doc/consume-feed.md).
+
+For other storage backends see the [documentation](#documentation).
 
 ## Commands
 
@@ -102,23 +137,39 @@ See [commands](doc/commands.md) for full details and options.
 
 ## Documentation
 
-Full documentation can be found under [/doc](doc/index.md).
+The documentation is published at [emgarten.github.io/Sleet](https://emgarten.github.io/Sleet/). The source files are in [/doc](doc/index.md).
 
-### Quick start guides
+Get started:
 
-* [Setting up an Azure feed](doc/feed-type-azure.md)
-* [Setting up an AWS S3 feed](doc/feed-type-s3.md)
-* [Setting up a local feed with IIS hosting](doc/feed-type-local.md)
-* [Integration with CI Server](doc/ci-server.md)
-* [Setting up a private feed on AWS using S3 + CloudFront + Lambdas](doc/private-feed-s3.md)
+* [Install Sleet](doc/install.md)
+* [Create an Azure feed](doc/feed-type-azure.md)
+* [Create an Amazon S3 feed](doc/feed-type-s3.md)
+* [Create a Cloudflare R2 feed](doc/feed-type-cloudflare.md)
+* [Create a local feed](doc/feed-type-local.md)
+* [Use a feed with NuGet](doc/consume-feed.md)
+
+Guides:
+
+* [Azure authentication](doc/auth-azure.md) and [AWS authentication](doc/auth-aws.md)
+* [Publish from CI](doc/ci-server.md)
+* [Private feeds](doc/private-feeds.md), including a [private feed on AWS](doc/private-feed-s3.md) with S3, CloudFront, and Lambda@Edge
+* [S3-compatible storage](doc/s3-compatible.md), [web servers and static hosting](doc/static-hosting.md), [CDN and caching](doc/cdn-caching.md), and [multiple feeds](doc/multiple-feeds.md)
+* [Package retention](doc/retention.md) and [backup and migration](doc/backup-migration.md)
+
+Reference and help:
+
+* [Commands](doc/commands.md), [configuration](doc/client-settings.md), [environment variables](doc/environment-variables.md), and [feed settings](doc/feed-settings.md)
+* [How Sleet works](doc/how-it-works.md), [feed locking](doc/locking.md), and [limitations](doc/limitations.md)
+* [Troubleshooting](doc/troubleshooting.md) and [FAQ](doc/faq.md)
+* [Release notes](ReleaseNotes.md)
 
 Also see this [getting started blog post](https://emgarten.com/posts/how-to-host-a-nuget-v3-feed-on-azure-storage) for a walkthrough.
 
 ## Contributing
 
-We welcome contributions! If you are interested in contributing to Sleet, report an issue or open a pull request to propose a change.
+We welcome contributions! If you are interested in contributing to Sleet, report an issue or open a pull request to propose a change. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to build, test, and preview the documentation.
 
-To build and run tests locally:
+To build and run the unit tests locally:
 
 ```bash
 # Linux / macOS
@@ -128,7 +179,19 @@ To build and run tests locally:
 ./build.ps1
 ```
 
-The [package gallery](doc/gallery.md) has browser tests that are not part of the build. Run them with `./ux-tests.sh` or `./ux-tests.ps1` when changing the gallery. They need Google Chrome or Microsoft Edge, or set `SLEET_UX_BROWSER` to the path of another Chromium based browser.
+The functional tests run against Azure Storage and Amazon S3. By default, they run against local emulators in [Docker](https://docs.docker.com/get-started/get-docker/), so you don't need a cloud account:
+
+```bash
+# Linux / macOS
+./functional-tests.sh
+
+# Windows
+./functional-tests.ps1
+```
+
+See [functional tests](CONTRIBUTING.md#functional-tests) to run them against real accounts.
+
+The [package gallery](doc/gallery.md) has browser tests that the build scripts don't run. Run them with `./ux-tests.sh` or `./ux-tests.ps1` when you change the gallery. See [gallery UX tests](CONTRIBUTING.md#gallery-ux-tests).
 
 CI runs on Linux, macOS, and Windows.
 

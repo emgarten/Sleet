@@ -1,18 +1,16 @@
-using FluentAssertions;
-using Newtonsoft.Json.Linq;
+using AwesomeAssertions;
 using NuGet.Test.Helpers;
-using Sleet.Test.Common;
 using System.Net.Http.Headers;
 
 namespace Sleet.AmazonS3.Tests
 {
     public class CacheControlTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenDefaultSettings_VerifyCacheControlIsNoStore()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 await testContext.InitAsync();
 
@@ -51,11 +49,11 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenCustomCacheControl_VerifyHeadersAreSet()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 await testContext.InitAsync();
 
@@ -73,7 +71,8 @@ namespace Sleet.AmazonS3.Tests
                     feedSubPath: null,
                     compress: true,
                     acl: null,
-                    disablePayloadSigning: false,
+                    // R2 doesn't support the streaming uploads that are used with payload signing
+                    disablePayloadSigning: AmazonS3TestContext.IsCloudflareR2,
                     immutableCacheControl: immutableCacheControl,
                     mutableCacheControl: mutableCacheControl);
 
@@ -127,39 +126,26 @@ namespace Sleet.AmazonS3.Tests
             }
         }
 
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenCustomCacheControlViaFactory_VerifyHeadersAreSet()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 await testContext.InitAsync();
 
                 var immutableCacheControl = "public, max-age=604800";
                 var mutableCacheControl = "public, max-age=60";
 
-                var accessKeyId = Environment.GetEnvironmentVariable(AmazonS3TestContext.EnvAccessKeyId);
-                var secretAccessKey = Environment.GetEnvironmentVariable(AmazonS3TestContext.EnvSecretAccessKey);
-                var region = Environment.GetEnvironmentVariable(AmazonS3TestContext.EnvDefaultRegion) ?? "us-east-1";
-
-                var settings = LocalSettings.Load(new JObject(
-                    new JProperty("sources",
-                        new JArray(
-                            new JObject(
-                                new JProperty("name", "s3"),
-                                new JProperty("type", "s3"),
-                                new JProperty("bucketName", testContext.BucketName),
-                                new JProperty("region", region),
-                                new JProperty("accessKeyId", accessKeyId),
-                                new JProperty("secretAccessKey", secretAccessKey),
-                                new JProperty("immutableCacheControl", immutableCacheControl),
-                                new JProperty("mutableCacheControl", mutableCacheControl))))));
-
-                var fs = await FileSystemFactory.CreateFileSystemAsync(settings, testContext.LocalCache, "s3", testContext.Logger);
+                var fs = await testContext.CreateFileSystemAsync(source =>
+                {
+                    source.Add("immutableCacheControl", immutableCacheControl);
+                    source.Add("mutableCacheControl", mutableCacheControl);
+                });
 
                 // Initialize feed
                 await InitCommand.RunAsync(
-                    settings,
+                    testContext.LocalSettings,
                     fs,
                     enableCatalog: false,
                     enableSymbols: false,
@@ -172,7 +158,7 @@ namespace Sleet.AmazonS3.Tests
 
                 // Push package
                 await PushCommand.RunAsync(
-                    settings,
+                    testContext.LocalSettings,
                     fs,
                     new List<string> { zipFile.FullName },
                     force: false,

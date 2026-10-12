@@ -1,17 +1,23 @@
-using FluentAssertions;
-using NuGet.Test.Helpers;
-using Sleet.Test.Common;
+using AwesomeAssertions;
 
 namespace Sleet.AmazonS3.Tests
 {
     public class ContentTypeTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenInitVerifyGalleryContentTypeIsHtml()
         {
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             {
                 await testContext.InitAsync();
+
+                await InitCommand.RunAsync(
+                    testContext.LocalSettings,
+                    testContext.FileSystem,
+                    enableCatalog: false,
+                    enableSymbols: false,
+                    log: testContext.Logger,
+                    token: CancellationToken.None);
 
                 // The browser must receive text/html to render the gallery
                 // instead of downloading it.

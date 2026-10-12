@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using Sleet;

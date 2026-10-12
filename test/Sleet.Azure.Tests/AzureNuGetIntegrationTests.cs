@@ -1,23 +1,21 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Common;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Test.Helpers;
-using Sleet.Test.Common;
 
 namespace Sleet.Azure.Tests
 {
     /// <summary>
-    /// These tests can run locally against developer storage by changing
-    /// EnvVarExistsFactAttribute -> Fact and starting up the emulator.
+    /// Run these tests with functional-tests.ps1 or functional-tests.sh, or start local-env and run them from an IDE.
     /// </summary>
     public class AzureNuGetIntegrationTests
     {
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task GivenPushCreatesAContainerVerifyNuGetCanRead()
         {
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             using (var sourceContext = new SourceCacheContext())
             {
                 // Skip creation and allow it to be done during push.

@@ -1,0 +1,164 @@
+{
+  "@id": "https://example.org/feed/registration/alpha/1.0.0.json",
+  "@type": [
+    "Package",
+    "http://schema.nuget.org/catalog#Permalink"
+  ],
+  "catalogEntry": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json",
+  "listed": true,
+  "packageContent": "https://example.org/feed/flatcontainer/alpha/1.0.0/alpha.1.0.0.nupkg",
+  "published": "<timestamp>",
+  "registration": "https://example.org/feed/registration/alpha/index.json",
+  "sleet:catalogEntry": {
+    "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json",
+    "@type": [
+      "PackageDetails",
+      "catalog:Permalink"
+    ],
+    "authors": "alpha authors",
+    "commitId": "<commitId>",
+    "commitTimeStamp": "<timestamp>",
+    "copyright": "",
+    "created": "<timestamp>",
+    "description": "Alpha stable package",
+    "iconUrl": "",
+    "id": "alpha",
+    "isPrerelease": false,
+    "language": "",
+    "lastEdited": "<timestamp>",
+    "licenseNames": "",
+    "licenseReportUrl": "",
+    "licenseUrl": "",
+    "listed": true,
+    "owners": "",
+    "packageContent": "https://example.org/feed/flatcontainer/alpha/1.0.0/alpha.1.0.0.nupkg",
+    "packageHash": "<packageHash>",
+    "packageHashAlgorithm": "SHA512",
+    "packageSize": 0,
+    "projectUrl": "https://example.org/alpha",
+    "published": "<timestamp>",
+    "releaseNotes": "",
+    "requireLicenseAcceptance": false,
+    "sleet:operation": "add",
+    "sleet:toolVersion": "<sleetVersion>",
+    "summary": "Alpha stable summary",
+    "version": "1.0.0",
+    "dependencyGroups": [
+      {
+        "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json#dependencygroup/any",
+        "@type": "PackageDependencyGroup",
+        "dependencies": [
+          {
+            "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json#dependencygroup/any/beta",
+            "@type": "PackageDependency",
+            "id": "beta",
+            "range": "[2.0.0, )"
+          }
+        ]
+      },
+      {
+        "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json#dependencygroup/net8.0",
+        "@type": "PackageDependencyGroup",
+        "targetFramework": "net8.0",
+        "dependencies": [
+          {
+            "@id": "https://example.org/feed/catalog/data/__catalog-alpha-1.0.0__.json#dependencygroup/net8.0/gamma",
+            "@type": "PackageDependency",
+            "id": "gamma",
+            "range": "[3.0.0, 3.0.0]"
+          }
+        ]
+      }
+    ],
+    "frameworkAssemblyGroup": [],
+    "tags": [
+      "alpha",
+      "stable"
+    ],
+    "@context": {
+      "@vocab": "http://schema.nuget.org/schema#",
+      "catalog": "http://schema.nuget.org/catalog#",
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+      "sleet": "http://schema.emgarten.com/sleet#",
+      "dependencies": {
+        "@id": "dependency",
+        "@container": "@set"
+      },
+      "dependencyGroups": {
+        "@id": "dependencyGroup",
+        "@container": "@set"
+      },
+      "packageEntries": {
+        "@id": "packageEntry",
+        "@container": "@set"
+      },
+      "supportedFrameworks": {
+        "@id": "supportedFramework",
+        "@container": "@set"
+      },
+      "tags": {
+        "@id": "tag",
+        "@container": "@set"
+      },
+      "published": {
+        "@type": "xsd:dateTime"
+      },
+      "created": {
+        "@type": "xsd:dateTime"
+      },
+      "lastEdited": {
+        "@type": "xsd:dateTime"
+      },
+      "catalog:commitTimeStamp": {
+        "@type": "xsd:dateTime"
+      }
+    }
+  },
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "sleet": "http://schema.emgarten.com/sleet#",
+    "catalogEntry": {
+      "@type": "@id"
+    },
+    "registration": {
+      "@type": "@id"
+    },
+    "packageContent": {
+      "@type": "@id"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    }
+  }
+}

@@ -69,6 +69,16 @@ namespace Sleet
         protected int RetryCount { get; set; } = 5;
 
         /// <summary>
+        /// Delay before retrying a failed upload.
+        /// </summary>
+        protected TimeSpan UploadRetryDelay { get; set; } = TimeSpan.FromSeconds(10);
+
+        /// <summary>
+        /// Delay before retrying a failed download.
+        /// </summary>
+        protected TimeSpan DownloadRetryDelay { get; set; } = TimeSpan.FromSeconds(5);
+
+        /// <summary>
         /// Original local cache file from the constructor. This is used if the linked
         /// file is removed.
         /// </summary>
@@ -147,7 +157,7 @@ namespace Sleet
                         {
                             await log.LogAsync(LogLevel.Debug, ex.ToString());
                             await log.LogAsync(LogLevel.Warning, $"Failed to upload '{RootPath}'. Retrying.");
-                            await Task.Delay(TimeSpan.FromSeconds(10), token);
+                            await Task.Delay(UploadRetryDelay, token);
                         }
                     }
                 }
@@ -292,7 +302,7 @@ namespace Sleet
                         {
                             await log.LogAsync(LogLevel.Debug, ex.ToString());
                             await log.LogAsync(LogLevel.Warning, $"Failed to sync '{RootPath}'. Retrying.");
-                            await Task.Delay(TimeSpan.FromSeconds(5), token);
+                            await Task.Delay(DownloadRetryDelay, token);
                         }
                     }
                 }

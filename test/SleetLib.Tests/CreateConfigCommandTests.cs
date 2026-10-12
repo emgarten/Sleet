@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using NuGet.Test.Helpers;
@@ -10,6 +10,7 @@ using Xunit;
 
 namespace SleetLib.Tests
 {
+    [Collection(WorkingDirectoryCollection.Name)]
     public class CreateConfigCommandTests
     {
         [Fact]
@@ -75,6 +76,70 @@ namespace SleetLib.Tests
                 source["bucketName"].Value<string>().Should().Be("bucketname");
                 source["region"].Value<string>().Should().Be("us-east-1");
                 source["profileName"].Value<string>().Should().Be("credentialsFileProfileName");
+            }
+        }
+
+        [Fact]
+        public async Task CreateConfigCommand_WithS3StorageTypeAndCloudflareR2Provider_CreatesValidConfig()
+        {
+            using (var testDir = new TestFolder())
+            {
+                var configPath = Path.Combine(testDir.Root, "sleet.json");
+                var result = await CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "r2", NullLogger.Instance);
+
+                result.Should().BeTrue();
+
+                var json = JObject.Parse(File.ReadAllText(configPath));
+                var source = json["sources"][0];
+                source["name"].Value<string>().Should().Be("myR2Feed");
+                source["type"].Value<string>().Should().Be("s3");
+                source["provider"].Value<string>().Should().Be("r2");
+                source["bucketName"].Value<string>().Should().Be("bucketname");
+                source["serviceURL"].Value<string>().Should().Be("https://ACCOUNT_ID.r2.cloudflarestorage.com");
+                source["baseURI"].Value<string>().Should().Be("https://nuget.example.com/");
+                source["region"].Should().BeNull();
+
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(new LocalSettings { Json = json }, new LocalCache(), "myR2Feed", NullLogger.Instance);
+                fileSystem.Should().BeOfType<AmazonS3FileSystem>();
+            }
+        }
+
+        [Fact]
+        public async Task CreateConfigCommand_WithS3StorageTypeAndSelfHostedProvider_CreatesValidConfig()
+        {
+            using (var testDir = new TestFolder())
+            {
+                var configPath = Path.Combine(testDir.Root, "sleet.json");
+                var result = await CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "self-hosted", NullLogger.Instance);
+
+                result.Should().BeTrue();
+
+                var json = JObject.Parse(File.ReadAllText(configPath));
+                var source = json["sources"][0];
+                source["name"].Value<string>().Should().Be("mySelfHostedFeed");
+                source["type"].Value<string>().Should().Be("s3");
+                source["provider"].Value<string>().Should().Be("self-hosted");
+                source["bucketName"].Value<string>().Should().Be("bucketname");
+                source["serviceURL"].Value<string>().Should().Be("http://localhost:9000");
+                source["region"].Should().BeNull();
+
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(new LocalSettings { Json = json }, new LocalCache(), "mySelfHostedFeed", NullLogger.Instance);
+                fileSystem.Should().BeOfType<AmazonS3FileSystem>();
+            }
+        }
+
+        [Fact]
+        public async Task CreateConfigCommand_WithUnknownProvider_ThrowsArgumentException()
+        {
+            using (var testDir = new TestFolder())
+            {
+                var configPath = Path.Combine(testDir.Root, "sleet.json");
+
+                Func<Task> act = () => CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "gcs", NullLogger.Instance);
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(act);
+                Assert.Contains("Unknown provider 'gcs' for s3 source.", ex.Message);
+                File.Exists(configPath).Should().BeFalse();
             }
         }
 

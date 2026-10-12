@@ -1,0 +1,106 @@
+{
+  "@id": "https://example.org/feed/registration/beta/index.json",
+  "@type": [
+    "catalog:CatalogRoot",
+    "PackageRegistration",
+    "catalog:Permalink"
+  ],
+  "commitId": "<commitId>",
+  "commitTimeStamp": "<timestamp>",
+  "count": 1,
+  "items": [
+    {
+      "@id": "https://example.org/feed/registration/beta/index.json#page/2.0.0/2.0.0",
+      "@type": "catalog:CatalogPage",
+      "commitId": "<commitId>",
+      "commitTimeStamp": "<timestamp>",
+      "count": 1,
+      "lower": "2.0.0",
+      "parent": "https://example.org/feed/registration/beta/index.json",
+      "upper": "2.0.0",
+      "items": [
+        {
+          "@id": "https://example.org/feed/registration/beta/2.0.0.json",
+          "@type": "Package",
+          "catalogEntry": {
+            "@id": "https://example.org/feed/catalog/data/__catalog-beta-2.0.0__.json",
+            "@type": [
+              "PackageDetails",
+              "catalog:Permalink"
+            ],
+            "authors": "beta authors",
+            "dependencyGroups": [],
+            "description": "Beta package",
+            "iconUrl": "",
+            "id": "beta",
+            "language": "",
+            "licenseUrl": "",
+            "listed": true,
+            "packageContent": "https://example.org/feed/flatcontainer/beta/2.0.0/beta.2.0.0.nupkg",
+            "projectUrl": "",
+            "published": "<timestamp>",
+            "requireLicenseAcceptance": false,
+            "summary": "",
+            "tags": [
+              "beta"
+            ],
+            "version": "2.0.0"
+          },
+          "commitId": "<commitId>",
+          "commitTimeStamp": "<timestamp>",
+          "packageContent": "https://example.org/feed/flatcontainer/beta/2.0.0/beta.2.0.0.nupkg",
+          "registration": "https://example.org/feed/registration/beta/index.json"
+        }
+      ]
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "sleet": "http://schema.emgarten.com/sleet#",
+    "items": {
+      "@id": "catalog:item",
+      "@container": "@set"
+    },
+    "commitTimeStamp": {
+      "@id": "catalog:commitTimeStamp",
+      "@type": "xsd:dateTime"
+    },
+    "commitId": {
+      "@id": "catalog:commitId"
+    },
+    "count": {
+      "@id": "catalog:count"
+    },
+    "parent": {
+      "@id": "catalog:parent",
+      "@type": "@id"
+    },
+    "tags": {
+      "@container": "@set",
+      "@id": "tag"
+    },
+    "packageTargetFrameworks": {
+      "@container": "@set",
+      "@id": "packageTargetFramework"
+    },
+    "dependencyGroups": {
+      "@container": "@set",
+      "@id": "dependencyGroup"
+    },
+    "dependencies": {
+      "@container": "@set",
+      "@id": "dependency"
+    },
+    "packageContent": {
+      "@type": "@id"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "registration": {
+      "@type": "@id"
+    }
+  }
+}

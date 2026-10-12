@@ -1,7 +1,6 @@
 using System.Net;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.S3.Util;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using static Sleet.AmazonS3FileSystemAbstraction;
@@ -56,6 +55,11 @@ namespace Sleet
 
             _compress = compress;
         }
+
+        /// <summary>
+        /// Service the bucket is hosted on.
+        /// </summary>
+        internal S3Provider Provider { get; init; } = S3Provider.Aws;
 
         public override async Task<bool> Validate(ILogger log, CancellationToken token)
         {
@@ -140,12 +144,29 @@ namespace Sleet
 
         public override async Task<bool> HasBucket(ILogger log, CancellationToken token)
         {
-            if (_hasBucket == null)
-            {
-                _hasBucket = await AmazonS3Util.DoesS3BucketExistV2Async(_client, _bucketName);
-            }
+            _hasBucket ??= await BucketExists(token);
 
             return _hasBucket == true;
+        }
+
+        // HeadBucket is part of the core S3 API. GetBucketAcl, used by AmazonS3Util.DoesS3BucketExistV2Async, isn't implemented
+        // by every S3 compatible service, and Cloudflare R2 documents it as unsupported.
+        private async Task<bool> BucketExists(CancellationToken token)
+        {
+            try
+            {
+                await _client.HeadBucketAsync(new HeadBucketRequest() { BucketName = _bucketName }, token);
+                return true;
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.MovedPermanently)
+            {
+                // Same as the SDK, the bucket exists but these credentials can't read it or it is in another region
+                return true;
+            }
         }
 
         public override async Task CreateBucket(ILogger log, CancellationToken token)
@@ -165,27 +186,34 @@ namespace Sleet
                     log.LogWarning($"Transient errors may happen during creation. Bucket already created: {ex.Message}.");
                 }
 
-                log.LogInformation($"Adding policy for public read access to bucket: ${_bucketName}");
-
-                // As of 2023-04 additional settings are needed to allow a public policy
-                // https://stackoverflow.com/questions/39085360/why-is-uploading-a-file-to-s3-via-the-c-sharp-aws-sdk-giving-a-permission-denied
-
-                // Account wide settings can also block public access, users must update their accounts manually for this
-                // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-publicaccessblockconfiguration.html
-
-                // Remove all public access blocks for this bucket
-                await Retry(SetPublicAccessBlocks, log, token);
-
-                // Set ownership preference to ensure we can set a public policy
-                await Retry(SetOwnership, log, token);
-
-                // Set the public policy to public read-only
-                await Retry(SetBucketPolicy, log, token);
-
-                // Set the default acl of the bucket. Must not conflict with the public access policy.
-                if (_acl != null)
+                if (Provider.ExternalPublicAccess)
                 {
-                    await Retry(SetBucketAcl, log, token);
+                    log.LogWarning($"{Provider.DisplayName} buckets are private by default. Enable public access for {_bucketName} so that NuGet clients can read the feed: {Provider.HelpUrl}");
+                }
+                else
+                {
+                    log.LogInformation($"Adding policy for public read access to bucket: {_bucketName}");
+
+                    // As of 2023-04 additional settings are needed to allow a public policy
+                    // https://stackoverflow.com/questions/39085360/why-is-uploading-a-file-to-s3-via-the-c-sharp-aws-sdk-giving-a-permission-denied
+
+                    // Account wide settings can also block public access, users must update their accounts manually for this
+                    // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-publicaccessblockconfiguration.html
+
+                    // Remove all public access blocks for this bucket
+                    await RetryOptional(SetPublicAccessBlocks, log, token);
+
+                    // Set ownership preference to ensure we can set a public policy
+                    await RetryOptional(SetOwnership, log, token);
+
+                    // Set the public policy to public read-only
+                    await Retry(SetBucketPolicy, log, token);
+
+                    // Set the default acl of the bucket. Must not conflict with the public access policy.
+                    if (_acl != null)
+                    {
+                        await Retry(SetBucketAcl, log, token);
+                    }
                 }
 
                 // Get and release the lock to ensure that everything will work for the next operation.
@@ -278,7 +306,7 @@ namespace Sleet
             return _client.PutBucketPolicyAsync(policyRequest, token);
         }
 
-        // Retry S3 exceptions except for auth errors and bad requests
+        // Retry S3 exceptions except for auth errors, bad requests, and requests the service does not support
         private static async Task Retry(Func<ILogger, CancellationToken, Task> func, ILogger log, CancellationToken token)
         {
             var start = DateTime.UtcNow;
@@ -319,6 +347,21 @@ namespace Sleet
             }
         }
 
+        // Retry a setting that Amazon S3 needs before it allows a public policy. S3 compatible services
+        // may not support it, errors other than auth failures are skipped. If the setting was needed
+        // the bucket policy will fail.
+        private static async Task RetryOptional(Func<ILogger, CancellationToken, Task> func, ILogger log, CancellationToken token)
+        {
+            try
+            {
+                await Retry(func, log, token);
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode != HttpStatusCode.Forbidden && ex.StatusCode != HttpStatusCode.Unauthorized)
+            {
+                log.LogVerbose($"Skipping bucket setting that is not supported by the service. Status code: {ex.StatusCode} error: {ex.Message}");
+            }
+        }
+
         // True if the exception should be retried
         private static bool CanRetry(AmazonS3Exception ex)
         {
@@ -327,6 +370,8 @@ namespace Sleet
                 case HttpStatusCode.BadRequest:
                 case HttpStatusCode.Forbidden:
                 case HttpStatusCode.Unauthorized:
+                case HttpStatusCode.MethodNotAllowed:
+                case HttpStatusCode.NotImplemented:
                     return false;
                 default:
                     return true;

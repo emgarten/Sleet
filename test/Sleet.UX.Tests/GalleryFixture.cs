@@ -30,7 +30,7 @@ namespace Sleet.UX.Tests
 
         public string FeedPath => Path.Combine(_folder.Root, "feed");
 
-        public async Task InitializeAsync()
+        public async ValueTask InitializeAsync()
         {
             var emptyPath = Path.Combine(_folder.Root, "empty");
             var packagesPath = Path.Combine(_folder.Root, "packages");
@@ -48,7 +48,7 @@ namespace Sleet.UX.Tests
             Browser = await BrowserLauncher.LaunchAsync(_playwright);
         }
 
-        public async Task DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             if (Browser != null)
             {

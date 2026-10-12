@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.Playwright;
 using Xunit;
 using static Microsoft.Playwright.Assertions;

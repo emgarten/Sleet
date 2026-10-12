@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using NuGet.Common;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Test.Helpers;
-using Sleet.Test.Common;
+using Xunit;
 
 namespace Sleet.AmazonS3.Tests
 {
     public class AmazonS3NuGetIntegrationTests
     {
-        [EnvVarExistsFact(AmazonS3TestContext.EnvAccessKeyId)]
+        [AmazonS3Fact]
         public async Task GivenPushCreatesAnS3BucketVerifyNuGetCanRead()
         {
+            Assert.SkipWhen(AmazonS3TestContext.IsCloudflareR2, "Public access for Cloudflare R2 is set up outside the S3 API, with a custom domain or r2.dev URL, so NuGet can't read the bucket this test creates.");
+
             using (var packagesFolder = new TestFolder())
-            using (var testContext = new AmazonS3TestContext())
+            await using (var testContext = new AmazonS3TestContext())
             using (var sourceContext = new SourceCacheContext())
             {
                 // Skip creation and allow it to be done during push.

@@ -1,348 +1,328 @@
-# Private NuGet feeds on AWS S3
+# Private feed on AWS
 
-This guide will walk through how to create a private feed with basic authentication on AWS.
-
-* S3 is used to hold the static json files and nupkgs for the feed.
-* CloudFront proxies requests to S3 and serves as a CDN for the private bucket.
-* Lambda functions run custom code to enforce basic authentication to restrict feed access.
+This guide creates a private Sleet feed on Amazon S3 with CloudFront and basic authentication. S3 stores the static NuGet feed files, CloudFront serves them over HTTPS, and an edge function checks client credentials.
 
 ## Architecture
 
 <a href="images/private-feed-s3-arch.svg"><img src="images/private-feed-s3-arch.svg" alt="arch diagram" width="800"/></a>
 
-## S3 bucket creation
+## Create the S3 bucket
 
-First we will need to create a bucket to store the feed in. By default, Sleet will create a bucket with a public ACL so that clients can access it directly.
+Create the bucket yourself for a private feed. New S3 buckets are private by default, have [S3 Block Public Access](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html) on, and have [ACLs disabled by default](https://docs.aws.amazon.com/AmazonS3/latest/userguide/about-object-ownership.html), so `aws s3api create-bucket` doesn't need an `--acl` option. Don't set the `acl` property in the Sleet source either.
 
-Since we are making a private feed we need to create the bucket ourselves and ensure that it has a private ACL. You can do this using the S3 console, AWS CLI, or [AWS CloudShell](https://aws.amazon.com/cloudshell/).
+This guide uses the bucket name `sleet-private-feed`. Replace it with your own bucket name.
 
-This guide will use the s3 bucket name `sleet-private-feed`. **Replace this with your own bucket name.**
+For `us-east-1`:
 
 ```bash
-# Create the s3 bucket
-[cloudshell]$ aws s3api create-bucket --bucket sleet-private-feed --region us-east-1 --acl private
-
-# Output
-{
-    "Location": "/sleet-private-feed"
-}
+aws s3api create-bucket \
+  --bucket sleet-private-feed \
+  --region us-east-1
 ```
 
-## Create a cloudfront distribution
+For other Regions, include `LocationConstraint`:
+
+```bash
+aws s3api create-bucket \
+  --bucket sleet-private-feed \
+  --region us-west-2 \
+  --create-bucket-configuration LocationConstraint=us-west-2
+```
+
+## Create a CloudFront distribution
 
 Create a CloudFront distribution using the AWS console.
 
-1. Select `Create Distribution`
-1. Under `Origin Domain` select the private s3 bucket that was just created.
-1. Under `Origin access` select `Origin access control settings`
-1. `Origin access control` should also be set to the s3 bucket.
-1. Under `Viewer protocol policy` select `HTTPS only` to avoid clients passing credentials over HTTP.
-1. Choose `CachingDisabled` under `Cache key and origin requests`
-1. `Restrict viewer access` should be set to `No`
+1. Select `Create distribution`.
+1. Under `Origin domain`, select the private S3 bucket.
+1. Under `Origin access`, select `Origin access control settings`.
+1. Set `Origin access control` to the S3 bucket's origin access control.
+1. Under `Viewer protocol policy`, select `HTTPS only` so clients do not send credentials over HTTP.
+1. Choose `CachingDisabled` under `Cache key and origin requests`. Read [CDN and caching](cdn-caching.md) before you turn on caching for a feed.
+1. Set `Restrict viewer access` to `No`.
 
 <a href="images/private-feed-s3-cloudfront-create.png"><img src="images/private-feed-s3-cloudfront-create.png" alt="create cloudfront" width="800"/></a>
 
-## Update s3 bucket policy
+## Update the S3 bucket policy
 
-Creating the distribution will tell you that you need to update the s3 bucket policy. The AWS console will guide you through this process if you follow the instructions it provides when creating the distribution.
+CloudFront shows a bucket policy for the [origin access control](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html). Apply that policy to the bucket.
 
-1. Copy the policy given by the CloudFront distribution.
-1. Open the s3 bucket in the AWS console.
-1. Update the policy to the one given by CloudFront.
-
-This will allow the CloudFront distribution to access the bucket since the bucket is private.
-
-
-## Create lambda functions
-
-Next we will create two lambda functions to enforce basic authentication and convert S3 403s to 404s.
-
-Create a Lambda function using the AWS console.
-
-1. Select `Create function`
-1. Choose `Use a blueprint` at the top
-1. Under *Blueprint name* search for `cloudfront` and select `Modify HTTP response header`
-1. Name the function `sleet-private-feed-basic-auth`
-1. Under *Execution role* select `Create a new role from AWS policy templates`
-1. Name the role `sleet-private-feed-basic-auth-role`
-1. `Basic Lamdba@Edge permissions` should be automatically added as part of the template
-
-<a href="images/private-feed-s3-lambda-create.png"><img src="images/private-feed-s3-lambda-create.png" alt="create lambda" width="800"/></a>
-
-### Basic auth lambda function
-
-Now that the  `sleet-private-feed-basic-auth` lambda has been created, update the code to the following.
-
-This function will change incoming cloudfront requests and fail them with 401 if they do not have the correct basic auth credentials.
-
-**IMPORTANT: Change authUser and authPass**
-
-```javascript
-'use strict';
-
-// Lamba function to enforce basic auth by checking the username and password sent
-// Use this in the CloudFront behavior as the 'Viewer request
-export const handler = async(event, context, callback) => {
-    // UPDATE THESE VALUES!!!!!!!!!
-    // Set username and password
-    const authUser = 'sleet';
-    const authPass = 'test';
-
-    // Get cloudfront request and headers
-    const request = event.Records[0].cf.request;
-    const headers = request.headers;
-
-    // Construct the Basic Auth string
-    const authString = 'Basic ' + new Buffer(authUser + ':' + authPass).toString('base64');
-
-    // Require Basic authentication to match the credentials above
-    if (typeof headers.authorization == 'undefined' || headers.authorization[0].value != authString) {
-        const body = 'Unauthorized';
-        const response = {
-            status: '401',
-            statusDescription: 'Unauthorized',
-            body: body,
-            headers: {
-                'www-authenticate': [{key: 'WWW-Authenticate', value:'Basic'}]
-            },
-        };
-        callback(null, response);
-    } else {
-        // Continue request processing if authentication passed
-        callback(null, request);
-    }
-};
-```
-
-### Credentials as environment variables
-
-Once you get the basics working the username and password should be moved to lambda environment variables to secure them.
-
-### 404 lambda function
-
-CloudFront calls to S3 return 403 if the file does not exist in the bucket. NuGet expects a 404 when it searches all feeds for a package, if a 403 is returned NuGet will try to prompt for credentials to fix the problem.
-
-To solve this we will create a lambda function that converts 403s to 404s.
-
-Follow the steps from *Create lambda functions* and create a 2nd lambda function named `sleet-private-feed-origin`.
-
-```javascript
-'use strict';
-
-// Lamba function to convert 403s from S3 to 404s so NuGet works properly
-// Use this in the CloudFront behavior as the 'Origin response'
-export const handler = async(event, context, callback) => {
-    // Read response from S3
-    const response = event.Records[0].cf.response;
-
-    // Check if the response is a 403
-    if (response.status == 403)
-    {
-        response.status = 404;
-        response.statusDescription = 'NOT FOUND';
-        response.body = '';
-    }
-
-    // Allow everything else
-    callback(null, response);
-};
-```
-
-### Deploying functions
-
-For each function do the following to allow CloudFront to trigger the functions.
-
-1. Update the code to match the above functions
-1. Deploy the function
-1. Publish a new version
-1. Use `Deploy to Lambda@Edge`
-1. Select `Configure new CloudFront trigger`
-1. Select the CloudFront distribution that was created earlier
-1. Use `*` for the cache behavior
-1. See the table below for the `CloudFront event` type to use for each function
-1. Confirm deploy and then deploy it
-
-<a href="images/private-feed-s3-lambda-deploy-auth.png"><img src="images/private-feed-s3-lambda-deploy-auth.png" alt="deploy lambda" width="800"/></a>
-
-### Cloud front event types
-
-Ensure that the functions have the correct event type, otherwise they will not get called.
-
-| Function | CloudFront event |
-| --- | --- |
-| sleet-private-feed-basic-auth | Viewer request |
-| sleet-private-feed-origin | Origin response |
-
-Functions do not need the request or response body, they work on the headers.
-
-## Verifying functions from CloudFront
-
-In the AWS console under `CloudFront > Distributions` select the distribution that was created earlier.
-
-1. Select the `behaviors` tab
-1. There should be an entry for `*` with the functions created above.
-1. Verify that the functions show up under the correct event type and that they are using the latest version of the functions.
-
-<a href="images/private-feed-s3-behavior.png"><img src="images/private-feed-s3-behavior.png" alt="deploy lambda" width="800"/></a>
-
-If you do not see an entry under behaviors you can create a new behavior and add in the functions manually from the CloudFront side.
-
-
-## Create the sleet feed
-
-### Finding the cloudfront url
-
-In the AWS console under `CloudFront > Distrubutions` find the `Domain name` for your distribution.
-
-If you have added an alternate domain name you can use that instead.
-
-This guide uses the cloudfront url `https://d1cdxzxbqv5kg2.cloudfront.net/` **Replace this with your own cloudfront url.**
-
-### Create the sleet config
-
-Create a sleet.json config file to reference the bucket that we just created. There are many ways to configure the feed and credentials, below is a basic example to help understand the settings. For the full list of options see [S3 feeds](feed-type-s3.md).
-
-The CloudFront domain is added under `baseURI`. Sleet will rewrite all urls to use this domain instead of the s3 bucket domain. CloudFront does not have to rewrite urls for the clients reading the feed, Sleet handles this.
+Add `s3:ListBucket` with the same `AWS:SourceArn` condition. [S3 returns 403 for missing objects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html) when the caller has `s3:GetObject` but not `s3:ListBucket`. NuGet expects 404 for packages that are not on this feed.
 
 ```json
 {
-    "sources": [
-      {
-        "name": "feed",
-        "type": "s3",
-        "path": "https://s3.amazonaws.com/sleet-private-feed/",
-        "bucketName": "sleet-private-feed",
-        "region": "us-east-1",
-        "baseURI": "https://d1cdxzxbqv5kg2.cloudfront.net/",
-        "accessKeyId": "<your access key id>",
-        "secretAccessKey": "<your secret access key>"
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowCloudFrontServicePrincipalReadOnly",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "cloudfront.amazonaws.com"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::sleet-private-feed/*",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceArn": "arn:aws:cloudfront::123456789012:distribution/E123EXAMPLE"
+        }
       }
-    ]
-  }
+    },
+    {
+      "Sid": "AllowCloudFrontServicePrincipalListBucket",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "cloudfront.amazonaws.com"
+      },
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::sleet-private-feed",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceArn": "arn:aws:cloudfront::123456789012:distribution/E123EXAMPLE"
+        }
+      }
+    }
+  ]
+}
 ```
 
-### Initialize the feed
+Replace the bucket name, account ID, and distribution ID. If you do not grant `s3:ListBucket`, use the origin-response Lambda in [Convert origin 403 responses](#convert-origin-403-responses) instead.
+
+## Create the basic-auth Lambda
+
+[Lambda@Edge functions](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-edge-function-restrictions.html#lambda-at-edge-restrictions-region) must be created in US East (N. Virginia), `us-east-1`. Create a Lambda function in that Region.
+
+1. Select `Create function`.
+1. Choose `Use a blueprint`.
+1. Under `Blueprint name`, search for `cloudfront` and select `Modify HTTP response header`.
+1. Name the function `sleet-private-feed-basic-auth`.
+1. Under `Execution role`, select `Create a new role from AWS policy templates`.
+1. Name the role `sleet-private-feed-basic-auth-role`.
+1. `Basic Lambda@Edge permissions` should be added by the template.
+
+<a href="images/private-feed-s3-lambda-create.png"><img src="images/private-feed-s3-lambda-create.png" alt="create lambda" width="800"/></a>
+
+Replace the function code with this handler. Change `authUser` and `authPass` before you deploy.
+
+```javascript
+'use strict';
+
+export const handler = async (event) => {
+    const authUser = 'sleet';
+    const authPass = '<password>';
+
+    const request = event.Records[0].cf.request;
+    const headers = request.headers;
+    const authString = 'Basic ' + Buffer.from(authUser + ':' + authPass).toString('base64');
+
+    if (!headers.authorization || headers.authorization[0].value !== authString) {
+        return {
+            status: '401',
+            statusDescription: 'Unauthorized',
+            body: 'Unauthorized',
+            headers: {
+                'www-authenticate': [{ key: 'WWW-Authenticate', value: 'Basic' }]
+            }
+        };
+    }
+
+    return request;
+};
+```
+
+[Lambda@Edge does not support custom Lambda environment variables](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-edge-function-restrictions.html#lambda-at-edge-restrictions-features). For a simple feed, keep the credential values in code and restrict who can read or update the function. If you need rotation without editing code, use a design such as AWS Secrets Manager or SSM Parameter Store with values cached in module scope, or use [CloudFront Functions with CloudFront KeyValueStore](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/kvs-with-functions.html) for basic-auth data.
+
+## Convert origin 403 responses
+
+If the CloudFront origin access control has `s3:ListBucket`, missing S3 keys can return 404 through CloudFront without an extra function. That is the simpler option.
+
+If you cannot grant `s3:ListBucket`, create a second Lambda@Edge function named `sleet-private-feed-origin` and attach it to the origin response event:
+
+```javascript
+'use strict';
+
+export const handler = async (event) => {
+    const response = event.Records[0].cf.response;
+
+    if (response.status === '403') {
+        response.status = '404';
+        response.statusDescription = 'Not Found';
+        response.body = '';
+    }
+
+    return response;
+};
+```
+
+## Deploy the functions
+
+For each Lambda@Edge function:
+
+1. Update the code.
+1. Deploy the function.
+1. Publish a numbered version.
+1. Choose `Deploy to Lambda@Edge`.
+1. Select `Configure new CloudFront trigger`.
+1. Select the CloudFront distribution.
+1. Use `*` for the cache behavior.
+1. Select the event type from the table below.
+1. Confirm and deploy.
+
+<a href="images/private-feed-s3-lambda-deploy-auth.png"><img src="images/private-feed-s3-lambda-deploy-auth.png" alt="deploy lambda" width="800"/></a>
+
+| Function | CloudFront event |
+| --- | --- |
+| `sleet-private-feed-basic-auth` | Viewer request |
+| `sleet-private-feed-origin` | Origin response |
+
+The functions do not need the request or response body.
+
+## Verify the CloudFront behavior
+
+In the AWS console, open `CloudFront > Distributions` and select your distribution.
+
+1. Select the `Behaviors` tab.
+1. Verify that the behavior for `*` has the functions attached.
+1. Verify that each function uses the correct event type and a numbered version.
+
+<a href="images/private-feed-s3-behavior.png"><img src="images/private-feed-s3-behavior.png" alt="deploy lambda" width="800"/></a>
+
+If the behavior does not list the functions, create a behavior or edit the existing behavior in CloudFront.
+
+## Create the Sleet feed
+
+Find the CloudFront domain name in `CloudFront > Distributions`. This guide uses `https://d1cdxzxbqv5kg2.cloudfront.net/`. Replace it with your domain. If you configured an alternate domain name, use that instead.
+
+Create `sleet.json` for the bucket. `path` is the S3 URL Sleet writes to. `baseURI` is the CloudFront URL Sleet writes into feed JSON for NuGet clients.
+
+Prefer `profileName` or AWS environment variables for credentials:
+
+```json
+{
+  "sources": [
+    {
+      "name": "feed",
+      "type": "s3",
+      "path": "https://sleet-private-feed.s3.us-east-1.amazonaws.com/",
+      "bucketName": "sleet-private-feed",
+      "region": "us-east-1",
+      "baseURI": "https://d1cdxzxbqv5kg2.cloudfront.net/",
+      "profileName": "sleetProfile"
+    }
+  ]
+}
+```
+
+If you must use keys in a config file, use tokens and keep the real values in environment variables or CI secrets:
+
+```json
+{
+  "accessKeyId": "$AWS_ACCESS_KEY_ID$",
+  "secretAccessKey": "$AWS_SECRET_ACCESS_KEY$"
+}
+```
+
+Initialize the feed:
 
 ```bash
-# Initialize the feed using sleet.json
-$ sleet init -c sleet.json
-
-# Output
-Initializing https://d1cdxzxbqv5kg2.cloudfront.net/
-Verifying sleet-private-feed exists.
-Successfully initialized https://d1cdxzxbqv5kg2.cloudfront.net/
+sleet init -c sleet.json
 ```
 
-### Push a package
+Push a package:
 
 ```bash
-# Push a package to the feed
-$ sleet push newtonsoft.json.13.0.3.nupkg -c sleet.json
-
-# Output
-Reading feed https://d1cdxzxbqv5kg2.cloudfront.net/
-Reading feed
-Add new package: Newtonsoft.Json 13.0.3
-Processing feed changes
-Committing changes to https://d1cdxzxbqv5kg2.cloudfront.net/
-Successfully pushed packages.
+sleet push newtonsoft.json.13.0.3.nupkg -c sleet.json
 ```
 
-## Configuring NuGet
+## Configure NuGet
+
+NuGet.Config:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
-    <packageSources>
-        <clear />
-        <!-- Set to your cloudfront domain -->
-        <add key="PrivateFeed" value="https://d1cdxzxbqv5kg2.cloudfront.net/index.json" />
-    </packageSources>
-    <packageSourceCredentials>
-        <PrivateFeed>
-            <!-- Change these to match your lambda function -->
-            <add key="Username" value="sleet" />
-            <add key="ClearTextPassword" value="test" />
-        </PrivateFeed>
-    </packageSourceCredentials>
+  <packageSources>
+    <clear />
+    <add key="PrivateFeed" value="https://d1cdxzxbqv5kg2.cloudfront.net/index.json" />
+  </packageSources>
+  <packageSourceCredentials>
+    <PrivateFeed>
+      <add key="Username" value="sleet" />
+      <add key="ClearTextPassword" value="%PRIVATE_FEED_PASSWORD%" />
+    </PrivateFeed>
+  </packageSourceCredentials>
 </configuration>
 ```
 
+[NuGet.Config values can reference environment variables](https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file#using-environment-variables) with `%ENV_VAR%` syntax. [Encrypted NuGet passwords](https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file#packagesourcecredentials) are supported only on Windows and only for the same user on the same machine. For cross-platform CI, use environment variables or add the source during the job.
 
-## Testing it out
+Equivalent .NET CLI command:
 
-Create a `test.proj` file with a package that doesn't exist. This will ensure we are not getting the package from the cache.
+```bash
+dotnet nuget add source https://d1cdxzxbqv5kg2.cloudfront.net/index.json \
+  --name PrivateFeed \
+  --username sleet \
+  --password <password> \
+  --store-password-in-clear-text
+```
+
+## Test the feed
+
+Create `test.proj` with a package that should not exist:
 
 ```xml
-<Project ToolsVersion="15.0">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net10.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="SleetTestDoesNotExist" Version="10.0.5" />
   </ItemGroup>
-
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
 ```
 
-Run `dotnet restore test.proj` and you should see the following output.
+Run restore with `NuGet.Config` in the current directory:
 
 ```bash
-# Ensure NuGet.config is in the current directory
-$ dotnet restore test.proj
+dotnet restore test.proj
 ```
 
-### Diagnosing problems
+Success for this negative test is `NU1101: Unable to find package SleetTestDoesNotExist`. A real package on the feed should restore successfully.
 
-#### Verify urls manually
+## Diagnose problems
 
-Try to open the feed url in your browser using.
+### Verify URLs manually
 
-```
-# Template
-https://<user>:<pass>@<cloudfront domain>/index.json
+Check the feed index:
 
-# Url example for this guide
-https://sleet:test@d1cdxzxbqv5kg2.cloudfront.net/index.json
+```bash
+curl -u sleet:<password> https://d1cdxzxbqv5kg2.cloudfront.net/index.json
 ```
 
-You should be able to see the json file with the feed config in the browser if everything is working.
+Check that missing files return 404:
 
-You can also verify that 404s work correctly
-
-```
-# Template
-https://<user>:<pass>@<cloudfront domain>/does-not-exist.json
-
-# Url example for this guide
-https://sleet:test@d1cdxzxbqv5kg2.cloudfront.net/does-not-exist.json
+```bash
+curl -i -u sleet:<password> https://d1cdxzxbqv5kg2.cloudfront.net/does-not-exist.json
 ```
 
-If you get a 503 or 403 instead of a 404 then the origin lambda function is not working correctly.
+If you get 503 or 403 instead of 404, check the bucket policy `s3:ListBucket` statement or the origin-response Lambda.
 
-#### 401 errors
+### Check 401 errors
 
-If things are not setup correctly you will a 401 error saying that the credentials are invalid.
-`Response status code does not indicate success: 401 (Unauthorized). [test.proj] `
+A 401 means the basic-auth credentials did not match. Check the Lambda code and the NuGet credentials.
 
-#### Invalid domain
+### Check invalid domains
 
-An invalid domain error may also occur if the wrong domain or sleet settings were used. Check the baseURI in the sleet config and verify it matches the CloudFront domain. Also verify that index.json uses the correct domain.
+An invalid domain error can mean `baseURI` is wrong. Check that `baseURI` matches your CloudFront URL and that `index.json` contains the CloudFront domain.
 
+## Security notes
 
-### Success
-
-If everything is successful you will see an error saying the package does not exist
-`error NU1101: Unable to find package SleetTestDoesNotExist`
-
-When pushing a real package to the sleet feed it should restore successfully.
+Use HTTPS only on the CloudFront behavior. Basic-auth credentials are shared by all users who use the same username and password. Rotate them by publishing a new Lambda@Edge version, or use a design that stores credentials outside the function code.
 
 ## Final steps
 
-Once you have everything working you can start using the feed settings from NuGet.config as part of your build and local VS NuGet config.
+After the feed works, use the NuGet configuration in your build and local development environments. Consider adding package source mapping in NuGet if you want only specific package IDs to come from this feed.
 
 ## Improve this doc
 
-Has AWS changed? Is something unclear? Typos? Send a PR to improve it!
+If AWS changes or a step is unclear, send a PR with corrections.

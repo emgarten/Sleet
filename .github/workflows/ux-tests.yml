@@ -19,6 +19,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test-linux:
 
@@ -26,48 +30,69 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
-        fetch-tags: true
-        fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: UX tests
       run: ./ux-tests.sh
       shell: bash
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: ux-test-results-linux
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7
   test-mac:
 
     runs-on: macos-latest
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
-        fetch-tags: true
-        fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: UX tests
       run: ./ux-tests.sh
       shell: bash
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: ux-test-results-mac
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7
   test-win:
 
     runs-on: windows-latest
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
-        fetch-tags: true
-        fetch-depth: 0
+        persist-credentials: false
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: UX tests
       run: ./ux-tests.ps1
       shell: pwsh
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: ux-test-results-win
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7

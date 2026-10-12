@@ -1,19 +1,17 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
-using Sleet.Test.Common;
 
 namespace Sleet.Azure.Tests
 {
     /// <summary>
-    /// These tests can run locally against developer storage by changing
-    /// EnvVarExistsFactAttribute -> Fact and starting up the emulator.
+    /// Run these tests with functional-tests.ps1 or functional-tests.sh, or start local-env and run them from an IDE.
     /// </summary>
     public class AzureFileSystemTests
     {
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task GivenAStorageAccountVerifyContainerOperations()
         {
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 testContext.CreateContainerOnInit = false;
                 await testContext.InitAsync();
@@ -38,10 +36,10 @@ namespace Sleet.Azure.Tests
             }
         }
 
-        [EnvVarExistsFact(AzureTestContext.EnvVarName)]
+        [AzureFact]
         public async Task GivenAStorageAccountConnStringVerifyFileSystemFactoryCreatesFS()
         {
-            using (var testContext = new AzureTestContext())
+            await using (var testContext = new AzureTestContext())
             {
                 testContext.CreateContainerOnInit = false;
                 await testContext.InitAsync();

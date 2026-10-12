@@ -52,6 +52,9 @@ namespace Sleet
                         return false;
                     }
 
+                    // From here on the downloaded nupkgs may be the only copy of the packages. Keep them if anything fails.
+                    cleanNupkgs = false;
+
                     var destroySuccess = await DestroyCommand.Destroy(settings, source, log, token);
 
                     if (!force && !destroySuccess)
@@ -64,8 +67,6 @@ namespace Sleet
 
                     if (!initSuccess)
                     {
-                        cleanNupkgs = false;
-
                         log.LogError("Unable to initialize the new feed. The feed is currently broken and must be repaired manually.");
                         success = false;
                         return false;
@@ -81,8 +82,6 @@ namespace Sleet
 
                         if (!pushSuccess)
                         {
-                            cleanNupkgs = false;
-
                             log.LogError("Unable to push packages to the new feed. Try pushing the nupkgs again manually.");
                             success = false;
                             return false;
@@ -93,13 +92,12 @@ namespace Sleet
 
                     if (!validateSuccess)
                     {
-                        cleanNupkgs = false;
-
                         log.LogError("Something went wrong when recreating the feed. Feed validation has failed.");
                         success = false;
                         return false;
                     }
 
+                    cleanNupkgs = true;
                 }
                 finally
                 {
