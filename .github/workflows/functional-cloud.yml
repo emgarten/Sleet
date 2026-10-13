@@ -8,6 +8,9 @@
 #
 #   gh workflow run functional-cloud.yml -f pr_number=<number> -f sha=<full SHA of the reviewed commit>
 #
+# Keep the default branch, main, and don't use --ref. GitHub runs the copy of this workflow on the branch you choose,
+# and a copy on another branch might not check the commit.
+#
 # functional.yml runs the emulator tests for every pull request.
 
 name: Functional Tests (cloud)

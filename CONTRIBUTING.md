@@ -105,6 +105,8 @@ CI runs the same scripts on Linux. The emulator tests don't use any secrets, so 
 gh workflow run functional-cloud.yml -f pr_number=<number> -f sha=<full SHA>
 ```
 
+Keep the default branch, `main`. Don't use `--ref`, and don't change **Use workflow from** if you run it from the Actions tab. GitHub runs the copy of the workflow on the branch you choose, and a copy on another branch might not check the commit.
+
 ### Project conventions
 
 - Package versions are managed centrally in [Directory.Packages.props](Directory.Packages.props). Don't add versions to `PackageReference` items.
