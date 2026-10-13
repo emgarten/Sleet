@@ -47,8 +47,14 @@ concurrency:
 
 jobs:
   cloud:
-    # Skip the pull requests that can't use the secrets instead of failing them
-    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+    # Skip the pull requests that can't use the secrets, instead of failing them. Also skip the pull requests that
+    # Dependabot opens when someone else starts the run, for example by pushing a commit to one. GitHub passes the
+    # secrets to those runs, so they need a review and a manual run like the other pull requests from Dependabot.
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]' &&
+      github.actor != 'dependabot[bot]')
 
     # Linux only, the same as the emulator tests, to keep the usage of the test accounts low
     runs-on: ubuntu-latest
@@ -79,6 +85,7 @@ jobs:
       with:
         global-json-file: global.json
     - name: Functional tests
+      id: tests
       run: ./functional-tests.sh --target cloud
       shell: bash
       env:
@@ -90,7 +97,8 @@ jobs:
         SLEET_TEST_R2_SECRET_ACCESS_KEY: ${{ secrets.SLEET_TEST_R2_SECRET_ACCESS_KEY }}
         SLEET_TEST_R2_SERVICE_URL: ${{ secrets.SLEET_TEST_R2_SERVICE_URL }}
     - name: Upload test results
-      if: ${{ !cancelled() }}
+      # Only when the tests ran. A manual run for a commit that failed the check must not upload anything from it.
+      if: ${{ !cancelled() && steps.tests.outcome != 'skipped' }}
       uses: actions/upload-artifact@v7
       with:
         name: functional-test-results-cloud

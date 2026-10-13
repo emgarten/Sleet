@@ -58,7 +58,7 @@ To run the tests from an IDE or with `dotnet test`, start the environment. The A
 GitHub Actions runs the same scripts, so a run that passes locally should pass in CI:
 
 - [functional.yml](../.github/workflows/functional.yml) runs the emulator tests for pushes to `main` and for every pull request, including pull requests from forks and Dependabot. The emulator tests don't use any secrets.
-- [functional-cloud.yml](../.github/workflows/functional-cloud.yml) runs the cloud tests for pushes to `main` and for pull requests from branches in this repository. Pull requests from forks and Dependabot can't use the repository secrets, so a maintainer runs it for them after reviewing the changes. See [functional tests](../CONTRIBUTING.md#functional-tests).
+- [functional-cloud.yml](../.github/workflows/functional-cloud.yml) runs the cloud tests for pushes to `main` and for pull requests from branches in this repository, except the ones Dependabot opens. For pull requests from forks and Dependabot, a maintainer runs it after reviewing the changes. See [functional tests](../CONTRIBUTING.md#functional-tests).
 
 The emulator and cloud tests run on Linux only. The GitHub hosted macOS and Windows runners can't run Linux containers, and running the cloud tests on one OS keeps the usage of the test accounts low. [dotnet.yml](../.github/workflows/dotnet.yml) runs the unit tests on Linux, macOS, and Windows.
 
