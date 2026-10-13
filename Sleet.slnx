@@ -4,8 +4,7 @@
   </Folder>
   <Folder Name="/.github/workflows/">
     <File Path=".github/workflows/dotnet.yml" />
-    <File Path=".github/workflows/functional-emulators.yml" />
-    <File Path=".github/workflows/functional-manual.yml" />
+    <File Path=".github/workflows/functional-cloud.yml" />
     <File Path=".github/workflows/functional.yml" />
     <File Path=".github/workflows/publish.yml" />
   </Folder>

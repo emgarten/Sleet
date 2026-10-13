@@ -2,7 +2,7 @@
 
 A static NuGet package feed generator. ☁️ + 📦 = ❄️
 
-[![NuGet](https://img.shields.io/nuget/v/sleet.svg)](https://www.nuget.org/packages/sleet) [![.NET test](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml) [![Functional Tests](https://github.com/emgarten/Sleet/actions/workflows/functional.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/functional.yml)
+[![NuGet](https://img.shields.io/nuget/v/sleet.svg)](https://www.nuget.org/packages/sleet) [![.NET test](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml) [![Functional Tests](https://github.com/emgarten/Sleet/actions/workflows/functional.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/functional.yml) [![Functional Tests (cloud)](https://github.com/emgarten/Sleet/actions/workflows/functional-cloud.yml/badge.svg?event=push)](https://github.com/emgarten/Sleet/actions/workflows/functional-cloud.yml)
 
 Sleet creates and updates NuGet v3 feeds as static files on Azure Blob Storage, Amazon S3, S3-compatible storage, or a local folder. NuGet clients restore packages straight from those files, so there is no server to run.
 

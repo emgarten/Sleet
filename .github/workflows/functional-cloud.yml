@@ -1,0 +1,99 @@
+# Runs the cloud functional tests against the test accounts in the repository secrets, the same way as a local run.
+# See CONTRIBUTING.md#functional-tests
+#
+# GitHub doesn't pass the secrets to pull requests from forks and Dependabot, so the job is skipped for them. After a
+# maintainer reviews one of these pull requests, they can run this workflow for it manually with the full SHA of the
+# commit they reviewed. The run checks out the head of the pull request, and it stops before it runs anything from the
+# pull request if the head isn't that commit:
+#
+#   gh workflow run functional-cloud.yml -f pr_number=<number> -f sha=<full SHA of the reviewed commit>
+#
+# functional.yml runs the emulator tests for every pull request.
+
+name: Functional Tests (cloud)
+
+run-name: "${{ github.event_name == 'workflow_dispatch' && format('Cloud tests for PR #{0}', inputs.pr_number) || '' }}"
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'doc/**'
+      - '*.md'
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'doc/**'
+      - '*.md'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number"
+        required: true
+        type: number
+      sha:
+        description: "Full SHA of the head commit you reviewed"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# Runs wait for each other instead of being cancelled. A cancelled run can leave behind the containers and buckets it
+# created in the test accounts.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || inputs.pr_number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cloud:
+    # Skip the pull requests that can't use the secrets instead of failing them
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+
+    # Linux only, the same as the emulator tests, to keep the usage of the test accounts low
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+        # For a manual run, the head of the pull request. This works for pull requests from forks too.
+        ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/pull/{0}/head', inputs.pr_number) || '' }}
+    - name: Check the reviewed commit
+      if: github.event_name == 'workflow_dispatch'
+      shell: bash
+      env:
+        PR_NUMBER: ${{ inputs.pr_number }}
+        REVIEWED_SHA: ${{ inputs.sha }}
+      run: |
+        head_sha="$(git rev-parse HEAD)"
+        echo "PR #$PR_NUMBER is at $head_sha"
+        git log -1 --oneline
+        if [ "$head_sha" != "$REVIEWED_SHA" ]; then
+          echo "::error::The head of PR #$PR_NUMBER is $head_sha, not $REVIEWED_SHA. Run this workflow with the full SHA of the commit you reviewed. If the pull request has new commits, review them first."
+          exit 1
+        fi
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+    - name: Functional tests
+      run: ./functional-tests.sh --target cloud
+      shell: bash
+      env:
+        SLEET_TEST_ACCOUNT: ${{ secrets.SLEET_TEST_ACCOUNT }}
+        SLEET_TEST_S3_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        SLEET_TEST_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        SLEET_TEST_S3_REGION: us-east-1
+        SLEET_TEST_R2_ACCESS_KEY_ID: ${{ secrets.SLEET_TEST_R2_ACCESS_KEY_ID }}
+        SLEET_TEST_R2_SECRET_ACCESS_KEY: ${{ secrets.SLEET_TEST_R2_SECRET_ACCESS_KEY }}
+        SLEET_TEST_R2_SERVICE_URL: ${{ secrets.SLEET_TEST_R2_SERVICE_URL }}
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: functional-test-results-cloud
+        path: artifacts/TestResults
+        if-no-files-found: ignore
+        retention-days: 7
