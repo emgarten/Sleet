@@ -23,7 +23,6 @@
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="DotNetConfig" />
-    <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="NuGet.Packaging" />
   </ItemGroup>
