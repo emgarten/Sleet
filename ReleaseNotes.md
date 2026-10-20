@@ -1,6 +1,7 @@
 # Release Notes
 
 ## 8.0.0
+* Updated System.Security.Cryptography.Pkcs to 8.0.2 to address advisories GHSA-2fmv-rv2c-59x7 and GHSA-846f-f764-76mx
 * Fixed `sleet` failing to start when installed with `dotnet tool install --allow-roll-forward` [Issue](https://github.com/emgarten/Sleet/issues/247)
 * Added a `provider` setting for `s3` feeds hosted on S3 compatible storage
   * `aws` (default), `r2` for Cloudflare R2, and `self-hosted` for S3 servers you run yourself, such as MinIO and RustFS
