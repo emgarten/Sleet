@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="NuGet.Packaging" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
