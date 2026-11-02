@@ -60,7 +60,15 @@ namespace Sleet
 
         public Task RemovePackageAsync(PackageIdentity package)
         {
-            return RemovePackagesAsync(new[] { package });
+            return RemovePackageAsync(package, string.Empty);
+        }
+
+        /// <summary>
+        /// Remove a package from the catalog and save the reason.
+        /// </summary>
+        public Task RemovePackageAsync(PackageIdentity package, string reason)
+        {
+            return RemovePackagesAsync(new[] { package }, reason);
         }
 
         public async Task AddPackagesAsync(IEnumerable<PackageInput> packageInputs)
@@ -73,10 +81,18 @@ namespace Sleet
             await AddCatalogCommits(pageCommits, "nuget:lastCreated");
         }
 
-        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
+        public Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages)
+        {
+            return RemovePackagesAsync(packages, string.Empty);
+        }
+
+        /// <summary>
+        /// Remove packages from the catalog and save the reason.
+        /// </summary>
+        public async Task RemovePackagesAsync(IEnumerable<PackageIdentity> packages, string reason)
         {
             // Write catalog remove pages for each package
-            var tasks = packages.Select(e => new Func<Task<JObject>>(() => GetRemoveCommit(e)));
+            var tasks = packages.Select(e => new Func<Task<JObject>>(() => GetRemoveCommit(e, reason)));
             var pageCommits = await TaskUtils.RunAsync(tasks);
 
             // Add pages to the index as commits
@@ -112,10 +128,10 @@ namespace Sleet
         /// <summary>
         /// Add a remove entry and return the page commit.
         /// </summary>
-        private async Task<JObject> GetRemoveCommit(PackageIdentity package)
+        private async Task<JObject> GetRemoveCommit(PackageIdentity package, string reason)
         {
             // Create package details page for the delete
-            var packageDetails = await CatalogUtility.CreateDeleteDetailsAsync(package, string.Empty, CatalogBaseURI, _context.CommitId);
+            var packageDetails = await CatalogUtility.CreateDeleteDetailsAsync(package, reason ?? string.Empty, CatalogBaseURI, _context.CommitId);
             var packageDetailsFile = _context.Source.Get(packageDetails.GetEntityId());
 
             await packageDetailsFile.Write(packageDetails, _context.Log, _context.Token);
@@ -379,9 +395,13 @@ namespace Sleet
             await RootIndexFile.Write(catalogIndexJson, _context.Log, _context.Token);
         }
 
-        public Task ApplyOperationsAsync(SleetOperations operations)
+        public async Task ApplyOperationsAsync(SleetOperations operations)
         {
-            return OperationsUtility.ApplyAddRemoveAsync(this, operations);
+            // Remove packages
+            await RemovePackagesAsync(operations.ToRemove.Where(e => !e.IsSymbolsPackage).Select(e => e.Identity).ToList(), operations.RemoveReason);
+
+            // Add
+            await AddPackagesAsync(operations.ToAdd.Where(e => !e.IsSymbolsPackage).ToList());
         }
 
         public Task PreLoadAsync(SleetOperations operations)
