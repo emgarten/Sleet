@@ -32,6 +32,11 @@ namespace Sleet
         /// </summary>
         public PackageSets UpdatedIndex { get; set; } = null!;
 
+        /// <summary>
+        /// Reason for removing packages, written to the catalog.
+        /// </summary>
+        public string RemoveReason { get; set; } = string.Empty;
+
         public SleetOperations()
         {
             // Empty, assign directly.

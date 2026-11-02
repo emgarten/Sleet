@@ -15,6 +15,7 @@
 * S3 feeds check that the bucket exists with `HeadBucket` instead of `GetBucketAcl`, which isn't supported by all S3 compatible services
 * Creating a bucket on S3 compatible storage skips the Amazon S3 public access block and object ownership settings if the service does not support them
 * Fixed the file path shown in verbose S3 log messages
+* Fixed `sleet delete --reason` not saving the reason to the catalog [Issue](https://github.com/emgarten/Sleet/issues/255)
 
 ## 7.2.0
 * Added `--verbosity <level>` (`-V`) option to control console output
