@@ -29,7 +29,7 @@ services:
 
   # S3 compatible storage for the Amazon S3 tests
   rustfs:
-    image: rustfs/rustfs:1.0.3
+    image: rustfs/rustfs:1.0.4
     environment:
       RUSTFS_ACCESS_KEY: rustfsadmin
       RUSTFS_SECRET_KEY: rustfsadmin
