@@ -66,7 +66,7 @@ namespace Sleet
                     reason = string.Empty;
                 }
 
-                await RemovePackages(force, log, context, existingPackageSets, packages);
+                await RemovePackages(force, log, context, existingPackageSets, packages, reason);
 
                 // Save all
                 log.LogInformation($"Committing changes to {source.BaseURI.AbsoluteUri}");
@@ -126,7 +126,7 @@ namespace Sleet
                     reason = string.Empty;
                 }
 
-                await RemovePackages(force, log, context, existingPackageSets, packages);
+                await RemovePackages(force, log, context, existingPackageSets, packages, reason);
 
                 // Save all
                 log.LogInformation($"Committing changes to {source.BaseURI.AbsoluteUri}");
@@ -146,7 +146,7 @@ namespace Sleet
             return success;
         }
 
-        private static async Task RemovePackages(bool force, ILogger log, SleetContext context, PackageSets existingPackageSets, HashSet<PackageIdentity> packages)
+        private static async Task RemovePackages(bool force, ILogger log, SleetContext context, PackageSets existingPackageSets, HashSet<PackageIdentity> packages, string reason)
         {
             var toRemove = new HashSet<PackageIdentity>();
             var toRemoveSymbols = new HashSet<PackageIdentity>();
@@ -200,6 +200,7 @@ namespace Sleet
 
             // Add/Remove packages
             var changeContext = SleetOperations.CreateDelete(existingPackageSets, toRemove, toRemoveSymbols);
+            changeContext.RemoveReason = reason;
             await SleetUtility.ApplyPackageChangesAsync(context, changeContext);
         }
     }

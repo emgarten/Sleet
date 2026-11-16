@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
 using NuGet.Versioning;
@@ -156,6 +158,66 @@ namespace SleetLib.Tests
                 (await packageIndex.GetSymbolsPackagesAsync()).Should().BeEmpty();
                 log.GetMessages().Should().Contain("Removing a.1.0.0 and symbols package for a.1.0.0");
             }
+        }
+
+        [Fact]
+        public async Task DeleteCommand_GivenReasonVerifyReasonSavedInCatalog()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: false, log: log, token: TestContext.Current.CancellationToken);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+
+                var success = await DeleteCommand.RunAsync(settings, fileSystem, "a", "1.0.0", "bad build", false, log);
+
+                success.Should().BeTrue();
+                GetRemoveReasons(target.Root).Should().BeEquivalentTo(new[] { "bad build" });
+            }
+        }
+
+        [Fact]
+        public async Task DeleteCommand_DeletePackagesAsyncGivenReasonVerifyReasonSavedInCatalog()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: false, log: log, token: TestContext.Current.CancellationToken);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                new TestNupkg("b", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+
+                var toDelete = new[]
+                {
+                    new PackageIdentity("a", NuGetVersion.Parse("1.0.0")),
+                    new PackageIdentity("b", NuGetVersion.Parse("1.0.0"))
+                };
+
+                var success = await DeleteCommand.DeletePackagesAsync(settings, fileSystem, toDelete, "bad build", false, log);
+
+                success.Should().BeTrue();
+                GetRemoveReasons(target.Root).Should().BeEquivalentTo(new[] { "bad build", "bad build" });
+            }
+        }
+
+        private static List<string> GetRemoveReasons(string feedRoot)
+        {
+            return Directory.GetFiles(Path.Combine(feedRoot, "catalog", "data"), "*.json")
+                .Select(path => JObject.Parse(File.ReadAllText(path)))
+                .Where(json => json["sleet:operation"]?.ToString() == "remove")
+                .Select(json => json["sleet:removeReason"]!.ToString())
+                .ToList();
         }
     }
 }
