@@ -7,7 +7,6 @@ SleetLib is the library behind the Sleet CLI. Use it from custom tools, MSBuild 
 Add the `SleetLib` NuGet package to your project. The current project targets:
 
 - `net8.0`
-- `net9.0`
 - `net10.0`
 
 SleetLib follows Sleet releases. The repository release notes do not describe a separate API stability policy for the library, so treat public APIs as tied to the Sleet package version you reference.
