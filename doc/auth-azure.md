@@ -139,7 +139,7 @@ Sleet doesn't read a shared access signature (SAS) from `path`. Only the storage
 | `AuthorizationPermissionMismatch` or `This request is not authorized to perform this operation using this permission.` | The identity is missing Storage Blob Data Contributor, or the role assignment hasn't applied yet. |
 | `DefaultAzureCredential failed to retrieve a token` | No credential in the chain could sign in. Run `az login`, or set the service principal variables. |
 | `Missing connectionString for azure account.` | Set `path`, or remove the empty `connectionString` property. |
-| `Invalid connectionString for azure account.` | The connection string is still the template value from `createconfig`. Remove it and use `path`, or fill it in. |
+| `Invalid connectionString for azure account.` | The connection string is still the template value from `create-config`. Remove it and use `path`, or fill it in. |
 | `Invalid feed path. Azure container ... does not match the provided URI` | `path` must start with the container URL, for example `https://myaccount.blob.core.windows.net/feed/`. |
 | `PublicAccessNotPermitted` | The storage account doesn't allow anonymous access. See [allow anonymous read access](feed-type-azure.md#allow-anonymous-read-access). |
 

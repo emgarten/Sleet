@@ -56,7 +56,7 @@ namespace Sleet.CliTool.Tests
 
                 // Run the tool
 
-                result = await CmdRunner.RunAsync(dotnetExe, dir, $"{sleetDllPath} createconfig");
+                result = await CmdRunner.RunAsync(dotnetExe, dir, $"{sleetDllPath} create-config");
                 result.Success.Should().BeTrue(result.AllOutput);
 
                 File.Exists(Path.Combine(dir, "sleet.json")).Should().BeTrue("sleet should have generated the config file");

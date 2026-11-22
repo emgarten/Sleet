@@ -2,7 +2,7 @@ namespace Sleet
 {
     internal static class Constants
     {
-        internal const string HelpOption = "-h|--help";
+        internal const string HelpOption = "-?|-h|--help";
         internal const string ConfigOption = "-c|--config";
         internal const string ConfigDesc = "sleet.json file to read sources and settings from. Specify 'none' to avoid loading.";
         internal const string SourceOption = "-s|--source";

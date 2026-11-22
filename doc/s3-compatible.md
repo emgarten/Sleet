@@ -43,10 +43,10 @@ Set `provider` to use the defaults that a service needs. Settings in the source 
 
 For other providers, set `disablePayloadSigning`, `checksumMode`, or `forcePathStyle` yourself if the provider doesn't support the AWS defaults. See [Amazon S3 properties](client-settings.md#amazon-s3-properties).
 
-`createconfig` creates a template for a provider:
+`create-config` creates a template for a provider:
 
 ```bash
-sleet createconfig --provider self-hosted
+sleet create-config --provider self-hosted
 ```
 
 The `self-hosted` provider uses path-style URLs, so the bucket URL is the server URL followed by the bucket name. Set `region` if the server uses a Region other than `us-east-1`.

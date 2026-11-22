@@ -55,10 +55,10 @@ If the settings come from environment variables, the source name is `envirnoment
 ### No sources in the settings file
 
 ```text
-The local settings file is missing or does not contain any sources. Use 'CreateConfig' to add a source.
+The local settings file is missing or does not contain any sources. Use 'create-config' to add a source.
 ```
 
-The `sources` list is empty. If the `sources` property is missing, the error is `Invalid config. No sources found.` Add a source, or run `sleet createconfig` to make a new file. See [sleet.json](client-settings.md#sleetjson).
+The `sources` list is empty. If the `sources` property is missing, the error is `Invalid config. No sources found.` Add a source, or run `sleet create-config` to make a new file. See [sleet.json](client-settings.md#sleetjson).
 
 ### Relative path without a sleet.json file
 
