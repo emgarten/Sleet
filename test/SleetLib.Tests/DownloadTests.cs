@@ -157,7 +157,7 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task GivenThatTheFeedHasSymbolsPackagesVerifyDownloadCommandSucceeds()
+        public async Task GivenThatTheFeedHasLegacySymbolsPackagesVerifyDownloadCommandIncludesThem()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
@@ -170,15 +170,15 @@ namespace SleetLib.Tests
                 var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
-                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: true, log: log, token: CancellationToken.None);
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, log: log, token: TestContext.Current.CancellationToken);
 
                 var packageA = new TestNupkg("a", "1.0.0");
-                var packageASymbols = new TestNupkg("a", "1.0.0");
-                packageASymbols.Nuspec.IsSymbolPackage = true;
                 packageA.Save(packagesFolder.Root);
-                packageASymbols.Save(packagesFolder.Root);
 
                 success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder }, false, false, log);
+
+                TestUtility.AddLegacySymbolsServer(target.Root);
+                TestUtility.AddLegacySymbolsPackage(target.Root, packagesFolder.Root, "a", "1.0.0");
 
                 success &= await DownloadCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
 

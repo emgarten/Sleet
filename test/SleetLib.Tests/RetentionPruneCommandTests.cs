@@ -33,8 +33,7 @@ namespace SleetLib.Tests
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
                     {
-                        CatalogEnabled = true,
-                        SymbolsEnabled = true
+                        CatalogEnabled = true
                     }
                 };
 
@@ -100,8 +99,7 @@ namespace SleetLib.Tests
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
                     {
-                        CatalogEnabled = true,
-                        SymbolsEnabled = true
+                        CatalogEnabled = true
                     }
                 };
 
@@ -165,7 +163,6 @@ namespace SleetLib.Tests
                     SourceSettings = new FeedSettings()
                     {
                         CatalogEnabled = true,
-                        SymbolsEnabled = true,
                     }
                 };
 
@@ -231,7 +228,6 @@ namespace SleetLib.Tests
                     SourceSettings = new FeedSettings()
                     {
                         CatalogEnabled = true,
-                        SymbolsEnabled = true,
                         RetentionMaxStableVersions = 2,
                         RetentionMaxPrereleaseVersions = 2
                     }
@@ -316,7 +312,6 @@ namespace SleetLib.Tests
                     SourceSettings = new FeedSettings()
                     {
                         CatalogEnabled = true,
-                        SymbolsEnabled = true,
                         RetentionMaxStableVersions = 2,
                         RetentionMaxPrereleaseVersions = 2
                     }
@@ -388,7 +383,6 @@ namespace SleetLib.Tests
                     SourceSettings = new FeedSettings()
                     {
                         CatalogEnabled = true,
-                        SymbolsEnabled = true,
                         RetentionMaxStableVersions = 2,
                         RetentionMaxPrereleaseVersions = 2
                     }
@@ -462,7 +456,6 @@ namespace SleetLib.Tests
                     SourceSettings = new FeedSettings()
                     {
                         CatalogEnabled = true,
-                        SymbolsEnabled = true,
                         RetentionMaxStableVersions = 2,
                         RetentionMaxPrereleaseVersions = 1
                     }
@@ -546,8 +539,7 @@ namespace SleetLib.Tests
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
                     {
-                        CatalogEnabled = true,
-                        SymbolsEnabled = true
+                        CatalogEnabled = true
                     }
                 };
 
@@ -610,8 +602,7 @@ namespace SleetLib.Tests
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
                     {
-                        CatalogEnabled = true,
-                        SymbolsEnabled = true
+                        CatalogEnabled = true
                     }
                 };
 
@@ -687,8 +678,7 @@ namespace SleetLib.Tests
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
                     {
-                        CatalogEnabled = true,
-                        SymbolsEnabled = true
+                        CatalogEnabled = true
                     }
                 };
 

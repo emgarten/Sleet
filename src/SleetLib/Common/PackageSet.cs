@@ -7,7 +7,7 @@ using NuGet.Packaging.Core;
 namespace Sleet
 {
     /// <summary>
-    /// A set of packages. This could be either symbols packages or non-symbols packages.
+    /// A set of packages.
     /// </summary>
     public class PackageSet : IPackagesLookup, IAddRemovePackages
     {

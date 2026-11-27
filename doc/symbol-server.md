@@ -1,100 +1,55 @@
-# Symbol server
+# Symbol server (removed)
 
-Sleet can build a static HTTP symbol store from packages on your feed. Add the Sleet symbol server URL to Visual Studio or another debugger to load PDB files for package dependencies.
+Sleet 8.0 removed the symbol server. Older versions could serve `.pdb` files to debuggers from a `symbols/` folder on the feed. The .NET SDK now makes this unnecessary: PDBs can be embedded in the assemblies of a package, and [Source Link](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/sourcelink) lets debuggers download the matching source code.
 
-## Enable symbols
+## Add symbols to your packages
 
-Symbols are disabled on new feeds unless you enable them during initialization:
+Embed the PDB in each assembly. Set `DebugType` in the project file, or in `Directory.Build.props` to cover every project:
+
+```xml
+<PropertyGroup>
+  <DebugType>embedded</DebugType>
+</PropertyGroup>
+```
+
+Debuggers such as Visual Studio read the embedded PDB from the `.dll`, so projects that use the package don't need a symbol server. The .NET 8 SDK and later add Source Link information for repositories on GitHub, Azure Repos, GitLab, and Bitbucket. To step into package code in Visual Studio, turn off [Just My Code](https://learn.microsoft.com/en-us/visualstudio/debugger/just-my-code?view=visualstudio).
+
+For other ways to ship symbols, such as `.pdb` files next to the `.dll` in the package, or `.snupkg` packages on nuget.org, see Microsoft's guidance on [symbol packages](https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/nuget#symbol-packages). Sleet doesn't support `.snupkg` packages.
+
+## Feeds that use the symbol server
+
+Feeds created with the symbol server keep working with NuGet. Most Sleet commands print this warning for them:
+
+```text
+This feed has the symbol server enabled. Sleet no longer supports the symbol server and files under symbols/ are no longer updated. Run 'sleet recreate' to remove it from the feed. See: https://github.com/emgarten/Sleet/blob/main/doc/symbol-server.md
+```
+
+Until you [remove the symbol server from the feed](#remove-the-symbol-server-from-a-feed):
+
+- The `symbols/` folder and the symbol server entries in `index.json` stay on the feed, so debuggers can still load symbols for packages pushed with older versions of Sleet.
+- Sleet doesn't add symbols for new packages. `delete` and [retention](retention.md) don't remove symbols files.
+- `push` skips `.symbols.nupkg` files with a warning.
+- `download` still downloads the `.symbols.nupkg` files that are on the feed.
+- Sleet ignores the `symbolsfeedenabled` [feed setting](feed-settings.md).
+
+## Remove the symbol server from a feed
+
+Run [recreate](commands.md#recreate). The new feed doesn't have the `symbols/` folder, the symbol server entries in `index.json`, or the `symbolsfeedenabled` setting.
+
+If the feed has `.symbols.nupkg` files, `recreate` stops before it changes the feed, because the new feed can't keep them:
+
+```text
+The feed contains 2 symbols packages. Sleet no longer supports symbols packages and recreating the feed would remove them. Back them up with 'sleet download', then run recreate with --force.
+```
+
+Back up the feed, then recreate it with `--force`:
 
 ```bash
-sleet init --with-symbols
+sleet download -o ./backup
+sleet recreate --force
 ```
 
-For an existing feed, set the feed setting and recreate the feed:
+> [!WARNING]
+> `--force` also makes `recreate` continue past other errors, such as a package that fails to download. Keep the backup until you've checked the new feed.
 
-```bash
-sleet feed-settings --set symbolsfeedenabled:true
-sleet recreate
-```
-
-The `feed-settings` command updates `sleet.settings.json`, but it doesn't add the symbol server to `index.json`. `recreate` downloads the packages, destroys the feed files, initializes the feed again with the current settings, and pushes the packages back. After that, `index.json` lists the symbol server and packages that were already on the feed are indexed.
-
-For a local feed whose `baseURI` is different from `path`, `recreate` doesn't work. Follow [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) and run `init --with-symbols`.
-
-## Disable symbols
-
-To stop indexing symbols for future pushes, set the feed setting to false:
-
-```bash
-sleet feed-settings --set symbolsfeedenabled:false
-```
-
-This setting change does not delete existing symbol files or remove the symbol server entry from `index.json` by itself. Run `sleet recreate` after disabling symbols if you want the feed rebuilt without the symbol server files and service-index entries.
-
-## Package files Sleet indexes
-
-Sleet indexes `.dll` files and matching `.pdb` files from `.nupkg` and `.symbols.nupkg` files. It does not index `.exe` or XML documentation files. It does not support `.snupkg` symbol packages.
-
-You can provide symbols in either of these ways:
-
-- Include PDB files next to the DLL files inside the main `.nupkg`.
-- Push a legacy `.symbols.nupkg` package with the same package id and version.
-
-To create a legacy `.symbols.nupkg` with the .NET SDK, use:
-
-```bash
-dotnet pack -p:IncludeSymbols=true -p:SymbolPackageFormat=symbols.nupkg
-```
-
-Microsoft documents `IncludeSymbols` and `SymbolPackageFormat` in [Creating symbol packages](https://learn.microsoft.com/en-us/nuget/create-packages/symbol-packages-snupkg). The newer `.snupkg` format is recommended for NuGet.org, but Sleet's symbol server reads only `.symbols.nupkg` files and PDBs inside normal `.nupkg` files.
-
-## Symbol packages on the feed
-
-When symbols are enabled, `.symbols.nupkg` files are stored under the feed's `symbols/packages/` area. NuGet restore still uses only the regular `.nupkg` from the package feed. The symbol package is for the debugger.
-
-`sleet download` includes both regular packages and `.symbols.nupkg` files. `sleet recreate` also downloads symbol packages and reindexes them when symbols are enabled.
-
-## Symbol server URL and layout
-
-The symbol server URL is the feed root plus `symbols/`. If your NuGet source is:
-
-```text
-https://myaccount.blob.core.windows.net/feed/index.json
-```
-
-Use this symbol URL:
-
-```text
-https://myaccount.blob.core.windows.net/feed/symbols/
-```
-
-The same URL appears in `index.json` with this resource type:
-
-```text
-http://schema.emgarten.com/sleet#SymbolsServer/1.0.0
-```
-
-Sleet writes symbol files with this layout:
-
-```text
-symbols/{file-name}/{hash}/{file-name}
-symbols/{file-name}/{hash}/packages.json
-```
-
-For example:
-
-```text
-symbols/MyLibrary.pdb/4B26B9A60D384F90855C3A6196C6C8781/MyLibrary.pdb
-```
-
-For DLL files, the hash is built from the PE timestamp and image size. For portable PDBs, Sleet reads the CodeView debug entry from the matching assembly and uses the PDB GUID plus `ffffffff`. For Windows PDBs, it uses the PDB GUID plus the PDB age.
-
-## Configure Visual Studio
-
-In Visual Studio, open **Tools** > **Options** > **Debugging** > **Symbols**, add the Sleet `symbols/` URL, enable it, and choose a local symbol cache. See Microsoft's current guide to [configure symbol locations and loading options](https://learn.microsoft.com/en-us/visualstudio/debugger/specify-symbol-dot-pdb-and-source-files-in-the-visual-studio-debugger?view=visualstudio).
-
-To step into package code, you may also need to disable Just My Code. See Microsoft's guide to [Just My Code](https://learn.microsoft.com/en-us/visualstudio/debugger/just-my-code?view=visualstudio). If your packages include Source Link information, Visual Studio can use the PDB to find source files.
-
-## Private feeds
-
-The debugger must be able to reach the symbol URL. Authentication support depends on the debugger and symbol-loading path, so test private feeds with the debugger you plan to use.
+`recreate` doesn't work on a local feed whose `baseURI` is different from `path`. Follow [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) instead. `push` skips the `.symbols.nupkg` files in the backup folder.

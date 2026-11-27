@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
+using NuGet.Versioning;
 using Sleet;
 using Sleet.Test.Common;
 using Xunit;
@@ -14,21 +14,6 @@ namespace SleetLib.Tests
 {
     public static class TestUtility
     {
-        public static Stream GetResource(string name)
-        {
-            var path = $"SleetLib.Tests.compiler.resources.{name}";
-            return typeof(TestUtility).GetTypeInfo().Assembly.GetManifestResourceStream(path);
-        }
-
-        public static byte[] GetBytes(this Stream stream)
-        {
-            using (var memoryStream = new MemoryStream())
-            {
-                stream.CopyTo(memoryStream);
-                return memoryStream.ToArray();
-            }
-        }
-
         public static JObject CreateConfigWithLocal(string sourceName, string sourcePath, string baseUri)
         {
             // Create the config template
@@ -101,6 +86,77 @@ namespace SleetLib.Tests
             testPackage.Nuspec.IsSymbolPackage = isSymbols;
             var zipFile = testPackage.Save(testContext.Packages);
             return SleetTestContext.GetPackageInput(zipFile);
+        }
+
+        /// <summary>
+        /// Add the service index resources and setting that the removed symbols server added to a local feed.
+        /// </summary>
+        public static void AddLegacySymbolsServer(string feedRoot)
+        {
+            var baseUri = UriUtility.CreateUri(feedRoot);
+
+            UpdateJson(Path.Combine(feedRoot, "index.json"), json =>
+            {
+                var resources = (JArray)json["resources"];
+                resources.Add(new JObject
+                {
+                    ["@id"] = UriUtility.GetPath(baseUri, "symbols/packages/index.json").AbsoluteUri,
+                    ["@type"] = "http://schema.emgarten.com/sleet#SymbolsPackageIndex/1.0.0",
+                    ["comment"] = "Packages indexed in the symbols feed."
+                });
+                resources.Add(new JObject
+                {
+                    ["@id"] = UriUtility.GetPath(baseUri, "symbols/").AbsoluteUri,
+                    ["@type"] = "http://schema.emgarten.com/sleet#SymbolsServer/1.0.0",
+                    ["comment"] = "Symbols server containing dll and pdb files."
+                });
+            });
+
+            UpdateJson(Path.Combine(feedRoot, "sleet.settings.json"), json =>
+            {
+                var values = FeedSettingsUtility.GetSettings(json);
+                values["symbolsfeedenabled"] = "true";
+                FeedSettingsUtility.Set(json, values);
+            });
+        }
+
+        /// <summary>
+        /// Add a symbols package to a local feed the way the removed symbols server stored it.
+        /// </summary>
+        public static void AddLegacySymbolsPackage(string feedRoot, string packagesRoot, string id, string version)
+        {
+            var symbolsPackage = new TestNupkg(id, version);
+            symbolsPackage.Nuspec.IsSymbolPackage = true;
+            var nupkg = symbolsPackage.Save(packagesRoot);
+
+            var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
+            var nupkgPath = Path.Combine(feedRoot, "symbols", "packages", id.ToLowerInvariant(), normalizedVersion.ToLowerInvariant(), $"{id}.{normalizedVersion}.symbols.nupkg".ToLowerInvariant());
+            Directory.CreateDirectory(Path.GetDirectoryName(nupkgPath));
+            nupkg.CopyTo(nupkgPath, overwrite: true);
+
+            UpdateJson(Path.Combine(feedRoot, "sleet.packageindex.json"), json =>
+            {
+                if (json["symbols"] is not JObject symbols)
+                {
+                    symbols = new JObject();
+                    json["symbols"] = symbols;
+                }
+
+                if (symbols[id] is not JArray versions)
+                {
+                    versions = new JArray();
+                    symbols[id] = versions;
+                }
+
+                versions.Add(normalizedVersion);
+            });
+        }
+
+        private static void UpdateJson(string path, Action<JObject> update)
+        {
+            var json = JObject.Parse(File.ReadAllText(path));
+            update(json);
+            File.WriteAllText(path, json.ToString());
         }
     }
 }

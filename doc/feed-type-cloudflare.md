@@ -103,7 +103,7 @@ Push one package or a folder of packages:
 sleet push ./nupkgs
 ```
 
-The first push initializes the feed with the default settings. To turn on the catalog or the symbol server from the start, run [init](commands.md#init) first.
+The first push initializes the feed with the default settings. To turn on the catalog from the start, run [init](commands.md#init) first.
 
 If the bucket doesn't exist, Sleet creates it, which needs an *Admin Read & Write* token. Sleet can't make the bucket public, so [make the bucket public](#make-the-bucket-public) after Sleet creates it.
 

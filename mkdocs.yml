@@ -111,12 +111,12 @@ nav:
           - CDN and caching: cdn-caching.md
           - Multiple feeds: multiple-feeds.md
       - Feed features:
-          - Symbol server: symbol-server.md
           - Version badges: badges.md
           - External search: external-search.md
       - Maintenance:
           - Package retention: retention.md
           - Backup and migration: backup-migration.md
+          - Symbol server removal: symbol-server.md
   - Reference:
       - Commands: commands.md
       - Configuration: client-settings.md

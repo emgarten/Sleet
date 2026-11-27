@@ -29,8 +29,6 @@ namespace SleetLib.Tests
                 yield return new object[] { "flatcontainer/a/1.0.0/readme", "# readme", "text/markdown", "immutable-cache", null, false };
                 yield return new object[] { "index.json", "{ \"b\" : 2 }", "application/json", "mutable-cache", "gzip", true };
                 yield return new object[] { "extensionless", "{ \"a\" : 1 }", "application/json", "mutable-cache", "gzip", true };
-                yield return new object[] { "symbols/a.dll", "dll bytes", "application/octet-stream", "immutable-cache", null, false };
-                yield return new object[] { "symbols/a.pdb", "pdb bytes", "application/octet-stream", "immutable-cache", null, false };
                 yield return new object[] { "unknown.bin", "not json", null, "no-store", null, false };
             }
         }

@@ -189,7 +189,7 @@ namespace SleetLib.Tests
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
-                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: false, log: log, token: TestContext.Current.CancellationToken);
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, log: log, token: TestContext.Current.CancellationToken);
                 new TestNupkg("a", "1.0.0").Save(firstPackagesFolder.Root);
                 await PushCommand.RunAsync(settings, fileSystem, new List<string>() { firstPackagesFolder.Root }, false, false, log);
 
@@ -226,7 +226,7 @@ namespace SleetLib.Tests
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
-                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: false, log: log, token: TestContext.Current.CancellationToken);
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, log: log, token: TestContext.Current.CancellationToken);
                 var package = new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
                 await PushCommand.RunAsync(settings, fileSystem, new List<string>() { package.FullName }, false, false, log);
 
@@ -259,7 +259,7 @@ namespace SleetLib.Tests
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
-                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: false, log: log, token: TestContext.Current.CancellationToken);
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, log: log, token: TestContext.Current.CancellationToken);
                 var package = new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
                 await PushCommand.RunAsync(settings, fileSystem, new List<string>() { package.FullName }, false, false, log);
 
@@ -374,7 +374,7 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task PushCommand_GivenSymbolsPackageAndSymbolsDisabledVerifySkipped()
+        public async Task PushCommand_GivenSymbolsPackageVerifySkippedWithWarning()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
@@ -383,11 +383,13 @@ namespace SleetLib.Tests
                 var log = new TestLogger();
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
+                var package = new TestNupkg("a", "1.0.0");
                 var symbols = new TestNupkg("a", "1.0.0");
                 symbols.Nuspec.IsSymbolPackage = true;
+                package.Save(packagesFolder.Root);
                 symbols.Save(packagesFolder.Root);
 
-                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: false, log: log, token: TestContext.Current.CancellationToken);
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, log: log, token: TestContext.Current.CancellationToken);
 
                 var success = await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
 
@@ -400,9 +402,13 @@ namespace SleetLib.Tests
                     SourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(fileSystem, log, TestContext.Current.CancellationToken)
                 });
 
+                var packageSets = await packageIndex.GetPackageSetsAsync();
+
                 success.Should().BeTrue();
-                (await packageIndex.GetSymbolsPackagesAsync()).Should().BeEmpty();
-                log.GetMessages().Should().Contain("Skipping a 1.0.0 Symbols, to push symbols packages enable the symbols server on this feed.");
+                packageSets.Packages.Index.Should().BeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
+                packageSets.Symbols.Index.Should().BeEmpty();
+                Directory.GetFiles(target.Root, "*.symbols.nupkg", SearchOption.AllDirectories).Should().BeEmpty();
+                log.GetMessages(NuGet.Common.LogLevel.Warning).Should().Contain("Skipping a 1.0.0 symbols package. Sleet no longer supports symbols packages, embed PDBs in the main package instead.");
             }
         }
     }

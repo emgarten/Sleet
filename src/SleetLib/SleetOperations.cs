@@ -62,23 +62,10 @@ namespace Sleet
             return CreateDelete(originalIndex, packagesToRemove);
         }
 
-        public static async Task<SleetOperations> CreateDeleteAsync(SleetContext context, IEnumerable<PackageIdentity> packagesToRemove, IEnumerable<PackageIdentity> symbolsPackagesToRemove)
-        {
-            var originalIndex = await GetPackageSets(context);
-            return CreateDelete(originalIndex, packagesToRemove, symbolsPackagesToRemove);
-        }
-
         public static SleetOperations CreateDelete(PackageSets originalIndex, IEnumerable<PackageIdentity> packagesToRemove)
         {
-            return CreateDelete(originalIndex, packagesToRemove, new List<PackageIdentity>());
-        }
-
-        public static SleetOperations CreateDelete(PackageSets originalIndex, IEnumerable<PackageIdentity> packagesToRemove, IEnumerable<PackageIdentity> symbolsPackagesToRemove)
-        {
             var toAdd = new List<PackageInput>();
-            var toRemove = new List<PackageInput>();
-            toRemove.AddRange(packagesToRemove.Select(e => PackageInput.CreateForDelete(e, isSymbols: false)));
-            toRemove.AddRange(symbolsPackagesToRemove.Select(e => PackageInput.CreateForDelete(e, isSymbols: true)));
+            var toRemove = packagesToRemove.Select(e => PackageInput.CreateForDelete(e, isSymbols: false)).ToList();
 
             return Create(originalIndex, toAdd, toRemove);
         }
@@ -97,21 +84,20 @@ namespace Sleet
 
         /// <summary>
         /// Create a new PackageSets with the inputs applied.
+        /// Symbols packages are not supported and are ignored, the existing symbols set is kept as-is.
         /// </summary>
         private static PackageSets GetUpdatedIndex(List<PackageInput> toAdd, List<PackageInput> toRemove, PackageSets packageIndexBeforeChanges)
         {
             var updatedIndex = packageIndexBeforeChanges.Clone();
 
-            foreach (var input in toRemove)
+            foreach (var input in toRemove.Where(e => !e.IsSymbolsPackage))
             {
-                var set = input.IsSymbolsPackage ? updatedIndex.Symbols : updatedIndex.Packages;
-                set.Index.Remove(input.Identity);
+                updatedIndex.Packages.Index.Remove(input.Identity);
             }
 
-            foreach (var input in toAdd)
+            foreach (var input in toAdd.Where(e => !e.IsSymbolsPackage))
             {
-                var set = input.IsSymbolsPackage ? updatedIndex.Symbols : updatedIndex.Packages;
-                set.Index.Add(input.Identity);
+                updatedIndex.Packages.Index.Add(input.Identity);
             }
 
             return updatedIndex;

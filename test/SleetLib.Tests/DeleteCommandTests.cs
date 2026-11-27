@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace SleetLib.Tests
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
-                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: false, log: log, token: TestContext.Current.CancellationToken);
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, log: log, token: TestContext.Current.CancellationToken);
                 new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
                 new TestNupkg("a", "2.0.0").Save(packagesFolder.Root);
                 await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
@@ -59,7 +60,7 @@ namespace SleetLib.Tests
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
-                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: false, log: log, token: TestContext.Current.CancellationToken);
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, log: log, token: TestContext.Current.CancellationToken);
                 new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
                 new TestNupkg("a", "2.0.0").Save(packagesFolder.Root);
                 new TestNupkg("b", "1.0.0").Save(packagesFolder.Root);
@@ -122,39 +123,44 @@ namespace SleetLib.Tests
         }
 
         [Fact]
-        public async Task DeleteCommand_GivenSymbolsPackageVerifySymbolsDeleted()
+        public async Task DeleteCommand_GivenLegacySymbolsPackageVerifySymbolsKept()
         {
             using (var packagesFolder = new TestFolder())
             using (var target = new TestFolder())
             using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
             {
                 var log = new TestLogger();
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
 
-                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, enableSymbols: true, log: log, token: TestContext.Current.CancellationToken);
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, log: log, token: TestContext.Current.CancellationToken);
                 var package = new TestNupkg("a", "1.0.0");
-                var symbols = new TestNupkg("a", "1.0.0");
-                symbols.Nuspec.IsSymbolPackage = true;
                 package.Save(packagesFolder.Root);
-                symbols.Save(packagesFolder.Root);
                 await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
 
-                var success = await DeleteCommand.RunAsync(settings, fileSystem, "a", "1.0.0", null, false, log);
+                TestUtility.AddLegacySymbolsServer(target.Root);
+                TestUtility.AddLegacySymbolsPackage(target.Root, packagesFolder.Root, "a", "1.0.0");
+
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var success = await DeleteCommand.RunAsync(settings, fileSystem2, "a", "1.0.0", null, false, log);
 
                 var packageIndex = new PackageIndex(new SleetContext()
                 {
                     Token = TestContext.Current.CancellationToken,
                     LocalSettings = settings,
                     Log = log,
-                    Source = fileSystem,
-                    SourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(fileSystem, log, TestContext.Current.CancellationToken)
+                    Source = fileSystem2,
+                    SourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(fileSystem2, log, TestContext.Current.CancellationToken)
                 });
 
+                var packageSets = await packageIndex.GetPackageSetsAsync();
+
                 success.Should().BeTrue();
-                (await packageIndex.GetPackagesAsync()).Should().BeEmpty();
-                (await packageIndex.GetSymbolsPackagesAsync()).Should().BeEmpty();
-                log.GetMessages().Should().Contain("Removing a.1.0.0 and symbols package for a.1.0.0");
+                packageSets.Packages.Index.Should().BeEmpty();
+                packageSets.Symbols.Index.Should().BeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
+                File.Exists(Path.Combine(target.Root, "symbols", "packages", "a", "1.0.0", "a.1.0.0.symbols.nupkg")).Should().BeTrue();
+                log.GetMessages().Should().Contain("Removing a.1.0.0");
             }
         }
     }

@@ -44,7 +44,13 @@ namespace Sleet
 
                 try
                 {
-                    var downloadSuccess = await DownloadCommand.DownloadPackages(settings, source, localCache.Root.FullName, force, log, token);
+                    if (!await CheckSymbolsPackagesAsync(settings, source, feedSettings, force, log, token))
+                    {
+                        return false;
+                    }
+
+                    // Symbols packages are not supported and cannot be pushed to the new feed.
+                    var downloadSuccess = await DownloadCommand.DownloadPackages(settings, source, localCache.Root.FullName, force, skipExisting: false, includeSymbols: false, log: log, token: token);
 
                     if (!force && !downloadSuccess)
                     {
@@ -126,6 +132,38 @@ namespace Sleet
             }
 
             return success;
+        }
+
+        /// <summary>
+        /// Symbols packages left from the removed symbols server would be lost when the feed is recreated.
+        /// Block unless force is used.
+        /// </summary>
+        private static async Task<bool> CheckSymbolsPackagesAsync(LocalSettings settings, ISleetFileSystem source, FeedSettings feedSettings, bool force, ILogger log, CancellationToken token)
+        {
+            var context = new SleetContext()
+            {
+                LocalSettings = settings,
+                SourceSettings = feedSettings,
+                Log = log,
+                Source = source,
+                Token = token
+            };
+
+            var packageSets = await new PackageIndex(context).GetPackageSetsAsync();
+            var count = packageSets.Symbols.Index.Count;
+
+            if (count > 0)
+            {
+                if (!force)
+                {
+                    log.LogError($"The feed contains {count} symbols packages. Sleet no longer supports symbols packages and recreating the feed would remove them. Back them up with 'sleet download', then run recreate with --force.");
+                    return false;
+                }
+
+                log.LogWarning($"Removing {count} symbols packages from the feed.");
+            }
+
+            return true;
         }
 
         /// <summary>

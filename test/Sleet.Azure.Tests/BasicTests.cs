@@ -19,7 +19,6 @@ namespace Sleet.Azure.Tests
                 var result = await InitCommand.RunAsync(testContext.LocalSettings,
                     testContext.FileSystem,
                     enableCatalog: true,
-                    enableSymbols: true,
                     log: testContext.Logger,
                     token: CancellationToken.None);
 
@@ -47,7 +46,6 @@ namespace Sleet.Azure.Tests
                 var result = await InitCommand.RunAsync(testContext.LocalSettings,
                     testContext.FileSystem,
                     enableCatalog: true,
-                    enableSymbols: true,
                     log: testContext.Logger,
                     token: CancellationToken.None);
 
@@ -171,7 +169,6 @@ namespace Sleet.Azure.Tests
                 var result = await InitCommand.RunAsync(testContext.LocalSettings,
                     testContext.FileSystem,
                     enableCatalog: true,
-                    enableSymbols: true,
                     log: testContext.Logger,
                     token: CancellationToken.None);
 
@@ -218,7 +215,6 @@ namespace Sleet.Azure.Tests
                 var result = await InitCommand.RunAsync(testContext.LocalSettings,
                     testContext.FileSystem,
                     enableCatalog: true,
-                    enableSymbols: true,
                     log: testContext.Logger,
                     token: CancellationToken.None);
 

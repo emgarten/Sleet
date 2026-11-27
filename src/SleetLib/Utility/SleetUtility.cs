@@ -27,8 +27,6 @@ namespace Sleet
                     return ServiceNames.AutoComplete;
                 case "search":
                     return ServiceNames.Search;
-                case "symbols":
-                    return ServiceNames.Symbols;
                 default:
                     return ServiceNames.Unknown;
             }
@@ -104,11 +102,6 @@ namespace Sleet
 
             var catalog = new SleetStep(GetCatalogService(context), SleetPerfGroup.Catalog);
             result.Add(catalog);
-
-            if (context.SourceSettings.SymbolsEnabled)
-            {
-                result.Add(new SleetStep(new Symbols(context), SleetPerfGroup.Symbols));
-            }
 
             if (context.SourceSettings.BadgesEnabled)
             {

@@ -39,11 +39,9 @@ namespace Sleet
                 var existingPackageSets = await packageIndex.GetPackageSetsAsync();
 
                 var uniqueIds = existingPackageSets.Packages.Index
-                    .Concat(existingPackageSets.Symbols.Index)
                     .Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase);
 
                 log.LogMinimal($"Packages: {existingPackageSets.Packages.Index.Count}");
-                log.LogMinimal($"Symbols Packages: {existingPackageSets.Symbols.Index.Count}");
                 log.LogMinimal($"Unique package ids: {uniqueIds.Count()}");
             }
 

@@ -67,7 +67,16 @@ namespace Sleet
         /// <summary>
         /// Download packages. This method does not lock the feed or verify the client version.
         /// </summary>
-        public static async Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string? outputPath, bool ignoreErrors, bool skipExisting, ILogger log, CancellationToken token)
+        public static Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string? outputPath, bool ignoreErrors, bool skipExisting, ILogger log, CancellationToken token)
+        {
+            return DownloadPackages(settings, source, outputPath, ignoreErrors, skipExisting, includeSymbols: true, log: log, token: token);
+        }
+
+        /// <summary>
+        /// Download packages. This method does not lock the feed or verify the client version.
+        /// includeSymbols controls if .symbols.nupkg files left from the removed symbols server are downloaded.
+        /// </summary>
+        internal static async Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string? outputPath, bool ignoreErrors, bool skipExisting, bool includeSymbols, ILogger log, CancellationToken token)
         {
             if (string.IsNullOrEmpty(outputPath))
             {
@@ -94,14 +103,18 @@ namespace Sleet
             // Find all packages
             var packageIndex = new PackageIndex(context);
             var flatContainer = new FlatContainer(context);
-            var symbols = new Symbols(context);
+            var packageSets = await packageIndex.GetPackageSetsAsync();
 
             // Discover all packages
             var packages = new List<KeyValuePair<PackageIdentity, ISleetFile>>();
-            packages.AddRange((await packageIndex.GetPackagesAsync()).Select(e =>
+            packages.AddRange(packageSets.Packages.Index.Select(e =>
                 new KeyValuePair<PackageIdentity, ISleetFile>(e, context.Source.Get(flatContainer.GetNupkgPath(e)))));
-            packages.AddRange((await packageIndex.GetSymbolsPackagesAsync()).Select(e =>
-                new KeyValuePair<PackageIdentity, ISleetFile>(e, symbols.GetSymbolsNupkgFile(e))));
+
+            if (includeSymbols)
+            {
+                packages.AddRange(packageSets.Symbols.Index.Select(e =>
+                    new KeyValuePair<PackageIdentity, ISleetFile>(e, context.Source.Get(GetSymbolsNupkgPath(e)))));
+            }
 
             log.LogMinimal($"Downloading nupkgs to {outputPath}");
 
@@ -155,6 +168,16 @@ namespace Sleet
 
             await log.LogAsync(LogLevel.Information, $"Downloading {outputNupkgPath}");
             return await nupkgFile.CopyTo(outputNupkgPath, overwrite: !skipExisting, log: log, token: token);
+        }
+
+        /// <summary>
+        /// Path of a .symbols.nupkg stored by the removed symbols server.
+        /// </summary>
+        private static string GetSymbolsNupkgPath(PackageIdentity package)
+        {
+            var version = package.Version.ToNormalizedString();
+
+            return $"/symbols/packages/{package.Id}/{version}/{package.Id}.{version}.symbols.nupkg".ToLowerInvariant();
         }
     }
 }

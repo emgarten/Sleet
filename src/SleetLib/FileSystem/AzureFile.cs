@@ -97,12 +97,6 @@ namespace Sleet
                             disposeWriteStream = true;
                         }
                     }
-                    else if (_blob.Uri.AbsoluteUri.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
-                        || _blob.Uri.AbsoluteUri.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
-                    {
-                        blobHeaders.ContentType = "application/octet-stream";
-                        blobHeaders.CacheControl = _immutableCacheControl;
-                    }
                     else if (_blob.Uri.AbsoluteUri.EndsWith("/icon", StringComparison.Ordinal))
                     {
                         blobHeaders.ContentType = "image/png";

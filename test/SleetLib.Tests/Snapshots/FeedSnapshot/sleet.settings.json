@@ -21,12 +21,6 @@
       "@type": "FeedSetting",
       "key": "catalogpagesize",
       "value": "1024"
-    },
-    {
-      "@id": "https://example.org/feed/sleet.settings.json#symbolsfeedenabled",
-      "@type": "FeedSetting",
-      "key": "symbolsfeedenabled",
-      "value": "true"
     }
   ],
   "@context": {

@@ -8,7 +8,6 @@ namespace Sleet
         PackageIndex,
         AutoComplete,
         Search,
-        Symbols,
         FlatContainer,
         Badges
     }

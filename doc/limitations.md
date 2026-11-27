@@ -26,9 +26,9 @@ For the same reason, [package retention](retention.md) deletes old versions inst
 - `dotnet nuget delete` and `nuget delete` don't work either. Use [sleet delete](commands.md#delete).
 - Only one client can change a feed at a time. Others wait for the [feed lock](locking.md).
 
-## Symbol packages
+## Symbols
 
-The [symbol server](symbol-server.md) reads `.symbols.nupkg` packages, and `.pdb` files inside normal packages. It doesn't support the `.snupkg` format.
+Sleet 8.0 removed the symbol server. `push` skips `.symbols.nupkg` packages, and the `.snupkg` format isn't supported. Embed PDBs in the main package instead. See [symbol server](symbol-server.md).
 
 ## Authentication
 

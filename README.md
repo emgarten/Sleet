@@ -36,7 +36,6 @@ Sleet creates and updates NuGet v3 feeds as static files on Azure Blob Storage, 
 * **Fast.** Static feeds use the [NuGet v3 feed format](https://learn.microsoft.com/en-us/nuget/api/overview) so clients resolve packages with simple HTTP requests.
 * **Simple.** A straightforward command line tool to add, remove, and update packages.
 * **Flexible.** Configure credentials via [files](doc/client-settings.md), [environment variables](doc/environment-variables.md), command line args, .netconfig, or AWS-specific patterns to fit any workflow.
-* **Symbol server.** Serve `.pdb` files to debuggers from the same feed. See [symbol server](doc/symbol-server.md).
 * **Package retention.** Automatically prune old package versions with configurable stable/prerelease limits and release label grouping. See [package retention](doc/retention.md).
 * **Version badges.** Generate [shields.io](https://shields.io/)-compatible [version badges](doc/badges.md) for your packages.
 * **External search.** Plug in a custom [search endpoint](doc/external-search.md) for dynamic query results.

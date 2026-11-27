@@ -353,5 +353,99 @@ namespace SleetLib.Tests
                 log.GetMessages().Should().Contain($"Nupkgs have been saved to: {outputFolder.Root}");
             }
         }
+
+        [Fact]
+        public async Task GivenThatTheFeedHasLegacySymbolsPackagesVerifyRecreateFailsWithoutForce()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+
+                var packageA = new TestNupkg("a", "1.0");
+                packageA.Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder }, false, false, log);
+
+                TestUtility.AddLegacySymbolsServer(target.Root);
+                TestUtility.AddLegacySymbolsPackage(target.Root, packagesFolder.Root, "a", "1.0.0");
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
+
+                success.Should().BeFalse();
+                log.GetMessages(NuGet.Common.LogLevel.Error).Should().Contain("The feed contains 1 symbols packages.");
+
+                // The feed is unchanged
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
+                File.Exists(Path.Combine(target.Root, "symbols", "packages", "a", "1.0.0", "a.1.0.0.symbols.nupkg")).Should().BeTrue();
+                File.ReadAllText(Path.Combine(target.Root, "index.json")).Should().Contain("SymbolsServer/1.0.0");
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatTheFeedHasLegacySymbolsPackagesVerifyRecreateWithForceRemovesThem()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            using (var cache3 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+
+                var packageA = new TestNupkg("a", "1.0");
+                packageA.Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder }, false, false, log);
+
+                TestUtility.AddLegacySymbolsServer(target.Root);
+                TestUtility.AddLegacySymbolsPackage(target.Root, packagesFolder.Root, "a", "1.0.0");
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, true, log);
+
+                success.Should().BeTrue();
+                log.GetMessages(NuGet.Common.LogLevel.Warning).Should().Contain("Removing 1 symbols packages from the feed.");
+
+                var fileSystem3 = new PhysicalFileSystem(cache3, UriUtility.CreateUri(target.Root));
+
+                var finalPackages = (await fileSystem3.GetFiles(log, TestContext.Current.CancellationToken))
+                                    .Select(e => Path.GetFileName(e.EntityUri.LocalPath))
+                                    .Where(e => e.EndsWith(".nupkg"));
+
+                var packageSets = await new PackageIndex(new SleetContext()
+                {
+                    Token = TestContext.Current.CancellationToken,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem3,
+                    SourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(fileSystem3, log, TestContext.Current.CancellationToken)
+                }).GetPackageSetsAsync();
+
+                finalPackages.Should().BeEquivalentTo(new string[] { "a.1.0.0.nupkg" });
+                packageSets.Symbols.Index.Should().BeEmpty();
+                Directory.Exists(Path.Combine(target.Root, "symbols")).Should().BeFalse();
+                File.ReadAllText(Path.Combine(target.Root, "sleet.settings.json")).Should().NotContain("symbolsfeedenabled");
+
+                // The recreated feed no longer warns about the symbols server
+                var log2 = new TestLogger();
+                await UpgradeUtility.EnsureCompatibility(fileSystem3, log2, TestContext.Current.CancellationToken);
+
+                log2.GetMessages(NuGet.Common.LogLevel.Warning).Should().BeEmpty();
+            }
+        }
     }
 }

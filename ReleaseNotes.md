@@ -2,6 +2,13 @@
 
 ## 8.0.0
 * Removed net9.0 support. .NET 8 and 9 are out of support; the net8.0 build is kept for compatibility and also runs on .NET 9.
+* Removed the symbol server. Embed PDBs in your packages instead. See [symbol server](doc/symbol-server.md)
+  * Removed `sleet init --with-symbols` and the `symbolsfeedenabled` feed setting
+  * `sleet push` skips `.symbols.nupkg` files with a warning
+  * Feeds that use the symbol server keep working and show a warning. Files under `symbols/` are no longer updated
+  * `sleet recreate` removes the symbol server from a feed. If the feed has `.symbols.nupkg` files, back them up with `sleet download` and run `sleet recreate --force`
+  * `sleet download` still downloads `.symbols.nupkg` files
+  * Removed the symbols APIs from SleetLib. `InitCommand.RunAsync` no longer takes `enableSymbols`
 * Updated System.Security.Cryptography.Pkcs to 11.0.0 to address advisories GHSA-2fmv-rv2c-59x7 and GHSA-846f-f764-76mx
 * Fixed `sleet` failing to start when installed with `dotnet tool install --allow-roll-forward` [Issue](https://github.com/emgarten/Sleet/issues/247)
 * Added a `provider` setting for `s3` feeds hosted on S3 compatible storage

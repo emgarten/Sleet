@@ -146,12 +146,6 @@ namespace Sleet
                         disposeWriteStream = true;
                     }
                 }
-                else if (key.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
-                         || key.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
-                {
-                    cacheControl = immutableCacheControl;
-                    contentType = "application/octet-stream";
-                }
                 else
                 {
                     log.LogWarning($"Unknown file type: {absoluteUri}");

@@ -47,15 +47,10 @@ namespace Sleet
         }
 
         /// <summary>
-        /// Returns the nupkg URI. This will be different for Symbols packages.
+        /// Returns the nupkg URI.
         /// </summary>
         public Uri GetNupkgUri(SleetContext context)
         {
-            if (IsSymbolsPackage)
-            {
-                return context.Source.Get(SymbolsIndexUtility.GetSymbolsNupkgPath(Identity)).EntityUri;
-            }
-
             return FlatContainer.GetNupkgPath(context, Identity);
         }
 
@@ -204,16 +199,18 @@ namespace Sleet
         /// </summary>
         public static PackageInput Create(string file)
         {
-            PackageInput? result = null;
-
-            using (var zip = new ZipArchive(File.OpenRead(file), ZipArchiveMode.Read, leaveOpen: false))
             using (var reader = new PackageArchiveReader(file))
             {
-                var isSymbolsPackage = SymbolsUtility.IsSymbolsPackage(zip, file);
-                result = new PackageInput(file, isSymbolsPackage, reader.NuspecReader);
+                return new PackageInput(file, IsSymbolsPackagePath(file), reader.NuspecReader);
             }
+        }
 
-            return result;
+        /// <summary>
+        /// True if the file name ends with .symbols.nupkg
+        /// </summary>
+        private static bool IsSymbolsPackagePath(string path)
+        {
+            return path.EndsWith(".symbols.nupkg", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

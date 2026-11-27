@@ -7,9 +7,7 @@ using AwesomeAssertions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
-using NuGet.Packaging.Core;
 using NuGet.Test.Helpers;
-using NuGet.Versioning;
 using Sleet;
 using Sleet.Test.Common;
 using Xunit;
@@ -131,39 +129,6 @@ namespace SleetLib.Tests
             }
         }
 
-        [Theory]
-        [InlineData(false, "Checking package indexes")]
-        [InlineData(true, "Checking symbols package indexes")]
-        public async Task ValidateCommand_WithSymbolsIndexMismatchReturnsFalse(bool isSymbolsPackage, string expectedMessage)
-        {
-            using (var testContext = await CreateSymbolsFeedAsync(isSymbolsPackage))
-            {
-                var context = testContext.SleetContext;
-                var path = SymbolsIndexUtility.GetAssemblyToPackageIndexPath("a.dll", "A7F83EF08000");
-                var package = new PackageIdentity("a", NuGetVersion.Parse("1.0.0"));
-                var assemblyPackageIndex = new AssetIndexFile(context, path, package);
-
-                if (isSymbolsPackage)
-                {
-                    await assemblyPackageIndex.AddAssetsAsync(await assemblyPackageIndex.GetSymbolsAssetsAsync());
-                }
-                else
-                {
-                    await assemblyPackageIndex.AddSymbolsAssetsAsync(await assemblyPackageIndex.GetAssetsAsync());
-                }
-
-                await context.Source.Commit(context.Log, context.Token);
-
-                var log = new TestLogger();
-                var result = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, log);
-
-                result.Should().BeFalse();
-                log.GetMessages().Should().Contain(expectedMessage);
-                log.GetMessages().Should().Contain("a 1.0.0");
-                log.GetMessages().Should().Contain("Feed invalid!");
-            }
-        }
-
         private static async Task<SleetTestContext> CreateBasicFeedAsync()
         {
             var testContext = new SleetTestContext();
@@ -172,30 +137,6 @@ namespace SleetLib.Tests
             context.SourceSettings.CatalogEnabled = true;
 
             var testPackage = new TestNupkg("a", "1.0.0");
-            var zipFile = testPackage.Save(testContext.Packages);
-
-            await InitCommand.InitAsync(context);
-            var pushResult = await PushCommand.RunAsync(context.LocalSettings, context.Source, new List<string>() { zipFile.FullName }, false, false, context.Log);
-            pushResult.Should().BeTrue(((TestLogger)context.Log).GetMessages(LogLevel.Error));
-
-            var validateResult = await ValidateCommand.RunAsync(context.LocalSettings, context.Source, context.Log);
-            validateResult.Should().BeTrue(((TestLogger)context.Log).GetMessages(LogLevel.Error));
-
-            return testContext;
-        }
-
-        private static async Task<SleetTestContext> CreateSymbolsFeedAsync(bool isSymbolsPackage)
-        {
-            var testContext = new SleetTestContext();
-            var context = testContext.SleetContext;
-            context.Token = TestContext.Current.CancellationToken;
-            context.SourceSettings.SymbolsEnabled = true;
-
-            var testPackage = new TestNupkg("a", "1.0.0");
-            testPackage.Files.Clear();
-            testPackage.AddFile("lib/net45/a.dll", TestUtility.GetResource("SymbolsTestAdll").GetBytes());
-            testPackage.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
-            testPackage.Nuspec.IsSymbolPackage = isSymbolsPackage;
             var zipFile = testPackage.Save(testContext.Packages);
 
             await InitCommand.InitAsync(context);
