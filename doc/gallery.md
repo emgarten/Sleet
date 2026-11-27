@@ -55,6 +55,10 @@ Anyone who can push to a feed controls its readmes, so the gallery limits what a
 - Only absolute `http` and `https` images are shown. They load from the site in their URL without sending the gallery's address. An image with a relative path, or one that fails to load, shows its alt text.
 - Readmes larger than 1 MB show as plain text.
 
+### Link previews
+
+When you share a link to the gallery in an app that previews links, such as Slack, Discord, or Microsoft Teams, the preview shows the title *Sleet package feed* and the description *Browse the NuGet packages on this feed.* Links to a package or a version get the same preview. The part of a URL after `#` isn't sent to the server, and preview services don't run the page's script, so every view looks the same to them. The preview has no image, and it appears only when the feed is publicly readable.
+
 ## Enable or disable the gallery
 
 The `galleryenabled` feed setting controls the gallery. Feed settings are stored in `sleet.settings.json` on the feed, so the setting applies to everyone who pushes to the feed. It defaults to `true`, and a feed that doesn't have the setting, such as a feed created by an older version of Sleet, is treated as `true`.
