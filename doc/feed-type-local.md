@@ -4,10 +4,10 @@ A local feed writes the Sleet feed to a folder on disk. To use that feed over th
 
 ## Create a local configuration
 
-Run `createconfig` to create a starter `sleet.json`:
+Run `create-config` to create a starter `sleet.json`:
 
 ```powershell
-sleet createconfig --local
+sleet create-config --local
 ```
 
 The local template uses the current directory plus `myfeed` for `path`, and `https://example.com/feed/` for `baseURI`:

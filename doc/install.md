@@ -68,7 +68,7 @@ Every `sleet` command in these docs also works as `dotnet sleet`. See Microsoft'
 With the .NET 10 SDK or later, [dnx](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-tool-exec) downloads Sleet and runs it in one step:
 
 ```bash
-dnx sleet createconfig --azure
+dnx sleet create-config --azure
 ```
 
 ## Sleet.exe for Windows

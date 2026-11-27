@@ -28,7 +28,7 @@ If you skip this step, the first push fails with a `PublicAccessNotPermitted` er
 Create a starter `sleet.json` file:
 
 ```bash
-sleet createconfig --azure
+sleet create-config --azure
 ```
 
 The template uses a connection string. Replace the source with one that uses `path`, and delete the `connectionString` property:

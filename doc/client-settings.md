@@ -4,13 +4,13 @@ Sleet reads feed settings from a `sleet.json` file, a `.netconfig` file, or [env
 
 ## sleet.json
 
-Create a starter file in the current folder with `createconfig`:
+Create a starter file in the current folder with `create-config`:
 
 ```bash
-sleet createconfig --azure
+sleet create-config --azure
 ```
 
-Use `--s3`, `--local`, or `--none` for other templates. `createconfig` fails if `sleet.json` already exists.
+Use `--s3`, `--local`, or `--none` for other templates. `create-config` fails if `sleet.json` already exists.
 
 A `sleet.json` file has a list of sources, plus optional global and proxy settings:
 
@@ -33,7 +33,7 @@ A `sleet.json` file has a list of sources, plus optional global and proxy settin
 }
 ```
 
-Files made by `createconfig` also have `username` and `useremail` properties. Sleet doesn't use them, so you can remove them.
+Files made by `create-config` also have `username` and `useremail` properties. Sleet doesn't use them, so you can remove them.
 
 Property names aren't case-sensitive.
 

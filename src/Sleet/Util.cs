@@ -54,7 +54,7 @@ namespace Sleet
 
                     if (names.Count < 1)
                     {
-                        message = "The local settings file is missing or does not contain any sources. Use 'CreateConfig' to add a source.";
+                        message = "The local settings file is missing or does not contain any sources. Use 'create-config' to add a source.";
                     }
                     else
                     {

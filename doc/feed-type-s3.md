@@ -15,7 +15,7 @@ Use bucket names without dots. Dots in bucket names can break TLS with virtual-h
 Create a starter `sleet.json` file:
 
 ```bash
-sleet createconfig --s3
+sleet create-config --s3
 ```
 
 The generated source looks like this:
