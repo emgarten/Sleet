@@ -40,8 +40,8 @@ namespace Sleet.UX.Tests
             await Expect(Page.Locator("body")).ToHaveCSSAsync("background-color", LightBackground);
             await Expect(Mode).ToHaveAttributeAsync("aria-label", "Switch to dark mode");
 
-            await OpenAsync("#package/Contoso.Core");
-            await Expect(Count).ToHaveTextAsync("3 versions");
+            await Page.ReloadAsync();
+            await Expect(Count).ToHaveTextAsync("45 packages");
             await Expect(Page.Locator("html")).ToHaveAttributeAsync("data-theme", "light");
             await Expect(Mode).ToHaveAttributeAsync("aria-label", "Switch to dark mode");
         }
