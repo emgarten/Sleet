@@ -95,7 +95,7 @@ Function Invoke-Exe {
     }
 }
 
-# True if dotnet has the SDK from global.json. The functional tests don't need other runtimes.
+# True if dotnet has the SDK from global.json and the runtime used by the tests
 Function Test-Dotnet([string]$Dotnet) {
     if (-not $Dotnet -or -not (Test-Path $Dotnet)) {
         return $false
@@ -103,16 +103,23 @@ Function Test-Dotnet([string]$Dotnet) {
 
     $ErrorActionPreference = "Continue"
     & $Dotnet --version *> $null
-    return $LASTEXITCODE -eq 0
+
+    if ($LASTEXITCODE -ne 0) {
+        return $false
+    }
+
+    $runtimes = (& $Dotnet --list-runtimes) -join "`n"
+    return $runtimes -match "(?m)^Microsoft\.NETCore\.App 10\."
 }
 
-# Install the SDK from global.json to .dotnet
+# Install the SDK from global.json and the runtime used by the tests to .dotnet
 Function Install-Dotnet {
     New-Item -ItemType Directory -Force -Path $DotnetDir | Out-Null
     $installScript = Join-Path $DotnetDir "dotnet-install.ps1"
     Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile $installScript -UseBasicParsing
 
     & $installScript -JsonFile (Join-Path $RepoRoot "global.json") -InstallDir $DotnetDir -NoPath
+    & $installScript -Runtime dotnet -Channel 10.0 -InstallDir $DotnetDir -NoPath
 }
 
 # True if Docker is running and none of the local-env services are
