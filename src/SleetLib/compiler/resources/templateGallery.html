@@ -5,87 +5,169 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Sleet package feed</title>
+<script>
+// Applied before the page draws so a reader who chose light mode never sees
+// a flash of the dark default.
+try {
+  if (localStorage.getItem("sleet-gallery-mode") === "light") document.documentElement.setAttribute("data-theme", "light");
+} catch (e) { }
+</script>
 <style>
+/* Dark by default. The toggle in the header sets data-theme="light" and
+   remembers the choice for this site. */
 :root{
-  --bg:#ffffff; --fg:#1f2328; --muted:#59636e; --line:#d1d9e0;
-  --accent:#0969da; --chip:#eef2f5; --card:#ffffff; --danger:#d1242f;
+  color-scheme:dark;
+  --bg:#1b1a19; --card:#252423; --fg:#f3f2f1; --muted:#a19f9d; --line:#3b3a39; --strong:#797775;
+  --field-line:#605e5c; --hover:#323130; --chip:#323130; --accent:#2899f5;
+  --btn:#0078d4; --btn-hover:#1a86d9; --ok:#6ccb5f; --ok-bg:#1d3a1d;
+  --warn-bg:#433519; --warn-line:#6b5a1a; --warn-icon:#c8c6c4;
+  --danger:#f1707b; --danger-bg:#442726; --danger-line:#6e3a3c; --glyph:#797775; --icon-bg:#edebe9;
+  --depth:0 1.6px 3.6px rgba(0,0,0,.4),0 .3px .9px rgba(0,0,0,.3);
+  --depth-hi:0 6.4px 14.4px rgba(0,0,0,.45),0 1.2px 3.6px rgba(0,0,0,.35);
+  --i-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a19f9d' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E");
+  --i-mode:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41'/%3E%3C/svg%3E");
+  --i-glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.9 20.4 7.4v9.2L12 21.1 3.6 16.6V7.4z'/%3E%3Cpath d='M3.6 7.4 12 12l8.4-4.6'/%3E%3Cpath d='M12 12v9.1'/%3E%3C/svg%3E");
+  --i-download:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v11m-5-5 5 5 5-5M5 19h14'/%3E%3C/svg%3E");
+  --i-alert:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5 2.5 20h19z'/%3E%3Cpath d='M12 10v4.5M12 17.2v.1'/%3E%3C/svg%3E");
+  --i-x:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m9 9 6 6m0-6-6 6'/%3E%3C/svg%3E");
 }
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --line:#3d444d;
-    --accent:#4493f8; --chip:#212830; --card:#151b23; --danger:#f85149;
-  }
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f8f8f8; --card:#fff; --fg:#201f1e; --muted:#605e5c; --line:#edebe9; --strong:#8a8886;
+  --field-line:#d1d1d1; --hover:#f3f2f1; --chip:#f3f2f1; --accent:#0078d4;
+  --btn:#0078d4; --btn-hover:#106ebe; --ok:#107c10; --ok-bg:#dff6dd;
+  --warn-bg:#fff4ce; --warn-line:#f7e28b; --warn-icon:#797673;
+  --danger:#a4262c; --danger-bg:#fde7e9; --danger-line:#f1bbbc; --glyph:#a19f9d; --icon-bg:#fff;
+  --depth:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+  --depth-hi:0 6.4px 14.4px rgba(0,0,0,.13),0 1.2px 3.6px rgba(0,0,0,.11);
+  --i-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23605e5c' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E");
+  --i-mode:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z'/%3E%3C/svg%3E");
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);
-  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
-header{border-bottom:1px solid var(--line);padding:12px 20px;display:flex;
-  flex-wrap:wrap;gap:12px;align-items:center;position:sticky;top:0;background:var(--bg);z-index:1}
-h1{font-size:17px;margin:0;font-weight:600;white-space:nowrap;letter-spacing:-.01em}
-h1 a{color:inherit;text-decoration:none}
-h1 a:hover{color:var(--accent)}
-#search{flex:1;min-width:220px;padding:7px 11px;border:1px solid var(--line);
-  border-radius:6px;background:var(--bg);color:var(--fg);font-size:14px}
-#search:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
-main{max-width:1000px;margin:0 auto;padding:20px}
+  font:14px/20px "Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+a:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
+.mono,.pick,.readme,.group h4{font-family:"Cascadia Mono",ui-monospace,Consolas,SFMono-Regular,"Liberation Mono",monospace}
 .meta{color:var(--muted);font-size:12px;white-space:nowrap}
-.mono{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
-.pkg{border:1px solid var(--line);border-radius:6px;background:var(--card);
-  padding:12px 14px;margin-bottom:8px}
+
+header{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;min-height:48px;
+  padding:8px max(20px,calc((100% - 1000px)/2 + 20px));background:var(--card);box-shadow:var(--depth)}
+h1{margin:0;font-size:16px;font-weight:600;white-space:nowrap}
+h1 a{color:var(--fg);display:inline-flex;align-items:center;gap:10px}
+h1 a:hover{text-decoration:none}
+h1 a::before{content:"";width:28px;height:28px;border-radius:4px;
+  background:#0078d4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.9 20.4 7.4v9.2L12 21.1 3.6 16.6V7.4z'/%3E%3Cpath d='M3.6 7.4 12 12l8.4-4.6'/%3E%3Cpath d='M12 12v9.1'/%3E%3C/svg%3E") center/18px no-repeat}
+#search{flex:1;min-width:200px;max-width:480px;height:32px;padding:0 10px 0 34px;border:1px solid var(--field-line);
+  border-bottom-color:var(--strong);border-radius:4px;background:var(--card) var(--i-search) 10px center/16px no-repeat;
+  color:var(--fg);font:inherit}
+#search::placeholder{color:var(--muted)}
+#search:hover{border-color:var(--strong)}
+#search:focus{outline:none;border-color:var(--field-line);border-bottom-color:var(--accent);box-shadow:inset 0 -1px 0 var(--accent)}
+#count{margin-left:auto}
+#mode{flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;
+  border:0;border-radius:4px;background:none;color:var(--fg);cursor:pointer}
+#mode:hover{background:var(--hover)}
+#mode:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
+#mode::before{content:"";width:18px;height:18px;background:currentColor;
+  -webkit-mask:var(--i-mode) center/contain no-repeat;mask:var(--i-mode) center/contain no-repeat}
+
+main{max-width:1000px;margin:0 auto;padding:20px}
+
+#body:has(> .pkg){background:var(--card);border-radius:4px;box-shadow:var(--depth);overflow:hidden}
+.pkg{position:relative;padding:10px 16px;border-bottom:1px solid var(--line)}
+.pkg:nth-last-child(2){border-bottom:0}
+.pkg:hover{background:var(--hover);box-shadow:inset 3px 0 0 var(--accent)}
 .pkg-head{display:flex;gap:14px;align-items:flex-start}
 .pkg .pkg-head{align-items:center}
-.icon-slot{width:48px;height:48px;flex:none;border-radius:8px;overflow:hidden;
-  border:1px solid var(--line);
-  background:var(--chip) center/26px 26px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c959f' stroke-width='1.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.9 20.4 7.4v9.2L12 21.1 3.6 16.6V7.4z'/%3E%3Cpath d='M3.6 7.4 12 12l8.4-4.6'/%3E%3Cpath d='M12 12v9.1'/%3E%3C/svg%3E")}
-.icon-slot.lg{width:64px;height:64px;background-size:34px 34px}
-.icon{width:100%;height:100%;display:block;object-fit:contain;background:var(--card)}
 .grow{flex:1;min-width:0}
-.pkg-title{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
-.pkg-id{font-size:15px;font-weight:600;color:var(--accent);text-decoration:none}
-.pkg-id:hover{text-decoration:underline}
-.ver{font-size:12px;color:var(--muted)}
-.facts{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 7px;margin-top:3px;
-  font-size:12px;color:var(--muted)}
-.dot{opacity:.55}
-.desc{margin:6px 0 0}
-.desc:empty{display:none}
-.tags{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
-.tag{background:var(--chip);border-radius:999px;padding:1px 9px;font-size:11px;color:var(--muted)}
-td .tag{margin-left:8px}
-.sub{margin-top:6px;font-size:12px;color:var(--muted)}
-.sub:empty{display:none}
-a{color:var(--accent)}
-.pager{display:flex;gap:16px;align-items:center;justify-content:center;
-  padding:16px 0 4px;font-size:13px}
+.icon-slot{position:relative;width:36px;height:36px;flex:none;border-radius:4px;overflow:hidden;background:var(--chip)}
+.icon-slot::before{content:"";position:absolute;inset:0;background:var(--glyph);
+  -webkit-mask:var(--i-glyph) center/20px no-repeat;mask:var(--i-glyph) center/20px no-repeat}
+.icon-slot.lg{width:72px;height:72px;border-radius:6px}
+.icon-slot.lg::before{-webkit-mask-size:38px;mask-size:38px}
+.icon{position:relative;display:block;width:100%;height:100%;object-fit:contain;background:var(--icon-bg)}
+.pkg-title{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.pkg-id{font-weight:600;color:var(--fg);overflow-wrap:anywhere}
+.pkg-id::after{content:"";position:absolute;inset:0}
+.pkg:hover .pkg-id{color:var(--accent);text-decoration:underline}
+.pkg-id:focus-visible{outline:none}
+.pkg-id:focus-visible::after{outline:2px solid var(--fg);outline-offset:-2px}
+.facts{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;font-size:12px;color:var(--muted)}
+.dot{opacity:.6}
+
+.pager{display:flex;align-items:center;gap:4px;padding:6px 12px;border-top:1px solid var(--line)}
+.pager:empty{display:none}
+.pager .meta{order:-1;margin-right:auto;padding-left:4px}
+.pager a,.pager .off{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:4px;color:var(--fg);font-weight:600}
+.pager a:hover{background:var(--hover);text-decoration:none}
 .off{color:var(--muted);opacity:.5}
-.crumbs{display:flex;flex-wrap:wrap;gap:7px;align-items:center;
-  margin-bottom:14px;font-size:13px;color:var(--muted)}
-.crumbs a{text-decoration:none}
-.crumbs a:hover{text-decoration:underline}
-h2{font-size:22px;margin:0;word-break:break-all}
-h3{font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-.group{margin-top:4px}
-.group + .group{margin-top:18px}
-.group h4{display:inline-block;margin:0 0 6px;font-size:12px;font-weight:600;
-  font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;
-  background:var(--chip);border:1px solid var(--line);border-radius:5px;padding:2px 8px}
-.panel{border-top:1px solid var(--line);margin-top:22px;padding-top:16px}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;
-  padding:0 10px 4px 0;border-bottom:1px solid var(--line)}
-td{padding:5px 10px 5px 0;border-bottom:1px solid var(--line);vertical-align:top}
+
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin:0 0 12px -8px;color:var(--muted)}
+.crumbs > *{overflow-wrap:anywhere}
+.crumbs > a,.crumbs > span:not(.dot){padding:4px 8px;border-radius:4px}
+.crumbs > a{color:var(--muted)}
+.crumbs > a:hover{background:var(--hover);color:var(--fg);text-decoration:none}
+.crumbs > :last-child{color:var(--fg);font-weight:600}
+
+#body > .pkg-head{gap:20px;padding:20px 24px;background:var(--card);border-radius:4px;box-shadow:var(--depth)}
+h2{margin:0;font-size:24px;line-height:32px;font-weight:600;overflow-wrap:anywhere}
+.ver{padding:2px 8px;border-radius:4px;background:var(--chip);font-size:13px;color:var(--fg)}
+.desc{margin:8px 0 0;overflow-wrap:anywhere}
+.sub{margin-top:4px;font-size:12px;color:var(--muted)}
+.desc:empty,.sub:empty{display:none}
+.sub:has(> a){font-size:0;margin-top:14px}
+.sub > a{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 16px;margin:0 8px 8px 0;border:1px solid var(--strong);
+  border-radius:4px;background:var(--card);color:var(--fg);font-size:14px;font-weight:600;vertical-align:middle}
+.sub > a:hover{background:var(--hover);text-decoration:none}
+.sub > a[href$=".nupkg"]{background:var(--btn);border-color:var(--btn);color:#fff}
+.sub > a[href$=".nupkg"]:hover{background:var(--btn-hover);border-color:var(--btn-hover)}
+.sub > a[href$=".nupkg"]::before{content:"";width:16px;height:16px;background:currentColor;
+  -webkit-mask:var(--i-download) center/contain no-repeat;mask:var(--i-download) center/contain no-repeat}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{display:inline-block;padding:0 8px;border-radius:4px;background:var(--chip);font-size:12px;line-height:22px}
+td .tag{margin-left:8px;padding:0 8px;border-radius:999px;background:var(--ok-bg);color:var(--ok);font-weight:600;line-height:18px}
+
+.panel{margin-top:16px;padding:16px 20px;background:var(--card);border-radius:4px;box-shadow:var(--depth)}
+h3{margin:0 0 10px;font-size:16px;line-height:22px;font-weight:600}
+.panel > p{margin:0}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tr:not(:has(th)):hover td{background:var(--hover)}
 td:first-child,th:first-child{white-space:nowrap}
-.pick{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
-.note{color:var(--muted);font-size:12px;margin:0 0 14px}
-.readme{background:var(--chip);border:1px solid var(--line);border-radius:6px;
-  padding:12px 14px;margin:0;max-height:420px;overflow:auto;white-space:pre-wrap;
-  word-break:break-word;font-size:12.5px;
-  font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
-.empty{color:var(--muted);padding:48px 0;text-align:center}
-.err{border:1px solid var(--danger);border-radius:6px;padding:12px 14px}
-.err p{margin:6px 0 0;color:var(--muted);font-size:13px}
-.err p.mono{font-size:12px;word-break:break-all}
-footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);font-size:11px}
+.group + .group{margin-top:16px}
+.group h4{display:inline-block;margin:0 0 4px;padding:2px 8px;border-radius:4px;background:var(--chip);font-size:13px;font-weight:600}
+.group p{margin:4px 0 0;color:var(--muted)}
+.group td{padding:7px 12px}
+.group td:first-child{white-space:normal;overflow-wrap:anywhere}
+@media (min-width:640px){.group td:last-child{width:40%}}
+.readme{margin:0;padding:12px 16px;max-height:520px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;
+  background:var(--bg);border:1px solid var(--line);border-radius:4px;font-size:13px;line-height:20px}
+
+.note{position:relative;margin:0 0 12px;padding:8px 12px 8px 36px;background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:4px}
+.note::before{content:"";position:absolute;left:12px;top:10px;width:16px;height:16px;background:var(--warn-icon);
+  -webkit-mask:var(--i-alert) center/contain no-repeat;mask:var(--i-alert) center/contain no-repeat}
+.empty{margin:0;padding:48px 0;text-align:center;color:var(--muted)}
+.err{position:relative;padding:12px 16px 12px 42px;background:var(--danger-bg);border:1px solid var(--danger-line);border-radius:4px}
+.err::before{content:"";position:absolute;left:14px;top:13px;width:18px;height:18px;background:var(--danger);
+  -webkit-mask:var(--i-x) center/contain no-repeat;mask:var(--i-x) center/contain no-repeat}
+.err p{margin:4px 0 0}
+.err p.mono{font-size:12px;color:var(--muted);word-break:break-all}
+
+footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);font-size:12px}
+
+@media (max-width:560px){
+  #search{order:3;flex-basis:100%;max-width:none}
+  main{padding:12px}
+  #body > .pkg-head{padding:16px}
+  .icon-slot.lg{width:56px;height:56px}
+  h2{font-size:20px;line-height:28px}
+  .panel{padding:12px 14px}
+  th,td{padding-left:8px;padding-right:8px}
+}
 </style>
 </head>
 <body>
@@ -93,6 +175,7 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   <h1><a href="#">Sleet</a></h1>
   <input id="search" type="search" placeholder="Filter by package id&#8230;" aria-label="Filter packages by id" autocomplete="off">
   <span class="meta" id="count"></span>
+  <button type="button" id="mode" aria-label="Switch to light mode" title="Switch to light mode"></button>
 </header>
 <main>
   <div id="body"><p class="empty">Loading&#8230;</p></div>
@@ -836,6 +919,28 @@ footer{max-width:1000px;margin:0 auto;padding:8px 20px 32px;color:var(--muted);f
   });
 
   window.addEventListener("hashchange", route);
+
+  // Dark is the default. The choice is saved, so it holds on every visit and
+  // across the feeds on the same site.
+  var elMode = document.getElementById("mode");
+
+  function showMode() {
+    var label = document.documentElement.getAttribute("data-theme") === "light" ? "Switch to dark mode" : "Switch to light mode";
+    elMode.setAttribute("aria-label", label);
+    elMode.title = label;
+  }
+
+  elMode.addEventListener("click", function () {
+    var light = document.documentElement.getAttribute("data-theme") !== "light";
+    if (light) document.documentElement.setAttribute("data-theme", "light");
+    else document.documentElement.removeAttribute("data-theme");
+    try {
+      localStorage.setItem("sleet-gallery-mode", light ? "light" : "dark");
+    } catch (e) { }
+    showMode();
+  });
+
+  showMode();
 
   // sleet.packageindex.json is the smallest complete view of the feed. It
   // carries every id and version, which is all the top level list, the id

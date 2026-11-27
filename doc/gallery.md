@@ -38,6 +38,8 @@ The filter box at the top of the page shows only the packages whose id contains 
 
 The latest version is the newest stable version, or the newest prerelease version when a package has no stable version. Packages without an icon show a generic one.
 
+The gallery opens in dark mode. The button at the right of the header switches between dark and light mode, and the browser remembers the choice for the site.
+
 A version page shows the package's title, description, authors, publish date, tags, project and license links, links to download the `.nupkg` and view the `.nuspec`, the dependencies for each target framework, and the readme. Dependencies on packages from the same feed link to those packages. Readmes show as plain text, not rendered markdown.
 
 Ids and versions in a URL match regardless of case, and versions match in any form that NuGet treats as equal, such as `1.0` for `1.0.0`. If the version in a URL isn't on the feed, the page shows the latest version instead and says so.
