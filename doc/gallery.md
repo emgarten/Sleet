@@ -26,13 +26,14 @@ Open the gallery over http or https. Browsers don't let a page opened from disk 
 
 ## Browse packages
 
-The gallery has three views. Each view has its own URL, so you can bookmark it, share it, and return to it with the browser's back button.
+The gallery has four views. Each view has its own URL, so you can bookmark it, share it, and return to it with the browser's back button.
 
 | View | URL | Shows |
 | --- | --- | --- |
 | Packages | `index.html` | Package ids in alphabetical order, 20 per page, each with its icon, latest version, and number of versions |
 | Package | `index.html#package/{id}` | Every version of one package, with its publish date |
 | Version | `index.html#package/{id}/{version}` | The details of one version |
+| Nuspec | `index.html#package/{id}/{version}/nuspec` | The `.nuspec` file of one version, as text |
 
 The filter box at the top of the page shows only the packages whose id contains the text you type, ignoring case. The URL keeps the filter and the page number, such as `index.html#q=storage&page=2`.
 
@@ -40,7 +41,7 @@ The latest version is the newest stable version, or the newest prerelease versio
 
 The gallery opens in dark mode. The button at the right of the header switches between dark and light mode, and the browser remembers the choice for the site.
 
-A version page shows the package's title, description, authors, publish date, tags, a link to the project, links to download the `.nupkg` and view the `.nuspec`, the dependencies for each target framework, and the readme. Dependencies on packages from the same feed link to those packages.
+A version page shows the package's title, description, authors, publish date, tags, a link to the project, links to download the `.nupkg` and view the `.nuspec`, the dependencies for each target framework, and the readme. The `.nuspec` opens in the gallery as text. The project link appears only when the package's project URL is an absolute `http` or `https` URL on another site. Dependencies on packages from the same feed link to those packages.
 
 Ids and versions in a URL match regardless of case, and versions match in any form that NuGet treats as equal, such as `1.0` for `1.0.0`. If the version in a URL isn't on the feed, the page shows the latest version instead and says so.
 
@@ -51,8 +52,9 @@ The gallery renders a package's readme as markdown. It supports CommonMark and t
 Anyone who can push to a feed controls its readmes, so the gallery limits what a readme can do:
 
 - HTML isn't rendered. Formatting tags such as `<p>`, `<b>`, and `<a>` are removed and their text is kept, `<br>` and `<img>` work like their markdown versions, and other tags, such as `<script>`, show as text.
-- Only absolute `http`, `https`, and `mailto` links are followed. Other links, including relative links such as `docs/usage.md`, show as text.
-- Only absolute `http` and `https` images are shown. They load from the site in their URL without sending the gallery's address. An image with a relative path, or one that fails to load, shows its alt text.
+- Only absolute `http`, `https`, and `mailto` links to other sites are followed. Other links, including relative links such as `docs/usage.md` and links to the feed's own site, show as text.
+- Only absolute `http` and `https` images are shown, and they load without sending the gallery's address. An image with a relative path, or one that fails to load, shows its alt text.
+- Images from the feed's own site, and from the [image and badge hosts that nuget.org allows](https://learn.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org#allowed-domains-for-images-and-badges), such as `img.shields.io`, load with the readme. Loading an image tells its site that someone is reading the readme, so images from other sites show their alt text until you select **Show images** above the readme.
 - Readmes larger than 1 MB show as plain text.
 
 ### Link previews
@@ -131,9 +133,12 @@ The gallery is a single, self-contained HTML file with no external dependencies.
 - `sleet.packageindex.json`, once when the page loads. It lists every package id and version, which is all that the package list, the filter, and paging need.
 - `registration/{id}/index.json`, when you open a package, for its versions, metadata, and dependencies. Browsing the package list never downloads these files.
 - `flatcontainer/{id}/{version}/icon` and `flatcontainer/{id}/{version}/readme`, when a package has them.
+- `flatcontainer/{id}/{version}/{id}.nuspec`, when you view a version's `.nuspec`.
 
 The gallery doesn't use the search resource. It's a single large file that covers the whole feed, and [external search](external-search.md) can point it at a different service.
 
-All requests for the feed's files use URLs relative to the page, so the gallery works under any host name that serves the feed and never needs CORS settings. A query string on the page URL, such as an Azure SAS token, isn't passed on to these requests. Images in a readme load from the sites in their URLs.
+All requests for the feed's files use URLs relative to the page, so the gallery works under any host name that serves the feed and never needs CORS settings. A query string on the page URL, such as an Azure SAS token, isn't passed on to these requests. Images in a readme load from the sites in their URLs, see [readmes](#readmes).
+
+The page has a Content-Security-Policy that lets it run only its own script and styles, and read files only from the site that serves it. Services that rewrite the scripts in a page as they serve it, such as Cloudflare Rocket Loader, stop the gallery from loading, so turn them off for the feed. Scripts that a service adds to the page, such as analytics, are blocked.
 
 If the page can't read `sleet.packageindex.json`, it shows *Unable to read this feed*, which usually means that the feed isn't publicly readable. If a single package can't be read, the error shows on that package's page, and the rest of the feed stays browsable.

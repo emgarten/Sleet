@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
@@ -302,6 +305,38 @@ namespace SleetLib.Tests
                 // package cannot inject script into the feed origin.
                 html.Should().NotContain("innerHTML");
                 html.Should().Contain("safeUrl(e.projectUrl)");
+            }
+        }
+
+        [Fact]
+        public async Task GivenInitVerifyGalleryPolicyAllowsOnlyItsOwnScriptsAndStyles()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                // Act
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: log, token: TestContext.Current.CancellationToken);
+                var html = File.ReadAllText(Path.Combine(target.Root, "index.html"));
+
+                // Assert
+                success.Should().BeTrue();
+
+                // Browsers hash the text between the tags after the parser normalizes line endings to LF.
+                var text = html.Replace("\r\n", "\n").Replace('\r', '\n');
+                string Hashes(string tag) => string.Join(" ", Regex.Matches(text, $"<{tag}>(.*?)</{tag}>", RegexOptions.Singleline)
+                    .Select(m => $"'sha256-{Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(m.Groups[1].Value)))}'"));
+
+                var expected = $"default-src 'none'; script-src {Hashes("script")}; style-src {Hashes("style")}; "
+                    + "img-src 'self' data: https: http:; connect-src 'self'; base-uri 'none'; form-action 'none'";
+
+                // Editing a script or style block changes its hash, copy the expected policy into templateGallery.html.
+                var policy = Regex.Match(html, "<meta http-equiv=\"Content-Security-Policy\" content=\"([^\"]*)\">").Groups[1].Value;
+                policy.Should().Be(expected, "the gallery must only run its own script and style blocks");
             }
         }
 

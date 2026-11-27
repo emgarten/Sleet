@@ -4,6 +4,8 @@
 * Added a package gallery written to `index.html` at the root of the feed
   * Browse and filter packages, then drill down to a package's versions and a single version's details, dependencies, and readme
   * Readmes render as markdown, including GitHub tables, task lists, and alerts. HTML and script links in a readme are not rendered
+  * Readme images from sites other than the feed and the badge hosts that nuget.org allows load only after selecting **Show images**
+  * The page only runs its own scripts. CDN features that rewrite scripts, such as Cloudflare Rocket Loader, must be off for the feed
   * Every view is linkable, for example `index.html#package/Newtonsoft.Json/13.0.3`
   * Links to the gallery show a title and description in apps that preview links, such as Slack, Discord, and Teams
   * Dark mode by default, with a light mode toggle in the header

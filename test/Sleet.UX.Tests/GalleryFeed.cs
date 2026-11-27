@@ -48,7 +48,7 @@ namespace Sleet.UX.Tests
             "![script image](javascript:window.__sleetPwned=11)\n";
 
         // A 1x1 png.
-        private static readonly byte[] IconBytes = Convert.FromBase64String(
+        public static readonly byte[] IconBytes = Convert.FromBase64String(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==");
 
         /// <summary>

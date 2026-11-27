@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- Only the script and style blocks in this file can run. A test checks that
+     these hashes match them, and prints the new policy when either changes. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Ew/yID6oPA/6mYgbs1tFhGXOCDFGNtHqTpDw2HBIr2M=' 'sha256-xbGfae7Upyfo5nZeBHPkfjNZNJN0jo0YXEuFKwkoD0k='; style-src 'sha256-kBaRp/7kNQ72bhL9R7tEoEuo8bvXKvwPGjGFhQgWNe0='; img-src 'self' data: https: http:; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Sleet package feed</title>
@@ -40,6 +43,7 @@ try {
   --i-link:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 7H7a5 5 0 0 0 0 10h3M14 7h3a5 5 0 0 1 0 10h-3M8 12h8'/%3E%3C/svg%3E");
   --i-alert:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5 2.5 20h19z'/%3E%3Cpath d='M12 10v4.5M12 17.2v.1'/%3E%3C/svg%3E");
   --i-x:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m9 9 6 6m0-6-6 6'/%3E%3C/svg%3E");
+  --i-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='16' rx='2'/%3E%3Ccircle cx='9' cy='10' r='1.5'/%3E%3Cpath d='m21 16-5-5-9 9'/%3E%3C/svg%3E");
 }
 :root[data-theme="light"]{
   color-scheme:light;
@@ -60,7 +64,7 @@ body{margin:0;background:var(--bg);color:var(--fg);
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 a:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
-.mono,.pick,pre.readme,.readme code,.readme pre,.group h4{font-family:"Cascadia Mono",ui-monospace,Consolas,SFMono-Regular,"Liberation Mono",monospace}
+.mono,.pick,pre.readme,pre.source,.readme code,.readme pre,.group h4{font-family:"Cascadia Mono",ui-monospace,Consolas,SFMono-Regular,"Liberation Mono",monospace}
 .meta{color:var(--muted);font-size:12px;white-space:nowrap}
 
 header{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;min-height:48px;
@@ -183,12 +187,24 @@ td:first-child,th:first-child{white-space:nowrap}
 .readme pre{padding:12px 16px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:4px;font-size:13px;line-height:20px}
 .readme pre code{padding:0;background:none;font-size:inherit;white-space:pre;overflow-wrap:normal}
 .readme img{max-width:100%;vertical-align:middle}
+.readme .img-off{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:1px 8px;border:1px dashed var(--field-line);
+  border-radius:4px;color:var(--muted);font-size:12px;line-height:18px;vertical-align:middle}
+.readme .img-off::before{content:"";flex:none;width:14px;height:14px;background:currentColor;
+  -webkit-mask:var(--i-image) center/contain no-repeat;mask:var(--i-image) center/contain no-repeat}
+.img-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 12px;padding:8px 12px;border-radius:4px;
+  background:var(--chip);color:var(--muted);font-size:13px}
+.img-bar button{height:28px;padding:0 12px;border:1px solid var(--strong);border-radius:4px;background:var(--card);
+  color:var(--fg);font:inherit;font-weight:600;cursor:pointer}
+.img-bar button:hover{background:var(--hover)}
+.img-bar button:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
 .readme hr{margin:16px 0;border:0;border-top:1px solid var(--line)}
 .readme .table-wrap{overflow-x:auto;overflow-wrap:normal}
 .readme table{width:auto}
 .readme th,.readme td,.readme tr:last-child td{padding:6px 12px;border:1px solid var(--line);white-space:normal;font-size:inherit;color:var(--fg)}
-pre.readme{margin:0;padding:12px 16px;max-height:520px;overflow:auto;white-space:pre-wrap;
+pre.readme,pre.source{margin:0;padding:12px 16px;overflow:auto;white-space:pre-wrap;
   background:var(--bg);border:1px solid var(--line);border-radius:4px;font-size:13px;line-height:20px}
+pre.readme{max-height:520px}
+pre.source{overflow-wrap:anywhere}
 
 .note{position:relative;margin:0 0 12px;padding:8px 12px 8px 36px;background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:4px}
 .note::before{content:"";position:absolute;left:12px;top:10px;width:16px;height:16px;background:var(--warn-icon);
@@ -247,12 +263,13 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
   var elCount = document.getElementById("count");
   var elSearch = document.getElementById("search");
 
-  // Every package id in the feed, sorted, from sleet.packageindex.json.
+  // Every package id in the feed, sorted, from sleet.packageindex.json. Maps
+  // keyed by id have no prototype, so ids such as constructor are found.
   var packages = [];
-  var byId = {};
+  var byId = Object.create(null);
 
   // Parsed registration indexes, keyed by lower case id.
-  var regCache = {};
+  var regCache = Object.create(null);
 
   // Bumped on every navigation so that responses which arrive after the user
   // has moved on are dropped instead of drawn into the wrong view.
@@ -267,7 +284,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
   // Hash routes never match an element id, so the browser keeps the old scroll
   // position when the view changes. Following a link starts the next view at
   // the top, and Back returns to where the reader left the previous one.
-  var scrollPositions = {};
+  var scrollPositions = Object.create(null);
   var shownEntry = null;
   var startAtTop = false;
   var scrollTarget = 0;
@@ -324,19 +341,28 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
   function text(v) { return typeof v === "string" ? v : ""; }
 
   // Package metadata comes from nuspec files, so urls in it are untrusted.
-  // Only http and https are allowed through to prevent a published package
-  // from injecting a javascript: or data: url into the page.
+  // Only absolute http and https urls to another site are allowed through. A
+  // javascript: or data: url would run script, and a link into the feed's own
+  // site could open a feed file, such as an xml nuspec, that the browser runs
+  // as a page of the site.
   function safeUrl(v) {
     var raw = text(v).trim();
     if (!raw) return "";
 
     try {
-      var parsed = new URL(raw, ROOT);
+      var parsed = new URL(raw);
       if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+      if (parsed.origin === location.origin) return "";
       return parsed.href;
     } catch (e) {
       return "";
     }
+  }
+
+  // Text from the address is only repeated on the page when it reads as a
+  // package id or version, so a crafted link cannot add its own message.
+  function quotable(v) {
+    return /^[\w.+-]{1,100}$/.test(v);
   }
 
   function list(v) {
@@ -384,8 +410,12 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
     return versions.length ? 0 : -1;
   }
 
+  function flatPath(id, version, file) {
+    return "flatcontainer/" + seg(id) + "/" + seg(identityVersion(version)) + "/" + file;
+  }
+
   function flatUrl(id, version, file) {
-    return ROOT + "flatcontainer/" + seg(id) + "/" + seg(identityVersion(version)) + "/" + file;
+    return ROOT + flatPath(id, version, file);
   }
 
   function nupkgUrl(id, version) {
@@ -394,8 +424,8 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
     return flatUrl(id, version, encodeURIComponent(name));
   }
 
-  function nuspecUrl(id, version) {
-    return flatUrl(id, version, encodeURIComponent(String(id).toLowerCase() + ".nuspec"));
+  function nuspecPath(id, version) {
+    return flatPath(id, version, encodeURIComponent(String(id).toLowerCase() + ".nuspec"));
   }
 
   function when(iso) {
@@ -490,12 +520,18 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
     });
   }
 
+  // The nuspec opens as text inside the gallery. Opened directly, the browser
+  // would run it as an xml page of the feed's site.
   function linkRow(meta, pkg, version) {
     var row = el("div", "sub");
     var parts = [];
-    if (meta.projectUrl) parts.push(link(meta.projectUrl, "project", "project"));
+    if (meta.projectUrl) {
+      var project = link(meta.projectUrl, "project", "project");
+      project.rel = "nofollow noreferrer";
+      parts.push(project);
+    }
     parts.push(link(nupkgUrl(pkg.id, version), "nupkg", "nupkg"));
-    parts.push(link(nuspecUrl(pkg.id, version), "nuspec", "nuspec"));
+    parts.push(link(packageHash(pkg.id, version) + "/nuspec", "nuspec", "nuspec"));
 
     parts.forEach(function (node, i) {
       if (i) row.appendChild(document.createTextNode(" \u00b7 "));
@@ -552,7 +588,8 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
       return {
         view: "package",
         id: decode(parts[0]),
-        version: parts.length > 1 ? decode(parts[1]) : ""
+        version: parts.length > 1 ? decode(parts[1]) : "",
+        nuspec: parts[2] === "nuspec"
       };
     }
 
@@ -574,7 +611,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
   function crumbs(trail, current, cls) {
     var nav = el("nav", "crumbs");
     trail.forEach(function (step) {
-      nav.appendChild(link(step[1], step[0]));
+      nav.appendChild(link(step[1], step[0], step[2]));
       nav.appendChild(el("span", "dot", "\u203a"));
     });
     nav.appendChild(el("span", cls, current));
@@ -646,9 +683,11 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
     elBody.textContent = "";
 
     if (!matches.length) {
-      elBody.appendChild(el("p", "empty", packages.length
-        ? "No package ids contain \u201c" + q.trim() + "\u201d."
-        : "This feed has no packages yet."));
+      elBody.appendChild(el("p", "empty", !packages.length
+        ? "This feed has no packages yet."
+        : quotable(q.trim())
+          ? "No package ids contain \u201c" + q.trim() + "\u201d."
+          : "No package ids match the filter."));
       restoreScroll();
       return;
     }
@@ -790,7 +829,8 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
   // parts of CommonMark that readmes use, plus the GitHub tables, task lists,
   // strikethrough and alerts. Every node is built through the DOM, raw html
   // is never parsed as markup, and only absolute http, https and mailto
-  // links are followed.
+  // links to other sites are followed. It returns the rendered node and a
+  // loader for each image it held back.
   var renderMarkdown = (function () {
     var MAX_DEPTH = 16;
     var MAX_EMPHASIS = 32;
@@ -950,6 +990,14 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
       return "";
     }
 
+    // A link into the feed's own site could open a feed file, such as an xml
+    // nuspec, that the browser runs as a page of the site, so it keeps only
+    // its text.
+    function linkUrl(v, mail) {
+      var url = absolute(v, mail);
+      return url && url.indexOf("mailto:") !== 0 && new URL(url).origin === location.origin ? "" : url;
+    }
+
     function hyperlink(href, text, title) {
       var a = el("a", null, text);
       a.href = href;
@@ -958,8 +1006,40 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
       return a;
     }
 
-    // Images load from their own host without a referrer. One that is
-    // relative or fails to load is replaced by its alt text.
+    // Loading an image tells its host who is reading the readme. Images from
+    // the feed's own site and from the hosts nuget.org trusts load with the
+    // readme, over https as nuget.org does. Others are held back until the
+    // reader asks for them.
+    var IMAGE_HOSTS = Object.create(null);
+    ("api.codacy.com api.codeclimate.com api.dependabot.com api.reuse.software api.travis-ci.com " +
+      "app.codacy.com app.deepsource.com avatars.githubusercontent.com badgen.net badges.gitter.im " +
+      "camo.githubusercontent.com caniuse.bitsofco.de cdn.jsdelivr.net cdn.syncfusion.com " +
+      "ci.appveyor.com circleci.com cloudback.it codecov.io codefactor.io coveralls.io dev.azure.com " +
+      "devpod.sh flat.badgen.net gitlab.com i.imgur.com img.shields.io infragistics.com " +
+      "isitmaintained.com media.githubusercontent.com opencollective.com raw.github.com " +
+      "raw.githubusercontent.com snyk.io sonarcloud.io travis-ci.com travis-ci.org " +
+      "user-images.githubusercontent.com").split(" ").forEach(function (host) {
+      IMAGE_HOSTS[host] = true;
+      if (host.split(".").length === 2) IMAGE_HOSTS["www." + host] = true;
+    });
+
+    // GitHub Actions status badges, matched as nuget.org matches them.
+    var RE_ACTIONS_BADGE = /^https?:\/\/github\.com\/[^\/]+\/[^\/]+(?:\/actions)?\/workflows\/.*badge\.svg/i;
+
+    // Loaders for the images held back by the readme being rendered.
+    var held = [];
+
+    function trustedImage(url) {
+      var u = new URL(url);
+      if (u.origin === location.origin) return url;
+      if (!IMAGE_HOSTS[u.hostname] && !RE_ACTIONS_BADGE.test(url)) return "";
+      u.protocol = "https:";
+      return u.href;
+    }
+
+    // Images load without a referrer. One that is relative or fails to load
+    // is replaced by its alt text, and one that is held back shows its alt
+    // text in a placeholder.
     function picture(alt, src, title, width, height, plain) {
       var url = plain ? "" : absolute(src);
       if (!url) return alt;
@@ -971,8 +1051,20 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
       if (width) img.width = width;
       if (height) img.height = height;
       img.onerror = function () { img.replaceWith(alt); };
-      img.src = url;
-      return img;
+
+      var trusted = trustedImage(url);
+      if (trusted) {
+        img.src = trusted;
+        return img;
+      }
+
+      var off = el("span", "img-off", alt || "image");
+      if (title) off.title = title;
+      held.push(function () {
+        img.src = url;
+        off.replaceWith(img);
+      });
+      return off;
     }
 
     function fenceStart(line) {
@@ -1630,7 +1722,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
     // Link text cannot hold another link, and alt text is plain text, so a
     // link inside either one only keeps its text.
     function anchor(src, href, title, ctx) {
-      var url = ctx.link || ctx.plain ? "" : absolute(href, true);
+      var url = ctx.link || ctx.plain ? "" : linkUrl(href, true);
       var node = url ? hyperlink(url, null, title) : document.createDocumentFragment();
       inline(src, node, { refs: ctx.refs, depth: ctx.depth + 1, link: true, plain: ctx.plain });
       return node;
@@ -1715,7 +1807,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
           i = l.end;
         } else if (c === "<" && (a = angle(s, i, lastClose))) {
           if (a.href !== undefined) {
-            url = ctx.link || ctx.plain ? "" : absolute(a.href, true);
+            url = ctx.link || ctx.plain ? "" : linkUrl(a.href, true);
             add(url ? hyperlink(url, a.text) : a.text);
           } else if (a.name !== undefined && !TAGS[a.name]) {
             buf += s.slice(i, a.end);
@@ -1756,7 +1848,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
           RE_BARE.lastIndex = i;
           m = RE_BARE.exec(s);
           var raw = m ? trimUrl(m[0]) : "";
-          url = RE_HOST.test(raw) ? absolute(c === "w" ? "http://" + raw : raw) : "";
+          url = RE_HOST.test(raw) ? linkUrl(c === "w" ? "http://" + raw : raw) : "";
           if (url) {
             add(hyperlink(url, raw));
             i += raw.length;
@@ -1800,6 +1892,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
     }
 
     function render(src) {
+      held = [];
       src = String(src).replace(/^\uFEFF/, "").replace(/\0/g, "\uFFFD");
       lookup(src);
       var lines = src.split(/\r\n?|\n/);
@@ -1813,16 +1906,29 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
         inline(job[0], job[1], { refs: st.refs, depth: 0 });
       });
       tidy(root, st);
-      return root;
+      return { node: root, held: held };
     }
 
     return render;
   })();
 
+  function imageBar(held) {
+    var bar = el("div", "img-bar");
+    bar.appendChild(el("span", null, "Images from other sites are hidden."));
+    var show = el("button", null, "Show images");
+    show.type = "button";
+    show.addEventListener("click", function () {
+      bar.remove();
+      held.forEach(function (load) { load(); });
+    });
+    bar.appendChild(show);
+    return bar;
+  }
+
   // The readme is shown as markdown. One that is very large, or that the
   // renderer fails on, is shown as plain text instead.
   function loadReadme(pkg, version, host, isCurrent) {
-    getText("flatcontainer/" + seg(pkg.id) + "/" + seg(identityVersion(version)) + "/readme")
+    getText(flatPath(pkg.id, version, "readme"))
       .then(function (body) {
         if (!isCurrent() || !body || !body.trim()) return;
         var content;
@@ -1833,7 +1939,8 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
         }
         var panel = el("section", "panel");
         panel.appendChild(el("h3", null, "Readme"));
-        panel.appendChild(content || el("pre", "readme", body));
+        if (content && content.held.length) panel.appendChild(imageBar(content.held));
+        panel.appendChild(content ? content.node : el("pre", "readme", body));
         host.appendChild(panel);
 
         // Only reapply the position if the reader has not scrolled since.
@@ -1888,10 +1995,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
       selected.version,
       "mono"));
 
-    if (!asked) {
-      elBody.appendChild(el("p", "note",
-        "Version " + wanted + " is not on this feed, showing " + selected.version + " instead."));
-    }
+    if (!asked) elBody.appendChild(missingVersion(wanted, selected.version));
 
     elBody.appendChild(detailHeader(pkg, selected));
     elBody.appendChild(dependencyPanel(selected.groups));
@@ -1902,16 +2006,61 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
     loadReadme(pkg, selected.version, elBody, function () { return gen === generation; });
   }
 
-  function openPackage(id, version) {
+  // A version from the address is only repeated when it reads as one.
+  function missingVersion(wanted, shown) {
+    return el("p", "note", (quotable(wanted) ? "Version " + wanted : "That version") +
+      " is not on this feed, showing " + shown + " instead.");
+  }
+
+  // The nuspec is shown as text inside the gallery. Opened directly, the
+  // browser would run it as an xml page of the feed's site.
+  function renderNuspec(pkg, reg, gen, wanted) {
+    var asked = findVersion(reg, wanted);
+    var selected = asked || reg.latest;
+
+    document.title = pkg.id + " " + selected.version + " nuspec \u00b7 " + BRAND;
+    elCount.textContent = "";
+    elBody.textContent = "";
+    elBody.appendChild(crumbs(
+      [["Feed", listHash], [pkg.id, packageHash(pkg.id)], [selected.version, packageHash(pkg.id, selected.version), "mono"]],
+      "nuspec"));
+
+    if (!asked) elBody.appendChild(missingVersion(wanted, selected.version));
+
+    var panel = el("section", "panel");
+    panel.appendChild(el("h3", null, pkg.lowerId + ".nuspec"));
+    var slot = panel.appendChild(el("p", "empty", "Loading\u2026"));
+    elBody.appendChild(panel);
+    restoreScroll();
+
+    getText(nuspecPath(pkg.id, selected.version)).then(function (xml) {
+      if (gen !== generation) return;
+      slot.replaceWith(el("pre", "source", xml));
+
+      // Only reapply the position if the reader has not scrolled since.
+      if (settledAt < scrollTarget && window.scrollY === settledAt) restoreScroll();
+    }, function (err) {
+      if (gen !== generation) return;
+      var box = el("div", "err");
+      box.appendChild(el("strong", null, "Unable to load this nuspec."));
+      box.appendChild(el("p", "mono", String((err && err.message) || err)));
+      slot.replaceWith(box);
+    });
+  }
+
+  function openPackage(id, version, nuspec) {
     var gen = ++generation;
     var pkg = byId[id.toLowerCase()];
 
     if (!pkg) {
+      var known = quotable(id);
       document.title = BASE_TITLE;
       elCount.textContent = "";
       elBody.textContent = "";
-      elBody.appendChild(crumbs([["Feed", listHash]], id));
-      elBody.appendChild(el("p", "empty", "\u201c" + id + "\u201d is not in this feed."));
+      elBody.appendChild(crumbs([["Feed", listHash]], known ? id : "Not found"));
+      elBody.appendChild(el("p", "empty", known
+        ? "\u201c" + id + "\u201d is not in this feed."
+        : "That package is not in this feed."));
       restoreScroll();
       return;
     }
@@ -1921,7 +2070,8 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
 
     registration(pkg.lowerId).then(function (reg) {
       if (gen !== generation) return;
-      if (version) renderDetail(pkg, reg, gen, version);
+      if (version && nuspec && reg.latest) renderNuspec(pkg, reg, gen, version);
+      else if (version) renderDetail(pkg, reg, gen, version);
       else renderVersions(pkg, reg);
     }, function (err) {
       if (gen !== generation) return;
@@ -1959,7 +2109,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
     startAtTop = false;
 
     var r = parseHash();
-    if (r.view === "package") openPackage(r.id, r.version);
+    if (r.view === "package") openPackage(r.id, r.version, r.nuspec);
     else renderList(r.q, r.page);
   }
 

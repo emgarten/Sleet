@@ -71,26 +71,41 @@ namespace Sleet.UX.Tests
                 Exactly("project · nupkg · nuspec"),
             });
 
-            await Expect(Link("project")).ToHaveAttributeAsync("href", "https://example.com/contoso");
+            var project = Link("project");
+            await Expect(project).ToHaveAttributeAsync("href", "https://example.com/contoso");
+            await Expect(project).ToHaveAttributeAsync("rel", "nofollow noreferrer");
             await Expect(Body.Locator(".tags .tag")).ToHaveTextAsync(new[] { "contoso", "core" });
             await Expect(Body.Locator(".icon-slot.lg img.icon")).ToHaveJSPropertyAsync("naturalWidth", 1);
         }
 
+        // The nupkg downloads from the feed, while the nuspec opens as text in
+        // the gallery.
         [Theory]
         [InlineData("Contoso.Core", "1.1.0", "contoso.core/1.1.0/contoso.core.1.1.0.nupkg", "contoso.core/1.1.0/contoso.core.nuspec")]
         [InlineData("Contoso.Core", "2.0.0-Beta.1", "contoso.core/2.0.0-beta.1/contoso.core.2.0.0-beta.1.nupkg", "contoso.core/2.0.0-beta.1/contoso.core.nuspec")]
         [InlineData("Contoso.Meta", "1.0.0", "contoso.meta/1.0.0/contoso.meta.1.0.0.nupkg", "contoso.meta/1.0.0/contoso.meta.nuspec")]
-        public async Task GivenAVersionVerifyDownloadLinksPointAtTheFeedFiles(string id, string version, string nupkg, string nuspec)
+        public async Task GivenAVersionVerifyFileLinksReadTheFeedFiles(string id, string version, string nupkg, string nuspec)
         {
             await OpenAsync($"#package/{id}/{version}");
             await Expect(VersionLabel).ToHaveTextAsync(version);
 
-            foreach (var (name, path) in new[] { ("nupkg", nupkg), ("nuspec", nuspec) })
-            {
-                var url = FeedUrl + "flatcontainer/" + path;
-                await Expect(Link(name)).ToHaveAttributeAsync("href", url);
-                (await GetStatusAsync(url)).Should().Be(200, url);
-            }
+            var nupkgUrl = FeedUrl + "flatcontainer/" + nupkg;
+            await Expect(Link("nupkg")).ToHaveAttributeAsync("href", nupkgUrl);
+            (await GetStatusAsync(nupkgUrl)).Should().Be(200, nupkgUrl);
+
+            var nuspecHash = $"#package/{id}/{version}/nuspec";
+            await Expect(Link("nuspec")).ToHaveAttributeAsync("href", nuspecHash);
+
+            var response = await Page.RunAndWaitForResponseAsync(
+                () => Link("nuspec").ClickAsync(),
+                FeedUrl + "flatcontainer/" + nuspec);
+
+            response.Status.Should().Be(200);
+            await Expect(Page).ToHaveURLAsync(FeedUrl + nuspecHash);
+            await Expect(Page).ToHaveTitleAsync($"{id} {version} nuspec · Sleet");
+            await Expect(Crumbs).ToHaveTextAsync($"Feed›{id}›{version}›nuspec");
+            await Expect(Body.Locator("section.panel > h3")).ToHaveTextAsync(id.ToLowerInvariant() + ".nuspec");
+            await Expect(Body.Locator("pre.source")).ToContainTextAsync($"<id>{id}</id>");
         }
 
         [Fact]
@@ -154,6 +169,9 @@ namespace Sleet.UX.Tests
             await Expect(images).ToHaveTextAsync("Build status Diagram");
             await Expect(images.Locator("img")).ToHaveAttributeAsync("alt", "Logo");
             await Expect(images.Locator("img")).ToHaveJSPropertyAsync("naturalWidth", 1);
+
+            // Images from the feed's own site are not held back.
+            await Expect(Body.Locator(".img-bar")).ToHaveCountAsync(0);
         }
 
         [Fact]

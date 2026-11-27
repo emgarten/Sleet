@@ -127,9 +127,9 @@ namespace Sleet.UX.Tests
         // Addresses typed or pasted by hand can hold escapes that do not decode.
         [Theory]
         [InlineData("#package/", "#count", "45 packages")]
-        [InlineData("#package/%E0%A4%A", "#body .empty", "“%E0%A4%A” is not in this feed.")]
-        [InlineData("#q=%E0%A4%A", "#body .empty", "No package ids contain “%E0%A4%A”.")]
-        [InlineData("#package/Contoso.Core/%E0%A4%A", "#body .note", "Version %E0%A4%A is not on this feed, showing 1.1.0 instead.")]
+        [InlineData("#package/%E0%A4%A", "#body .empty", "That package is not in this feed.")]
+        [InlineData("#q=%E0%A4%A", "#body .empty", "No package ids match the filter.")]
+        [InlineData("#package/Contoso.Core/%E0%A4%A", "#body .note", "That version is not on this feed, showing 1.1.0 instead.")]
         public async Task GivenAMalformedAddressVerifyGalleryStillRenders(string hash, string selector, string text)
         {
             await OpenAsync(hash);

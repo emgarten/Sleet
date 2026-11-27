@@ -8,7 +8,8 @@ namespace Sleet.UX.Tests
 {
     /// <summary>
     /// Opens a new browser page for each test and fails the test if the gallery
-    /// throws an unhandled script error.
+    /// throws an unhandled script error or its Content-Security-Policy blocks
+    /// anything the gallery does.
     /// </summary>
     public abstract class GalleryTest : IAsyncLifetime
     {
@@ -52,18 +53,36 @@ namespace Sleet.UX.Tests
         public async ValueTask InitializeAsync()
         {
             Context = await Fixture.NewContextAsync();
+            await Context.AddInitScriptAsync(
+                "window.__sleetViolations = [];" +
+                "document.addEventListener('securitypolicyviolation', e => " +
+                "window.__sleetViolations.push(e.violatedDirective + ' ' + e.blockedURI));");
+
             Page = await Context.NewPageAsync();
             Page.PageError += (_, error) => _pageErrors.Enqueue(error);
         }
 
         public async ValueTask DisposeAsync()
         {
+            var violations = Array.Empty<string>();
+
             if (Context != null)
             {
-                await Context.CloseAsync();
+                try
+                {
+                    if (Page != null)
+                    {
+                        violations = await TakeViolationsAsync();
+                    }
+                }
+                finally
+                {
+                    await Context.CloseAsync();
+                }
             }
 
             _pageErrors.Should().BeEmpty("the gallery should not throw script errors");
+            violations.Should().BeEmpty("the gallery should only use what its Content-Security-Policy allows");
         }
 
         protected Task OpenAsync(string hash = "")
@@ -117,6 +136,15 @@ namespace Sleet.UX.Tests
         protected Task<int> GetStatusAsync(string url)
         {
             return Page.EvaluateAsync<int>("url => fetch(url).then(r => r.status)", url);
+        }
+
+        /// <summary>
+        /// What the page's Content-Security-Policy has blocked since the last
+        /// call, as the directive followed by the blocked url.
+        /// </summary>
+        protected Task<string[]> TakeViolationsAsync()
+        {
+            return Page.EvaluateAsync<string[]>("() => (window.__sleetViolations || []).splice(0)");
         }
     }
 }
