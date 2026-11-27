@@ -32,7 +32,7 @@ namespace Sleet.Tests
 
                 var log = new TestLogger();
 
-                (await RunAsync(log, "createconfig", "--local", "--output", generatedConfig)).Should().Be(0);
+                (await RunAsync(log, "create-config", "--local", "--output", generatedConfig)).Should().Be(0);
                 File.Exists(Path.Combine(generatedConfig, "sleet.json")).Should().BeTrue();
 
                 (await RunAsync(log, "init", "--config", config, "--with-catalog")).Should().Be(0);
@@ -61,7 +61,7 @@ namespace Sleet.Tests
                     new PackageIdentity("b", NuGetVersion.Parse("1.0.0-beta"))
                 });
 
-                (await RunAsync(log, "download", "--config", config, "--output-path", download.Root)).Should().Be(0);
+                (await RunAsync(log, "download", "--config", config, "--output", download.Root)).Should().Be(0);
                 Directory.GetFiles(download.Root, "*.nupkg", SearchOption.AllDirectories)
                     .Select(Path.GetFileName)
                     .Should().BeEquivalentTo(new[] { "a.2.0.0.nupkg", "b.1.0.0-beta.nupkg" });
@@ -80,7 +80,7 @@ namespace Sleet.Tests
 
         [Theory]
         [InlineData("delete", "Missing required parameter --id.", "--config")]
-        [InlineData("download", "Missing required parameter --output-path.", "--config")]
+        [InlineData("download", "Missing required parameter --output.", "--config")]
         [InlineData("retention settings", "Missing required parameter --stable.", "--config")]
         public async Task MainCore_MissingRequiredOptions_ReturnsOneAndLogsError(string command, string expected, string configOption)
         {
@@ -122,7 +122,7 @@ namespace Sleet.Tests
             {
                 var log = new TestLogger();
 
-                var exitCode = await RunAsync(log, "createconfig", "--provider", "r2", "--output", root.Root);
+                var exitCode = await RunAsync(log, "create-config", "--provider", "r2", "--output", root.Root);
 
                 exitCode.Should().Be(0);
                 var source = JObject.Parse(File.ReadAllText(Path.Combine(root.Root, "sleet.json")))["sources"][0];
@@ -141,11 +141,51 @@ namespace Sleet.Tests
             {
                 var log = new TestLogger();
 
-                var exitCode = await RunAsync(log, new[] { "createconfig", "--output", root.Root }.Concat(options).ToArray());
+                var exitCode = await RunAsync(log, new[] { "create-config", "--output", root.Root }.Concat(options).ToArray());
 
                 exitCode.Should().Be(1);
                 log.GetMessages().Should().Contain(expected);
                 File.Exists(Path.Combine(root.Root, "sleet.json")).Should().BeFalse();
+            }
+        }
+
+        [Theory]
+        [InlineData("createconfig", "--output")]
+        [InlineData("create-config", "-o")]
+        public async Task MainCore_CreateConfigPreviousNameAndShortOutput_CreatesConfig(string command, string outputOption)
+        {
+            using (var root = new TestFolder())
+            {
+                var log = new TestLogger();
+
+                var exitCode = await RunAsync(log, command, "--local", outputOption, root.Root);
+
+                exitCode.Should().Be(0);
+                File.Exists(Path.Combine(root.Root, "sleet.json")).Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task MainCore_DownloadWithPreviousOutputOption_DownloadsPackages()
+        {
+            using (var root = new TestFolder())
+            using (var packages = new TestFolder())
+            using (var download = new TestFolder())
+            {
+                var feed = Path.Combine(root.Root, "feed");
+                var config = Path.Combine(root.Root, "sleet.json");
+                Directory.CreateDirectory(feed);
+                WriteLocalConfig(config, ("local", feed));
+                new TestNupkg("a", "1.0.0").Save(packages.Root);
+                var log = new TestLogger();
+                (await RunAsync(log, "push", "--config", config, packages.Root)).Should().Be(0);
+
+                var exitCode = await RunAsync(log, "download", "--config", config, "--output-path", download.Root);
+
+                exitCode.Should().Be(0);
+                Directory.GetFiles(download.Root, "*.nupkg", SearchOption.AllDirectories)
+                    .Select(Path.GetFileName)
+                    .Should().BeEquivalentTo(new[] { "a.1.0.0.nupkg" });
             }
         }
 

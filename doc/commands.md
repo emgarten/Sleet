@@ -4,7 +4,7 @@ This page lists every Sleet command and its options. Run `sleet --help` for the 
 
 ## Common options
 
-Every command except `createconfig` works against a feed, and accepts these options.
+Every command except `create-config` works against a feed, and accepts these options.
 
 | Option | Description |
 | --- | --- |
@@ -12,7 +12,7 @@ Every command except `createconfig` works against a feed, and accepts these opti
 | `-s`, `--source` | Name of the source to use. Required when the settings contain more than one source. |
 | `-p`, `--property` | A `key=value` pair. Used to fill in `$tokens$` in the settings, or in place of an environment variable. Can be repeated. |
 | `-V`, `--verbosity` | Console output level: `quiet`, `minimal`, `normal`, `detailed`, or `diagnostic`. The default is `normal`. See [logging verbosity](#logging-verbosity). |
-| `-h`, `--help` | Show help for the command. |
+| `-?`, `-h`, `--help` | Show help for the command. |
 
 When `--config` isn't set, Sleet searches for settings in this order: a sleet.json file in the current folder or any parent folder, then .netconfig files, then environment variables. For details see [how Sleet finds settings](client-settings.md#how-sleet-finds-settings).
 
@@ -43,12 +43,12 @@ sleet push ./nupkgs --verbosity minimal
 
 To get debug output from every command without changing the command line, set the environment variable `SLEET_DEBUG` to `1`. It overrides `--verbosity`. See [debug output](troubleshooting.md#debug-output).
 
-## createconfig
+## create-config
 
 Creates a sleet.json template file that you then edit with your own feed details.
 
 ```text
-sleet createconfig [--azure | --s3 | --local] [--provider <name>] [--output <path>]
+sleet create-config [--azure | --s3 | --local] [--provider <name>] [--output <path>]
 ```
 
 | Option | Description |
@@ -57,7 +57,7 @@ sleet createconfig [--azure | --s3 | --local] [--provider <name>] [--output <pat
 | `--s3` | Add a template source for an Amazon S3 feed. |
 | `--provider` | Add a template source for an S3 feed on the given service: `aws`, `r2` for Cloudflare R2, or `self-hosted` for S3 servers that you run yourself, such as MinIO and RustFS. The default is `aws`. Implies `--s3`, and can't be used with `--azure` or `--local`. See [S3-compatible storage](s3-compatible.md#provider-settings). |
 | `--local` | Add a template source for a local folder feed. |
-| `--output` | Folder or file path to write. The default is sleet.json in the current folder. |
+| `-o`, `--output` | Folder or file path to write. The default is sleet.json in the current folder. |
 | `-V`, `--verbosity` | Console output level. |
 
 The template contains one source. If you pass more than one type option, only one is used. If you pass none, the template has an empty `type` for you to fill in. The command fails if the output file already exists.
@@ -65,7 +65,7 @@ The template contains one source. If you pass more than one type option, only on
 The Azure template contains a `connectionString` placeholder. The recommended setup uses `path` with Microsoft Entra ID instead, see [Azure authentication](auth-azure.md).
 
 ```bash
-sleet createconfig --azure
+sleet create-config --azure
 ```
 
 ## init
@@ -188,12 +188,12 @@ Only the [common options](#common-options) are supported. If `validate` reports 
 Downloads every package and symbols package on a feed to a local folder.
 
 ```text
-sleet download --output-path <folder> [options]
+sleet download --output <folder> [options]
 ```
 
 | Option | Description |
 | --- | --- |
-| `-o`, `--output-path` | Folder to write the packages to. Required. |
+| `-o`, `--output` | Folder to write the packages to. Required. |
 | `--skip-existing` | Skip packages that already exist in the output folder. |
 | `--no-lock` | Don't lock the feed, and don't check that this Sleet version is compatible with the feed. |
 | `--ignore-errors` | Continue when a package fails to download. |
@@ -203,7 +203,7 @@ The [common options](#common-options) are also supported.
 Packages are written to `<folder>/<id>/<file>`, with the id in lowercase. Use `download` for [backups and migrations](backup-migration.md).
 
 ```bash
-sleet download --output-path ./backup --skip-existing
+sleet download --output ./backup --skip-existing
 ```
 
 ## destroy

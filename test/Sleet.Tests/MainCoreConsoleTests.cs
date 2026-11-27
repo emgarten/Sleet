@@ -14,6 +14,7 @@ namespace Sleet.Tests
         [Theory]
         [InlineData("unknown-command")]
         [InlineData("init --unknown")]
+        [InlineData("download --output a --output-path b")]
         public async Task MainCore_ParseErrors_ReturnOneAndWriteHelp(string arguments)
         {
             using (var writer = new StringWriter())
@@ -44,11 +45,33 @@ namespace Sleet.Tests
             var help = await RunWithConsoleAsync("--help");
             help.ExitCode.Should().Be(0);
             help.Output.Should().Contain("Usage:");
-            help.Output.Should().Contain("createconfig");
+            help.Output.Should().Contain("create-config");
+            help.Output.Should().NotContain("createconfig");
 
             var version = await RunWithConsoleAsync("--version");
             version.ExitCode.Should().Be(0);
             version.Output.Should().NotBeNullOrWhiteSpace();
+        }
+
+        [Theory]
+        [InlineData("-?")]
+        [InlineData("download", "-?")]
+        public async Task MainCore_QuestionMarkOption_WritesHelp(params string[] args)
+        {
+            var help = await RunWithConsoleAsync(args);
+
+            help.ExitCode.Should().Be(0);
+            help.Output.Should().Contain("Usage:");
+        }
+
+        [Fact]
+        public async Task MainCore_DownloadHelp_HidesPreviousOutputOption()
+        {
+            var help = await RunWithConsoleAsync("download", "--help");
+
+            help.ExitCode.Should().Be(0);
+            help.Output.Should().Contain("-o|--output");
+            help.Output.Should().NotContain("--output-path");
         }
 
         [Theory]
@@ -71,7 +94,7 @@ namespace Sleet.Tests
                     {
                         var output = Path.Combine(root.Root, Guid.NewGuid().ToString());
                         Directory.CreateDirectory(output);
-                        var args = new System.Collections.Generic.List<string>() { "createconfig", "--local", "--output", output };
+                        var args = new System.Collections.Generic.List<string>() { "create-config", "--local", "--output", output };
                         if (verbose)
                         {
                             args.Add("--verbose");
@@ -111,7 +134,7 @@ namespace Sleet.Tests
                 {
                     using (var log = new ConsoleLogger())
                     {
-                        var exitCode = await Program.MainCore(new[] { "createconfig", "--local", "--output", root.Root, "--verbosity", verbosity }, log);
+                        var exitCode = await Program.MainCore(new[] { "create-config", "--local", "--output", root.Root, "--verbosity", verbosity }, log);
 
                         exitCode.Should().Be(1);
                     }

@@ -13,11 +13,13 @@
   * Run `sleet recreate` to add the gallery to an existing feed
   * Sleet does not overwrite an existing `index.html`, so a custom page can be used instead
   * Disable with `sleet feed-settings --set galleryenabled:false` followed by `sleet recreate`, see [gallery docs](doc/gallery.md)
-* Updated System.Security.Cryptography.Pkcs to 8.0.2 to address advisories GHSA-2fmv-rv2c-59x7 and GHSA-846f-f764-76mx
+* Removed net9.0 support. .NET 8 and 9 are out of support; the net8.0 build is kept for compatibility and also runs on .NET 9.
+* Updated System.Security.Cryptography.Pkcs to 11.0.0 to address advisories GHSA-2fmv-rv2c-59x7 and GHSA-846f-f764-76mx
 * Fixed `sleet` failing to start when installed with `dotnet tool install --allow-roll-forward` [Issue](https://github.com/emgarten/Sleet/issues/247)
 * Added a `provider` setting for `s3` feeds hosted on S3 compatible storage
   * `aws` (default), `r2` for Cloudflare R2, and `self-hosted` for S3 servers you run yourself, such as MinIO and RustFS
-  * `sleet createconfig --provider <name>` creates a config template for the service
+  * `sleet create-config --provider <name>` creates a config template for the service
+  * Buckets that Sleet creates with `r2` or `self-hosted` use the service's default location, instead of a region that the AWS SDK guesses from the bucket name or AWS settings
   * Added a [Cloudflare R2 setup guide](doc/feed-type-cloudflare.md)
 * Added `forcePathStyle` and `checksumMode` settings for S3 compatible storage
 * `region` can now be used with `serviceURL` to set the signing region
@@ -27,6 +29,12 @@
 * S3 feeds check that the bucket exists with `HeadBucket` instead of `GetBucketAcl`, which isn't supported by all S3 compatible services
 * Creating a bucket on S3 compatible storage skips the Amazon S3 public access block and object ownership settings if the service does not support them
 * Fixed the file path shown in verbose S3 log messages
+* Renamed `createconfig` to `create-config` so all commands use dashes
+  * `createconfig` still works but is no longer shown in help
+* Renamed the `download` option `--output-path` to `--output`
+  * `--output-path` still works but is no longer shown in help
+* Added `-o` as a short form of `create-config --output`
+* Added `-?` as an alias for `--help`
 
 ## 7.2.0
 * Added `--verbosity <level>` (`-V`) option to control console output

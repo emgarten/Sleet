@@ -52,7 +52,7 @@ Sleet connects to R2 with an S3 access key ID and secret access key. Use one of 
 Create a starter `sleet.json` file:
 
 ```bash
-sleet createconfig --provider r2
+sleet create-config --provider r2
 ```
 
 Edit it to set the bucket name, account ID, public URL, and access key:

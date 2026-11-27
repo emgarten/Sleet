@@ -28,14 +28,14 @@ Commit the *dotnet-tools.json* file it creates, then run `dotnet tool restore` a
 With the .NET 10 SDK or later, [dnx](https://learn.microsoft.com/dotnet/core/tools/dotnet-tool-exec) runs Sleet without installing it:
 
 ```
-dnx sleet createconfig
+dnx sleet create-config
 ```
 
 ## Quick start
 
 ```
 # Create a sleet.json config file for an Azure Storage feed
-sleet createconfig --azure
+sleet create-config --azure
 
 # Edit sleet.json with your storage account details, then push.
 # The feed is created automatically on the first push.

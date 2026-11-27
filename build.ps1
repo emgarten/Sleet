@@ -41,7 +41,7 @@ Function Test-Dotnet([string]$Dotnet) {
     }
 
     $runtimes = (& $Dotnet --list-runtimes) -join "`n"
-    return $runtimes -match "(?m)^Microsoft\.NETCore\.App 8\." -and $runtimes -match "(?m)^Microsoft\.NETCore\.App 9\." -and $runtimes -match "(?m)^Microsoft\.NETCore\.App 10\."
+    return $runtimes -match "(?m)^Microsoft\.NETCore\.App 8\." -and $runtimes -match "(?m)^Microsoft\.NETCore\.App 10\."
 }
 
 # Install the SDK from global.json and the runtimes used by the tests to .dotnet
@@ -52,7 +52,6 @@ Function Install-Dotnet {
 
     & $installScript -JsonFile (Join-Path $RepoRoot "global.json") -InstallDir $DotnetDir -NoPath
     & $installScript -Runtime dotnet -Channel 8.0 -InstallDir $DotnetDir -NoPath
-    & $installScript -Runtime dotnet -Channel 9.0 -InstallDir $DotnetDir -NoPath
     & $installScript -Runtime dotnet -Channel 10.0 -InstallDir $DotnetDir -NoPath
 }
 

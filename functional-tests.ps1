@@ -108,7 +108,8 @@ Function Test-Dotnet([string]$Dotnet) {
         return $false
     }
 
-    return ((& $Dotnet --list-runtimes) -join "`n") -match "(?m)^Microsoft\.NETCore\.App 10\."
+    $runtimes = (& $Dotnet --list-runtimes) -join "`n"
+    return $runtimes -match "(?m)^Microsoft\.NETCore\.App 10\."
 }
 
 # Install the SDK from global.json and the runtime used by the tests to .dotnet

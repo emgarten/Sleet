@@ -178,7 +178,18 @@ namespace Sleet
 
                 try
                 {
-                    await _client.EnsureBucketExistsAsync(_bucketName);
+                    // Amazon S3 needs the client region as the LocationConstraint. With serviceURL the SDK guesses the region from
+                    // the bucket url or the AWS environment, so a bucket name that contains ca-4247-9480 is sent as that region.
+                    // S3 compatible services choose a location when it is left out.
+                    await _client.PutBucketAsync(new PutBucketRequest()
+                    {
+                        BucketName = _bucketName,
+                        UseClientRegion = Provider == S3Provider.Aws
+                    }, token);
+                }
+                catch (BucketAlreadyOwnedByYouException)
+                {
+                    // The bucket was created after HasBucket checked for it
                 }
                 catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.Conflict)
                 {

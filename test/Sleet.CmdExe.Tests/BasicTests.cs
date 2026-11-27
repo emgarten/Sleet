@@ -30,7 +30,7 @@ namespace Sleet.CmdExe.Tests
         {
             using (var testContext = new SleetTestContext())
             {
-                var args = "createconfig";
+                var args = "create-config";
 
                 var dir = Path.Combine(testContext.Root, "sub");
                 Directory.CreateDirectory(dir);

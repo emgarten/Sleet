@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.Runtime.SharedInterfaces;
 using AwesomeAssertions;
 using Moq;
 using NuGet.Common;
@@ -173,8 +172,7 @@ namespace SleetLib.Tests
             using (var cache = new LocalCache())
             {
                 var client = CreateClientWithMissingBucket();
-                var coreClient = client.As<ICoreAmazonS3>();
-                coreClient.Setup(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName)).Returns(Task.CompletedTask);
+                client.Setup(c => c.PutBucketAsync(It.IsAny<PutBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketResponse());
                 client.Setup(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutPublicAccessBlockResponse());
                 client.Setup(c => c.PutBucketOwnershipControlsAsync(It.IsAny<PutBucketOwnershipControlsRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketOwnershipControlsResponse());
                 client.Setup(c => c.PutBucketPolicyAsync(It.IsAny<PutBucketPolicyRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketPolicyResponse());
@@ -187,7 +185,8 @@ namespace SleetLib.Tests
 
                 await fileSystem.CreateBucket(new TestLogger(), TestContext.Current.CancellationToken);
 
-                coreClient.Verify(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName), Times.Once());
+                // Amazon S3 creates the bucket in the region of the client
+                client.Verify(c => c.PutBucketAsync(It.Is<PutBucketRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName && r.UseClientRegion), It.IsAny<CancellationToken>()), Times.Once());
                 client.Verify(c => c.PutPublicAccessBlockAsync(It.Is<PutPublicAccessBlockRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName && r.PublicAccessBlockConfiguration.BlockPublicAcls == false), It.IsAny<CancellationToken>()), Times.Once());
                 client.Verify(c => c.PutBucketOwnershipControlsAsync(It.Is<PutBucketOwnershipControlsRequest>(r => r.OwnershipControls.Rules[0].ObjectOwnership == ObjectOwnership.BucketOwnerPreferred), It.IsAny<CancellationToken>()), Times.Once());
                 client.Verify(c => c.PutBucketPolicyAsync(It.Is<PutBucketPolicyRequest>(r => r.Policy.Contains("arn:aws:s3:::test-bucket/*")), It.IsAny<CancellationToken>()), Times.Once());
@@ -203,8 +202,7 @@ namespace SleetLib.Tests
             using (var cache = new LocalCache())
             {
                 var client = CreateClientWithMissingBucket();
-                client.As<ICoreAmazonS3>()
-                    .Setup(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName))
+                client.Setup(c => c.PutBucketAsync(It.IsAny<PutBucketRequest>(), It.IsAny<CancellationToken>()))
                     .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.Conflict));
                 client.Setup(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutPublicAccessBlockResponse());
                 client.Setup(c => c.PutBucketOwnershipControlsAsync(It.IsAny<PutBucketOwnershipControlsRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketOwnershipControlsResponse());
@@ -318,23 +316,43 @@ namespace SleetLib.Tests
                 source["acl"] = "public-read";
             });
             var client = CreateClientWithMissingBucket();
-            var coreClient = client.As<ICoreAmazonS3>();
-            coreClient.Setup(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName)).Returns(Task.CompletedTask);
+            client.Setup(c => c.PutBucketAsync(It.IsAny<PutBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketResponse());
             client.Setup(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>())).ReturnsAsync(new ListObjectsV2Response());
             client.Setup(c => c.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutObjectResponse());
-
-            // The provider is internal and only set from sleet.json, replace the client created by the factory
-            typeof(AmazonS3FileSystem).GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(fileSystem, client.Object);
+            SetClient(fileSystem, client.Object);
             var log = new TestLogger();
 
             await fileSystem.CreateBucket(log, TestContext.Current.CancellationToken);
 
-            coreClient.Verify(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName), Times.Once());
+            client.Verify(c => c.PutBucketAsync(It.Is<PutBucketRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName), It.IsAny<CancellationToken>()), Times.Once());
             client.Verify(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>()), Times.Never());
             client.Verify(c => c.PutBucketOwnershipControlsAsync(It.IsAny<PutBucketOwnershipControlsRequest>(), It.IsAny<CancellationToken>()), Times.Never());
             client.Verify(c => c.PutBucketPolicyAsync(It.IsAny<PutBucketPolicyRequest>(), It.IsAny<CancellationToken>()), Times.Never());
             client.Verify(c => c.PutBucketAclAsync(It.IsAny<PutBucketAclRequest>(), It.IsAny<CancellationToken>()), Times.Never());
             log.GetMessages().Should().Contain("Cloudflare R2 buckets are private by default");
+        }
+
+        [Theory]
+        [InlineData("r2")]
+        [InlineData("self-hosted")]
+        public async Task AmazonS3FileSystem_CreateBucket_WithS3CompatibleProvider_DoesNotUseClientRegion(string provider)
+        {
+            var fileSystem = await FileSystemFactoryTests.CreateS3FileSystemAsync(source =>
+            {
+                source["provider"] = provider;
+                source["serviceURL"] = "https://s3.example.com";
+                source["baseURI"] = "https://nuget.example.com/";
+            });
+            var client = CreateClientWithMissingBucket();
+            client.Setup(c => c.PutBucketAsync(It.IsAny<PutBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketResponse());
+            client.Setup(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>())).ReturnsAsync(new ListObjectsV2Response());
+            client.Setup(c => c.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutObjectResponse());
+            SetClient(fileSystem, client.Object);
+
+            await fileSystem.CreateBucket(new TestLogger(), TestContext.Current.CancellationToken);
+
+            // With the client region the SDK guesses a LocationConstraint from the bucket url, such as ca-4247-9480 from a guid
+            client.Verify(c => c.PutBucketAsync(It.Is<PutBucketRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName && !r.UseClientRegion), It.IsAny<CancellationToken>()), Times.Once());
         }
 
         [Fact]
@@ -361,8 +379,6 @@ namespace SleetLib.Tests
         private static Mock<IAmazonS3> CreateClientWithMissingBucket()
         {
             var client = AmazonS3TestUtility.CreateClient();
-            // EnsureBucketExistsAsync goes through ICoreAmazonS3, which must be added before the mock object is created.
-            client.As<ICoreAmazonS3>();
             client.Setup(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.NotFound));
             return client;
@@ -371,7 +387,7 @@ namespace SleetLib.Tests
         private static Mock<IAmazonS3> CreateClientForRetryTest(HttpStatusCode statusCode, bool succeedsOnSecondTry)
         {
             var client = CreateClientWithMissingBucket();
-            client.As<ICoreAmazonS3>().Setup(c => c.EnsureBucketExistsAsync(AmazonS3TestUtility.BucketName)).Returns(Task.CompletedTask);
+            client.Setup(c => c.PutBucketAsync(It.IsAny<PutBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketResponse());
             if (succeedsOnSecondTry)
             {
                 client.SetupSequence(c => c.PutPublicAccessBlockAsync(It.IsAny<PutPublicAccessBlockRequest>(), It.IsAny<CancellationToken>()))
@@ -389,6 +405,12 @@ namespace SleetLib.Tests
             client.Setup(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>())).ReturnsAsync(new ListObjectsV2Response());
             client.Setup(c => c.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutObjectResponse());
             return client;
+        }
+
+        // The provider is internal and only set from sleet.json, replace the client created by the factory
+        private static void SetClient(AmazonS3FileSystem fileSystem, IAmazonS3 client)
+        {
+            typeof(AmazonS3FileSystem).GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(fileSystem, client);
         }
     }
 }
