@@ -22,6 +22,7 @@ try {
   --btn:#0078d4; --btn-hover:#1a86d9; --ok:#6ccb5f; --ok-bg:#1d3a1d;
   --warn-bg:#433519; --warn-line:#6b5a1a; --warn-icon:#c8c6c4;
   --danger:#f1707b; --danger-bg:#442726; --danger-line:#6e3a3c; --glyph:#797775; --icon-bg:#edebe9;
+  --important:#b4a0ff; --attention:#d29922;
   --depth:0 1.6px 3.6px rgba(0,0,0,.4),0 .3px .9px rgba(0,0,0,.3);
   --depth-hi:0 6.4px 14.4px rgba(0,0,0,.45),0 1.2px 3.6px rgba(0,0,0,.35);
   --i-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a19f9d' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E");
@@ -38,6 +39,7 @@ try {
   --btn:#0078d4; --btn-hover:#106ebe; --ok:#107c10; --ok-bg:#dff6dd;
   --warn-bg:#fff4ce; --warn-line:#f7e28b; --warn-icon:#797673;
   --danger:#a4262c; --danger-bg:#fde7e9; --danger-line:#f1bbbc; --glyph:#a19f9d; --icon-bg:#fff;
+  --important:#8764b8; --attention:#9a6700;
   --depth:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
   --depth-hi:0 6.4px 14.4px rgba(0,0,0,.13),0 1.2px 3.6px rgba(0,0,0,.11);
   --i-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23605e5c' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E");
@@ -49,15 +51,15 @@ body{margin:0;background:var(--bg);color:var(--fg);
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 a:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
-.mono,.pick,.readme,.group h4{font-family:"Cascadia Mono",ui-monospace,Consolas,SFMono-Regular,"Liberation Mono",monospace}
+.mono,.pick,pre.readme,.readme code,.readme pre,.group h4{font-family:"Cascadia Mono",ui-monospace,Consolas,SFMono-Regular,"Liberation Mono",monospace}
 .meta{color:var(--muted);font-size:12px;white-space:nowrap}
 
 header{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;min-height:48px;
   padding:8px max(20px,calc((100% - 1000px)/2 + 20px));background:var(--card);box-shadow:var(--depth)}
-h1{margin:0;font-size:16px;font-weight:600;white-space:nowrap}
-h1 a{color:var(--fg);display:inline-flex;align-items:center;gap:10px}
-h1 a:hover{text-decoration:none}
-h1 a::before{content:"";width:28px;height:28px;border-radius:4px;
+header h1{margin:0;font-size:16px;font-weight:600;white-space:nowrap}
+header h1 a{color:var(--fg);display:inline-flex;align-items:center;gap:10px}
+header h1 a:hover{text-decoration:none}
+header h1 a::before{content:"";width:28px;height:28px;border-radius:4px;
   background:#0078d4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.9 20.4 7.4v9.2L12 21.1 3.6 16.6V7.4z'/%3E%3Cpath d='M3.6 7.4 12 12l8.4-4.6'/%3E%3Cpath d='M12 12v9.1'/%3E%3C/svg%3E") center/18px no-repeat}
 #search{flex:1;min-width:200px;max-width:480px;height:32px;padding:0 10px 0 34px;border:1px solid var(--field-line);
   border-bottom-color:var(--strong);border-radius:4px;background:var(--card) var(--i-search) 10px center/16px no-repeat;
@@ -144,7 +146,39 @@ td:first-child,th:first-child{white-space:nowrap}
 .group td{padding:7px 12px}
 .group td:first-child{white-space:normal;overflow-wrap:anywhere}
 @media (min-width:640px){.group td:last-child{width:40%}}
-.readme{margin:0;padding:12px 16px;max-height:520px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;
+.readme{overflow-wrap:anywhere;line-height:22px}
+.readme > :first-child{margin-top:0}
+.readme > :last-child{margin-bottom:0}
+.readme h1,.readme h2,.readme h3,.readme h4,.readme h5,.readme h6{margin:24px 0 8px;font-weight:600;line-height:1.3}
+.readme h1{font-size:22px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.readme h2{font-size:18px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.readme h3{font-size:16px}
+.readme h4,.readme h5,.readme h6{font-size:14px}
+.readme p,.readme ul,.readme ol,.readme blockquote,.readme .alert,.readme pre,.readme .table-wrap{margin:0 0 12px}
+.readme ul,.readme ol{padding-left:24px}
+.readme li + li{margin-top:4px}
+.readme li > p{margin:0 0 8px}
+.readme li > :last-child{margin-bottom:0}
+.readme li > ul,.readme li > ol{margin-top:4px}
+.readme li.task{list-style:none;margin-left:-20px}
+.readme li.task input{margin:0 6px 0 0;vertical-align:middle}
+.readme blockquote,.readme .alert{padding:0 12px;border-left:3px solid var(--field-line)}
+.readme blockquote{color:var(--muted)}
+.readme .alert{--tone:var(--accent);border-left-color:var(--tone)}
+.readme .alert-tip{--tone:var(--ok)}
+.readme .alert-important{--tone:var(--important)}
+.readme .alert-warning{--tone:var(--attention)}
+.readme .alert-caution{--tone:var(--danger)}
+.readme .alert-title{margin-bottom:4px;font-weight:600;color:var(--tone)}
+.readme code{padding:1px 5px;border-radius:4px;background:var(--chip);font-size:85%}
+.readme pre{padding:12px 16px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:4px;font-size:13px;line-height:20px}
+.readme pre code{padding:0;background:none;font-size:inherit;white-space:pre;overflow-wrap:normal}
+.readme img{max-width:100%;vertical-align:middle}
+.readme hr{margin:16px 0;border:0;border-top:1px solid var(--line)}
+.readme .table-wrap{overflow-x:auto;overflow-wrap:normal}
+.readme table{width:auto}
+.readme th,.readme td,.readme tr:last-child td{padding:6px 12px;border:1px solid var(--line);white-space:normal;font-size:inherit;color:var(--fg)}
+pre.readme{margin:0;padding:12px 16px;max-height:520px;overflow:auto;white-space:pre-wrap;
   background:var(--bg);border:1px solid var(--line);border-radius:4px;font-size:13px;line-height:20px}
 
 .note{position:relative;margin:0 0 12px;padding:8px 12px 8px 36px;background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:4px}
@@ -745,15 +779,1054 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
     return panel;
   }
 
-  // The readme is markdown written by the package author. It is rendered as
-  // preformatted text so that nothing in it can become markup on this page.
+  // Readmes are markdown written by the package author. This renders the
+  // parts of CommonMark that readmes use, plus the GitHub tables, task lists,
+  // strikethrough and alerts. Every node is built through the DOM, raw html
+  // is never parsed as markup, and only absolute http, https and mailto
+  // links are followed.
+  var renderMarkdown = (function () {
+    var MAX_DEPTH = 16;
+    var MAX_EMPHASIS = 32;
+    var MAX_FILL = 10000;
+
+    // Spelled this way so that the script never contains an html comment
+    // opener, which changes how browsers tokenize script content.
+    var COMMENT_OPEN = "<!\x2d-";
+
+    var RE_ATX = /^ {0,3}(#{1,6})(?= |$)(.*)$/;
+    var RE_HR = /^ {0,3}(?:(?:\* *){3,}|(?:- *){3,}|(?:_ *){3,})$/;
+    var RE_FENCE = /^( {0,3})(`{3,}|~{3,})(.*)$/;
+    var RE_CLOSE = /^ {0,3}(`+|~+) *$/;
+    var RE_QUOTE = /^ {0,3}> ?/;
+    var RE_ITEM = /^( {0,3})([-+*]|(\d{1,9})([.)]))( *)(.*)$/;
+    var RE_INTERRUPT_ITEM = /^ {0,3}(?:[-+*]|1[.)]) +[^ ]/;
+    var RE_SETEXT = /^ {0,3}(?:=+|-+) *$/;
+    var RE_COMMENT = /^ {0,3}<!-{2}/;
+    var RE_TASK = /^\[([ xX])\] +(?=[^ ])/;
+    var RE_ALERT = /^ {0,3}\[!(note|tip|important|warning|caution)\] *$/i;
+
+    var RE_PLAIN = /[^\\`!\[<&*_~\nhw]+/y;
+    var RE_PUNCT = /^[!-\/:-@\[-`{-~]$/;
+    var RE_UPUNCT = /[\p{P}\p{S}]/u;
+    var RE_SPACE = /\s/;
+    var RE_SPNL = / *(?:\n *)?/y;
+    var RE_EOL = / *(?:\n|$)/y;
+    var RE_TITLE = /"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|\((?:[^()\\]|\\[\s\S])*\)/y;
+    var RE_ANGLE = /<((?:[^<>\n\\]|\\[\s\S])*)>/y;
+    var RE_LABEL = /\[((?:[^\\\[\]]|\\[\s\S]){0,999})\]/y;
+    var RE_URI = /<([A-Za-z][A-Za-z0-9.+-]{1,31}:[^\x00-\x20<>]*)>/y;
+    var RE_EMAIL = /<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>/y;
+    var RE_TAG = /<(\/?)([A-Za-z][A-Za-z0-9-]*)((?:\s+[A-Za-z_:][\w.:-]*(?:\s*=\s*(?:[^\s"'=<>`]+|'[^']*'|"[^"]*"))?)*)\s*\/?>/y;
+    var RE_ATTR = /([A-Za-z_:][\w.:-]*)(?:\s*=\s*(?:([^\s"'=<>`]+)|'([^']*)'|"([^"]*)"))?/g;
+    var RE_ENTITY = /&(?:#[xX]([0-9a-fA-F]{1,6})|#([0-9]{1,7})|([A-Za-z][A-Za-z0-9]{1,31}));/y;
+    var RE_DECODE = /\\([!-\/:-@\[-`{-~])|&(?:#[xX]([0-9a-fA-F]{1,6})|#([0-9]{1,7})|([A-Za-z][A-Za-z0-9]{1,31}));/g;
+    var RE_DECODE_HTML = /&(?:#[xX]([0-9a-fA-F]{1,6})|#([0-9]{1,7})|([A-Za-z][A-Za-z0-9]{1,31}));/g;
+    var RE_NAMES = /&([A-Za-z][A-Za-z0-9]{1,31});/g;
+    var RE_BARE = /(?:https?:\/\/|www\.)[^\s<]*/y;
+    var RE_HOST = /^(?:https?:\/\/|www\.)[\p{L}\p{N}]/u;
+    var RE_UNSAFE_URL = /%(?![0-9A-Fa-f]{2})|[^\w;\/?:@&=+$,.!~*'()#%-]+/g;
+
+    // Inline html tags with these lowercase names are dropped and the text
+    // around them is kept. Any other tag, such as the T in List<T>, is shown
+    // as written.
+    var TAGS = Object.create(null);
+    ("a abbr b bdi bdo blockquote br caption center cite code dd del details dfn div dl dt em " +
+      "figcaption figure font h1 h2 h3 h4 h5 h6 hr i img ins kbd li mark ol p picture pre q rp rt " +
+      "ruby s samp small source span strike strong sub summary sup table tbody td tfoot th thead tr " +
+      "tt u ul var wbr").split(" ").forEach(function (t) { TAGS[t] = true; });
+
+    var entities = Object.create(null);
+    var parser = null;
+
+    function isBlank(line) { return /^ *$/.test(line); }
+
+    function indentOf(line) {
+      var i = 0;
+      while (line.charCodeAt(i) === 32) i++;
+      return i;
+    }
+
+    // Counts the spaces just before end. Regular expressions such as / +$/
+    // take quadratic time on a long run of spaces, so a loop is used.
+    function spacesBefore(s, end) {
+      var i = end;
+      while (i && s.charCodeAt(i - 1) === 32) i--;
+      return end - i;
+    }
+
+    // An ATX heading can end with a run of # that follows a space.
+    function headingText(s) {
+      var end = s.length - spacesBefore(s, s.length), h = end;
+      while (h && s.charAt(h - 1) === "#") h--;
+      if (h < end && (!h || s.charAt(h - 1) === " ")) end = h - spacesBefore(s, h);
+      return s.slice(indentOf(s), end);
+    }
+
+    // Tabs are expanded to stops every 4 columns up front, so the block rules
+    // only have to count spaces.
+    function expandTabs(line) {
+      if (line.indexOf("\t") < 0) return line;
+      var out = "";
+      for (var i = 0; i < line.length; i++) {
+        var c = line.charAt(i);
+        out += c === "\t" ? "    ".slice(out.length % 4) : c;
+      }
+      return out;
+    }
+
+    function dedent(line, k) {
+      var i = 0;
+      while (i < k && line.charCodeAt(i) === 32) i++;
+      return line.slice(i);
+    }
+
+    function norm(label) {
+      return label.replace(/[ \t\n]+/g, " ").replace(/^ | $/g, "").toLowerCase().toUpperCase();
+    }
+
+    // Named character references are resolved by the browser's html parser,
+    // which knows the full list. A name it does not know is kept as text.
+    // Each parse takes a while, so the names in a readme are looked up
+    // together.
+    function lookup(src) {
+      var names = [];
+      src.replace(RE_NAMES, function (m, name) {
+        if (!(name in entities)) {
+          entities[name] = null;
+          names.push(name);
+        }
+        return m;
+      });
+      if (!names.length) return;
+      parser = parser || new DOMParser();
+      var p = parser.parseFromString("<!doctype html><body><p>&" + names.join(";<p>&") + ";", "text/html").body.firstElementChild;
+      names.forEach(function (name) {
+        var v = p.textContent;
+        entities[name] = v.indexOf(";") < 0 || v === ";" ? v : null;
+        p = p.nextElementSibling;
+      });
+    }
+
+    function named(name) {
+      if (!(name in entities)) lookup("&" + name + ";");
+      return entities[name];
+    }
+
+    function entity(m, hex, dec, name) {
+      if (name) {
+        var v = named(name);
+        return v === null ? m : v;
+      }
+      var cp = parseInt(hex || dec, hex ? 16 : 10);
+      return String.fromCodePoint(!cp || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff) ? 0xfffd : cp);
+    }
+
+    function decode(v) {
+      return v.replace(RE_DECODE, function (m, esc, hex, dec, name) {
+        return esc || entity(m, hex, dec, name);
+      });
+    }
+
+    function decodeHtml(v) {
+      return v.replace(RE_DECODE_HTML, entity);
+    }
+
+    // Characters that cannot appear in a url are percent encoded first, as
+    // CommonMark does, so that a backslash is not read as a slash.
+    function absolute(v, mail) {
+      try {
+        var u = new URL(v.replace(RE_UNSAFE_URL, encodeURIComponent));
+        if (u.protocol === "http:" || u.protocol === "https:" || (mail && u.protocol === "mailto:")) return u.href;
+      } catch (e) {
+        // Relative and malformed urls are not followed.
+      }
+      return "";
+    }
+
+    function hyperlink(href, text, title) {
+      var a = el("a", null, text);
+      a.href = href;
+      a.rel = "nofollow noreferrer";
+      if (title) a.title = title;
+      return a;
+    }
+
+    // Images load from their own host without a referrer. One that is
+    // relative or fails to load is replaced by its alt text.
+    function picture(alt, src, title, width, height, plain) {
+      var url = plain ? "" : absolute(src);
+      if (!url) return alt;
+      var img = el("img");
+      img.alt = alt;
+      img.loading = "lazy";
+      img.referrerPolicy = "no-referrer";
+      if (title) img.title = title;
+      if (width) img.width = width;
+      if (height) img.height = height;
+      img.onerror = function () { img.replaceWith(alt); };
+      img.src = url;
+      return img;
+    }
+
+    function fenceStart(line) {
+      var m = RE_FENCE.exec(line);
+      if (!m || (m[2].charAt(0) === "`" && m[3].indexOf("`") >= 0)) return null;
+      return { indent: m[1].length, ch: m[2].charAt(0), len: m[2].length };
+    }
+
+    function closesFence(line, fence) {
+      var m = RE_CLOSE.exec(line);
+      return !!m && m[1].charAt(0) === fence.ch && m[1].length >= fence.len;
+    }
+
+    function startsBlock(line) {
+      return RE_ATX.test(line) || RE_HR.test(line) || !!fenceStart(line) || RE_QUOTE.test(line) ||
+        RE_COMMENT.test(line) || RE_INTERRUPT_ITEM.test(line);
+    }
+
+    function interrupts(line, next) {
+      return startsBlock(line) || tableStart(line, next);
+    }
+
+    // A lazy line continues a paragraph, so an underline in it is escaped to
+    // keep it from turning the paragraph into a heading.
+    function lazy(line) {
+      return RE_SETEXT.test(line) ? line.replace(/[^ ]/, "\\$&") : line;
+    }
+
+    // Follows whether the last block in a container is an open paragraph,
+    // which decides if a following line without the container's prefix
+    // continues it.
+    function track(s, line) {
+      if (s.fence) {
+        if (closesFence(line, s.fence)) s.fence = null;
+        s.para = false;
+      } else if ((s.fence = fenceStart(line))) {
+        s.para = false;
+      } else {
+        s.para = !isBlank(line) && !RE_ATX.test(line) && !RE_HR.test(line) && !RE_COMMENT.test(line) &&
+          !(s.para && RE_SETEXT.test(line)) && (s.para || indentOf(line) < 4);
+      }
+    }
+
+    // Inline content is parsed after every block exists, so that links can
+    // use reference definitions from anywhere in the readme.
+    function queue(st, node, src, parent) {
+      parent.appendChild(node);
+      st.jobs.push([src, node]);
+    }
+
+    // Every line ends with a line break, so blank lines at the end of a
+    // fenced block are kept. The browser does not show the last break.
+    function codeBlock(lines) {
+      var pre = el("pre");
+      pre.appendChild(el("code", null, lines.length ? lines.join("\n") + "\n" : ""));
+      return pre;
+    }
+
+    // Adds the blocks in lines to parent. Returns true if a blank line
+    // separates two of them, which makes the list item holding them loose.
+    function blocks(lines, parent, depth, st) {
+      if (depth > MAX_DEPTH) {
+        parent.appendChild(el("p", null, lines.join("\n")));
+        return false;
+      }
+
+      var gap = false, blank = false, any = false, i = 0, n = lines.length, line, m, fence;
+      while (i < n) {
+        line = lines[i];
+        if (isBlank(line)) {
+          blank = any;
+          i++;
+          continue;
+        }
+
+        if (blank) gap = true;
+        blank = false;
+        any = true;
+
+        if (indentOf(line) > 3) {
+          var code = [];
+          for (; i < n && (isBlank(lines[i]) || indentOf(lines[i]) > 3); i++) code.push(lines[i].slice(4));
+          while (isBlank(code[code.length - 1])) {
+            code.pop();
+            i--;
+          }
+          parent.appendChild(codeBlock(code));
+        } else if ((fence = fenceStart(line))) {
+          var body = [];
+          for (i++; i < n && !closesFence(lines[i], fence); i++) body.push(dedent(lines[i], fence.indent));
+          parent.appendChild(codeBlock(body));
+          i++;
+        } else if ((m = RE_ATX.exec(line))) {
+          queue(st, el("h" + m[1].length), headingText(m[2]), parent);
+          i++;
+        } else if (RE_HR.test(line)) {
+          parent.appendChild(el("hr"));
+          i++;
+        } else if (RE_QUOTE.test(line)) {
+          i = quoteBlock(lines, i, parent, depth, st);
+        } else if (RE_COMMENT.test(line)) {
+          i = skipComment(lines, i);
+        } else if (listItem(line)) {
+          i = listBlock(lines, i, parent, depth, st);
+        } else if (tableStart(line, lines[i + 1])) {
+          i = tableBlock(lines, i, parent, st);
+        } else {
+          i = paragraph(lines, i, parent, st);
+        }
+      }
+      return gap;
+    }
+
+    // Html comments are hidden as a browser would hide them. Text after the
+    // end of a comment is kept.
+    function skipComment(lines, i) {
+      var j = lines[i].indexOf("-->", lines[i].indexOf(COMMENT_OPEN) + 2);
+      while (j < 0 && ++i < lines.length) j = lines[i].indexOf("-->");
+      if (j < 0) return i;
+      var rest = lines[i].slice(j + 3).replace(/^ +/, "");
+      if (!rest) return i + 1;
+      lines[i] = rest;
+      return i;
+    }
+
+    function quoteBlock(lines, i, parent, depth, st) {
+      var body = [], s = { para: false, fence: null }, n = lines.length, line;
+      for (; i < n; i++) {
+        line = lines[i];
+        if (RE_QUOTE.test(line)) line = line.replace(RE_QUOTE, "");
+        else if (s.para && !isBlank(line) && !listItem(line) && !interrupts(line, lines[i + 1])) line = lazy(line);
+        else break;
+        body.push(line);
+        track(s, line);
+      }
+
+      // GitHub alerts are top level quotes that start with a marker such as
+      // [!NOTE] on a line of its own.
+      var m = depth === 0 && RE_ALERT.exec(body[0]), box;
+      if (m && body.slice(1).some(function (l) { return !isBlank(l); })) {
+        var type = m[1].toLowerCase();
+        box = el("div", "alert alert-" + type);
+        box.appendChild(el("p", "alert-title", type.charAt(0).toUpperCase() + type.slice(1)));
+        body = body.slice(1);
+      } else {
+        box = el("blockquote");
+      }
+      parent.appendChild(box);
+      blocks(body, box, depth + 1, st);
+      return i;
+    }
+
+    function listItem(line) {
+      var m = RE_ITEM.exec(line);
+      if (!m || (!m[5] && m[6])) return null;
+      var w = m[1].length + m[2].length;
+      var item = { ordered: !!m[3], bullet: m[4] || m[2], start: m[3] ? parseInt(m[3], 10) : 1 };
+      if (!m[6]) {
+        item.offset = w + 1;
+        item.first = "";
+      } else if (m[5].length > 4) {
+        item.offset = w + 1;
+        item.first = line.slice(w + 1);
+      } else {
+        item.offset = w + m[5].length;
+        item.first = m[6];
+      }
+      return item;
+    }
+
+    // A list ends at a line that does not belong to the current item and
+    // does not start another item of the same kind. It is loose if a blank
+    // line separates its items or two blocks inside an item.
+    function listBlock(lines, i, parent, depth, st) {
+      var item = listItem(lines[i]), n = lines.length, loose = false;
+      var node = el(item.ordered ? "ol" : "ul");
+      if (item.ordered && item.start !== 1) node.start = item.start;
+      parent.appendChild(node);
+
+      for (;;) {
+        var body = [item.first], s = { para: false, fence: null }, line;
+        track(s, item.first);
+
+        // An item can start with at most one blank line.
+        for (i++; i < n && !(body.length === 1 && !item.first && isBlank(lines[i])); i++) {
+          line = lines[i];
+          if (isBlank(line) || indentOf(line) >= item.offset) line = line.slice(item.offset);
+          else if (s.para && !listItem(line) && !interrupts(line, lines[i + 1])) line = lazy(line);
+          else break;
+          body.push(line);
+          track(s, line);
+        }
+        while (body.length > 1 && isBlank(body[body.length - 1])) {
+          body.pop();
+          i--;
+        }
+
+        var li = el("li"), first = st.jobs.length;
+        node.appendChild(li);
+        if (blocks(body, li, depth + 1, st)) loose = true;
+        task(li, st.jobs[first]);
+
+        var j = i;
+        while (j < n && isBlank(lines[j])) j++;
+        var next = j < n && !RE_HR.test(lines[j]) && listItem(lines[j]);
+        if (!next || next.ordered !== item.ordered || next.bullet !== item.bullet) break;
+        if (j > i) loose = true;
+        i = j;
+        item = next;
+      }
+
+      if (!loose) st.tight.push(node);
+      return i;
+    }
+
+    // An item whose first paragraph starts with [ ] or [x] is a task.
+    function task(li, job) {
+      var m = job && job[1] === li.firstChild && job[1].nodeName === "P" && RE_TASK.exec(job[0]);
+      if (!m) return;
+      job[0] = job[0].slice(m[0].length);
+      var box = el("input");
+      box.type = "checkbox";
+      box.disabled = true;
+      box.defaultChecked = m[1] !== " ";
+      job[1].appendChild(box);
+      li.className = "task";
+    }
+
+    // Splits a table row on the pipes that are not escaped.
+    function cells(line) {
+      var s = line.trim(), out = [], cur = "";
+      if (s.charAt(0) === "|") s = s.slice(1);
+      if (s.slice(-1) === "|" && s.slice(-2) !== "\\|") s = s.slice(0, -1);
+      for (var i = 0; i < s.length; i++) {
+        var c = s.charAt(i);
+        if (c === "\\" && s.charAt(i + 1) === "|") {
+          cur += "|";
+          i++;
+        } else if (c === "|") {
+          out.push(cur.trim());
+          cur = "";
+        } else {
+          cur += c;
+        }
+      }
+      out.push(cur.trim());
+      return out;
+    }
+
+    function aligns(line) {
+      var out = [], parts = cells(line);
+      for (var i = 0; i < parts.length; i++) {
+        if (!/^:?-+:?$/.test(parts[i])) return null;
+        var left = parts[i].charAt(0) === ":", right = parts[i].slice(-1) === ":";
+        out.push(left && right ? "center" : right ? "right" : left ? "left" : "");
+      }
+      return out;
+    }
+
+    function tableStart(line, next) {
+      if (next === undefined || line.indexOf("|") < 0 || next.indexOf("|") < 0) return false;
+      if (indentOf(line) > 3 || indentOf(next) > 3) return false;
+      var a = aligns(next);
+      return !!a && a.length === cells(line).length;
+    }
+
+    function tableBlock(lines, i, parent, st) {
+      var head = cells(lines[i]), align = aligns(lines[i + 1]), n = lines.length;
+      var wrap = el("div", "table-wrap"), table = el("table"), thead = el("thead"), tbody = null;
+      var tr = el("tr");
+      head.forEach(function (c, k) { tableCell(tr, "th", c, align[k], st); });
+      thead.appendChild(tr);
+      table.appendChild(thead);
+      wrap.appendChild(table);
+      parent.appendChild(wrap);
+
+      // Rows run until a blank line or another block. Extra cells are
+      // ignored and missing cells are left empty. Empty cells are only
+      // added up to a limit for the whole readme, so that a wide header
+      // over many short rows cannot create millions of them.
+      for (i += 2; i < n && !isBlank(lines[i]) && !startsBlock(lines[i]); i++) {
+        var row = cells(lines[i]), fill = Math.max(0, Math.min(head.length - row.length, st.fill));
+        st.fill -= fill;
+        if (!tbody) table.appendChild(tbody = el("tbody"));
+        tr = el("tr");
+        for (var k = 0, w = Math.min(row.length, head.length) + fill; k < w; k++) {
+          tableCell(tr, "td", k < row.length ? row[k] : "", align[k], st);
+        }
+        tbody.appendChild(tr);
+      }
+      return i;
+    }
+
+    function tableCell(tr, tag, src, align, st) {
+      var c = el(tag);
+      if (align) c.style.textAlign = align;
+      queue(st, c, src, tr);
+    }
+
+    // A paragraph runs until a blank line or a line that starts another
+    // block. Link reference definitions at its start are taken out, and an
+    // underline of = or - turns the rest into a heading. When nothing is
+    // left, the underline is read again as a line of its own.
+    function paragraph(lines, i, parent, st) {
+      var text = [lines[i]], n = lines.length, level = 0;
+      for (i++; i < n; i++) {
+        var line = lines[i];
+        if (isBlank(line)) break;
+        if (RE_SETEXT.test(line)) {
+          level = line.indexOf("=") >= 0 ? 1 : 2;
+          break;
+        }
+        if (interrupts(line, lines[i + 1])) break;
+        text.push(line);
+      }
+      var src = definitions(text.map(function (l) { return l.replace(/^ +/, ""); }).join("\n"), st);
+      src = src.slice(0, src.length - spacesBefore(src, src.length));
+      if (!src) return i;
+      queue(st, el(level ? "h" + level : "p"), src, parent);
+      return level ? i + 1 : i;
+    }
+
+    // Takes the link reference definitions off the start of a paragraph and
+    // returns the text that is left. The first definition of a label wins.
+    function definitions(s, st) {
+      var pos = 0, def;
+      while (s.charAt(pos) === "[" && (def = definition(s, pos))) {
+        var key = norm(def.label);
+        if (!(key in st.refs)) st.refs[key] = { href: def.href, title: def.title };
+        pos = def.end;
+      }
+      return s.slice(pos);
+    }
+
+    // Reads [label]: destination "title" at pos. The destination and the
+    // title can each start on the next line. A title that is not followed by
+    // the end of its line is not part of the definition.
+    function definition(s, pos) {
+      var m, d, t, end;
+      RE_LABEL.lastIndex = pos;
+      if (!(m = RE_LABEL.exec(s)) || !/[^ \n]/.test(m[1]) || s.charAt(RE_LABEL.lastIndex) !== ":") return null;
+      var label = m[1], from = skipSpace(s, RE_LABEL.lastIndex + 1);
+      if (!(d = destination(s, from)) || d.end === from) return null;
+
+      var title = "";
+      end = lineEnd(s, d.end);
+      if ((t = skipSpace(s, d.end)) > d.end) {
+        RE_TITLE.lastIndex = t;
+        if ((m = RE_TITLE.exec(s)) && (t = lineEnd(s, RE_TITLE.lastIndex)) >= 0) {
+          title = m[0].slice(1, -1);
+          end = t;
+        }
+      }
+      return end < 0 ? null : { label: label, href: decode(d.href), title: decode(title), end: end };
+    }
+
+    // Returns the start of the next line if only spaces are left on the line
+    // at i, or -1.
+    function lineEnd(s, i) {
+      RE_EOL.lastIndex = i;
+      return RE_EOL.exec(s) ? RE_EOL.lastIndex : -1;
+    }
+
+    function runLength(s, i, ch) {
+      var j = i;
+      while (s.charAt(j) === ch) j++;
+      return j - i;
+    }
+
+    // Maps each length of backtick run to the sorted positions where runs of
+    // that length start, so finding the end of a code span is a lookup.
+    function tickRuns(s) {
+      var runs = Object.create(null), i = s.indexOf("`");
+      while (i >= 0) {
+        var k = runLength(s, i, "`");
+        (runs[k] = runs[k] || []).push(i);
+        i = s.indexOf("`", i + k);
+      }
+      return runs;
+    }
+
+    function codeEnd(runs, from, k) {
+      var starts = runs[k] || [], lo = 0, hi = starts.length;
+      while (lo < hi) {
+        var mid = (lo + hi) >> 1;
+        if (starts[mid] < from) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo < starts.length ? starts[lo] : -1;
+    }
+
+    // Line endings in a code span become spaces, and one space is removed
+    // from each end when both ends have one.
+    function codeText(t) {
+      t = t.replace(/\n/g, " ");
+      return t.length > 1 && t.charAt(0) === " " && t.slice(-1) === " " && /[^ ]/.test(t) ? t.slice(1, -1) : t;
+    }
+
+    function charBefore(s, i) {
+      if (i <= 0) return "";
+      var c = s.charCodeAt(i - 1);
+      return i > 1 && c >= 0xdc00 && c <= 0xdfff ? s.slice(i - 2, i) : s.charAt(i - 1);
+    }
+
+    function charAfter(s, i) {
+      return i < s.length ? String.fromCodePoint(s.codePointAt(i)) : "";
+    }
+
+    // Autolinks, html comments and html tags all start with <.
+    function angle(s, i, lastClose) {
+      var m;
+      RE_URI.lastIndex = i;
+      if ((m = RE_URI.exec(s))) return { end: RE_URI.lastIndex, text: m[1], href: m[1] };
+      RE_EMAIL.lastIndex = i;
+      if ((m = RE_EMAIL.exec(s))) return { end: RE_EMAIL.lastIndex, text: m[1], href: "mailto:" + m[1] };
+      if (s.startsWith(COMMENT_OPEN, i) && lastClose >= i + 2) return { end: s.indexOf("-->", i + 2) + 3 };
+      RE_TAG.lastIndex = i;
+      if ((m = RE_TAG.exec(s))) return { end: RE_TAG.lastIndex, name: m[2], close: !!m[1], attrs: m[3] };
+      return null;
+    }
+
+    // Trailing punctuation, unbalanced closing parentheses and a trailing
+    // entity are left out of a bare url, as GitHub does.
+    function trimUrl(u) {
+      var open = 0, close = 0, end = u.length, i;
+      for (i = 0; i < end; i++) {
+        if (u.charAt(i) === "(") open++;
+        else if (u.charAt(i) === ")") close++;
+      }
+      while (end > 0) {
+        var c = u.charAt(end - 1);
+        if ("?!.,:*_~'\"".indexOf(c) >= 0) {
+          end--;
+        } else if (c === ")" && close > open) {
+          close--;
+          end--;
+        } else if (c === ";") {
+          var j = end - 2;
+          while (j > 0 && /[A-Za-z]/.test(u.charAt(j))) j--;
+          end = j < end - 2 && u.charAt(j) === "&" ? j : end - 1;
+        } else {
+          break;
+        }
+      }
+      return u.slice(0, end);
+    }
+
+    function skipSpace(s, i) {
+      RE_SPNL.lastIndex = i;
+      RE_SPNL.exec(s);
+      return RE_SPNL.lastIndex;
+    }
+
+    // Reads a link destination at i. That is either text in <> or a run
+    // without spaces in which parentheses are balanced.
+    function destination(s, i) {
+      var m;
+      if (s.charAt(i) === "<") {
+        RE_ANGLE.lastIndex = i;
+        return (m = RE_ANGLE.exec(s)) ? { href: m[1], end: RE_ANGLE.lastIndex } : null;
+      }
+      var depth = 0, k = i;
+      for (; k < s.length; k++) {
+        var c = s.charAt(k);
+        if (c === "\\" && RE_PUNCT.test(s.charAt(k + 1))) {
+          k++;
+        } else if (c === "(") {
+          if (++depth > 32) return null;
+        } else if (c === ")") {
+          if (!depth) break;
+          depth--;
+        } else if (c <= " " || c === "\x7f") {
+          break;
+        }
+      }
+      return depth ? null : { href: s.slice(i, k), end: k };
+    }
+
+    // Reads the (destination "title") part of an inline link. pos is just
+    // after the opening parenthesis.
+    function inlineTail(s, pos) {
+      var d = destination(s, skipSpace(s, pos)), title = "", m;
+      if (!d) return null;
+
+      // A title has to be separated from the destination by space.
+      var t = skipSpace(s, d.end);
+      if (t > d.end) {
+        RE_TITLE.lastIndex = t;
+        if ((m = RE_TITLE.exec(s))) {
+          title = m[0].slice(1, -1);
+          t = skipSpace(s, RE_TITLE.lastIndex);
+        }
+      }
+      if (s.charAt(t) !== ")") return null;
+      return { href: decode(d.href), title: decode(title), end: t + 1 };
+    }
+
+    // Reads what follows the ] of a link. That is an inline destination, a
+    // [label], an empty [] or nothing, and the last three look up a
+    // reference definition. from is the start of the link text.
+    function tail(s, pos, from, after, refs) {
+      var t, m, label = null, end = pos;
+      if (s.charAt(pos) === "(" && (t = inlineTail(s, pos + 1))) return t;
+
+      RE_LABEL.lastIndex = pos;
+      m = RE_LABEL.exec(s);
+      if (m && m[1]) {
+        label = m[1];
+        end = RE_LABEL.lastIndex;
+      } else if (!after && pos - 1 - from <= 999) {
+        // The link text is the label, which cannot hold another bracket.
+        label = s.slice(from, pos - 1);
+        if (m) end = pos + 2;
+      }
+      var ref = label !== null && refs[norm(label)];
+      return ref ? { href: ref.href, title: ref.title, end: end } : null;
+    }
+
+    // Finds every link and image before anything else is parsed, because
+    // brackets bind tighter than emphasis. Code spans, autolinks and html
+    // come first and hide any brackets inside them. A link cannot contain
+    // another link, so once one matches, the [ openers before it stop
+    // counting. Returns the matches keyed by the position of the opener.
+    function linkMap(s, runs, refs, lastClose) {
+      var map = Object.create(null), stack = [], floor = 0, i = 0, n = s.length, k, e, a;
+      while (i < n) {
+        var c = s.charAt(i);
+        if (c === "\\") {
+          i += 2;
+        } else if (c === "`") {
+          k = runLength(s, i, "`");
+          e = codeEnd(runs, i + k, k);
+          i = e < 0 ? i + k : e + k;
+        } else if (c === "<") {
+          a = angle(s, i, lastClose);
+          i = a ? a.end : i + 1;
+        } else if (c === "[" || (c === "!" && s.charAt(i + 1) === "[")) {
+          if (stack.length) stack[stack.length - 1].after = true;
+          stack.push({ at: i, image: c === "!", after: false });
+          i += c === "!" ? 2 : 1;
+        } else if (c === "]") {
+          var o = stack.pop(), active = !!o && (o.image || stack.length >= floor);
+          if (floor > stack.length) floor = stack.length;
+          var t = active && tail(s, i + 1, o.at + (o.image ? 2 : 1), o.after, refs);
+          if (t) {
+            map[o.at] = { close: i, href: t.href, title: t.title, end: t.end, image: o.image };
+            if (!o.image) floor = stack.length;
+            i = t.end;
+          } else {
+            i++;
+          }
+        } else {
+          i++;
+        }
+      }
+      return map;
+    }
+
+    // Describes a run of *, _ or ~~ by whether it can open or close
+    // emphasis, which depends on the characters on either side of it.
+    function delimiter(s, i, k, c) {
+      var before = charBefore(s, i), after = charAfter(s, i + k);
+      var bw = !before || RE_SPACE.test(before), aw = !after || RE_SPACE.test(after);
+      var bp = !!before && RE_UPUNCT.test(before), ap = !!after && RE_UPUNCT.test(after);
+      var left = !aw && (!ap || bw || bp), right = !bw && (!bp || aw || ap);
+      var open = left, close = right;
+      if (c === "_") {
+        open = left && (!right || bp);
+        close = right && (!left || ap);
+      }
+      if (!open && !close) return null;
+      return { d: c, n: k, len: k, opens: [], closes: [], open: open, close: close };
+    }
+
+    // Pairs each closing run with the nearest earlier run that can open it,
+    // as the CommonMark emphasis algorithm does. The stack holds the runs
+    // that can still open. For each kind of closer, bottom marks how far
+    // down the stack an opener was already looked for without success, so
+    // no run is searched twice by the same kind and the work stays linear.
+    // The pairs are recorded on the runs and built into elements afterwards.
+    function resolve(delims) {
+      var stack = [], bottom = Object.create(null);
+      delims.forEach(function (cl) {
+        var key = cl.d + cl.open + cl.n % 3;
+        while (cl.close && cl.len) {
+          var low = bottom[key] || 0, o = stack.length - 1;
+          while (o >= low && !pairs(stack[o], cl)) o--;
+          if (o < low) {
+            bottom[key] = stack.length;
+            break;
+          }
+
+          var op = stack[o], use = cl.d === "~" || (op.len > 1 && cl.len > 1) ? 2 : 1;
+          var tag = cl.d === "~" ? "del" : use === 2 ? "strong" : "em";
+          op.len -= use;
+          cl.len -= use;
+          op.opens.push(tag);
+          cl.closes.push(tag);
+
+          // The runs between the pair can no longer open anything.
+          stack.length = op.len ? o + 1 : o;
+          for (var b in bottom) {
+            if (bottom[b] > stack.length) bottom[b] = stack.length;
+          }
+        }
+        if (cl.open && cl.len) stack.push(cl);
+      });
+    }
+
+    // Runs of * or _ cannot pair when one of them can both open and close
+    // and their lengths add up to a multiple of 3, unless both lengths are.
+    function pairs(op, cl) {
+      return op.d === cl.d && (cl.d === "~" ||
+        !((op.close || cl.open) && (op.n + cl.n) % 3 === 0 && (op.n % 3 || cl.n % 3)));
+    }
+
+    // Each run closes its elements, then shows the characters it did not
+    // use, then opens its elements, outermost first. Past MAX_EMPHASIS
+    // levels the runs still pair up but add no more elements. Text is joined
+    // so that each gap between elements gets one text node.
+    function build(out, parent) {
+      var stack = [parent], text = "", at = parent;
+      function flush() {
+        if (text) at.appendChild(document.createTextNode(text));
+        text = "";
+        at = stack[stack.length - 1];
+      }
+      function write(t) {
+        if (at !== stack[stack.length - 1]) flush();
+        text += t;
+      }
+      function put(node) {
+        flush();
+        at.appendChild(node);
+      }
+
+      out.forEach(function (x) {
+        if (typeof x === "string") {
+          write(x);
+        } else if (!x.d) {
+          put(x);
+        } else {
+          stack.length = Math.max(1, stack.length - x.closes.length);
+          if (x.len) write(x.d.repeat(x.len));
+          for (var k = x.opens.length - 1; k >= 0; k--) {
+            var top = stack[stack.length - 1];
+            if (stack.length <= MAX_EMPHASIS) put(top = el(x.opens[k]));
+            stack.push(top);
+          }
+        }
+      });
+      flush();
+    }
+
+    // Link text cannot hold another link, and alt text is plain text, so a
+    // link inside either one only keeps its text.
+    function anchor(src, href, title, ctx) {
+      var url = ctx.link || ctx.plain ? "" : absolute(href, true);
+      var node = url ? hyperlink(url, null, title) : document.createDocumentFragment();
+      inline(src, node, { refs: ctx.refs, depth: ctx.depth + 1, link: true, plain: ctx.plain });
+      return node;
+    }
+
+    function altText(src, ctx) {
+      var span = el("span");
+      inline(src, span, { refs: ctx.refs, depth: ctx.depth + 1, link: true, plain: true });
+      return span.textContent;
+    }
+
+    function size(v) {
+      return v && /^\d+(?:px)?$/.test(v) ? parseInt(v, 10) : 0;
+    }
+
+    // Only the src, alt, title, width and height of an html image are used.
+    function htmlImage(attrs, plain) {
+      var a = Object.create(null), m;
+      RE_ATTR.lastIndex = 0;
+      while ((m = RE_ATTR.exec(attrs))) {
+        var name = m[1].toLowerCase();
+        if (!(name in a)) a[name] = decodeHtml(m[2] || m[3] || m[4] || "");
+      }
+      return picture(a.alt || "", a.src || "", a.title || "", size(a.width), size(a.height), plain);
+    }
+
+    function inline(s, parent, ctx) {
+      if (ctx.depth > 4) {
+        parent.appendChild(document.createTextNode(s));
+        return;
+      }
+
+      var runs = tickRuns(s), lastClose = s.lastIndexOf("-->"), links = linkMap(s, runs, ctx.refs, lastClose);
+      var out = [], delims = [], buf = "", bareStop = 0, i = 0, n = s.length, m, k, e, a, l, d, url;
+
+      function add(node) {
+        if (typeof node === "string") {
+          buf += node;
+          return;
+        }
+        if (buf) out.push(buf);
+        buf = "";
+        out.push(node);
+      }
+
+      while (i < n) {
+        RE_PLAIN.lastIndex = i;
+        if ((m = RE_PLAIN.exec(s))) {
+          i = RE_PLAIN.lastIndex;
+
+          // Spaces at the end of a line are left out of the text.
+          buf += s.charAt(i) === "\n" ? m[0].slice(0, m[0].length - spacesBefore(m[0], m[0].length)) : m[0];
+          continue;
+        }
+
+        var c = s.charAt(i);
+        if (c === "\\") {
+          var next = s.charAt(i + 1);
+          if (next === "\n") {
+            add(el("br"));
+            i += 2;
+          } else if (next && RE_PUNCT.test(next)) {
+            buf += next;
+            i += 2;
+          } else {
+            buf += c;
+            i++;
+          }
+        } else if (c === "`") {
+          k = runLength(s, i, "`");
+          e = codeEnd(runs, i + k, k);
+          if (e < 0) {
+            buf += s.substr(i, k);
+            i += k;
+          } else {
+            add(el("code", null, codeText(s.slice(i + k, e))));
+            i = e + k;
+          }
+        } else if ((c === "[" || c === "!") && (l = links[i]) && l.image === (c === "!")) {
+          var text = s.slice(i + (l.image ? 2 : 1), l.close);
+          add(l.image ? picture(altText(text, ctx), l.href, l.title, 0, 0, ctx.plain) : anchor(text, l.href, l.title, ctx));
+          i = l.end;
+        } else if (c === "<" && (a = angle(s, i, lastClose))) {
+          if (a.href !== undefined) {
+            url = ctx.link || ctx.plain ? "" : absolute(a.href, true);
+            add(url ? hyperlink(url, a.text) : a.text);
+          } else if (a.name !== undefined && !TAGS[a.name]) {
+            buf += s.slice(i, a.end);
+          } else if (a.name === "br" && !a.close) {
+            add(el("br"));
+          } else if (a.name === "img" && !a.close) {
+            add(htmlImage(a.attrs, ctx.plain));
+          }
+          i = a.end;
+        } else if (c === "&") {
+          RE_ENTITY.lastIndex = i;
+          if ((m = RE_ENTITY.exec(s))) {
+            buf += entity(m[0], m[1], m[2], m[3]);
+            i = RE_ENTITY.lastIndex;
+          } else {
+            buf += c;
+            i++;
+          }
+        } else if (c === "*" || c === "_" || c === "~") {
+          k = runLength(s, i, c);
+          d = (c !== "~" || k === 2) && delimiter(s, i, k, c);
+          if (d) {
+            add(d);
+            delims.push(d);
+          } else {
+            buf += s.substr(i, k);
+          }
+          i += k;
+        } else if (c === "\n") {
+          // Two or more spaces at the end of a line make a hard line break.
+          if (s.charCodeAt(i - 1) === 32 && s.charCodeAt(i - 2) === 32) add(el("br"));
+          else buf += "\n";
+          i++;
+        } else if ((c === "h" || c === "w") && !ctx.link && !ctx.plain && i >= bareStop &&
+          (i === 0 || /[\s*_~(]/.test(s.charAt(i - 1)))) {
+          // Bare urls such as https://example.com and www.example.com are
+          // linked, as GitHub does.
+          RE_BARE.lastIndex = i;
+          m = RE_BARE.exec(s);
+          var raw = m ? trimUrl(m[0]) : "";
+          url = RE_HOST.test(raw) ? absolute(c === "w" ? "http://" + raw : raw) : "";
+          if (url) {
+            add(hyperlink(url, raw));
+            i += raw.length;
+          } else {
+            bareStop = i + (m ? m[0].length : 1);
+            buf += c;
+            i++;
+          }
+        } else {
+          buf += c;
+          i++;
+        }
+      }
+      if (buf) out.push(buf);
+      if (delims.length) resolve(delims);
+      build(out, parent);
+    }
+
+    // Paragraphs in a tight list are shown without paragraph spacing, and a
+    // paragraph left empty by removed html is dropped. Text nodes are not
+    // merged with normalize(), which is slow on long runs of them.
+    function tidy(root, st) {
+      st.tight.forEach(function (list) {
+        Array.prototype.slice.call(list.children).forEach(function (li) {
+          var prev = null;
+          Array.prototype.slice.call(li.children).forEach(function (p) {
+            var after = prev && prev.nodeName === "P";
+            prev = p;
+            if (p.nodeName !== "P") return;
+
+            // Paragraphs that only a hidden comment splits stay apart.
+            if (after) li.insertBefore(document.createTextNode("\n"), p);
+            while (p.firstChild) li.insertBefore(p.firstChild, p);
+            li.removeChild(p);
+          });
+        });
+      });
+      Array.prototype.slice.call(root.querySelectorAll("p")).forEach(function (p) {
+        if (!p.firstElementChild && !/\S/.test(p.textContent)) p.remove();
+      });
+    }
+
+    function render(src) {
+      src = String(src).replace(/^\uFEFF/, "").replace(/\0/g, "\uFFFD");
+      lookup(src);
+      var lines = src.split(/\r\n?|\n/);
+
+      // A line break at the end of the readme does not start another line.
+      if (lines.length > 1 && !lines[lines.length - 1]) lines.pop();
+      lines = lines.map(expandTabs);
+      var st = { refs: Object.create(null), jobs: [], tight: [], fill: MAX_FILL }, root = el("div", "readme");
+      blocks(lines, root, 0, st);
+      st.jobs.forEach(function (job) {
+        inline(job[0], job[1], { refs: st.refs, depth: 0 });
+      });
+      tidy(root, st);
+      return root;
+    }
+
+    return render;
+  })();
+
+  // The readme is shown as markdown. One that is very large, or that the
+  // renderer fails on, is shown as plain text instead.
   function loadReadme(pkg, version, host, isCurrent) {
-    getText("flatcontainer/" + seg(pkg.id) + "/" + seg(version) + "/readme")
+    getText("flatcontainer/" + seg(pkg.id) + "/" + seg(identityVersion(version)) + "/readme")
       .then(function (body) {
         if (!isCurrent() || !body || !body.trim()) return;
+        var content;
+        try {
+          content = body.length <= 1048576 && renderMarkdown(body);
+        } catch (e) {
+          content = null;
+        }
         var panel = el("section", "panel");
         panel.appendChild(el("h3", null, "Readme"));
-        panel.appendChild(el("pre", "readme", body));
+        panel.appendChild(content || el("pre", "readme", body));
         host.appendChild(panel);
 
         // Only reapply the position if the reader has not scrolled since.

@@ -43,9 +43,11 @@ namespace Sleet.UX.Tests
 
         protected ILocator Crumbs => Body.Locator("nav.crumbs");
 
-        protected ILocator Heading => Body.Locator("h2");
+        protected ILocator Heading => Body.Locator(".pkg-head h2");
 
         protected ILocator VersionLabel => Body.Locator(".pkg-head .ver");
+
+        protected ILocator Readme => Body.Locator(".readme");
 
         public async ValueTask InitializeAsync()
         {

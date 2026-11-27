@@ -116,14 +116,62 @@ namespace Sleet.UX.Tests
         }
 
         [Fact]
-        public async Task GivenAReadmeVerifyItIsShownAsText()
+        public async Task GivenAReadmeVerifyItIsShownAsMarkdown()
         {
+            await OpenAsync("#package/Contoso.Core/1.1.0");
+
+            await Expect(Readme.Locator("h1")).ToHaveTextAsync("Contoso.Core");
+            await Expect(Readme.Locator("h2")).ToHaveTextAsync("Install");
+            await Expect(Readme.Locator("strong")).ToHaveTextAsync("Contoso");
+            await Expect(Readme.Locator("pre > code")).ToHaveTextAsync("dotnet add package Contoso.Core");
+            await Expect(Readme.Locator("li")).ToHaveTextAsync(new[] { "Fast", "Small" });
+            await Expect(Readme.Locator("li input")).ToBeCheckedAsync();
+            await Expect(Readme.Locator("li input")).ToBeDisabledAsync();
+            await Expect(Readme.Locator("th")).ToHaveTextAsync(new[] { "Type", "Size" });
+            await Expect(Readme.Locator("td")).ToHaveTextAsync(new[] { "Widget", "2 KB" });
+            await Expect(Readme.Locator("td > code")).ToHaveTextAsync("Widget");
+            await Expect(Readme.Locator("td").Last).ToHaveCSSAsync("text-align", "right");
+            await Expect(Readme.Locator(".alert-note > p")).ToHaveTextAsync(new[] { "Note", "Needs .NET 8 or later." });
+
+            var guide = Link("guide");
+            await Expect(guide).ToHaveAttributeAsync("href", "https://example.com/guide");
+            await Expect(guide).ToHaveAttributeAsync("title", "Contoso guide");
+            await Expect(guide).ToHaveAttributeAsync("rel", "nofollow noreferrer");
+
+            await Expect(Body.Locator("section.panel > h3")).ToHaveTextAsync(new[] { "Dependencies", "Readme" });
+        }
+
+        // Readme images load lazily, so they are scrolled to first.
+        [Fact]
+        public async Task GivenReadmeImagesVerifyOnesThatCannotLoadShowTheirAltText()
+        {
+            await OpenAsync("#package/Contoso.Core/1.1.0");
+
+            var images = Readme.Locator("p").Filter(new() { HasText = "Diagram" });
+            await images.ScrollIntoViewIfNeededAsync();
+
+            // The relative image is never requested and the missing one is
+            // replaced once it fails.
+            await Expect(images).ToHaveTextAsync("Build status Diagram");
+            await Expect(images.Locator("img")).ToHaveAttributeAsync("alt", "Logo");
+            await Expect(images.Locator("img")).ToHaveJSPropertyAsync("naturalWidth", 1);
+        }
+
+        [Fact]
+        public async Task GivenAReadmeOverOneMegabyteVerifyItIsShownAsText()
+        {
+            var text = "# Large\n\n" + new string('x', 1024 * 1024);
+            await Page.RouteAsync(FeedUrl + "flatcontainer/contoso.core/1.1.0/readme", route => route.FulfillAsync(new()
+            {
+                ContentType = "text/markdown",
+                Body = text,
+            }));
+
             await OpenAsync("#package/Contoso.Core/1.1.0");
 
             var readme = Body.Locator("pre.readme");
             await Expect(readme).ToBeVisibleAsync();
-            (await readme.TextContentAsync()).Should().Be(GalleryFeed.CoreReadme);
-            await Expect(Body.Locator("section.panel > h3")).ToHaveTextAsync(new[] { "Dependencies", "Readme" });
+            (await readme.TextContentAsync()).Should().Be(text);
         }
 
         [Fact]
@@ -147,7 +195,7 @@ namespace Sleet.UX.Tests
             await Expect(Body.Locator(".tags")).ToHaveCountAsync(0);
             await Expect(Body.Locator(".icon-slot.lg img")).ToHaveCountAsync(0);
             await Expect(Body.Locator("section.panel > p")).ToHaveTextAsync("This package has no dependencies.");
-            await Expect(Body.Locator("pre.readme")).ToHaveCountAsync(0);
+            await Expect(Readme).ToHaveCountAsync(0);
         }
 
         // Links from NuGet clients and people do not always use the form of the

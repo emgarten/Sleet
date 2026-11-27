@@ -3,6 +3,7 @@
 ## 8.0.0
 * Added a package gallery written to `index.html` at the root of the feed
   * Browse and filter packages, then drill down to a package's versions and a single version's details, dependencies, and readme
+  * Readmes render as markdown, including GitHub tables, task lists, and alerts. HTML and script links in a readme are not rendered
   * Every view is linkable, for example `index.html#package/Newtonsoft.Json/13.0.3`
   * Dark mode by default, with a light mode toggle in the header
   * Visual Studio links packages to their gallery page on feeds served over https

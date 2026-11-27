@@ -40,9 +40,20 @@ The latest version is the newest stable version, or the newest prerelease versio
 
 The gallery opens in dark mode. The button at the right of the header switches between dark and light mode, and the browser remembers the choice for the site.
 
-A version page shows the package's title, description, authors, publish date, tags, project and license links, links to download the `.nupkg` and view the `.nuspec`, the dependencies for each target framework, and the readme. Dependencies on packages from the same feed link to those packages. Readmes show as plain text, not rendered markdown.
+A version page shows the package's title, description, authors, publish date, tags, project and license links, links to download the `.nupkg` and view the `.nuspec`, the dependencies for each target framework, and the readme. Dependencies on packages from the same feed link to those packages.
 
 Ids and versions in a URL match regardless of case, and versions match in any form that NuGet treats as equal, such as `1.0` for `1.0.0`. If the version in a URL isn't on the feed, the page shows the latest version instead and says so.
+
+### Readmes
+
+The gallery renders a package's readme as markdown. It supports CommonMark and the GitHub additions that readmes use most: tables, task lists, strikethrough, alerts such as `> [!NOTE]`, and bare URLs that become links.
+
+Anyone who can push to a feed controls its readmes, so the gallery limits what a readme can do:
+
+- HTML isn't rendered. Formatting tags such as `<p>`, `<b>`, and `<a>` are removed and their text is kept, `<br>` and `<img>` work like their markdown versions, and other tags, such as `<script>`, show as text.
+- Only absolute `http`, `https`, and `mailto` links are followed. Other links, including relative links such as `docs/usage.md`, show as text.
+- Only absolute `http` and `https` images are shown. They load from the site in their URL without sending the gallery's address. An image with a relative path, or one that fails to load, shows its alt text.
+- Readmes larger than 1 MB show as plain text.
 
 ## Enable or disable the gallery
 
@@ -119,6 +130,6 @@ The gallery is a single, self-contained HTML file with no external dependencies.
 
 The gallery doesn't use the search resource. It's a single large file that covers the whole feed, and [external search](external-search.md) can point it at a different service.
 
-All requests use URLs relative to the page, so the gallery works under any host name that serves the feed and never needs CORS settings. A query string on the page URL, such as an Azure SAS token, isn't passed on to these requests.
+All requests for the feed's files use URLs relative to the page, so the gallery works under any host name that serves the feed and never needs CORS settings. A query string on the page URL, such as an Azure SAS token, isn't passed on to these requests. Images in a readme load from the sites in their URLs.
 
 If the page can't read `sleet.packageindex.json`, it shows *Unable to read this feed*, which usually means that the feed isn't publicly readable. If a single package can't be read, the error shows on that package's page, and the rest of the feed stays browsable.

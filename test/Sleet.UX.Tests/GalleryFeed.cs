@@ -15,9 +15,37 @@ namespace Sleet.UX.Tests
         // Enough packages for three pages of the list.
         public const int FabrikamCount = 40;
 
-        public const string CoreReadme = "# Contoso.Core\n\nCore types for Contoso.\n\n- Fast\n- Small\n";
+        public const string CoreReadme =
+            "# Contoso.Core\n" +
+            "\n" +
+            "Core types for **Contoso**, see the [guide](https://example.com/guide \"Contoso guide\").\n" +
+            "\n" +
+            "## Install\n" +
+            "\n" +
+            "```shell\n" +
+            "dotnet add package Contoso.Core\n" +
+            "```\n" +
+            "\n" +
+            "- Fast\n" +
+            "- [x] Small\n" +
+            "\n" +
+            "| Type | Size |\n" +
+            "| :--- | ---: |\n" +
+            "| `Widget` | 2 KB |\n" +
+            "\n" +
+            "> [!NOTE]\n" +
+            "> Needs .NET 8 or later.\n" +
+            "\n" +
+            "![Logo](" + GalleryFixture.FeedUrl + "flatcontainer/contoso.core/1.1.0/icon) " +
+            "![Build status](" + GalleryFixture.FeedUrl + "badge.svg) ![Diagram](docs/diagram.png)\n";
 
-        public const string HostileReadme = "<script>window.__sleetPwned=5</script>\n";
+        public const string HostileReadme =
+            "<script>window.__sleetPwned=5</script> <img src=x onerror=\"window.__sleetPwned=6\"> " +
+            "<iframe src=\"javascript:window.__sleetPwned=7\"></iframe>\n" +
+            "\n" +
+            "[script link](javascript:window.__sleetPwned=8) [data link](data:text/html,x) " +
+            "<a href=\"javascript:window.__sleetPwned=9\">html link</a> <javascript:window.__sleetPwned=10> " +
+            "![script image](javascript:window.__sleetPwned=11)\n";
 
         // A 1x1 png.
         private static readonly byte[] IconBytes = Convert.FromBase64String(
