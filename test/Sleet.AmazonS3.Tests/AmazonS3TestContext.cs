@@ -253,7 +253,20 @@ namespace Sleet.AmazonS3.Tests
 
             if (CreateBucketOnInit)
             {
-                await Client.EnsureBucketExistsAsync(BucketName);
+                try
+                {
+                    // The same as AmazonS3FileSystem.CreateBucket, only Amazon S3 gets the client region. With a service url the SDK
+                    // guesses the region from the url or the AWS settings of the machine, which S3 compatible storage may reject.
+                    await Client.PutBucketAsync(new PutBucketRequest()
+                    {
+                        BucketName = BucketName,
+                        UseClientRegion = string.IsNullOrEmpty(ServiceUrl)
+                    });
+                }
+                catch (BucketAlreadyOwnedByYouException)
+                {
+                    // The same as EnsureBucketExistsAsync, for example when the SDK retried a request that created the bucket
+                }
             }
         }
     }
