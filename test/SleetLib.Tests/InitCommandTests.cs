@@ -302,7 +302,6 @@ namespace SleetLib.Tests
                 // package cannot inject script into the feed origin.
                 html.Should().NotContain("innerHTML");
                 html.Should().Contain("safeUrl(e.projectUrl)");
-                html.Should().Contain("safeUrl(e.licenseUrl)");
             }
         }
 

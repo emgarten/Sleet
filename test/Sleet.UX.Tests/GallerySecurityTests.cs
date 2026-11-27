@@ -32,10 +32,9 @@ namespace Sleet.UX.Tests
         public async Task GivenScriptUrlsInMetadataVerifyTheyAreNotLinked()
         {
             await OpenAsync("#package/Contoso.Hostile/1.0.0");
-            await Expect(Body.Locator(".sub").Last).ToHaveTextAsync("Download .nupkg · View .nuspec");
+            await Expect(Body.Locator(".sub").Last).ToHaveTextAsync("nupkg · nuspec");
 
-            await Expect(Link("Project")).ToHaveCountAsync(0);
-            await Expect(Link("License")).ToHaveCountAsync(0);
+            await Expect(Link("project")).ToHaveCountAsync(0);
             await Expect(Body.Locator("a[href^='javascript:' i], a[href^='data:' i]")).ToHaveCountAsync(0);
         }
 

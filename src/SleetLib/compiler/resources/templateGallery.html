@@ -19,7 +19,7 @@ try {
   color-scheme:dark;
   --bg:#1b1a19; --card:#252423; --fg:#f3f2f1; --muted:#a19f9d; --line:#3b3a39; --strong:#797775;
   --field-line:#605e5c; --hover:#323130; --chip:#323130; --accent:#2899f5;
-  --btn:#0078d4; --btn-hover:#1a86d9; --ok:#6ccb5f; --ok-bg:#1d3a1d;
+  --ok:#6ccb5f; --ok-bg:#1d3a1d;
   --warn-bg:#433519; --warn-line:#6b5a1a; --warn-icon:#c8c6c4;
   --danger:#f1707b; --danger-bg:#442726; --danger-line:#6e3a3c; --glyph:#797775; --icon-bg:#edebe9;
   --important:#b4a0ff; --attention:#d29922;
@@ -29,6 +29,7 @@ try {
   --i-mode:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41'/%3E%3C/svg%3E");
   --i-glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.9 20.4 7.4v9.2L12 21.1 3.6 16.6V7.4z'/%3E%3Cpath d='M3.6 7.4 12 12l8.4-4.6'/%3E%3Cpath d='M12 12v9.1'/%3E%3C/svg%3E");
   --i-download:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v11m-5-5 5 5 5-5M5 19h14'/%3E%3C/svg%3E");
+  --i-link:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 7H7a5 5 0 0 0 0 10h3M14 7h3a5 5 0 0 1 0 10h-3M8 12h8'/%3E%3C/svg%3E");
   --i-alert:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5 2.5 20h19z'/%3E%3Cpath d='M12 10v4.5M12 17.2v.1'/%3E%3C/svg%3E");
   --i-x:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m9 9 6 6m0-6-6 6'/%3E%3C/svg%3E");
 }
@@ -36,7 +37,7 @@ try {
   color-scheme:light;
   --bg:#f8f8f8; --card:#fff; --fg:#201f1e; --muted:#605e5c; --line:#edebe9; --strong:#8a8886;
   --field-line:#d1d1d1; --hover:#f3f2f1; --chip:#f3f2f1; --accent:#0078d4;
-  --btn:#0078d4; --btn-hover:#106ebe; --ok:#107c10; --ok-bg:#dff6dd;
+  --ok:#107c10; --ok-bg:#dff6dd;
   --warn-bg:#fff4ce; --warn-line:#f7e28b; --warn-icon:#797673;
   --danger:#a4262c; --danger-bg:#fde7e9; --danger-line:#f1bbbc; --glyph:#a19f9d; --icon-bg:#fff;
   --important:#8764b8; --attention:#9a6700;
@@ -123,10 +124,10 @@ h2{margin:0;font-size:24px;line-height:32px;font-weight:600;overflow-wrap:anywhe
 .sub > a{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 16px;margin:0 8px 8px 0;border:1px solid var(--strong);
   border-radius:4px;background:var(--card);color:var(--fg);font-size:14px;font-weight:600;vertical-align:middle}
 .sub > a:hover{background:var(--hover);text-decoration:none}
-.sub > a[href$=".nupkg"]{background:var(--btn);border-color:var(--btn);color:#fff}
-.sub > a[href$=".nupkg"]:hover{background:var(--btn-hover);border-color:var(--btn-hover)}
-.sub > a[href$=".nupkg"]::before{content:"";width:16px;height:16px;background:currentColor;
-  -webkit-mask:var(--i-download) center/contain no-repeat;mask:var(--i-download) center/contain no-repeat}
+.sub > a.project::before,.sub > a.nupkg::before,.sub > a.nuspec::before{content:"";width:16px;height:16px;background:currentColor}
+.sub > a.project::before{-webkit-mask:var(--i-link) center/contain no-repeat;mask:var(--i-link) center/contain no-repeat}
+.sub > a.nupkg::before{-webkit-mask:var(--i-download) center/contain no-repeat;mask:var(--i-download) center/contain no-repeat}
+.sub > a.nuspec::before{-webkit-mask:var(--i-search) center/contain no-repeat;mask:var(--i-search) center/contain no-repeat}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .tag{display:inline-block;padding:0 8px;border-radius:4px;background:var(--chip);font-size:12px;line-height:22px}
 td .tag{margin-left:8px;padding:0 8px;border-radius:999px;background:var(--ok-bg);color:var(--ok);font-weight:600;line-height:18px}
@@ -249,8 +250,8 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
   // has moved on are dropped instead of drawn into the wrong view.
   var generation = 0;
 
-  // The most recent list route, so the All packages breadcrumb returns to the
-  // same filter and page.
+  // The most recent list route, so the Feed breadcrumb returns to the same
+  // filter and page.
   var listHash = "#";
 
   var loaded = false;
@@ -425,7 +426,6 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
         title: text(e.title),
         description: text(e.description) || text(e.summary),
         projectUrl: safeUrl(e.projectUrl),
-        licenseUrl: safeUrl(e.licenseUrl),
         tags: list(e.tags),
         authors: list(e.authors),
         // Sleet writes an empty iconUrl when the package does not embed an
@@ -485,10 +485,9 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
   function linkRow(meta, pkg, version) {
     var row = el("div", "sub");
     var parts = [];
-    if (meta.projectUrl) parts.push(link(meta.projectUrl, "Project"));
-    if (meta.licenseUrl) parts.push(link(meta.licenseUrl, "License"));
-    parts.push(link(nupkgUrl(pkg.id, version), "Download .nupkg"));
-    parts.push(link(nuspecUrl(pkg.id, version), "View .nuspec"));
+    if (meta.projectUrl) parts.push(link(meta.projectUrl, "project", "project"));
+    parts.push(link(nupkgUrl(pkg.id, version), "nupkg", "nupkg"));
+    parts.push(link(nuspecUrl(pkg.id, version), "nuspec", "nuspec"));
 
     parts.forEach(function (node, i) {
       if (i) row.appendChild(document.createTextNode(" \u00b7 "));
@@ -690,7 +689,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
       : reg.versions.length + " versions";
 
     elBody.textContent = "";
-    elBody.appendChild(crumbs([["All packages", listHash]], pkg.id));
+    elBody.appendChild(crumbs([["Feed", listHash]], pkg.id));
 
     var head = el("div", "pkg-head");
     var slot = iconBox("lg");
@@ -1866,7 +1865,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
 
     if (!reg.latest) {
       document.title = pkg.id + " \u00b7 " + BRAND;
-      elBody.appendChild(crumbs([["All packages", listHash]], pkg.id));
+      elBody.appendChild(crumbs([["Feed", listHash]], pkg.id));
       elBody.appendChild(el("p", "empty", "No versions of this package are available."));
       restoreScroll();
       return;
@@ -1877,7 +1876,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
 
     document.title = pkg.id + " " + selected.version + " \u00b7 " + BRAND;
     elBody.appendChild(crumbs(
-      [["All packages", listHash], [pkg.id, packageHash(pkg.id)]],
+      [["Feed", listHash], [pkg.id, packageHash(pkg.id)]],
       selected.version,
       "mono"));
 
@@ -1903,7 +1902,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
       document.title = BASE_TITLE;
       elCount.textContent = "";
       elBody.textContent = "";
-      elBody.appendChild(crumbs([["All packages", listHash]], id));
+      elBody.appendChild(crumbs([["Feed", listHash]], id));
       elBody.appendChild(el("p", "empty", "\u201c" + id + "\u201d is not in this feed."));
       restoreScroll();
       return;
@@ -1928,7 +1927,7 @@ footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);f
     document.title = pkg.id + " \u00b7 " + BRAND;
     elCount.textContent = "";
     elBody.textContent = "";
-    elBody.appendChild(crumbs([["All packages", listHash]], pkg.id));
+    elBody.appendChild(crumbs([["Feed", listHash]], pkg.id));
 
     var box = el("div", "err");
     box.appendChild(el("strong", null, "Unable to load this package."));

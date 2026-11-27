@@ -81,19 +81,19 @@ namespace Sleet.UX.Tests
         }
 
         [Fact]
-        public async Task GivenAPackageOpenedFromAFilteredPageVerifyAllPackagesReturnsToThatPage()
+        public async Task GivenAPackageOpenedFromAFilteredPageVerifyTheFeedLinkReturnsToThatPage()
         {
             await OpenAsync("#q=fabrikam&page=2");
             await Link("Fabrikam.Package25").ClickAsync();
-            await Expect(Crumbs).ToHaveTextAsync("All packages›Fabrikam.Package25");
+            await Expect(Crumbs).ToHaveTextAsync("Feed›Fabrikam.Package25");
 
             await Link("1.0.0").ClickAsync();
-            await Expect(Crumbs).ToHaveTextAsync("All packages›Fabrikam.Package25›1.0.0");
+            await Expect(Crumbs).ToHaveTextAsync("Feed›Fabrikam.Package25›1.0.0");
 
             await Crumbs.GetByRole(AriaRole.Link, new() { Name = "Fabrikam.Package25", Exact = true }).ClickAsync();
             await Expect(Count).ToHaveTextAsync("1 version");
 
-            await Link("All packages").ClickAsync();
+            await Link("Feed").ClickAsync();
             await Expect(Page).ToHaveURLAsync(FeedUrl + "#q=fabrikam&page=2");
             await Expect(Search).ToHaveValueAsync("fabrikam");
             await Expect(PageNumber).ToHaveTextAsync("Page 2 of 2");

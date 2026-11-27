@@ -23,7 +23,7 @@ namespace Sleet.UX.Tests
             await Expect(Page).ToHaveURLAsync(FeedUrl + "#package/Contoso.Core");
             await Expect(Page).ToHaveTitleAsync("Contoso.Core · Sleet");
             await Expect(Count).ToHaveTextAsync("3 versions");
-            await Expect(Crumbs).ToHaveTextAsync("All packages›Contoso.Core");
+            await Expect(Crumbs).ToHaveTextAsync("Feed›Contoso.Core");
             await Expect(Heading).ToHaveTextAsync("Contoso.Core");
 
             var versions = Body.Locator("a.pick");
@@ -36,7 +36,7 @@ namespace Sleet.UX.Tests
             await Expect(VersionRow("1.1.0").Locator(".tag")).ToHaveTextAsync("latest");
 
             await Expect(Body.Locator(".icon-slot.lg img.icon")).ToHaveJSPropertyAsync("naturalWidth", 1);
-            await Expect(Link("Download .nupkg")).ToHaveCountAsync(0);
+            await Expect(Link("nupkg")).ToHaveCountAsync(0);
         }
 
         [Fact]
@@ -57,7 +57,7 @@ namespace Sleet.UX.Tests
 
             await Expect(Page).ToHaveURLAsync(FeedUrl + "#package/Contoso.Core/1.1.0");
             await Expect(Page).ToHaveTitleAsync("Contoso.Core 1.1.0 · Sleet");
-            await Expect(Crumbs).ToHaveTextAsync("All packages›Contoso.Core›1.1.0");
+            await Expect(Crumbs).ToHaveTextAsync("Feed›Contoso.Core›1.1.0");
             await Expect(Count).ToBeEmptyAsync();
             await Expect(Heading).ToHaveTextAsync("Contoso.Core");
             await Expect(VersionLabel).ToHaveTextAsync("1.1.0");
@@ -68,11 +68,10 @@ namespace Sleet.UX.Tests
                 Exactly("Contoso Core"),
                 Exactly("by Contoso, Fabrikam"),
                 new Regex(@"^Published \w{3} \d{1,2}, \d{4}$"),
-                Exactly("Project · License · Download .nupkg · View .nuspec"),
+                Exactly("project · nupkg · nuspec"),
             });
 
-            await Expect(Link("Project")).ToHaveAttributeAsync("href", "https://example.com/contoso");
-            await Expect(Link("License")).ToHaveAttributeAsync("href", "https://example.com/license");
+            await Expect(Link("project")).ToHaveAttributeAsync("href", "https://example.com/contoso");
             await Expect(Body.Locator(".tags .tag")).ToHaveTextAsync(new[] { "contoso", "core" });
             await Expect(Body.Locator(".icon-slot.lg img.icon")).ToHaveJSPropertyAsync("naturalWidth", 1);
         }
@@ -86,7 +85,7 @@ namespace Sleet.UX.Tests
             await OpenAsync($"#package/{id}/{version}");
             await Expect(VersionLabel).ToHaveTextAsync(version);
 
-            foreach (var (name, path) in new[] { ("Download .nupkg", nupkg), ("View .nuspec", nuspec) })
+            foreach (var (name, path) in new[] { ("nupkg", nupkg), ("nuspec", nuspec) })
             {
                 var url = FeedUrl + "flatcontainer/" + path;
                 await Expect(Link(name)).ToHaveAttributeAsync("href", url);
@@ -188,7 +187,7 @@ namespace Sleet.UX.Tests
             await Expect(Body.Locator(".sub")).ToHaveTextAsync(new[]
             {
                 new Regex(@"^Published \w{3} \d{1,2}, \d{4}$"),
-                Exactly("Download .nupkg · View .nuspec"),
+                Exactly("nupkg · nuspec"),
             });
 
             await Expect(Body.Locator(".desc")).ToHaveCountAsync(0);
@@ -233,7 +232,7 @@ namespace Sleet.UX.Tests
 
             await Expect(Body.Locator(".empty")).ToHaveTextAsync("“Nope.Package” is not in this feed.");
 
-            await Link("All packages").ClickAsync();
+            await Link("Feed").ClickAsync();
             await Expect(Count).ToHaveTextAsync("45 packages");
         }
 
@@ -257,7 +256,7 @@ namespace Sleet.UX.Tests
             await Expect(Page).ToHaveTitleAsync("Contoso.Util · Sleet");
 
             await Page.UnrouteAsync(registration);
-            await Link("All packages").ClickAsync();
+            await Link("Feed").ClickAsync();
             await Link("Contoso.Util").ClickAsync();
             await Expect(Count).ToHaveTextAsync("1 version");
         }
