@@ -7,7 +7,10 @@ namespace Sleet
     {
         public static void Register(CommandLineApplication cmdApp, ILogger log)
         {
-            cmdApp.Command("createconfig", cmd => Run(cmd, log));
+            var command = cmdApp.Command("create-config", cmd => Run(cmd, log));
+
+            // Previous name, still accepted but hidden from help.
+            command.AddName("createconfig");
         }
 
         private static void Run(CommandLineApplication cmd, ILogger log)
@@ -26,7 +29,7 @@ namespace Sleet
             var folder = cmd.Option("--local", "Add a template entry for a local folder feed.",
                 CommandOptionType.NoValue);
 
-            var output = cmd.Option("--output", "Output path. If not specified the file will be created in the working directory.",
+            var output = cmd.Option("-o|--output", "Output path. If not specified the file will be created in the working directory.",
                 CommandOptionType.SingleValue);
 
             var verbose = cmd.Option(Constants.VerboseOption, Constants.VerboseDesc, CommandOptionType.NoValue);

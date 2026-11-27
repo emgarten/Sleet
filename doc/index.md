@@ -39,7 +39,7 @@ dotnet tool install -g sleet
 Create a `sleet.json` file for your storage type, then edit it with your account details. The storage guides above show what to set.
 
 ```bash
-sleet createconfig --azure
+sleet create-config --azure
 ```
 
 Push a folder of packages. On the first push, Sleet creates the container or bucket if needed and sets up the feed.

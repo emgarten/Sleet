@@ -38,6 +38,28 @@ namespace Sleet
         }
 
         /// <summary>
+        /// Add a hidden option for the previous name of an option so existing scripts keep working.
+        /// Values passed with the previous name are added to the option as if it had been used.
+        /// </summary>
+        internal static void AddHiddenAlias(CommandLineApplication cmd, CommandOption option, string template)
+        {
+            var alias = cmd.Option(template, option.Description ?? string.Empty, option.OptionType);
+            alias.ShowInHelpText = false;
+
+            cmd.OnParsingComplete(_ =>
+            {
+                foreach (var value in alias.Values)
+                {
+                    // Match the parser error for an option that only takes one value.
+                    if (!option.TryParse(value))
+                    {
+                        throw new CommandParsingException(cmd, $"Unexpected value '{value}' for option '{option.LongName}'");
+                    }
+                }
+            });
+        }
+
+        /// <summary>
         /// Throw if more than one of the options exist.
         /// </summary>
         internal static void VerifyMutallyExclusiveOptions(params CommandOption[] exclusiveOptions)

@@ -83,7 +83,7 @@ Commit the *dotnet-tools.json* file it creates, then run `dotnet tool restore` a
 With the .NET 10 SDK or later, [dnx](https://learn.microsoft.com/dotnet/core/tools/dotnet-tool-exec) downloads and runs Sleet in one step:
 
 ```bash
-dnx sleet createconfig
+dnx sleet create-config
 ```
 
 ### Sleet.exe for Windows
@@ -103,7 +103,7 @@ Create a feed on Azure Storage in three steps:
 
 ```bash
 # 1. Generate a config file
-sleet createconfig --azure
+sleet create-config --azure
 
 # 2. Edit sleet.json with your storage account URL and credentials
 
@@ -119,7 +119,7 @@ For other storage backends see the [documentation](#documentation).
 
 | Command | Description |
 | --- | --- |
-| `createconfig` | Create a new sleet.json config file |
+| `create-config` | Create a new sleet.json config file |
 | `init` | Initialize a new feed |
 | `push` | Push packages to a feed |
 | `delete` | Delete a package from a feed |
