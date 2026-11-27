@@ -30,7 +30,7 @@ has_dotnet()
   [ -x "$1" ] && "$1" --version > /dev/null 2>&1 || return 1
   local runtimes
   runtimes="$("$1" --list-runtimes)"
-  grep -q "^Microsoft\.NETCore\.App 8\." <<< "$runtimes" && grep -q "^Microsoft\.NETCore\.App 9\." <<< "$runtimes"
+  grep -q "^Microsoft\.NETCore\.App 8\." <<< "$runtimes" && grep -q "^Microsoft\.NETCore\.App 9\." <<< "$runtimes" && grep -q "^Microsoft\.NETCore\.App 10\." <<< "$runtimes"
 }
 
 # Prefer dotnet on PATH, otherwise use the repo local .dotnet
@@ -46,6 +46,7 @@ if ! has_dotnet "$DOTNET"; then
     run_command "$DOTNET_DIR/dotnet-install.sh" --jsonfile "$REPO_ROOT/global.json" --install-dir "$DOTNET_DIR" --no-path
     run_command "$DOTNET_DIR/dotnet-install.sh" --runtime dotnet --channel 8.0 --install-dir "$DOTNET_DIR" --no-path
     run_command "$DOTNET_DIR/dotnet-install.sh" --runtime dotnet --channel 9.0 --install-dir "$DOTNET_DIR" --no-path
+    run_command "$DOTNET_DIR/dotnet-install.sh" --runtime dotnet --channel 10.0 --install-dir "$DOTNET_DIR" --no-path
   fi
 
   export DOTNET_ROOT="$DOTNET_DIR"

@@ -27,10 +27,11 @@ run_command()
   "$@"
 }
 
-# True if dotnet has the SDK from global.json. The UX tests don't need other runtimes.
+# True if dotnet has the SDK from global.json and the runtime used by the tests
 has_dotnet()
 {
-  [ -x "$1" ] && "$1" --version > /dev/null 2>&1
+  [ -x "$1" ] && "$1" --version > /dev/null 2>&1 || return 1
+  "$1" --list-runtimes | grep -q "^Microsoft\.NETCore\.App 10\."
 }
 
 # Prefer dotnet on PATH, otherwise use the repo local .dotnet
@@ -44,6 +45,7 @@ if ! has_dotnet "$DOTNET"; then
     run_command curl -sSL --retry 3 -o "$DOTNET_DIR/dotnet-install.sh" https://dot.net/v1/dotnet-install.sh
     chmod +x "$DOTNET_DIR/dotnet-install.sh"
     run_command "$DOTNET_DIR/dotnet-install.sh" --jsonfile "$REPO_ROOT/global.json" --install-dir "$DOTNET_DIR" --no-path
+    run_command "$DOTNET_DIR/dotnet-install.sh" --runtime dotnet --channel 10.0 --install-dir "$DOTNET_DIR" --no-path
   fi
 
   export DOTNET_ROOT="$DOTNET_DIR"
