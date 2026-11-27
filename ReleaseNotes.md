@@ -4,7 +4,7 @@
 * Removed net9.0 support. .NET 8 and 9 are out of support; the net8.0 build is kept for compatibility and also runs on .NET 9.
 * Removed the symbol server. Embed PDBs in your packages instead. See [symbol server](doc/symbol-server.md)
   * Removed `sleet init --with-symbols` and the `symbolsfeedenabled` feed setting
-  * `sleet push` skips `.symbols.nupkg` files with a warning
+  * `sleet push` skips `.symbols.nupkg` and `.snupkg` files with a warning
   * Feeds that use the symbol server keep working and show a warning. Files under `symbols/` are no longer updated
   * `sleet recreate` removes the symbol server from a feed. If the feed has `.symbols.nupkg` files, back them up with `sleet download` and run `sleet recreate --force`
   * `sleet download` still downloads `.symbols.nupkg` files

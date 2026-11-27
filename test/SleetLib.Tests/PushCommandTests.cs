@@ -411,5 +411,41 @@ namespace SleetLib.Tests
                 log.GetMessages(NuGet.Common.LogLevel.Warning).Should().Contain("Skipping a 1.0.0 symbols package. Sleet no longer supports symbols packages, embed PDBs in the main package instead.");
             }
         }
+
+        [Fact]
+        public async Task PushCommand_GivenSnupkgVerifySkippedWithWarning()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+                var package = new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                var snupkgPath = Path.Combine(packagesFolder.Root, "a.1.0.0.snupkg");
+                File.Copy(package.FullName, snupkgPath);
+
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: true, log: log, token: TestContext.Current.CancellationToken);
+
+                var success = await PushCommand.RunAsync(settings, fileSystem, new List<string>() { package.FullName, snupkgPath }, false, false, log);
+
+                var packageIndex = new PackageIndex(new SleetContext()
+                {
+                    Token = TestContext.Current.CancellationToken,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    SourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(fileSystem, log, TestContext.Current.CancellationToken)
+                });
+
+                var packageSets = await packageIndex.GetPackageSetsAsync();
+
+                success.Should().BeTrue();
+                packageSets.Packages.Index.Should().BeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
+                Directory.GetFiles(target.Root, "*.snupkg", SearchOption.AllDirectories).Should().BeEmpty();
+                log.GetMessages(NuGet.Common.LogLevel.Warning).Should().Contain("Skipping a 1.0.0 symbols package. Sleet no longer supports symbols packages, embed PDBs in the main package instead.");
+            }
+        }
     }
 }

@@ -28,7 +28,7 @@ For the same reason, [package retention](retention.md) deletes old versions inst
 
 ## Symbols
 
-Sleet 8.0 removed the symbol server. `push` skips `.symbols.nupkg` packages, and the `.snupkg` format isn't supported. Embed PDBs in the main package instead. See [symbol server](symbol-server.md).
+Sleet 8.0 removed the symbol server. `push` skips `.symbols.nupkg` and `.snupkg` packages. Embed PDBs in the main package instead. See [symbol server](symbol-server.md).
 
 ## Authentication
 

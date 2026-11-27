@@ -17,17 +17,6 @@ namespace Sleet
             var cleanNupkgs = true;
 
             var token = CancellationToken.None;
-            LocalCache? localCache = null;
-
-            // Use the tmp path if provided
-            if (string.IsNullOrEmpty(tmpPath))
-            {
-                localCache = new LocalCache();
-            }
-            else
-            {
-                localCache = new LocalCache(tmpPath);
-            }
 
             log.LogInformation($"Reading feed {source.BaseURI.AbsoluteUri}");
 
@@ -42,13 +31,25 @@ namespace Sleet
                 // Read settings and persist them in the new feed.
                 var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
 
+                // Check before the nupkg folder is created, a blocked recreate must not clean up --nupkg-path.
+                if (!await CheckSymbolsPackagesAsync(settings, source, feedSettings, force, log, token))
+                {
+                    return false;
+                }
+
+                // Use the tmp path if provided
+                LocalCache localCache;
+                if (string.IsNullOrEmpty(tmpPath))
+                {
+                    localCache = new LocalCache();
+                }
+                else
+                {
+                    localCache = new LocalCache(tmpPath);
+                }
+
                 try
                 {
-                    if (!await CheckSymbolsPackagesAsync(settings, source, feedSettings, force, log, token))
-                    {
-                        return false;
-                    }
-
                     // Symbols packages are not supported and cannot be pushed to the new feed.
                     var downloadSuccess = await DownloadCommand.DownloadPackages(settings, source, localCache.Root.FullName, force, skipExisting: false, includeSymbols: false, log: log, token: token);
 

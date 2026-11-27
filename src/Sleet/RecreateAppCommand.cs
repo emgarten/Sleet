@@ -27,7 +27,7 @@ namespace Sleet
 
             cmd.HelpOption(Constants.HelpOption);
 
-            var nupkgPath = cmd.Option("--nupkg-path", "Optional temporary directory to store downloaded nupkgs in. This folder will be cleaned up if the command completes successfully. If the command fails these files will be left as a backup.", CommandOptionType.SingleValue);
+            var nupkgPath = cmd.Option("--nupkg-path", "Optional temporary directory to store downloaded nupkgs in. Use a new or empty directory, because every nupkg in it is pushed to the new feed. This folder will be cleaned up if the command completes successfully. If the command fails after the nupkgs are downloaded they will be left as a backup.", CommandOptionType.SingleValue);
 
             var force = cmd.Option("-f|--force", "Ignore errors when recreating the feed.", CommandOptionType.NoValue);
             var propertyOptions = cmd.Option(Constants.PropertyOption, Constants.PropertyDescription, CommandOptionType.MultipleValue);

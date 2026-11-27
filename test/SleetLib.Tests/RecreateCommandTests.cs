@@ -376,12 +376,17 @@ namespace SleetLib.Tests
                 TestUtility.AddLegacySymbolsServer(target.Root);
                 TestUtility.AddLegacySymbolsPackage(target.Root, packagesFolder.Root, "a", "1.0.0");
 
+                // Existing content in the nupkg folder must survive a blocked recreate
+                var existingFile = Path.Combine(outputFolder.Root, "backup.txt");
+                File.WriteAllText(existingFile, "backup");
+
                 // Recreate
                 var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
                 var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
 
                 success.Should().BeFalse();
                 log.GetMessages(NuGet.Common.LogLevel.Error).Should().Contain("The feed contains 1 symbols packages.");
+                File.Exists(existingFile).Should().BeTrue();
 
                 // The feed is unchanged
                 File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();

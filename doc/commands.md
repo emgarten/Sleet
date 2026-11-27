@@ -115,7 +115,7 @@ Pushing a version that is already on the feed fails with `Package already exists
 
 Sleet doesn't expand wildcards such as `*.nupkg`. Pass a folder instead. Some shells expand wildcards before Sleet runs, which works, but a folder is portable across shells and operating systems.
 
-Sleet skips files that end in `.symbols.nupkg` with a warning, because it no longer has a [symbol server](symbol-server.md). Embed PDBs in the main package instead. The `.snupkg` format isn't supported either.
+Sleet skips `.symbols.nupkg` and `.snupkg` files with a warning, because it no longer has a [symbol server](symbol-server.md). Embed PDBs in the main package instead.
 
 If [retention](retention.md) is set up on the feed, push removes old versions of the package ids it pushed. It never removes the packages it just pushed.
 
@@ -228,7 +228,7 @@ sleet recreate [options]
 
 | Option | Description |
 | --- | --- |
-| `--nupkg-path` | Folder to keep the downloaded packages in during the rebuild. By default a temporary folder is used. The folder is deleted when the command succeeds, and kept as a backup if it fails. |
+| `--nupkg-path` | Folder to keep the downloaded packages in during the rebuild. By default a temporary folder is used. Use a new or empty folder, because every package in it is pushed to the new feed. The folder is deleted when the command succeeds, and kept as a backup if the command fails after the packages are downloaded. See [recreate safety](backup-migration.md#recreate-safety). |
 | `-f`, `--force` | Continue past errors while recreating the feed, and skip the check that the feed was created by a compatible version of Sleet. Required to [upgrade very old feeds](backup-migration.md#upgrade-older-feeds), and to remove `.symbols.nupkg` files left by the [symbol server](symbol-server.md#remove-the-symbol-server-from-a-feed). |
 
 The [common options](#common-options) are also supported.

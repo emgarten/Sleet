@@ -85,7 +85,7 @@ For a local feed whose `baseURI` is different from `path`, don't use `recreate`.
 
 ## Recreate safety
 
-`recreate` downloads all packages to a cache folder or to `--nupkg-path`, destroys the feed, initializes it again, pushes the packages, and validates the result. If the command fails after packages have been downloaded, Sleet keeps the downloaded nupkgs as a backup and prints the folder path. When `--nupkg-path` is supplied, that folder is cleaned up only after a successful recreate.
+`recreate` downloads all packages to a cache folder or to `--nupkg-path`, destroys the feed, initializes it again, pushes the packages, and validates the result. If the command fails after packages have been downloaded, Sleet keeps the downloaded nupkgs as a backup and prints the folder path. It deletes the folder when the command succeeds, or when it stops because a package failed to download. Use a new or empty folder for `--nupkg-path`, because `recreate` also pushes every package in it to the new feed.
 
 If the feed has `.symbols.nupkg` files from the removed symbol server, `recreate` stops before it changes the feed. See [remove the symbol server from a feed](symbol-server.md#remove-the-symbol-server-from-a-feed).
 

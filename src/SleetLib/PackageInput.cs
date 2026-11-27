@@ -206,11 +206,12 @@ namespace Sleet
         }
 
         /// <summary>
-        /// True if the file name ends with .symbols.nupkg
+        /// True if the file name ends with .symbols.nupkg or .snupkg
         /// </summary>
         private static bool IsSymbolsPackagePath(string path)
         {
-            return path.EndsWith(".symbols.nupkg", StringComparison.OrdinalIgnoreCase);
+            return path.EndsWith(".symbols.nupkg", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith(".snupkg", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

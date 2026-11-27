@@ -50,6 +50,6 @@ sleet recreate --force
 ```
 
 > [!WARNING]
-> `--force` also makes `recreate` continue past other errors, such as a package that fails to download. Keep the backup until you've checked the new feed.
+> `--force` also makes `recreate` continue past other errors, such as a package that fails to download. Keep the backup until you've checked the new feed. Don't pass the backup folder to `--nupkg-path`, because `recreate` deletes that folder when it succeeds.
 
 `recreate` doesn't work on a local feed whose `baseURI` is different from `path`. Follow [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) instead. `push` skips the `.symbols.nupkg` files in the backup folder.

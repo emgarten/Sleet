@@ -162,7 +162,7 @@ The folder has no `.nupkg` files in it or in its sub folders. For a single file,
 Skipping My.Package 1.0.0 symbols package. Sleet no longer supports symbols packages, embed PDBs in the main package instead.
 ```
 
-This is a warning, and `push` continues with the other packages. Sleet 8.0 removed the symbol server, so it skips `.symbols.nupkg` files. See [add symbols to your packages](symbol-server.md#add-symbols-to-your-packages).
+This is a warning, and `push` continues with the other packages. Sleet 8.0 removed the symbol server, so it skips `.symbols.nupkg` and `.snupkg` files. See [add symbols to your packages](symbol-server.md#add-symbols-to-your-packages).
 
 ## Waiting to obtain a feed lock
 
