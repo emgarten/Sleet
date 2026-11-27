@@ -13,8 +13,6 @@ namespace Sleet
         internal const string VerbosityDesc = "Set the log verbosity: quiet, minimal, normal, detailed, or diagnostic. Defaults to normal.";
         internal const string EnableCatalogOption = "--with-catalog";
         internal const string EnableCatalogDesc = "Enable the feed catalog and all change history tracking.";
-        internal const string EnableSymbolsFeedOption = "--with-symbols";
-        internal const string EnableSymbolsFeedDesc = "Enable symbols server.";
         internal const string PropertyOption = "-p|--property";
         internal const string PropertyDescription = "Define a key=value pair. Used for tokenized sleet.json files or env var values.";
     }

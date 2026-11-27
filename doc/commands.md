@@ -79,19 +79,18 @@ sleet init [options]
 | Option | Description |
 | --- | --- |
 | `--with-catalog` | Enable the catalog, which records the history of every change to the feed. |
-| `--with-symbols` | Enable the [symbol server](symbol-server.md). |
 
 The [common options](#common-options) are also supported.
 
-You don't need to run `init` for most feeds, because `push` creates and initializes a new feed automatically. Use `init` when you want to enable the catalog or the symbol server from the start. Both can also be turned on later with [feed settings](feed-settings.md).
+You don't need to run `init` for most feeds, because `push` creates and initializes a new feed automatically. Use `init` when you want to enable the catalog from the start. It can also be turned on later with [feed settings](feed-settings.md).
 
 `init` creates the container, bucket, or folder if it doesn't exist.
 
 > [!WARNING]
-> Don't run `init` on a feed that already exists. Current versions of Sleet don't stop you, and `init` resets parts of the feed: it turns the catalog and the symbol server on or off to match the options you pass, and it switches search back to the static search files even if [external search](external-search.md) is set. Packages aren't removed. To change settings on an existing feed, use [feed-settings](#feed-settings).
+> Don't run `init` on a feed that already exists. Current versions of Sleet don't stop you, and `init` resets parts of the feed: it turns the catalog on or off to match the `--with-catalog` option, and it switches search back to the static search files even if [external search](external-search.md) is set. Packages aren't removed. To change settings on an existing feed, use [feed-settings](#feed-settings).
 
 ```bash
-sleet init --source feed --with-symbols
+sleet init --source feed --with-catalog
 ```
 
 ## push
@@ -116,7 +115,7 @@ Pushing a version that is already on the feed fails with `Package already exists
 
 Sleet doesn't expand wildcards such as `*.nupkg`. Pass a folder instead. Some shells expand wildcards before Sleet runs, which works, but a folder is portable across shells and operating systems.
 
-Files that end in `.symbols.nupkg` are only used by the [symbol server](symbol-server.md). If the symbol server is off, Sleet skips them with a warning. The `.snupkg` format isn't supported.
+Sleet skips `.symbols.nupkg` and `.snupkg` files with a warning, because it no longer has a [symbol server](symbol-server.md). Embed PDBs in the main package instead.
 
 If [retention](retention.md) is set up on the feed, push removes old versions of the package ids it pushed. It never removes the packages it just pushed.
 
@@ -144,7 +143,7 @@ sleet delete --id <id> [--version <version>] [options]
 | Option | Description |
 | --- | --- |
 | `-i`, `--id` | Package id to delete. Required. |
-| `-v`, `--version` | Package version to delete. If you leave it out, all versions of the package are deleted, including symbols packages. |
+| `-v`, `--version` | Package version to delete. If you leave it out, all versions of the package are deleted. |
 | `-f`, `--force` | Don't fail if the package isn't on the feed. |
 | `-r`, `--reason` | Accepted, but not stored in the feed by current versions of Sleet. |
 
@@ -185,7 +184,7 @@ Only the [common options](#common-options) are supported. If `validate` reports 
 
 ## download
 
-Downloads every package and symbols package on a feed to a local folder.
+Downloads every package on a feed to a local folder, including `.symbols.nupkg` files on feeds that used the removed [symbol server](symbol-server.md).
 
 ```text
 sleet download --output <folder> [options]
@@ -221,7 +220,7 @@ Only the [common options](#common-options) are supported.
 
 ## recreate
 
-Rebuilds a feed from its own packages. Sleet downloads all packages, deletes the feed, and pushes the packages again. Use it to fix a broken feed, to upgrade a feed created by an old Sleet version, or to apply feed settings to packages that are already on the feed.
+Rebuilds a feed from its own packages. Sleet downloads all packages, deletes the feed, and pushes the packages again. Use it to fix a broken feed, to upgrade a feed created by an old Sleet version, to [remove the symbol server](symbol-server.md#remove-the-symbol-server-from-a-feed), or to apply feed settings to packages that are already on the feed.
 
 ```text
 sleet recreate [options]
@@ -229,8 +228,8 @@ sleet recreate [options]
 
 | Option | Description |
 | --- | --- |
-| `--nupkg-path` | Folder to keep the downloaded packages in during the rebuild. By default a temporary folder is used. The folder is deleted when the command succeeds, and kept as a backup if it fails. |
-| `-f`, `--force` | Continue past errors while recreating the feed, and skip the check that the feed was created by a compatible version of Sleet. Required to [upgrade very old feeds](backup-migration.md#upgrade-older-feeds). |
+| `--nupkg-path` | Folder to keep the downloaded packages in during the rebuild. By default a temporary folder is used. Use a new or empty folder, because every package in it is pushed to the new feed. The folder is deleted when the command succeeds, and kept as a backup if the command fails after the packages are downloaded. See [recreate safety](backup-migration.md#recreate-safety). |
+| `-f`, `--force` | Continue past errors while recreating the feed, and skip the check that the feed was created by a compatible version of Sleet. Required to [upgrade very old feeds](backup-migration.md#upgrade-older-feeds), and to remove `.symbols.nupkg` files left by the [symbol server](symbol-server.md#remove-the-symbol-server-from-a-feed). |
 
 The [common options](#common-options) are also supported.
 
@@ -260,9 +259,6 @@ The [common options](#common-options) are also supported. You can't combine a ge
 ```bash
 # Show all settings
 sleet feed-settings --get-all
-
-# Turn on the symbol server
-sleet feed-settings --set symbolsfeedenabled:true
 
 # Turn on badges
 sleet feed-settings --set badgesenabled:true

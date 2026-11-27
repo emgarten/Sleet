@@ -12,10 +12,10 @@ namespace Sleet
         public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, ILogger log)
         {
             var token = CancellationToken.None;
-            return RunAsync(settings, source, enableCatalog: false, enableSymbols: false, log: log, token: token);
+            return RunAsync(settings, source, enableCatalog: false, log: log, token: token);
         }
 
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, bool enableSymbols, ILogger log, CancellationToken token)
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, ILogger log, CancellationToken token)
         {
             // A missing bucket has no settings to read, InitAsync creates it
             var feedSettings = await source.HasBucket(log, token)
@@ -23,7 +23,6 @@ namespace Sleet
                 : new FeedSettings();
 
             feedSettings.CatalogEnabled = enableCatalog;
-            feedSettings.SymbolsEnabled = enableSymbols;
 
             return await InitAsync(settings, source, feedSettings, log, token);
         }
@@ -100,12 +99,6 @@ namespace Sleet
             AddServiceIndexEntry(source.BaseURI, "flatcontainer/", "PackageBaseAddress/3.0.0", "Packages used by project.json", serviceIndexJson);
             AddServiceIndexEntry(source.BaseURI, "flatcontainer/{lower_id}/{lower_version}/readme", "ReadmeUriTemplate/6.13.0", "URI template used by NuGet Client to construct a URL for downloading a package's README.", serviceIndexJson);
 
-            // Add symbols feed if enabled
-            if (feedSettings.SymbolsEnabled)
-            {
-                await AddSymbolsFeedAsync(source, serviceIndexJson, context);
-            }
-
             // Check if services changed
             noChanges &= serviceIndexJsonBefore.Equals(serviceIndexJson);
 
@@ -130,15 +123,6 @@ namespace Sleet
             }
 
             return exitCode;
-        }
-
-        private static async Task AddSymbolsFeedAsync(ISleetFileSystem source, JObject serviceIndexJson, SleetContext context)
-        {
-            AddServiceIndexEntry(source.BaseURI, "symbols/packages/index.json", "http://schema.emgarten.com/sleet#SymbolsPackageIndex/1.0.0", "Packages indexed in the symbols feed.", serviceIndexJson);
-            AddServiceIndexEntry(source.BaseURI, "symbols/", "http://schema.emgarten.com/sleet#SymbolsServer/1.0.0", "Symbols server containing dll and pdb files.", serviceIndexJson);
-
-            var symbols = new Symbols(context);
-            await symbols.PackageIndex.InitAsync();
         }
 
         private static void AddServiceIndexEntry(Uri baseUri, string relativeFilePath, string type, string comment, JObject json)

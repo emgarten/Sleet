@@ -182,27 +182,13 @@ namespace Sleet
 
                 if (package.IsSymbolsPackage)
                 {
-                    packageString += " Symbols";
+                    await log.LogAsync(LogLevel.Warning, $"Skipping {packageString} symbols package. Sleet no longer supports symbols packages, embed PDBs in the main package instead.");
 
-                    if (!context.SourceSettings.SymbolsEnabled)
-                    {
-                        await log.LogAsync(LogLevel.Warning, $"Skipping {packageString}, to push symbols packages enable the symbols server on this feed.");
-
-                        // Skip this package
-                        continue;
-                    }
+                    // Skip this package
+                    continue;
                 }
 
-                var exists = false;
-
-                if (package.IsSymbolsPackage)
-                {
-                    exists = existingPackageSets.Symbols.Exists(package.Identity);
-                }
-                else
-                {
-                    exists = existingPackageSets.Packages.Exists(package.Identity);
-                }
+                var exists = existingPackageSets.Packages.Exists(package.Identity);
 
                 if (exists)
                 {

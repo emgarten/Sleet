@@ -38,9 +38,6 @@ namespace SleetLib.Tests
 
                 var packages = await file.GetPackagesAsync();
                 packages.Should().BeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
-
-                var symbols = await file.GetSymbolsPackagesAsync();
-                symbols.Should().BeEmpty();
             }
         }
 
@@ -59,9 +56,6 @@ namespace SleetLib.Tests
 
                 var packages = await file.GetPackagesAsync();
                 packages.Should().BeEquivalentTo(new[] { new PackageIdentity("b", NuGetVersion.Parse("1.0.0")) });
-
-                var symbols = await file.GetSymbolsPackagesAsync();
-                symbols.Should().BeEmpty();
             }
         }
 
@@ -108,45 +102,6 @@ namespace SleetLib.Tests
                 var path = Path.Combine(testContext.Target, "test.json");
 
                 File.Exists(path).Should().BeTrue();
-            }
-        }
-
-        [Fact]
-        public async Task PackageIndexFile_AddSymbolsPackageVerifyAdd()
-        {
-            using (var testContext = new SleetTestContext())
-            {
-                var input = TestUtility.GetPackageInput("a", testContext, true);
-
-                var file = new PackageIndexFile(testContext.SleetContext, "test.json", persistWhenEmpty: true);
-                await file.AddSymbolsPackageAsync(input);
-
-                var packages = await file.GetSymbolsPackagesAsync();
-                packages.Should().BeEquivalentTo(new[] { new PackageIdentity("a", NuGetVersion.Parse("1.0.0")) });
-
-                var nonSymbols = await file.GetPackagesAsync();
-                nonSymbols.Should().BeEmpty();
-            }
-        }
-
-        [Fact]
-        public async Task PackageIndexFile_RemoveSymbolsPackageVerifyRemove()
-        {
-            using (var testContext = new SleetTestContext())
-            {
-                var inputA = TestUtility.GetPackageInput("a", testContext, true);
-                var inputB = TestUtility.GetPackageInput("b", testContext, true);
-
-                var file = new PackageIndexFile(testContext.SleetContext, "test.json", persistWhenEmpty: true);
-                await file.AddSymbolsPackageAsync(inputA);
-                await file.AddSymbolsPackageAsync(inputB);
-                await file.RemoveSymbolsPackageAsync(inputA.Identity);
-
-                var packages = await file.GetSymbolsPackagesAsync();
-                packages.Should().BeEquivalentTo(new[] { new PackageIdentity("b", NuGetVersion.Parse("1.0.0")) });
-
-                var nonSymbols = await file.GetPackagesAsync();
-                nonSymbols.Should().BeEmpty();
             }
         }
     }

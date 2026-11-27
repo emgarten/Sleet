@@ -58,7 +58,6 @@ namespace Sleet
                 {
                     // Delete all versions of the package
                     packages.UnionWith(await existingPackageSets.Packages.GetPackagesByIdAsync(packageId));
-                    packages.UnionWith(await existingPackageSets.Symbols.GetPackagesByIdAsync(packageId));
                 }
 
                 if (string.IsNullOrEmpty(reason))
@@ -149,14 +148,10 @@ namespace Sleet
         private static async Task RemovePackages(bool force, ILogger log, SleetContext context, PackageSets existingPackageSets, HashSet<PackageIdentity> packages)
         {
             var toRemove = new HashSet<PackageIdentity>();
-            var toRemoveSymbols = new HashSet<PackageIdentity>();
 
             foreach (var package in packages)
             {
-                var exists = existingPackageSets.Packages.Exists(package);
-                var symbolsExists = existingPackageSets.Symbols.Exists(package);
-
-                if (!exists && !symbolsExists)
+                if (!existingPackageSets.Packages.Exists(package))
                 {
                     log.LogInformation($"{package.ToString()} does not exist.");
 
@@ -171,35 +166,16 @@ namespace Sleet
                     }
                 }
 
-                if (exists)
-                {
-                    toRemove.Add(package);
-                }
+                toRemove.Add(package);
 
-                if (symbolsExists)
-                {
-                    toRemoveSymbols.Add(package);
-                }
-
-                var message = $"Removing {package.ToString()}";
-
-                if (exists && symbolsExists)
-                {
-                    message = $"Removing {package.ToString()} and symbols package for {package.ToString()}";
-                }
-                else if (symbolsExists)
-                {
-                    message = $"Removing symbols package {package.ToString()}";
-                }
-
-                await log.LogAsync(LogLevel.Minimal, message);
+                await log.LogAsync(LogLevel.Minimal, $"Removing {package.ToString()}");
             }
 
             // Update feed
             await log.LogAsync(LogLevel.Information, "Removing packages from feed locally");
 
             // Add/Remove packages
-            var changeContext = SleetOperations.CreateDelete(existingPackageSets, toRemove, toRemoveSymbols);
+            var changeContext = SleetOperations.CreateDelete(existingPackageSets, toRemove);
             await SleetUtility.ApplyPackageChangesAsync(context, changeContext);
         }
     }

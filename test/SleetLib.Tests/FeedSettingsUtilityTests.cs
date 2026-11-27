@@ -18,7 +18,6 @@ namespace SleetLib.Tests
             // Defaults
             settings.CatalogEnabled.Should().BeFalse();
             settings.CatalogPageSize.Should().Be(1024);
-            settings.SymbolsEnabled.Should().BeFalse();
         }
 
         [Fact]
@@ -27,7 +26,6 @@ namespace SleetLib.Tests
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "catalogenabled", "false" },
-                { "symbolsfeedenabled", "false" },
                 { "catalogpagesize", "5" },
             };
 
@@ -35,7 +33,6 @@ namespace SleetLib.Tests
 
             settings.CatalogEnabled.Should().BeFalse();
             settings.CatalogPageSize.Should().Be(5);
-            settings.SymbolsEnabled.Should().BeFalse();
         }
 
         [Fact]
@@ -53,7 +50,6 @@ namespace SleetLib.Tests
             // Defaults
             settings.CatalogEnabled.Should().BeFalse();
             settings.CatalogPageSize.Should().Be(1024);
-            settings.SymbolsEnabled.Should().BeFalse();
         }
 
         [Fact]
@@ -63,14 +59,12 @@ namespace SleetLib.Tests
             {
                 { "catalogpagesize", "0" },
                 { "catalogenabled", "x" },
-                { "symbolsfeedenabled", "asf" },
             };
 
             var settings = FeedSettingsUtility.LoadSettings(values);
 
             settings.CatalogPageSize.Should().Be(1);
             settings.CatalogEnabled.Should().BeFalse();
-            settings.SymbolsEnabled.Should().BeFalse();
         }
 
         [Fact]
@@ -80,7 +74,6 @@ namespace SleetLib.Tests
             {
                 CatalogEnabled = false,
                 CatalogPageSize = 5,
-                SymbolsEnabled = false,
                 BadgesEnabled = false,
             };
 
@@ -89,7 +82,6 @@ namespace SleetLib.Tests
             var expected = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "catalogenabled", "false" },
-                { "symbolsfeedenabled", "false" },
                 { "catalogpagesize", "5" },
                 { "badgesenabled", "false" },
             };
@@ -104,7 +96,6 @@ namespace SleetLib.Tests
             {
                 CatalogEnabled = true,
                 CatalogPageSize = 10,
-                SymbolsEnabled = true,
                 BadgesEnabled = true
             };
 
@@ -113,7 +104,6 @@ namespace SleetLib.Tests
             var expected = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "catalogenabled", "true" },
-                { "symbolsfeedenabled", "true" },
                 { "catalogpagesize", "10" },
                 { "badgesenabled", "true" },
             };
@@ -141,7 +131,6 @@ namespace SleetLib.Tests
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "catalogenabled", "true" },
-                { "symbolsfeedenabled", "true" },
                 { "catalogpagesize", "10" },
                 { "badgesenabled", "true" },
             };

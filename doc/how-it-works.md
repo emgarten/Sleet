@@ -34,7 +34,6 @@ registration/{id}/{version}.json     Metadata for one version.
 search/query                         Static search results.
 autocomplete/query                   Package ids, for autocomplete.
 catalog/                             The catalog, if catalogenabled is on.
-symbols/                             The symbol server, if symbolsfeedenabled is on.
 badges/                              Version badges, if badgesenabled is on.
 ```
 
@@ -57,8 +56,6 @@ The feed also has a lock file while a command runs. See [feed locking](locking.m
 | `Catalog/3.0.0` | `catalog/index.json`, if the catalog is on |
 | `http://schema.emgarten.com/sleet#SettingsFile/1.0.0` | `sleet.settings.json` |
 | `http://schema.emgarten.com/sleet#PackageIndex/1.0.0` | `sleet.packageindex.json` |
-| `http://schema.emgarten.com/sleet#SymbolsPackageIndex/1.0.0` | `symbols/packages/index.json`, if symbols are on |
-| `http://schema.emgarten.com/sleet#SymbolsServer/1.0.0` | `symbols/`, if symbols are on |
 
 `init` writes this file, and `recreate` writes it again. Changing a feed setting doesn't add or remove resources, except for `externalsearch`. See [feed settings](feed-settings.md).
 

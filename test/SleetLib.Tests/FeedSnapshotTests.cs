@@ -44,7 +44,6 @@ namespace SleetLib.Tests
                     SourceSettings = new FeedSettings()
                     {
                         CatalogEnabled = true,
-                        SymbolsEnabled = true,
                         BadgesEnabled = true
                     }
                 };
@@ -102,18 +101,11 @@ namespace SleetLib.Tests
             beta.Nuspec.Description = "Beta package";
             beta.Nuspec.Tags = "beta";
 
-            var alphaSymbols = new TestNupkg("alpha", "1.0.0");
-            alphaSymbols.Files.Clear();
-            alphaSymbols.AddFile("lib/net45/a.dll", TestUtility.GetResource("SymbolsTestAdll").GetBytes());
-            alphaSymbols.AddFile("lib/net45/a.pdb", TestUtility.GetResource("SymbolsTestApdb").GetBytes());
-            alphaSymbols.Nuspec.IsSymbolPackage = true;
-
             return new List<string>()
             {
                 alpha100.Save(packagesRoot).FullName,
                 alphaPrerelease.Save(packagesRoot).FullName,
-                beta.Save(packagesRoot).FullName,
-                alphaSymbols.Save(packagesRoot).FullName
+                beta.Save(packagesRoot).FullName
             };
         }
 

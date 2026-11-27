@@ -128,6 +128,14 @@ When using FeedSubPath the Path property must end with the sub path.
 
 When a source sets `feedSubPath`, the feed URL must end with the same sub folder. That's `baseURI` if it's set, and `path` otherwise. See [sub folders and baseURI](multiple-feeds.md#sub-folders-and-baseuri).
 
+### Feed has the symbol server enabled
+
+```text
+This feed has the symbol server enabled. Sleet no longer supports the symbol server and files under symbols/ are no longer updated. Run 'sleet recreate' to remove it from the feed. See: https://github.com/emgarten/Sleet/blob/main/doc/symbol-server.md
+```
+
+This is a warning, and the command continues. The feed was created with the symbol server, which Sleet 8.0 removed. To remove it from the feed, see [remove the symbol server from a feed](symbol-server.md#remove-the-symbol-server-from-a-feed).
+
 ## Push errors
 
 ### Package already exists
@@ -151,10 +159,10 @@ The folder has no `.nupkg` files in it or in its sub folders. For a single file,
 ### Symbols packages are skipped
 
 ```text
-Skipping My.Package 1.0.0 Symbols, to push symbols packages enable the symbols server on this feed.
+Skipping My.Package 1.0.0 symbols package. Sleet no longer supports symbols packages, embed PDBs in the main package instead.
 ```
 
-The feed doesn't have the symbol server turned on. See [enable symbols](symbol-server.md#enable-symbols).
+This is a warning, and `push` continues with the other packages. Sleet 8.0 removed the symbol server, so it skips `.symbols.nupkg` and `.snupkg` files. See [add symbols to your packages](symbol-server.md#add-symbols-to-your-packages).
 
 ## Waiting to obtain a feed lock
 
@@ -183,6 +191,14 @@ Encountered an error while recreating the feed. You may need to manually create 
 ```
 
 Push that folder to the feed to add the packages back.
+
+If the feed has `.symbols.nupkg` files from the removed symbol server, `recreate` stops before it changes the feed:
+
+```text
+The feed contains 2 symbols packages. Sleet no longer supports symbols packages and recreating the feed would remove them. Back them up with 'sleet download', then run recreate with --force.
+```
+
+See [remove the symbol server from a feed](symbol-server.md#remove-the-symbol-server-from-a-feed).
 
 ## NuGet can't read the feed
 

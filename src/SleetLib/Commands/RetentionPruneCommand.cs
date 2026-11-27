@@ -115,37 +115,24 @@ namespace Sleet
         private static async Task RemovePackages(SleetContext context, PackageSets existingPackageSets, HashSet<PackageIdentity> packagesToRemove, bool dryRun, ILogger log)
         {
             var toRemove = new HashSet<PackageIdentity>();
-            var toRemoveSymbols = new HashSet<PackageIdentity>();
 
             foreach (var package in packagesToRemove)
             {
-                var exists = existingPackageSets.Packages.Exists(package);
-                var symbolsExists = existingPackageSets.Symbols.Exists(package);
-
-                if (exists)
+                if (existingPackageSets.Packages.Exists(package))
                 {
                     toRemove.Add(package);
-                }
-
-                if (symbolsExists)
-                {
-                    toRemoveSymbols.Add(package);
-                }
-
-                if (exists || symbolsExists)
-                {
                     await log.LogAsync(LogLevel.Minimal, $"Pruning {package.ToString()}");
                 }
             }
 
-            if (toRemove.Count < 1 && toRemoveSymbols.Count < 1)
+            if (toRemove.Count < 1)
             {
                 await log.LogAsync(LogLevel.Minimal, $"No packages need pruning.");
             }
             else if (!dryRun)
             {
                 // Add/Remove packages
-                var changeContext = SleetOperations.CreateDelete(existingPackageSets, toRemove, toRemoveSymbols);
+                var changeContext = SleetOperations.CreateDelete(existingPackageSets, toRemove);
                 await SleetUtility.ApplyPackageChangesAsync(context, changeContext);
             }
         }

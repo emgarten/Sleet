@@ -49,7 +49,6 @@ namespace Sleet.Test.Common
                 SourceSettings = new FeedSettings()
                 {
                     CatalogEnabled = false,
-                    SymbolsEnabled = false,
                 }
             };
         }

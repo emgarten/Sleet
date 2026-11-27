@@ -363,5 +363,37 @@ namespace SleetLib.Tests
                 await UpgradeUtility.EnsureCompatibility(fileSystem2, log, CancellationToken.None);
             }
         }
+
+        [Fact]
+        public async Task UpgradeUtility_GivenLegacySymbolsServerVerifyWarningAsync()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            using (var cache3 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+
+                // A new feed has no warning
+                var log2 = new TestLogger();
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                await UpgradeUtility.EnsureCompatibility(fileSystem2, log2, TestContext.Current.CancellationToken);
+
+                log2.GetMessages(NuGet.Common.LogLevel.Warning).Should().BeEmpty();
+
+                // A feed created with the symbols server warns
+                TestUtility.AddLegacySymbolsServer(target.Root);
+
+                var log3 = new TestLogger();
+                var fileSystem3 = new PhysicalFileSystem(cache3, UriUtility.CreateUri(target.Root));
+                await UpgradeUtility.EnsureCompatibility(fileSystem3, log3, TestContext.Current.CancellationToken);
+
+                log3.GetMessages(NuGet.Common.LogLevel.Warning).Should().Contain("This feed has the symbol server enabled.");
+            }
+        }
     }
 }

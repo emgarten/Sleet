@@ -25,11 +25,3 @@ json	registration/beta/index.json
 json	search/query
 json	sleet.packageindex.json
 json	sleet.settings.json
-binary	symbols/a.dll/A7F83EF08000/a.dll
-json	symbols/a.dll/A7F83EF08000/packages.json
-binary	symbols/a.pdb/B1680B8315F8485EA0A10F55AF08B565ffffffff/a.pdb
-json	symbols/a.pdb/B1680B8315F8485EA0A10F55AF08B565ffffffff/packages.json
-binary	symbols/packages/alpha/1.0.0/alpha.1.0.0.symbols.nupkg
-json	symbols/packages/alpha/1.0.0/index.json
-json	symbols/packages/alpha/1.0.0/package.json
-json	symbols/packages/index.json

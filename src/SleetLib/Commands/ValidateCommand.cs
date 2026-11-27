@@ -67,19 +67,9 @@ namespace Sleet
             services.Add(flatContainer);
             services.Add(search);
 
-            if (context.SourceSettings.SymbolsEnabled)
-            {
-                var symbols = new Symbols(context);
-                services.Add(symbols);
-            }
-
             // Verify against the package index
             var indexedPackages = await packageIndex.GetPackagesAsync();
             var allIndexIds = indexedPackages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-
-            // Get symbols packages from index
-            var indexedSymbolsPackages = await packageIndex.GetSymbolsPackagesAsync();
-            var allIndexSymbolsIds = indexedSymbolsPackages.Select(e => e.Id).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
             // Verify auto complete
             log.LogMinimal($"Validating {autoComplete.Name}");
@@ -120,13 +110,8 @@ namespace Sleet
                     var allPackagesService = service as IPackagesLookup;
                     var byIdService = service as IPackageIdLookup;
 
-                    var allSymbolsPackagesService = service as ISymbolsPackagesLookup;
-                    var symbolsByIdService = service as ISymbolsPackageIdLookup;
-
                     var servicePackages = new HashSet<PackageIdentity>();
-                    var serviceSymbolsPackages = new HashSet<PackageIdentity>();
 
-                    // Non-Symbols packages
                     if (allPackagesService != null)
                     {
                         // Use get all if possible
@@ -157,38 +142,6 @@ namespace Sleet
                     {
                         log.LogMinimal(diff.ToString());
                         log.LogMinimal($"{service.Name} packages valid");
-                    }
-
-                    // Symbols packages
-                    if (allSymbolsPackagesService != null)
-                    {
-                        // Use get all if possible
-                        serviceSymbolsPackages.UnionWith(await allSymbolsPackagesService.GetSymbolsPackagesAsync());
-                    }
-                    else if (symbolsByIdService != null)
-                    {
-                        foreach (var id in allIndexSymbolsIds)
-                        {
-                            serviceSymbolsPackages.UnionWith(await symbolsByIdService.GetSymbolsPackagesByIdAsync(id));
-                        }
-                    }
-                    else
-                    {
-                        // Symbols are not supported by this service
-                        continue;
-                    }
-
-                    var symbolsDiff = new PackageDiff(indexedSymbolsPackages, serviceSymbolsPackages);
-
-                    if (symbolsDiff.HasErrors)
-                    {
-                        log.LogError(symbolsDiff.ToString());
-                        success = false;
-                    }
-                    else
-                    {
-                        log.LogMinimal(symbolsDiff.ToString());
-                        log.LogMinimal($"{service.Name} symbols packages valid");
                     }
                 }
             }

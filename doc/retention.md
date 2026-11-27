@@ -7,7 +7,7 @@ Package retention deletes older package versions from a feed. Use it to keep onl
 
 ## How retention works
 
-Retention keeps the newest N stable versions and M prerelease versions per package id. Versions beyond those limits are removed from the feed, including matching symbol packages when present.
+Retention keeps the newest N stable versions and M prerelease versions per package id. Versions beyond those limits are removed from the feed.
 
 Automatic pruning runs on `sleet push` only when both retention settings are present and greater than zero:
 

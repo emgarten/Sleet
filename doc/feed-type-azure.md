@@ -81,10 +81,10 @@ On the first push, Sleet does the following:
 
 If the container already exists, Sleet doesn't change its access level. Create the container yourself when you want a different level. **Blob** is enough for NuGet, and it doesn't allow anonymous listing.
 
-To turn on the catalog or the [symbol server](symbol-server.md) from the start, run [init](commands.md#init) before the first push:
+To turn on the catalog from the start, run [init](commands.md#init) before the first push:
 
 ```bash
-sleet init --with-symbols
+sleet init --with-catalog
 ```
 
 ## Use the feed

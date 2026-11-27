@@ -27,7 +27,6 @@ Keys aren't case-sensitive. Sleet doesn't check key names, so a misspelled key i
 | --- | --- | --- |
 | [`catalogenabled`](#catalogenabled) | `false` | After `recreate`. |
 | [`catalogpagesize`](#catalogpagesize) | `1024` | On the next push. |
-| [`symbolsfeedenabled`](#symbolsfeedenabled) | `false` | After `recreate`. |
 | [`badgesenabled`](#badgesenabled) | `false` | On the next push. Run `recreate` to add badges for packages already on the feed. |
 | [`externalsearch`](#externalsearch) | Not set | Right away. |
 | [`retentionmaxstableversions`](#retention-settings) | Not set | On the next push. |
@@ -40,17 +39,11 @@ Keys aren't case-sensitive. Sleet doesn't check key names, so a misspelled key i
 
 When `true`, Sleet keeps a catalog: a log of every package added to or removed from the feed, in the [NuGet catalog format](https://learn.microsoft.com/en-us/nuget/api/catalog-resource). Tools that copy or mirror feeds can read it. NuGet doesn't need it to restore packages, and it adds files to every push.
 
-To turn it on for a new feed, run `sleet init --with-catalog` before the first push. For an existing feed, set `catalogenabled:true` and run `recreate`. `recreate` adds the catalog to `index.json`, and adds the packages already on the feed to it. See [enable catalog or symbols on an existing feed](backup-migration.md#enable-catalog-or-symbols-on-an-existing-feed).
+To turn it on for a new feed, run `sleet init --with-catalog` before the first push. For an existing feed, set `catalogenabled:true` and run `recreate`. `recreate` adds the catalog to `index.json`, and adds the packages already on the feed to it. See [enable the catalog on an existing feed](backup-migration.md#enable-the-catalog-on-an-existing-feed).
 
 ## catalogpagesize
 
 The number of entries in each catalog page. Sleet starts a new page when the latest one is full. Only used when the catalog is on.
-
-## symbolsfeedenabled
-
-When `true`, the feed has a [symbol server](symbol-server.md). Sleet accepts `.symbols.nupkg` files, and indexes the `.dll` and `.pdb` files in packages under `symbols/`. When `false`, `push` skips symbol packages with a warning.
-
-To turn it on for a new feed, run `sleet init --with-symbols` before the first push. For an existing feed, set `symbolsfeedenabled:true` and run `recreate`, so that `index.json` lists the symbol server and existing packages are indexed.
 
 ## badgesenabled
 
@@ -83,13 +76,17 @@ Retention only runs when both limits are set and greater than 0. Use the [retent
 sleet retention settings --stable 5 --prerelease 2
 ```
 
+## Removed settings
+
+`symbolsfeedenabled` turned on the [symbol server](symbol-server.md), which Sleet 8.0 removed. Sleet ignores it, and `recreate` removes it from the feed.
+
 ## Settings and init
 
 `init` writes `sleet.settings.json`. If you run it on a feed that already has settings, it:
 
-- Sets `catalogenabled` and `symbolsfeedenabled` to match the `--with-catalog` and `--with-symbols` options, which are off unless you pass them.
+- Sets `catalogenabled` to match the `--with-catalog` option, which is off unless you pass it.
 - Points search back to the static search file, even if `externalsearch` is set. Run `feed-settings --set externalsearch:<url>` again to fix it.
 - Keeps `badgesenabled`, `catalogpagesize`, and the retention settings.
 - Removes keys that Sleet doesn't know.
 
-Only run `init` on a new feed. `recreate` keeps all settings.
+Only run `init` on a new feed. `recreate` keeps all settings that Sleet knows.

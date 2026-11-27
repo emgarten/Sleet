@@ -12,7 +12,7 @@ namespace Sleet
     /// <summary>
     /// PackageIndexFile is a simple json index of all ids and versions contained in the feed.
     /// </summary>
-    public class PackageIndexFile : IndexFileBase, IAddRemovePackages, IPackagesLookup, ISymbolsAddRemovePackages, ISymbolsPackagesLookup, IApplyOperations
+    public class PackageIndexFile : IndexFileBase, IAddRemovePackages, IPackagesLookup, IApplyOperations
     {
         public PackageIndexFile(SleetContext context, string path)
             : this(context, path, persistWhenEmpty: false)
@@ -70,31 +70,6 @@ namespace Sleet
             }
         }
 
-        public async Task AddSymbolsPackageAsync(PackageInput packageInput)
-        {
-            // Load existing index
-            var sets = await GetPackageSetsAsync();
-
-            // Add package
-            await sets.Symbols.AddPackageAsync(packageInput);
-
-            // Write file
-            await CreateAsync(sets);
-        }
-
-        public async Task RemoveSymbolsPackageAsync(PackageIdentity package)
-        {
-            // Load existing index
-            var sets = await GetPackageSetsAsync();
-
-            // Remove package
-            if (sets.Symbols.Index.Remove(package))
-            {
-                // Create updated index
-                await CreateAsync(sets);
-            }
-        }
-
         /// <summary>
         /// Creates a set of all indexed packages
         /// </summary>
@@ -105,29 +80,9 @@ namespace Sleet
             return sets.Packages.Index;
         }
 
-        public async Task<ISet<PackageIdentity>> GetSymbolsPackagesAsync()
-        {
-            var sets = await GetPackageSetsAsync();
-
-            return sets.Symbols.Index;
-        }
-
-        public async Task<ISet<PackageIdentity>> GetSymbolsPackagesByIdAsync(string packageId)
-        {
-            var packages = await GetSymbolsPackagesAsync();
-
-            return GetSetForId(packageId, packages);
-        }
-
         public async Task<ISet<NuGetVersion>> GetPackageVersions(string packageId)
         {
             var packages = await GetPackagesByIdAsync(packageId);
-            return new SortedSet<NuGetVersion>(packages.Select(e => e.Version));
-        }
-
-        public async Task<ISet<NuGetVersion>> GetSymbolsPackageVersions(string packageId)
-        {
-            var packages = await GetSymbolsPackagesByIdAsync(packageId);
             return new SortedSet<NuGetVersion>(packages.Select(e => e.Version));
         }
 
@@ -154,7 +109,8 @@ namespace Sleet
 
                 var symbolsNode = json["symbols"] as JObject;
 
-                // This node may not exist for older feeds
+                // Symbols packages from the removed symbols server are kept as-is.
+                // This node may not exist for older feeds.
                 if (symbolsNode != null)
                 {
                     index.Symbols = GetPackageSetFromJson(symbolsNode);
@@ -215,26 +171,6 @@ namespace Sleet
             ArgumentNullException.ThrowIfNull(package);
 
             return Exists(package.Id, package.Version);
-        }
-
-        /// <summary>
-        /// True if the symbols package exists in the index.
-        /// </summary>
-        public async Task<bool> SymbolsExists(string packageId, NuGetVersion version)
-        {
-            ArgumentNullException.ThrowIfNull(packageId);
-            ArgumentNullException.ThrowIfNull(version);
-
-            var byId = await GetSymbolsPackagesByIdAsync(packageId);
-
-            return byId.Contains(new PackageIdentity(packageId, version));
-        }
-
-        public Task<bool> SymbolsExists(PackageIdentity package)
-        {
-            ArgumentNullException.ThrowIfNull(package);
-
-            return SymbolsExists(package.Id, package.Version);
         }
 
         /// <summary>
