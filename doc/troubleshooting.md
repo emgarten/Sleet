@@ -200,6 +200,16 @@ The feed contains 2 symbols packages. Sleet no longer supports symbols packages 
 
 See [remove the symbol server from a feed](symbol-server.md#remove-the-symbol-server-from-a-feed).
 
+If the feed has `.nupkg` files that aren't in `sleet.packageindex.json`, `recreate` lists each file and stops before it changes the feed:
+
+```text
+The feed contains 2 .nupkg files that are not in sleet.packageindex.json. Recreating the feed would delete them without a backup. Copy them out of the feed and push them again before running recreate, or use --force to delete them.
+```
+
+`recreate` backs up only the packages in that index. Packages are missing from it when `sleet.packageindex.json` was deleted or left out of a copy of the feed, or when a push was interrupted. To keep the packages, copy the listed files to a folder outside the feed, push that folder with `sleet push`, then run `recreate` again. To delete them, run `sleet recreate --force`.
+
+If the files belong to another feed in a sub folder of the same container or bucket, `recreate` would delete that feed too. See [what feeds in the same container or bucket share](multiple-feeds.md#what-feeds-in-the-same-container-or-bucket-share).
+
 ## NuGet can't read the feed
 
 Start by opening the feed's `index.json` with curl. `-i` shows the status code:

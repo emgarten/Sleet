@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
+using NuGet.Packaging.Core;
 
 namespace Sleet
 {
@@ -32,7 +35,11 @@ namespace Sleet
                 var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
 
                 // Check before the nupkg folder is created, a blocked recreate must not clean up --nupkg-path.
-                if (!await CheckSymbolsPackagesAsync(settings, source, feedSettings, force, log, token))
+                // Run every check so that all packages that would be lost are reported together.
+                var symbolsCheck = await CheckSymbolsPackagesAsync(settings, source, feedSettings, force, log, token);
+                var unindexedCheck = await CheckUnindexedPackagesAsync(settings, source, feedSettings, force, log, token);
+
+                if (!symbolsCheck || !unindexedCheck)
                 {
                     return false;
                 }
@@ -165,6 +172,69 @@ namespace Sleet
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Recreate only backs up the packages listed in sleet.packageindex.json. Any other .nupkg files in the feed,
+        /// for example every package when the index is missing, would be deleted without a backup.
+        /// Block unless force is used.
+        /// </summary>
+        private static async Task<bool> CheckUnindexedPackagesAsync(LocalSettings settings, ISleetFileSystem source, FeedSettings feedSettings, bool force, ILogger log, CancellationToken token)
+        {
+            var context = new SleetContext()
+            {
+                LocalSettings = settings,
+                SourceSettings = feedSettings,
+                Log = log,
+                Source = source,
+                Token = token
+            };
+
+            var packageSets = await new PackageIndex(context).GetPackageSetsAsync();
+
+            var indexedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            indexedPaths.UnionWith(packageSets.Packages.Index.Select(e => FlatContainer.GetNupkgPath(context, e).AbsoluteUri));
+            indexedPaths.UnionWith(packageSets.Symbols.Index.Select(e => GetSymbolsNupkgPath(source, e).AbsoluteUri));
+
+            var unindexedPaths = (await source.GetFiles(log, token))
+                .Select(e => e.EntityUri.AbsoluteUri)
+                .Where(e => e.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase) && !indexedPaths.Contains(e))
+                .OrderBy(e => e, StringComparer.Ordinal)
+                .ToList();
+
+            if (unindexedPaths.Count < 1)
+            {
+                return true;
+            }
+
+            if (force)
+            {
+                log.LogWarning($"Removing {unindexedPaths.Count} .nupkg files that are not in sleet.packageindex.json.");
+            }
+            else
+            {
+                log.LogError($"The feed contains {unindexedPaths.Count} .nupkg files that are not in sleet.packageindex.json. Recreating the feed would delete them without a backup. Copy them out of the feed and push them again before running recreate, or use --force to delete them.");
+            }
+
+            var level = force ? LogLevel.Warning : LogLevel.Error;
+
+            foreach (var path in unindexedPaths)
+            {
+                log.Log(level, path);
+            }
+
+            // With force the files are deleted along with the rest of the feed.
+            return force;
+        }
+
+        /// <summary>
+        /// Path of a .symbols.nupkg stored by the removed symbols server.
+        /// </summary>
+        private static Uri GetSymbolsNupkgPath(ISleetFileSystem source, PackageIdentity package)
+        {
+            var version = package.Version.ToNormalizedString();
+
+            return source.GetPath($"/symbols/packages/{package.Id}/{version}/{package.Id}.{version}.symbols.nupkg".ToLowerInvariant());
         }
 
         /// <summary>

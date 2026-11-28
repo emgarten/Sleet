@@ -89,6 +89,8 @@ For a local feed whose `baseURI` is different from `path`, don't use `recreate`.
 
 If the feed has `.symbols.nupkg` files from the removed symbol server, `recreate` stops before it changes the feed. See [remove the symbol server from a feed](symbol-server.md#remove-the-symbol-server-from-a-feed).
 
+`recreate` backs up only the packages listed in `sleet.packageindex.json`. If the feed has `.nupkg` files that aren't in that index, for example because the index file is missing or a push was interrupted, `recreate` lists them and stops before it changes the feed. See [recreate fails](troubleshooting.md#recreate-fails).
+
 ## Rebuild a local feed without recreate
 
 `recreate` fails on local feeds whose `baseURI` is different from `path`, such as a folder that a web server serves at `https://example.com/feed/`. It stops with this error and leaves the feed without its packages:

@@ -229,7 +229,7 @@ sleet recreate [options]
 | Option | Description |
 | --- | --- |
 | `--nupkg-path` | Folder to keep the downloaded packages in during the rebuild. By default a temporary folder is used. Use a new or empty folder, because every package in it is pushed to the new feed. The folder is deleted when the command succeeds, and kept as a backup if the command fails after the packages are downloaded. See [recreate safety](backup-migration.md#recreate-safety). |
-| `-f`, `--force` | Continue past errors while recreating the feed, and skip the check that the feed was created by a compatible version of Sleet. Required to [upgrade very old feeds](backup-migration.md#upgrade-older-feeds), and to remove `.symbols.nupkg` files left by the [symbol server](symbol-server.md#remove-the-symbol-server-from-a-feed). |
+| `-f`, `--force` | Continue past errors while recreating the feed, and skip the check that the feed was created by a compatible version of Sleet. Required to [upgrade very old feeds](backup-migration.md#upgrade-older-feeds), to remove `.symbols.nupkg` files left by the [symbol server](symbol-server.md#remove-the-symbol-server-from-a-feed), and to delete `.nupkg` files that aren't in `sleet.packageindex.json`. `recreate` can't back up those files. See [recreate safety](backup-migration.md#recreate-safety). |
 
 The [common options](#common-options) are also supported.
 
