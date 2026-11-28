@@ -1,12 +1,9 @@
 using System;
-using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
-using Amazon.S3.Model;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using NuGet.Test.Helpers;
@@ -39,11 +36,30 @@ namespace Sleet.AmazonS3.Tests
         public AmazonS3TestContext(string acl = null)
         {
             this.acl = acl;
-            BucketName = $"sleet-test-{Guid.NewGuid().ToString()}";
+            BucketName = TestBucketCleanup.NewBucketName();
             LocalCache = new LocalCache();
             LocalSettings = new LocalSettings();
 
+            if (string.IsNullOrEmpty(ServiceUrl))
+            {
+                Uri = AmazonS3Utility.GetBucketPath(BucketName, Region);
+            }
+            else
+            {
+                // S3 compatible storage uses path style urls
+                Uri = new Uri($"{ServiceUrl.TrimEnd('/')}/{BucketName}/");
+            }
+
             // Client used by the tests to create, inspect and delete the bucket
+            Client = CreateClient();
+            Logger = new TestLogger();
+        }
+
+        /// <summary>
+        /// Create a client for the test account, or for RustFS in local-env.
+        /// </summary>
+        public static AmazonS3Client CreateClient()
+        {
             var config = new AmazonS3Config()
             {
                 Timeout = TimeSpan.FromSeconds(100)
@@ -52,7 +68,6 @@ namespace Sleet.AmazonS3.Tests
             if (string.IsNullOrEmpty(ServiceUrl))
             {
                 config.RegionEndpoint = RegionEndpoint.GetBySystemName(Region);
-                Uri = AmazonS3Utility.GetBucketPath(BucketName, Region);
             }
             else
             {
@@ -60,7 +75,6 @@ namespace Sleet.AmazonS3.Tests
                 config.ServiceURL = ServiceUrl;
                 config.AuthenticationRegion = Region;
                 config.ForcePathStyle = true;
-                Uri = new Uri($"{ServiceUrl.TrimEnd('/')}/{BucketName}/");
 
                 if (IsCloudflareR2)
                 {
@@ -70,8 +84,7 @@ namespace Sleet.AmazonS3.Tests
                 }
             }
 
-            Client = new AmazonS3Client(AccessKeyId, SecretAccessKey, config);
-            Logger = new TestLogger();
+            return new AmazonS3Client(AccessKeyId, SecretAccessKey, config);
         }
 
         /// <summary>
@@ -208,42 +221,30 @@ namespace Sleet.AmazonS3.Tests
             });
         }
 
+        /// <summary>
+        /// Delete the test bucket. If it fails, DisposeAsync tries again.
+        /// </summary>
         public async Task CleanupAsync()
         {
-            cleanupDone = true;
-
-            try
+            if (!cleanupDone)
             {
-                var s3Objects = (await AmazonS3FileSystemAbstraction
-                    .GetFilesAsync(Client, BucketName, CancellationToken.None))
-                    .Select(x => new KeyVersion { Key = x.Key })
-                    .ToArray();
-
-                if (s3Objects.Any())
-                {
-                    await AmazonS3FileSystemAbstraction.RemoveMultipleFilesAsync(
-                        Client,
-                        BucketName,
-                        s3Objects,
-                        CancellationToken.None);
-                }
-
-                await Client.DeleteBucketAsync(BucketName);
-            }
-            catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-            {
-                // The bucket wasn't created, or the test deleted it
+                // Not the token of the test, so a cancelled test still deletes its bucket
+                await TestBucketCleanup.DeleteBucketAsync(Client, BucketName, CancellationToken.None);
+                cleanupDone = true;
             }
         }
 
         public async ValueTask DisposeAsync()
         {
             GC.SuppressFinalize(this);
-            LocalCache.Dispose();
 
-            if (!cleanupDone)
+            try
             {
                 await CleanupAsync();
+            }
+            finally
+            {
+                LocalCache.Dispose();
             }
         }
 

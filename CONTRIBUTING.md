@@ -93,6 +93,8 @@ To run more than one target, list them: `-Target azurite, azure` or `--target az
 
 > [!WARNING]
 > The cloud targets create and delete containers and buckets named `sleet-test-{guid}`. Use a test account, not one that holds production feeds.
+>
+> A run that's stopped before it finishes, such as a cancelled CI run, can leave some of them behind. The Amazon S3 tests delete the `sleet-test-{guid}` buckets in the account that are more than 2 hours old, so their credentials also need permission to list the buckets, `s3:ListAllMyBuckets` on AWS.
 
 You can also run the functional tests from an IDE or with `dotnet test`. They're skipped unless they have somewhere to run:
 
