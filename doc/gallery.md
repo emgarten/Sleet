@@ -18,9 +18,10 @@ The gallery is at `index.html`, in the same place as the feed's `index.json`. Ta
 | Azure | `https://myaccount.blob.core.windows.net/feed/index.html` |
 | Amazon S3 | `https://my-bucket-feed.s3.us-west-2.amazonaws.com/index.html` |
 | Cloudflare R2 | `https://nuget.example.com/index.html` |
+| Google Cloud Storage | `https://storage.googleapis.com/my-bucket-feed/index.html` |
 | Local folder behind a web server | `https://example.com/feed/index.html` |
 
-Azure, Amazon S3, and R2 don't serve a default page at these URLs, so include `index.html`. To open the gallery from the feed URL alone, see [serve the gallery from the root URL](#serve-the-gallery-from-the-root-url). Most web servers serve `index.html` as the default page of a folder, so on a web server the gallery also opens at the feed URL, such as `https://example.com/feed/`.
+Azure, Amazon S3, R2, and Cloud Storage don't serve a default page at these URLs, so include `index.html`. To open the gallery from the feed URL alone, see [serve the gallery from the root URL](#serve-the-gallery-from-the-root-url). Most web servers serve `index.html` as the default page of a folder, so on a web server the gallery also opens at the feed URL, such as `https://example.com/feed/`.
 
 Open the gallery over http or https. Browsers don't let a page opened from disk read other files, so opening `index.html` straight from a local feed folder doesn't work. To serve a local feed for a quick look, see [test a local server](static-hosting.md#test-a-local-server).
 
@@ -125,6 +126,7 @@ The storage REST endpoints don't support index documents. To open the gallery fr
 - **Amazon S3**: turn on [static website hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html) with `index.html` as the index document. S3 website endpoints serve only HTTP, so put CloudFront in front of the bucket for HTTPS.
 - **CloudFront**: set the **Default root object** to `index.html`. This applies only to the root of the distribution, not to subpaths.
 - **Cloudflare R2**: R2 doesn't have index documents. On a custom domain, add a [URL rewrite rule](https://developers.cloudflare.com/rules/transform/url-rewrite/) that rewrites `/` to `/index.html`. The r2.dev URL doesn't support rules, so link to `index.html` there.
+- **Google Cloud Storage**: on a custom domain, such as one behind a [load balancer](feed-type-gcs.md#use-the-feed), set the bucket's [main page](https://cloud.google.com/storage/docs/static-website#index-pages) to `index.html` with `gcloud storage buckets update gs://my-bucket-feed --web-main-page-suffix=index.html`. Cloud Storage ignores this setting at `storage.googleapis.com`, so link to `index.html` there.
 
 ## Use a custom page
 

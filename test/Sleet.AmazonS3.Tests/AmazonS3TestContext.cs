@@ -241,7 +241,7 @@ namespace Sleet.AmazonS3.Tests
                         CancellationToken.None);
                 }
 
-                await Client.DeleteBucketAsync(BucketName);
+                await RetryTooManyRequestsAsync(() => Client.DeleteBucketAsync(BucketName));
             }
             catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
@@ -270,15 +270,35 @@ namespace Sleet.AmazonS3.Tests
                 {
                     // The same as AmazonS3FileSystem.CreateBucket, only Amazon S3 gets the client region. With a service url the SDK
                     // guesses the region from the url or the AWS settings of the machine, which S3 compatible storage may reject.
-                    await Client.PutBucketAsync(new PutBucketRequest()
+                    await RetryTooManyRequestsAsync(() => Client.PutBucketAsync(new PutBucketRequest()
                     {
                         BucketName = BucketName,
                         UseClientRegion = string.IsNullOrEmpty(ServiceUrl)
-                    });
+                    }));
                 }
                 catch (BucketAlreadyOwnedByYouException)
                 {
                     // The same as EnsureBucketExistsAsync, for example when the SDK retried a request that created the bucket
+                }
+            }
+        }
+
+        /// <summary>
+        /// Cloud Storage allows a project about one bucket create or delete every two seconds, and the tests create and
+        /// delete buckets in parallel. Retry after a random delay so that the tests that were rejected don't retry together.
+        /// </summary>
+        private static async Task RetryTooManyRequestsAsync(Func<Task> request)
+        {
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    await request();
+                    return;
+                }
+                catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests && attempt < 10)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(2 + Random.Shared.NextDouble() * 3));
                 }
             }
         }

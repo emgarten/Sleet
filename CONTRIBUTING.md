@@ -92,7 +92,7 @@ export SLEET_TEST_GCS_SECRET_ACCESS_KEY="<HMAC secret>"
 | `azure` | Azure Storage tests against a storage account. | `SLEET_TEST_ACCOUNT`, set to a storage account connection string |
 | `aws` | Amazon S3 tests against AWS. | `SLEET_TEST_S3_ACCESS_KEY_ID` and `SLEET_TEST_S3_SECRET_ACCESS_KEY`. `SLEET_TEST_S3_REGION` defaults to `us-east-1`. Set `SLEET_TEST_S3_SERVICE_URL` to test S3-compatible storage instead of AWS. |
 | `r2` | Amazon S3 tests against Cloudflare R2. The tests that need a public bucket are skipped. | `SLEET_TEST_R2_ACCESS_KEY_ID` and `SLEET_TEST_R2_SECRET_ACCESS_KEY`, from an R2 API token with the **Admin Read & Write** permission so the tests can create buckets. `SLEET_TEST_R2_SERVICE_URL`, set to the S3 API URL of the account. |
-| `gcs` | Amazon S3 tests against Google Cloud Storage. The tests that need a public bucket are skipped. | `SLEET_TEST_GCS_ACCESS_KEY_ID` and `SLEET_TEST_GCS_SECRET_ACCESS_KEY`, from the HMAC key of a service account with the **Storage Admin** role on the project so the tests can create buckets. |
+| `gcs` | Amazon S3 tests against Google Cloud Storage. The tests that need a public bucket or object ACLs are skipped. | `SLEET_TEST_GCS_ACCESS_KEY_ID` and `SLEET_TEST_GCS_SECRET_ACCESS_KEY`, from the HMAC key of a service account with the **Storage Admin** role on the project so the tests can create buckets. |
 
 To run more than one target, list them: `-Target azurite, azure` or `--target azurite,azure`. If a variable that a target needs isn't set, the script stops before it runs any tests. The emulator targets ignore the account variables, so they always run against the local test environment.
 

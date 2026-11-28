@@ -23,8 +23,8 @@ What to test:
              SLEET_TEST_R2_SECRET_ACCESS_KEY, and SLEET_TEST_R2_SERVICE_URL, the R2 S3 API URL of the account.
              The tests that need a public bucket are skipped.
   gcs        The Amazon S3 tests against Google Cloud Storage with SLEET_TEST_GCS_ACCESS_KEY_ID and
-             SLEET_TEST_GCS_SECRET_ACCESS_KEY, a Cloud Storage HMAC key. The tests that need a public bucket are
-             skipped.
+             SLEET_TEST_GCS_SECRET_ACCESS_KEY, a Cloud Storage HMAC key. The tests that need a public bucket or
+             object ACLs are skipped.
 
 .EXAMPLE
 ./functional-tests.ps1
