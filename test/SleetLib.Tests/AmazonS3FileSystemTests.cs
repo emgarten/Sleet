@@ -379,6 +379,46 @@ namespace SleetLib.Tests
             }
         }
 
+        [Fact]
+        public async Task AmazonS3FileSystem_CreateBucket_RetriesTooManyRequests()
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = CreateClientWithMissingBucket();
+                client.SetupSequence(c => c.PutBucketAsync(It.IsAny<PutBucketRequest>(), It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.TooManyRequests))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.TooManyRequests))
+                    .ReturnsAsync(new PutBucketResponse());
+                client.Setup(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>())).ReturnsAsync(new ListObjectsV2Response());
+                client.Setup(c => c.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutObjectResponse());
+                var fileSystem = new NoRetryDelayAmazonS3FileSystem(cache, client.Object);
+                var log = new TestLogger();
+
+                await fileSystem.CreateBucket(log, TestContext.Current.CancellationToken);
+
+                log.GetMessages().Should().Contain("rate limited");
+                client.Verify(c => c.PutBucketAsync(It.IsAny<PutBucketRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
+            }
+        }
+
+        [Fact]
+        public async Task AmazonS3FileSystem_DeleteBucket_StopsRetryingTooManyRequestsAfterTenAttempts()
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = AmazonS3TestUtility.CreateClient();
+                client.Setup(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new HeadBucketResponse());
+                client.Setup(c => c.DeleteBucketAsync(AmazonS3TestUtility.BucketName, It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.TooManyRequests));
+                var fileSystem = new NoRetryDelayAmazonS3FileSystem(cache, client.Object);
+
+                var exception = await Assert.ThrowsAsync<AmazonS3Exception>(async () => await fileSystem.DeleteBucket(new TestLogger(), TestContext.Current.CancellationToken));
+
+                exception.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+                client.Verify(c => c.DeleteBucketAsync(AmazonS3TestUtility.BucketName, It.IsAny<CancellationToken>()), Times.Exactly(10));
+            }
+        }
+
         private static Mock<IAmazonS3> CreateClientWithMissingBucket()
         {
             var client = AmazonS3TestUtility.CreateClient();
@@ -414,6 +454,16 @@ namespace SleetLib.Tests
         private static void SetClient(AmazonS3FileSystem fileSystem, IAmazonS3 client)
         {
             typeof(AmazonS3FileSystem).GetField("_client", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(fileSystem, client);
+        }
+
+        // Retries rate limited bucket requests without waiting
+        private sealed class NoRetryDelayAmazonS3FileSystem : AmazonS3FileSystem
+        {
+            public NoRetryDelayAmazonS3FileSystem(LocalCache cache, IAmazonS3 client)
+                : base(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None)
+            {
+                TooManyRequestsRetryDelay = TimeSpan.Zero;
+            }
         }
     }
 }
