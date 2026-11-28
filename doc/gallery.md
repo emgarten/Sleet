@@ -65,7 +65,31 @@ When you share a link to the gallery in an app that previews links, such as Slac
 
 The `galleryenabled` feed setting controls the gallery. Feed settings are stored in `sleet.settings.json` on the feed, so the setting applies to everyone who pushes to the feed. It defaults to `true`, and a feed that doesn't have the setting, such as a feed created by an older version of Sleet, is treated as `true`.
 
-Sleet applies the setting only when it creates the feed, with `sleet init`, the first `sleet push` to a new feed, or `sleet recreate`. Changing the setting with `sleet feed-settings` doesn't add or remove the gallery by itself, and pushing to an existing feed never adds, updates, or removes it. To change it on an existing feed, pass it to `sleet recreate --set`, which changes the setting and rebuilds the feed in one step. `recreate` downloads every package, deletes the feed, and creates it again from the same packages with the new settings, so it can take a while on a large feed.
+Sleet applies the setting only when it creates the feed, with `sleet init`, the first `sleet push` to a new feed, or `sleet recreate`. Changing the setting with `sleet feed-settings` doesn't add or remove the gallery by itself, and pushing to an existing feed never adds, updates, or removes it. Instead, pass the setting with `--set` to the command that creates the feed: `sleet init` for a new feed, or `sleet recreate` for an existing feed.
+
+### Create a feed without the gallery
+
+Run `init` with the setting before you push any packages:
+
+```bash
+sleet init --set galleryenabled:false
+```
+
+`--set` can be repeated, and combined with `--with-catalog`. For example, this creates a feed with the catalog on and the gallery off:
+
+```bash
+sleet init --with-catalog --set galleryenabled:false
+```
+
+If you already pushed to the feed, [disable the gallery on the existing feed](#disable-the-gallery-on-an-existing-feed) instead. Running `init` on an existing feed doesn't delete `index.html`.
+
+### Disable the gallery on an existing feed
+
+```bash
+sleet recreate --set galleryenabled:false
+```
+
+This removes `index.html` and the package links from `index.json`. Later pushes don't add them back. `recreate` downloads every package, deletes the feed, and creates it again from the same packages with the new settings, so it can take a while on a large feed.
 
 ### Check the setting
 
@@ -74,20 +98,6 @@ sleet feed-settings --get galleryenabled
 ```
 
 The output `galleryenabled : not found!` means the setting isn't set, so the gallery is on.
-
-### Disable the gallery
-
-```bash
-sleet recreate --set galleryenabled:false
-```
-
-This removes `index.html` and the package links from `index.json`. Later pushes don't add them back.
-
-To start a new feed without the gallery, create it with `sleet init` before you push any packages:
-
-```bash
-sleet init --set galleryenabled:false
-```
 
 ### Enable the gallery
 

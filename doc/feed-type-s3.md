@@ -91,6 +91,18 @@ Sleet never changes the policy or public access settings for an existing bucket.
 > [!WARNING]
 > Account-level S3 Block Public Access can still block the public bucket policy. If bucket creation fails, Sleet logs: `Unable to update S3 bucket. Ensure that the login info used has AmazonS3FullAccess and that the AWS account allows public access buckets: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-publicaccessblockconfiguration.html`.
 
+The first push initializes the feed with the default [feed settings](feed-settings.md). To start with different settings, run [init](commands.md#init) before the first push. `init` creates the bucket the same way. To turn on the catalog:
+
+```bash
+sleet init --with-catalog
+```
+
+To create the feed without the [package gallery](gallery.md):
+
+```bash
+sleet init --set galleryenabled:false
+```
+
 ## Fix 403 responses for missing packages
 
 Sleet's auto-created public policy grants `s3:GetObject`, but not `s3:ListBucket`. With S3, anonymous requests for missing keys return 403 unless the caller also has `s3:ListBucket`. NuGet queries every configured source for every package. A 403 from one source can make restore fail or prompt for credentials instead of continuing to the next source.

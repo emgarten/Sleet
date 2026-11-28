@@ -81,10 +81,16 @@ On the first push, Sleet does the following:
 
 If the container already exists, Sleet doesn't change its access level. Create the container yourself when you want a different level. **Blob** is enough for NuGet, and it doesn't allow anonymous listing.
 
-To turn on the catalog from the start, run [init](commands.md#init) before the first push:
+To start the feed with different [feed settings](feed-settings.md), run [init](commands.md#init) before the first push. `init` creates the container the same way. To turn on the catalog:
 
 ```bash
 sleet init --with-catalog
+```
+
+To create the feed without the [package gallery](gallery.md):
+
+```bash
+sleet init --set galleryenabled:false
 ```
 
 ## Use the feed

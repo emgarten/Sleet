@@ -15,7 +15,8 @@
   * Sleet does not overwrite an existing `index.html`, so a custom page can be used instead
   * Disable with `sleet recreate --set galleryenabled:false`, or create a new feed without it with `sleet init --set galleryenabled:false`. See [gallery docs](doc/gallery.md)
 * Added `--set key:value` to `sleet init` and `sleet recreate` to choose [feed settings](doc/feed-settings.md) when a feed is created or rebuilt. Can be repeated, and checks keys and values before changing the feed
-* A `badgesenabled` feed setting value other than `true` or `false` now leaves badges off instead of turning them on* Removed net9.0 support. .NET 8 and 9 are out of support; the net8.0 build is kept for compatibility and also runs on .NET 9.
+* A `badgesenabled` feed setting value other than `true` or `false` now leaves badges off instead of turning them on
+* Removed net9.0 support. .NET 8 and 9 are out of support; the net8.0 build is kept for compatibility and also runs on .NET 9.
 * Removed the symbol server. Embed PDBs in your packages instead. See [symbol server](doc/symbol-server.md)
   * Removed `sleet init --with-symbols` and the `symbolsfeedenabled` feed setting
   * `sleet push` skips `.symbols.nupkg` and `.snupkg` files with a warning

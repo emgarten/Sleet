@@ -274,9 +274,6 @@ sleet feed-settings --get-all
 
 # Turn on badges
 sleet feed-settings --set badgesenabled:true
-
-# Turn off the package gallery
-sleet feed-settings --set galleryenabled:false
 ```
 
 The command always ends with the message `Run 'recreate' to rebuild the feed with the new settings.` You only need to run `recreate` for settings that must be applied to packages already on the feed. [Feed settings](feed-settings.md) says which settings those are. To change those settings and rebuild in one step, use [recreate](#recreate) `--set` instead.

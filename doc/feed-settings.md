@@ -21,12 +21,22 @@ Keys aren't case-sensitive. `feed-settings` doesn't check key names, so a misspe
 
 `feed-settings` always ends with `Run 'recreate' to rebuild the feed with the new settings.` Only some settings need `recreate`. The table below says when each one takes effect.
 
-To give a new feed different settings from the start, pass them to [init](commands.md#init) before the first push. To change a setting that needs `recreate` on an existing feed, pass it to [recreate](commands.md#recreate), which changes it and rebuilds the feed in one step. Unlike `feed-settings`, `init` and `recreate` check each key and value, and stop without changing the feed if one is wrong:
+### Set settings with init and recreate
+
+[init](commands.md#init) and [recreate](commands.md#recreate) also take settings, with `--set {key}:{value}`. Repeat `--set` for each setting:
+
+- To give a new feed different settings from the start, pass them to `init` before the first push.
+- To change a setting that needs `recreate` on an existing feed, pass it to `recreate`, which changes the setting and rebuilds the feed in one step.
 
 ```bash
-sleet init --set galleryenabled:false --set badgesenabled:true
-sleet recreate --set catalogenabled:true
+# Create a feed with the catalog on and the package gallery off
+sleet init --with-catalog --set galleryenabled:false
+
+# Turn on badges, and add badges for the packages already on the feed
+sleet recreate --set badgesenabled:true
 ```
+
+Unlike `feed-settings`, `init` and `recreate` only accept the keys in the [settings](#settings) table, and check each value. If a key or value is wrong, they stop without changing the feed. `--set` can't remove a setting. Use `feed-settings --unset` for that.
 
 ## Settings
 
