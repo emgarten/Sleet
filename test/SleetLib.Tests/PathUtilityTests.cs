@@ -1,3 +1,4 @@
+using System.IO;
 using AwesomeAssertions;
 using SleetLib;
 using Xunit;
@@ -159,6 +160,43 @@ namespace SleetLib.Tests
             var result = PathUtility.GetFullPathWithoutExtension(input);
 
             result.Should().Be(expected);
+        }
+
+        [Fact]
+        public void TryGetFullPathUnderRoot_WithChildPath_ReturnsFullPath()
+        {
+            var root = Path.Combine(Path.GetTempPath(), "output");
+
+            var result = PathUtility.TryGetFullPathUnderRoot(root, Path.Combine("a", "a.1.0.0.nupkg"), out var fullPath);
+
+            result.Should().BeTrue();
+            fullPath.Should().Be(Path.Combine(Path.GetFullPath(root), "a", "a.1.0.0.nupkg"));
+        }
+
+        [Theory]
+        [InlineData("../escape/escape.1.0.0.nupkg")]
+        [InlineData("a/../../escape.1.0.0.nupkg")]
+        [InlineData("../output2/a.1.0.0.nupkg")]
+        [InlineData(".")]
+        public void TryGetFullPathUnderRoot_WithPathOutsideRoot_ReturnsFalse(string relativePath)
+        {
+            var root = Path.Combine(Path.GetTempPath(), "output");
+
+            var result = PathUtility.TryGetFullPathUnderRoot(root, relativePath, out var fullPath);
+
+            result.Should().BeFalse();
+            fullPath.Should().BeNull();
+        }
+
+        [Fact]
+        public void TryGetFullPathUnderRoot_WithRootedPath_ReturnsFalse()
+        {
+            var root = Path.Combine(Path.GetTempPath(), "output");
+            var rootedPath = Path.Combine(Path.GetTempPath(), "rooted", "a.1.0.0.nupkg");
+
+            var result = PathUtility.TryGetFullPathUnderRoot(root, rootedPath, out _);
+
+            result.Should().BeFalse();
         }
     }
 }

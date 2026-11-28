@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using Sleet;
 using Xunit;
@@ -194,6 +195,50 @@ namespace SleetLib.Tests
                 log.GetMessages().Should().NotContain("The feed does not contain any packages");
                 log.GetMessages().Should().Contain("a.1.0.0.nupkg");
                 log.GetMessages().Should().Contain("a.1.0.0.symbols.nupkg");
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatTheFeedIndexHasAnInvalidIdVerifyNothingIsWrittenOutsideTheOutputFolder()
+        {
+            using (var root = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var feedRoot = Path.Combine(root, "feed");
+                var packagesRoot = Path.Combine(root, "packages");
+                var outputRoot = Path.Combine(root, "output");
+                Directory.CreateDirectory(packagesRoot);
+
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(feedRoot));
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(feedRoot));
+                var settings = new LocalSettings();
+
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, log: log, token: TestContext.Current.CancellationToken);
+
+                var nupkg = new TestNupkg("a", "1.0.0").Save(packagesRoot);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesRoot }, false, false, log);
+
+                // Add an id with a parent segment to the index, and a nupkg at the feed path it maps to.
+                var indexPath = Path.Combine(feedRoot, "sleet.packageindex.json");
+                var index = JObject.Parse(File.ReadAllText(indexPath));
+                ((JObject)index["packages"])["../escape"] = new JArray("1.0.0");
+                File.WriteAllText(indexPath, index.ToString());
+
+                var feedNupkgPath = Path.Combine(feedRoot, "escape", "escape.1.0.0.nupkg");
+                Directory.CreateDirectory(Path.GetDirectoryName(feedNupkgPath));
+                nupkg.CopyTo(feedNupkgPath);
+
+                var success = await DownloadCommand.RunAsync(settings, fileSystem2, outputRoot, false, log);
+
+                success.Should().BeFalse("the feed index contains an invalid package id");
+
+                File.Exists(Path.Combine(root, "escape", "escape.1.0.0.nupkg")).Should().BeFalse("files must not be written outside of the output folder");
+                File.Exists(Path.Combine(outputRoot, "a", "a.1.0.0.nupkg")).Should().BeTrue("valid packages are still downloaded");
+
+                log.GetMessages().Should().Contain("Unable to download ../escape 1.0.0, the package id is not valid.");
+                log.GetMessages().Should().Contain("Failed to download all packages!");
             }
         }
     }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
+using NuGet.Packaging;
 using NuGet.Packaging.Core;
 
 namespace Sleet
@@ -106,14 +107,15 @@ namespace Sleet
             var packageSets = await packageIndex.GetPackageSetsAsync();
 
             // Discover all packages
-            var packages = new List<KeyValuePair<PackageIdentity, ISleetFile>>();
+            // Files are created after the package id is validated
+            var packages = new List<KeyValuePair<PackageIdentity, Func<ISleetFile>>>();
             packages.AddRange(packageSets.Packages.Index.Select(e =>
-                new KeyValuePair<PackageIdentity, ISleetFile>(e, context.Source.Get(flatContainer.GetNupkgPath(e)))));
+                new KeyValuePair<PackageIdentity, Func<ISleetFile>>(e, () => context.Source.Get(flatContainer.GetNupkgPath(e)))));
 
             if (includeSymbols)
             {
                 packages.AddRange(packageSets.Symbols.Index.Select(e =>
-                    new KeyValuePair<PackageIdentity, ISleetFile>(e, context.Source.Get(GetSymbolsNupkgPath(e)))));
+                    new KeyValuePair<PackageIdentity, Func<ISleetFile>>(e, () => context.Source.Get(GetSymbolsNupkgPath(e)))));
             }
 
             log.LogMinimal($"Downloading nupkgs to {outputPath}");
@@ -154,17 +156,29 @@ namespace Sleet
             return success;
         }
 
-        private static async Task<bool> DownloadPackageAsync(string outputPath, bool skipExisting, ILogger log, KeyValuePair<PackageIdentity, ISleetFile> pair, CancellationToken token)
+        private static async Task<bool> DownloadPackageAsync(string outputPath, bool skipExisting, ILogger log, KeyValuePair<PackageIdentity, Func<ISleetFile>> pair, CancellationToken token)
         {
             var package = pair.Key;
-            var nupkgFile = pair.Value;
+
+            // The id comes from the feed index and is used in the remote and output paths
+            if (!PackageIdValidator.IsValidPackageId(package.Id))
+            {
+                await log.LogAsync(LogLevel.Error, $"Unable to download {package.Id} {package.Version.ToNormalizedString()}, the package id is not valid.");
+                return false;
+            }
+
+            var nupkgFile = pair.Value();
 
             var fileName = UriUtility.GetFileName(nupkgFile.EntityUri)!;
 
             // id/id.version.nupkg or id/id.version.symbols.nupkg
-            var outputNupkgPath = Path.Combine(outputPath,
-                package.Id.ToLowerInvariant(),
-                fileName.ToLowerInvariant());
+            var relativePath = Path.Combine(package.Id.ToLowerInvariant(), fileName.ToLowerInvariant());
+
+            if (!SleetLib.PathUtility.TryGetFullPathUnderRoot(outputPath, relativePath, out var outputNupkgPath))
+            {
+                await log.LogAsync(LogLevel.Error, $"Unable to download {package.Id} {package.Version.ToNormalizedString()}, the file path is outside of the output folder.");
+                return false;
+            }
 
             await log.LogAsync(LogLevel.Information, $"Downloading {outputNupkgPath}");
             return await nupkgFile.CopyTo(outputNupkgPath, overwrite: !skipExisting, log: log, token: token);

@@ -28,6 +28,7 @@
   * `createconfig` still works but is no longer shown in help
 * Renamed the `download` option `--output-path` to `--output`
   * `--output-path` still works but is no longer shown in help
+* Fixed `sleet download` and `sleet recreate` writing packages outside of the output folder when the feed index has an invalid package id. Packages with an invalid id now fail to download
 * Added `-o` as a short form of `create-config --output`
 * Added `-?` as an alias for `--help`
 
