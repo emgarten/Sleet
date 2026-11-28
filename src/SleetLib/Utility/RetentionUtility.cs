@@ -15,7 +15,6 @@ namespace Sleet
             var set = new HashSet<PackageIdentity>();
 
             set.UnionWith(await packageSets.Packages.GetPackagesAsync());
-            set.UnionWith(await packageSets.Symbols.GetPackagesAsync());
 
             return set;
         }

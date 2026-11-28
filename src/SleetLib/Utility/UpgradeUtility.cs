@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using NuGet.Versioning;
 
@@ -10,7 +11,14 @@ namespace Sleet
 {
     public static class UpgradeUtility
     {
-
+        /// <summary>
+        /// Service index resources added by the removed symbols server.
+        /// </summary>
+        private static readonly HashSet<string> SymbolsServerResourceTypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "http://schema.emgarten.com/sleet#SymbolsServer/1.0.0",
+            "http://schema.emgarten.com/sleet#SymbolsPackageIndex/1.0.0"
+        };
 
         /// <summary>
         /// Currently supported capabilities. New optional features can be added here if they need to block older clients.
@@ -93,6 +101,22 @@ namespace Sleet
             else if (compareResult > 0)
             {
                 throw new InvalidOperationException($"{fileSystem.BaseURI} uses an older version of Sleet: {requirements.CreatorSleetVersion.ToNormalizedString()}. Upgrade the feed to {assemblyVersion} by running 'Sleet recreate' against this feed.");
+            }
+
+            await WarnIfSymbolsServerEnabled(fileSystem, log, token);
+        }
+
+        /// <summary>
+        /// Symbols server support was removed. Feeds created with it keep working, but the symbols files are no longer updated.
+        /// </summary>
+        private static async Task WarnIfSymbolsServerEnabled(ISleetFileSystem fileSystem, ILogger log, CancellationToken token)
+        {
+            var json = await fileSystem.Get("index.json").GetJson(log, token);
+            var resources = json["resources"] as JArray ?? new JArray();
+
+            if (resources.OfType<JObject>().Any(e => SymbolsServerResourceTypes.Contains(e["@type"]?.ToString() ?? string.Empty)))
+            {
+                log.LogWarning("This feed has the symbol server enabled. Sleet no longer supports the symbol server and files under symbols/ are no longer updated. Run 'sleet recreate' to remove it from the feed. See: https://github.com/emgarten/Sleet/blob/main/doc/symbol-server.md");
             }
         }
 

@@ -51,8 +51,7 @@ namespace SleetLib.Tests
                     Source = fileSystem,
                     SourceSettings = new FeedSettings()
                     {
-                        CatalogEnabled = true,
-                        SymbolsEnabled = true
+                        CatalogEnabled = true
                     }
                 };
 

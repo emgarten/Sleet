@@ -14,7 +14,6 @@ The server must serve:
 - Extensionless JSON files as `application/json`.
 - `.nupkg` files as `application/zip`.
 - `.nuspec` and `.xml` files as `application/xml`.
-- `.dll` and `.pdb` files as `application/octet-stream` when the symbol server is enabled.
 - `/icon` files as `image/png` when packages contain embedded icons.
 - `/readme` files as `text/markdown` when packages contain embedded readmes.
 - `.html` files as `text/html`, so browsers show the [package gallery](gallery.md).
@@ -44,8 +43,6 @@ A minimal `web.config` for most feeds is:
     <staticContent>
       <mimeMap fileExtension=".nupkg" mimeType="application/zip" />
       <mimeMap fileExtension=".nuspec" mimeType="application/xml" />
-      <mimeMap fileExtension=".pdb" mimeType="application/octet-stream" />
-      <mimeMap fileExtension=".dll" mimeType="application/octet-stream" />
       <mimeMap fileExtension="." mimeType="application/json" />
     </staticContent>
     <urlCompression doStaticCompression="true" />
@@ -80,7 +77,6 @@ server {
             application/json json;
             application/zip nupkg;
             application/xml nuspec xml;
-            application/octet-stream dll pdb;
             image/svg+xml svg;
             text/html html;
         }
@@ -122,7 +118,6 @@ Alias "/feed/" "/srv/feeds/myfeed/"
     AddType application/json .json
     AddType application/zip .nupkg
     AddType application/xml .nuspec .xml
-    AddType application/octet-stream .dll .pdb
     AddType image/svg+xml .svg
 
     <Files "query">

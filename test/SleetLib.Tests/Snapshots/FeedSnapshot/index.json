@@ -51,16 +51,6 @@
       "@id": "https://example.org/feed/flatcontainer/{lower_id}/{lower_version}/readme",
       "@type": "ReadmeUriTemplate/6.13.0",
       "comment": "URI template used by NuGet Client to construct a URL for downloading a package's README."
-    },
-    {
-      "@id": "https://example.org/feed/symbols/packages/index.json",
-      "@type": "http://schema.emgarten.com/sleet#SymbolsPackageIndex/1.0.0",
-      "comment": "Packages indexed in the symbols feed."
-    },
-    {
-      "@id": "https://example.org/feed/symbols/",
-      "@type": "http://schema.emgarten.com/sleet#SymbolsServer/1.0.0",
-      "comment": "Symbols server containing dll and pdb files."
     }
   ],
   "@context": {

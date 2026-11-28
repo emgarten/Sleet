@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="compiler\resources\**\*" />
     <None Update="Snapshots\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

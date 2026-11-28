@@ -11,6 +11,9 @@ namespace Sleet
     {
         public PackageSet Packages { get; set; } = new PackageSet();
 
+        /// <summary>
+        /// Symbols packages stored by the removed symbols server. Sleet no longer updates this set.
+        /// </summary>
         public PackageSet Symbols { get; set; } = new PackageSet();
 
         public PackageSets Clone()

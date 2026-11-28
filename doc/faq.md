@@ -32,7 +32,7 @@ No. You can only delete a package, which removes it from the feed. See [unlistin
 
 ## Does Sleet support snupkg files?
 
-No. The [symbol server](symbol-server.md) reads `.symbols.nupkg` packages, and `.pdb` files inside normal packages.
+No. Sleet doesn't have a symbol server, and `push` skips symbols packages. Embed PDBs in the main package instead. See [symbol server](symbol-server.md).
 
 ## Can several builds push at the same time?
 

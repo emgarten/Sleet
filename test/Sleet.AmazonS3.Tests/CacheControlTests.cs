@@ -81,7 +81,6 @@ namespace Sleet.AmazonS3.Tests
                     testContext.LocalSettings,
                     testContext.FileSystem,
                     enableCatalog: false,
-                    enableSymbols: false,
                     log: testContext.Logger,
                     token: CancellationToken.None);
 
@@ -148,7 +147,6 @@ namespace Sleet.AmazonS3.Tests
                     testContext.LocalSettings,
                     fs,
                     enableCatalog: false,
-                    enableSymbols: false,
                     log: testContext.Logger,
                     token: CancellationToken.None);
 

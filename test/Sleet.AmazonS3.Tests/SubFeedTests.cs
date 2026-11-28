@@ -34,14 +34,12 @@ namespace Sleet.AmazonS3.Tests
                 var result = await InitCommand.RunAsync(testContext.LocalSettings,
                     testContext.FileSystem,
                     enableCatalog: true,
-                    enableSymbols: true,
                     log: testContext.Logger,
                     token: CancellationToken.None);
 
                 result &= await InitCommand.RunAsync(testContext.LocalSettings,
                     testContext2.FileSystem,
                     enableCatalog: true,
-                    enableSymbols: true,
                     log: testContext2.Logger,
                     token: CancellationToken.None);
 
@@ -84,7 +82,6 @@ namespace Sleet.AmazonS3.Tests
                 var result = await InitCommand.RunAsync(testContext.LocalSettings,
                     testContext.FileSystem,
                     enableCatalog: true,
-                    enableSymbols: true,
                     log: testContext.Logger,
                     token: CancellationToken.None);
 
@@ -130,14 +127,12 @@ namespace Sleet.AmazonS3.Tests
                 var result = await InitCommand.RunAsync(testContext.LocalSettings,
                     testContext.FileSystem,
                     enableCatalog: true,
-                    enableSymbols: true,
                     log: testContext.Logger,
                     token: CancellationToken.None);
 
                 result &= await InitCommand.RunAsync(testContext.LocalSettings,
                     testContext2.FileSystem,
                     enableCatalog: true,
-                    enableSymbols: true,
                     log: testContext2.Logger,
                     token: CancellationToken.None);
 

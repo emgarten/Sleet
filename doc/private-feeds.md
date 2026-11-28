@@ -57,5 +57,4 @@ When Sleet creates a container or bucket on the first push, it makes it public. 
 ## Features that need anonymous access
 
 - [Badges](badges.md) are fetched by shields.io, which can't sign in. They only work if the `badges/` files are public.
-- The [symbol server](symbol-server.md#private-feeds) must be reachable by your debugger. Check that your debugger can sign in to the front end.
 - An [external search](external-search.md) service must be reachable by clients, with the same kind of authentication as the feed.

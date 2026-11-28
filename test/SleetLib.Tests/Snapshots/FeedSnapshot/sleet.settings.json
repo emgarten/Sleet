@@ -27,12 +27,6 @@
       "@type": "FeedSetting",
       "key": "galleryenabled",
       "value": "true"
-    },
-    {
-      "@id": "https://example.org/feed/sleet.settings.json#symbolsfeedenabled",
-      "@type": "FeedSetting",
-      "key": "symbolsfeedenabled",
-      "value": "true"
     }
   ],
   "@context": {

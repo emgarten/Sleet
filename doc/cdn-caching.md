@@ -23,7 +23,6 @@ Azure Blob Storage and Amazon S3 use the same cache-control groups:
 | --- | --- | --- |
 | `.nupkg` | `application/zip` | `immutableCacheControl` |
 | `.nuspec`, `.xml` | `application/xml` | `immutableCacheControl` |
-| `.dll`, `.pdb` | `application/octet-stream` | `immutableCacheControl` |
 | Paths ending in `/icon` | `image/png` | `immutableCacheControl` |
 | Paths ending in `/readme` | `text/markdown` | `immutableCacheControl` |
 | `.json` files | `application/json` | `mutableCacheControl` |

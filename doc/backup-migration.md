@@ -19,7 +19,7 @@ The output layout is:
 {output}/{id-lowercase}/{file-name}
 ```
 
-The download includes regular `.nupkg` files and `.symbols.nupkg` files listed in the feed's package index.
+The download includes regular `.nupkg` files, and `.symbols.nupkg` files on feeds that used the removed [symbol server](symbol-server.md).
 
 Useful options:
 
@@ -55,11 +55,11 @@ sleet feed-settings --source new --set badgesenabled:true
 sleet push --source new ./backup --skip-existing
 ```
 
-If the old feed used the catalog or the symbol server, add `--with-catalog` or `--with-symbols` to the `init` command, for example `sleet init --source new --with-symbols`. Run `init` only once on the new feed.
+If the old feed used the catalog, add `--with-catalog` to the `init` command, for example `sleet init --source new --with-catalog`. Run `init` only once on the new feed.
 
 Reapply each setting that `--get-all` printed before you push. The `badgesenabled` line in the example is only needed if the old feed had badges turned on. Settings such as badges and retention are applied while packages are pushed.
 
-`push` accepts directories and searches them recursively for `*.nupkg` files, so the `./backup` folder can be pushed directly.
+`push` accepts directories and searches them recursively for `*.nupkg` files, so the `./backup` folder can be pushed directly. It skips `.symbols.nupkg` files with a warning.
 
 ## Change baseURI or path in place
 
@@ -85,7 +85,9 @@ For a local feed whose `baseURI` is different from `path`, don't use `recreate`.
 
 ## Recreate safety
 
-`recreate` downloads all packages to a cache folder or to `--nupkg-path`, destroys the feed, initializes it again, pushes the packages, and validates the result. If the command fails after packages have been downloaded, Sleet keeps the downloaded nupkgs as a backup and prints the folder path. When `--nupkg-path` is supplied, that folder is cleaned up only after a successful recreate.
+`recreate` downloads all packages to a cache folder or to `--nupkg-path`, destroys the feed, initializes it again, pushes the packages, and validates the result. If the command fails after packages have been downloaded, Sleet keeps the downloaded nupkgs as a backup and prints the folder path. It deletes the folder when the command succeeds, or when it stops because a package failed to download. Use a new or empty folder for `--nupkg-path`, because `recreate` also pushes every package in it to the new feed.
+
+If the feed has `.symbols.nupkg` files from the removed symbol server, `recreate` stops before it changes the feed. See [remove the symbol server from a feed](symbol-server.md#remove-the-symbol-server-from-a-feed).
 
 ## Rebuild a local feed without recreate
 
@@ -106,7 +108,7 @@ sleet push ./backup
 sleet validate
 ```
 
-Before the `push` step, reapply each setting that `--get-all` printed with `sleet feed-settings --set key:value`. If the feed used the catalog or the symbol server, add `--with-catalog` or `--with-symbols` to `init`.
+Before the `push` step, reapply each setting that `--get-all` printed with `sleet feed-settings --set key:value`. If the feed used the catalog, add `--with-catalog` to `init`.
 
 If a failed `recreate` already removed the packages, push the backup folder that the error message printed.
 
@@ -126,23 +128,14 @@ sleet recreate --force
 
 Feeds can also declare `sleet:requiredVersion`; if your client does not satisfy it, upgrade the Sleet client. See the [release notes](https://github.com/emgarten/Sleet/blob/main/ReleaseNotes.md) for version changes.
 
-## Enable catalog or symbols on an existing feed
-
-For catalog:
+## Enable the catalog on an existing feed
 
 ```bash
 sleet feed-settings --set catalogenabled:true
 sleet recreate
 ```
 
-For symbols:
-
-```bash
-sleet feed-settings --set symbolsfeedenabled:true
-sleet recreate
-```
-
-The setting enables the feature for future operations. `recreate` adds the catalog or symbol server to `index.json` and indexes packages already on the feed. Until you recreate, clients can't find the new resources. For a local feed whose `baseURI` is different from `path`, use [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate) with `init --with-catalog` or `init --with-symbols`.
+The setting enables the catalog for future operations. `recreate` adds the catalog to `index.json` and adds the packages already on the feed to it. Until you recreate, clients can't find the catalog. For a local feed whose `baseURI` is different from `path`, use [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate) with `init --with-catalog`.
 
 ## Move packages from another server
 

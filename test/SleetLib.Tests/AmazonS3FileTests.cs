@@ -31,8 +31,6 @@ namespace SleetLib.Tests
                 yield return new object[] { "package/readme", "readme", "text/markdown", null, "immutable", false };
                 yield return new object[] { "index.json", "{ \"hello\": \"world\" }", "application/json", "gzip", "mutable", true };
                 yield return new object[] { "json-content", "{ \"hello\": \"world\" }", "application/json", "gzip", "mutable", true };
-                yield return new object[] { "lib/a.dll", "dll", "application/octet-stream", null, "immutable", false };
-                yield return new object[] { "lib/a.pdb", "pdb", "application/octet-stream", null, "immutable", false };
                 yield return new object[] { "a.unknown", "unknown", null, null, "no-store", false };
             }
         }
