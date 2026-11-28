@@ -25,6 +25,7 @@
   * `sleet recreate` removes the symbol server from a feed. If the feed has `.symbols.nupkg` files, back them up with `sleet download` and run `sleet recreate --force`
   * `sleet download` still downloads `.symbols.nupkg` files
   * Removed the symbols APIs from SleetLib. `InitCommand.RunAsync` no longer takes `enableSymbols`
+  * SleetLib no longer depends on Microsoft.DiaSymReader.PortablePdb
 * Updated System.Security.Cryptography.Pkcs to 11.0.0 to address advisories GHSA-2fmv-rv2c-59x7 and GHSA-846f-f764-76mx
 * Fixed `sleet` failing to start when installed with `dotnet tool install --allow-roll-forward` [Issue](https://github.com/emgarten/Sleet/issues/247)
 * Added a `provider` setting for `s3` feeds hosted on S3 compatible storage
