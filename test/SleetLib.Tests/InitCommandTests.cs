@@ -257,6 +257,68 @@ namespace SleetLib.Tests
         }
 
         [Fact]
+        public async Task GivenInitWithSettingsVerifyTheyAreAppliedToTheNewFeed()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+                var setSettings = new[] { "galleryenabled:false", "badgesenabled:true", "catalogenabled:true", "catalogpagesize:10" };
+
+                // Act
+                var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, setSettings, log, TestContext.Current.CancellationToken);
+
+                var settingsJson = JObject.Parse(File.ReadAllText(Path.Combine(target.Root, "sleet.settings.json")));
+                var rootJson = JObject.Parse(File.ReadAllText(Path.Combine(target.Root, "index.json")));
+
+                // Assert
+                success.Should().BeTrue();
+
+                FeedSettingsUtility.GetSettings(settingsJson).Should().BeEquivalentTo(new Dictionary<string, string>()
+                {
+                    { "badgesenabled", "true" },
+                    { "catalogenabled", "true" },
+                    { "catalogpagesize", "10" },
+                    { "galleryenabled", "false" }
+                });
+
+                File.Exists(Path.Combine(target.Root, "index.html")).Should().BeFalse();
+                File.Exists(Path.Combine(target.Root, "catalog", "index.json")).Should().BeTrue();
+                rootJson.ToString().Should().NotContain("PackageDetailsUriTemplate");
+            }
+        }
+
+        [Theory]
+        [InlineData(false, "galeryenabled:false", "Unknown feed setting 'galeryenabled'. Use one of: *")]
+        [InlineData(false, "galleryenabled:no", "Invalid value 'no' for 'galleryenabled'. Use true or false.")]
+        [InlineData(false, "catalogpagesize:big", "Invalid value 'big' for 'catalogpagesize'. Use a whole number.")]
+        [InlineData(false, "galleryenabled", "Value must be in the form {key}:{value}. Invalid: 'galleryenabled'")]
+        [InlineData(true, "catalogenabled:false", "Invalid combination of arguments. --with-catalog may not be combined with catalogenabled:false.")]
+        public async Task GivenInitWithAnInvalidSettingVerifyTheFeedIsNotCreated(bool enableCatalog, string setting, string expectedMessage)
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                // Act
+                Func<Task> action = async () => await InitCommand.RunAsync(settings, fileSystem, enableCatalog, new[] { setting }, log, TestContext.Current.CancellationToken);
+
+                // Assert
+                await action.Should().ThrowAsync<ArgumentException>().WithMessage(expectedMessage);
+
+                File.Exists(Path.Combine(target.Root, "index.json")).Should().BeFalse();
+                File.Exists(Path.Combine(target.Root, "sleet.settings.json")).Should().BeFalse();
+            }
+        }
+
+        [Fact]
         public async Task GivenInitVerifyPackageDetailsUriTemplatePointsToGallery()
         {
             using (var target = new TestFolder())

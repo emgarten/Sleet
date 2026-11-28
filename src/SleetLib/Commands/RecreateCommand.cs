@@ -80,7 +80,7 @@ namespace Sleet
                     }
 
                     // Apply settings
-                    await ApplySettingHandlers(settings, source, log, feedSettings, token);
+                    await FeedSettingsUtility.ApplySettingHandlersAsync(settings, source, feedSettings, log, token);
 
                     // Skip pushing for empty feeds
                     if (Directory.GetFiles(localCache.Root.FullName, "*.*", SearchOption.AllDirectories).Length > 0)
@@ -165,31 +165,6 @@ namespace Sleet
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Apply setting handlers
-        /// </summary>
-        private static async Task ApplySettingHandlers(LocalSettings settings, ISleetFileSystem source, ILogger log, FeedSettings feedSettings, CancellationToken token)
-        {
-            if (feedSettings.ExternalSearch != null)
-            {
-                log.LogMinimal($"Setting external search url: {feedSettings.ExternalSearch}");
-
-                var context = new SleetContext()
-                {
-                    LocalSettings = settings,
-                    SourceSettings = feedSettings,
-                    Log = log,
-                    Source = source,
-                    Token = token
-                };
-
-                var searchHandler = new ExternalSearchHandler(context);
-                await searchHandler.SetValue(feedSettings.ExternalSearch);
-
-                await source.Commit(log, token);
-            }
         }
     }
 }

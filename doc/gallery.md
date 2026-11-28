@@ -84,12 +84,10 @@ sleet recreate
 
 This removes `index.html` and the package links from `index.json`. Later pushes don't add them back.
 
-To start a new feed without the gallery, create the feed with `sleet init` before you push any packages. Then turn off the gallery and recreate the empty feed:
+To start a new feed without the gallery, create it with `sleet init` before you push any packages:
 
 ```bash
-sleet init
-sleet feed-settings --set galleryenabled:false
-sleet recreate
+sleet init --set galleryenabled:false
 ```
 
 ### Enable the gallery

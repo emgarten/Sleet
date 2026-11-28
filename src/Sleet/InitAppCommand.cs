@@ -30,6 +30,7 @@ namespace Sleet
             cmd.HelpOption(Constants.HelpOption);
 
             var enableCatalogOption = cmd.Option(Constants.EnableCatalogOption, Constants.EnableCatalogDesc, CommandOptionType.NoValue);
+            var setSetting = cmd.Option("--set", "Set a feed setting on the new feed. Value must be in the form {key}:{value}. May be specified multiple times.", CommandOptionType.MultipleValue);
             var propertyOptions = cmd.Option(Constants.PropertyOption, Constants.PropertyDescription, CommandOptionType.MultipleValue);
 
             var required = new List<CommandOption>();
@@ -49,7 +50,7 @@ namespace Sleet
                     var settings = LocalSettings.Load(optionConfigFile.Value(), SettingsUtility.GetPropertyMappings(CmdUtils.FilterNullValues(propertyOptions.Values)));
                     var fileSystem = await Util.CreateFileSystemOrThrow(settings, sourceName.Value(), cache, log);
 
-                    var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalogOption.HasValue(), log, CancellationToken.None);
+                    var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalogOption.HasValue(), CmdUtils.FilterNullValues(setSetting.Values), log, CancellationToken.None);
 
                     return success ? 0 : 1;
                 }

@@ -13,7 +13,8 @@
   * Azure and S3 feeds store `index.html` gzipped, the same as JSON files. S3 feeds follow the `compress` setting
   * Run `sleet recreate` to add the gallery to an existing feed
   * Sleet does not overwrite an existing `index.html`, so a custom page can be used instead
-  * Disable with `sleet feed-settings --set galleryenabled:false` followed by `sleet recreate`, see [gallery docs](doc/gallery.md)
+  * Disable with `sleet feed-settings --set galleryenabled:false` followed by `sleet recreate`, or create a new feed without it with `sleet init --set galleryenabled:false`. See [gallery docs](doc/gallery.md)
+* Added `sleet init --set key:value` to choose [feed settings](doc/feed-settings.md) when a feed is created. Can be repeated, and checks keys and values before changing the feed
 * Removed net9.0 support. .NET 8 and 9 are out of support; the net8.0 build is kept for compatibility and also runs on .NET 9.
 * Removed the symbol server. Embed PDBs in your packages instead. See [symbol server](doc/symbol-server.md)
   * Removed `sleet init --with-symbols` and the `symbolsfeedenabled` feed setting

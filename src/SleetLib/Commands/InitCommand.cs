@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -24,8 +25,29 @@ namespace Sleet
             return RunAsync(settings, source, enableCatalog: false, log: log, token: token);
         }
 
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, ILogger log, CancellationToken token)
+        public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, ILogger log, CancellationToken token)
         {
+            return RunAsync(settings, source, enableCatalog, setSettings: [], log: log, token: token);
+        }
+
+        /// <summary>
+        /// Initialize the feed. setSettings are feed settings in the form {key}:{value} to apply to the new feed.
+        /// </summary>
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, IEnumerable<string> setSettings, ILogger log, CancellationToken token)
+        {
+            // Check the settings before the feed is read or changed
+            var values = FeedSettingsUtility.ParseSettingValues(setSettings);
+
+            foreach (var pair in values)
+            {
+                FeedSettingsUtility.ValidateSetting(pair.Key, pair.Value);
+            }
+
+            if (enableCatalog && values.Any(e => e.Key == "catalogenabled" && e.Value.Equals("false", StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new ArgumentException("Invalid combination of arguments. --with-catalog may not be combined with catalogenabled:false.");
+            }
+
             // A missing bucket has no settings to read, InitAsync creates it
             var feedSettings = await source.HasBucket(log, token)
                 ? await FeedSettingsUtility.GetSettingsOrDefault(source, log, token)
@@ -33,7 +55,20 @@ namespace Sleet
 
             feedSettings.CatalogEnabled = enableCatalog;
 
-            return await InitAsync(settings, source, feedSettings, log, token);
+            if (values.Count > 0)
+            {
+                feedSettings = FeedSettingsUtility.ApplySettings(feedSettings, values);
+            }
+
+            var success = await InitAsync(settings, source, feedSettings, log, token);
+
+            // InitAsync points search at the static search files, apply an external search url passed in.
+            if (success && values.Any(e => e.Key == "externalsearch"))
+            {
+                success = await FeedSettingsUtility.ApplySettingHandlersAsync(settings, source, feedSettings, log, token);
+            }
+
+            return success;
         }
 
         public static Task<bool> InitAsync(SleetContext context)

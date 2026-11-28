@@ -17,9 +17,15 @@ sleet feed-settings --set badgesenabled:true
 sleet feed-settings --unset badgesenabled
 ```
 
-Keys aren't case-sensitive. Sleet doesn't check key names, so a misspelled key is saved and has no effect. Run `--get-all` after a change to check it.
+Keys aren't case-sensitive. `feed-settings` doesn't check key names, so a misspelled key is saved and has no effect. Run `--get-all` after a change to check it.
 
 `feed-settings` always ends with `Run 'recreate' to rebuild the feed with the new settings.` Only some settings need `recreate`. The table below says when each one takes effect.
+
+To give a new feed different settings from the start, pass them to [init](commands.md#init) before the first push. Unlike `feed-settings`, `init` checks each key and value, and stops without changing the feed if one is wrong:
+
+```bash
+sleet init --set galleryenabled:false --set badgesenabled:true
+```
 
 ## Settings
 
@@ -54,7 +60,7 @@ When `true`, `push` and `delete` update the [version badge](badges.md) files und
 
 When `true`, the feed has a [package gallery](gallery.md), a web page for browsing its packages. Sleet writes it to `index.html` at the root of the feed, and adds a resource to `index.json` that links packages to their page in the gallery. Feeds that don't have this setting, such as feeds created by older versions of Sleet, are treated as `true`.
 
-Sleet applies the setting only when it creates the feed, with `init`, the first push to a new feed, or `recreate`. Pushing to an existing feed never adds or removes the gallery. After you change the setting, run `recreate`. See [enable or disable the gallery](gallery.md#enable-or-disable-the-gallery).
+Sleet applies the setting only when it creates the feed, with `init`, the first push to a new feed, or `recreate`. Pushing to an existing feed never adds or removes the gallery. After you change the setting, run `recreate`. To create a new feed without the gallery, run `sleet init --set galleryenabled:false` before the first push. See [enable or disable the gallery](gallery.md#enable-or-disable-the-gallery).
 
 ## externalsearch
 
@@ -65,7 +71,7 @@ sleet feed-settings --set externalsearch:https://search.example.com/query
 sleet feed-settings --unset externalsearch
 ```
 
-`recreate` keeps the external search URL. `init` doesn't, see [settings and init](#settings-and-init).
+`recreate` keeps the external search URL. `init` doesn't unless you pass it with `--set`, see [settings and init](#settings-and-init).
 
 ## Retention settings
 
@@ -89,11 +95,11 @@ sleet retention settings --stable 5 --prerelease 2
 
 ## Settings and init
 
-`init` writes `sleet.settings.json`. If you run it on a feed that already has settings, it:
+`init` writes `sleet.settings.json`, with the values passed to `--set` applied. If you run it on a feed that already has settings, it:
 
-- Sets `catalogenabled` to match the `--with-catalog` option, which is off unless you pass it.
-- Points search back to the static search file, even if `externalsearch` is set. Run `feed-settings --set externalsearch:<url>` again to fix it.
-- Keeps `badgesenabled`, `galleryenabled`, `catalogpagesize`, and the retention settings.
+- Sets `catalogenabled` to `false` unless you pass `--with-catalog` or `--set catalogenabled:true`.
+- Points search back to the static search file, even if `externalsearch` is set. Pass `--set externalsearch:<url>` to keep external search, or run `feed-settings --set externalsearch:<url>` afterwards.
+- Keeps `badgesenabled`, `galleryenabled`, `catalogpagesize`, and the retention settings, unless you change them with `--set`.
 - Removes keys that Sleet doesn't know.
 
 Only run `init` on a new feed. `recreate` keeps all settings that Sleet knows.
