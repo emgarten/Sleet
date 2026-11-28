@@ -300,7 +300,13 @@ namespace Sleet
             {
                 try
                 {
-                    await RetryTooManyRequests(() => _client.DeleteBucketAsync(_bucketName, token), log, token);
+                    // With serviceURL the SDK guesses the signing region from the bucket url or the AWS environment, so a bucket
+                    // name that contains af-416c-83 is signed with that region and R2 rejects the request.
+                    await RetryTooManyRequests(() => _client.DeleteBucketAsync(new DeleteBucketRequest()
+                    {
+                        BucketName = _bucketName,
+                        UseClientRegion = Provider == S3Provider.Aws
+                    }, token), log, token);
                 }
                 catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
                 {

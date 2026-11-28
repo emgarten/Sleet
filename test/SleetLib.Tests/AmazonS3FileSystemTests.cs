@@ -458,6 +458,29 @@ namespace SleetLib.Tests
             client.Verify(c => c.PutBucketAsync(It.Is<PutBucketRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName && !r.UseClientRegion), It.IsAny<CancellationToken>()), Times.Once());
         }
 
+        [Theory]
+        [InlineData("r2")]
+        [InlineData("self-hosted")]
+        [InlineData("gcs")]
+        public async Task AmazonS3FileSystem_DeleteBucket_WithS3CompatibleProvider_DoesNotUseClientRegion(string provider)
+        {
+            var fileSystem = await FileSystemFactoryTests.CreateS3FileSystemAsync(source =>
+            {
+                source["provider"] = provider;
+                source["serviceURL"] = "https://s3.example.com";
+                source["baseURI"] = "https://nuget.example.com/";
+            });
+            var client = AmazonS3TestUtility.CreateClient();
+            client.Setup(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new HeadBucketResponse());
+            client.Setup(c => c.DeleteBucketAsync(It.IsAny<DeleteBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new DeleteBucketResponse());
+            SetClient(fileSystem, client.Object);
+
+            await fileSystem.DeleteBucket(new TestLogger(), TestContext.Current.CancellationToken);
+
+            // With the client region the SDK signs with a region it guesses from the bucket url, such as af-416c-83 from a guid
+            client.Verify(c => c.DeleteBucketAsync(It.Is<DeleteBucketRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName && !r.UseClientRegion), It.IsAny<CancellationToken>()), Times.Once());
+        }
+
         [Fact]
         public async Task AmazonS3FileSystem_DeleteBucket_IgnoresNotFoundAndClearsCachedHasBucket()
         {
@@ -465,7 +488,7 @@ namespace SleetLib.Tests
             {
                 var client = AmazonS3TestUtility.CreateClient();
                 client.Setup(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new HeadBucketResponse());
-                client.Setup(c => c.DeleteBucketAsync(AmazonS3TestUtility.BucketName, It.IsAny<CancellationToken>()))
+                client.Setup(c => c.DeleteBucketAsync(It.Is<DeleteBucketRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName), It.IsAny<CancellationToken>()))
                     .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.NotFound));
                 var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None);
                 var log = new TestLogger();
@@ -508,14 +531,14 @@ namespace SleetLib.Tests
             {
                 var client = AmazonS3TestUtility.CreateClient();
                 client.Setup(c => c.HeadBucketAsync(It.IsAny<HeadBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new HeadBucketResponse());
-                client.Setup(c => c.DeleteBucketAsync(AmazonS3TestUtility.BucketName, It.IsAny<CancellationToken>()))
+                client.Setup(c => c.DeleteBucketAsync(It.Is<DeleteBucketRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName), It.IsAny<CancellationToken>()))
                     .ThrowsAsync(AmazonS3TestUtility.S3Exception(HttpStatusCode.TooManyRequests));
                 var fileSystem = new NoRetryDelayAmazonS3FileSystem(cache, client.Object);
 
                 var exception = await Assert.ThrowsAsync<AmazonS3Exception>(async () => await fileSystem.DeleteBucket(new TestLogger(), TestContext.Current.CancellationToken));
 
                 exception.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
-                client.Verify(c => c.DeleteBucketAsync(AmazonS3TestUtility.BucketName, It.IsAny<CancellationToken>()), Times.Exactly(10));
+                client.Verify(c => c.DeleteBucketAsync(It.Is<DeleteBucketRequest>(r => r.BucketName == AmazonS3TestUtility.BucketName), It.IsAny<CancellationToken>()), Times.Exactly(10));
             }
         }
 
