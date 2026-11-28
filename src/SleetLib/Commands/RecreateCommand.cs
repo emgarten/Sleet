@@ -11,8 +11,19 @@ namespace Sleet
     /// </summary>
     public static class RecreateCommand
     {
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string? tmpPath, bool force, ILogger log)
+        public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string? tmpPath, bool force, ILogger log)
         {
+            return RunAsync(settings, source, tmpPath, force, setSettings: [], log: log);
+        }
+
+        /// <summary>
+        /// Recreate the feed. setSettings are feed settings in the form {key}:{value} to apply to the new feed.
+        /// </summary>
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string? tmpPath, bool force, IEnumerable<string> setSettings, ILogger log)
+        {
+            // Check the settings before the feed is read or changed
+            var values = FeedSettingsUtility.ParseAndValidateSettingValues(setSettings);
+
             var success = true;
             var cleanNupkgs = true;
 
@@ -28,8 +39,13 @@ namespace Sleet
                     await UpgradeUtility.EnsureCompatibility(source, log: log, token: token);
                 }
 
-                // Read settings and persist them in the new feed.
+                // Read settings and persist them in the new feed, with the values passed in applied.
                 var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
+
+                if (values.Count > 0)
+                {
+                    feedSettings = FeedSettingsUtility.ApplySettings(feedSettings, values);
+                }
 
                 // Check before the nupkg folder is created, a blocked recreate must not clean up --nupkg-path.
                 if (!await CheckSymbolsPackagesAsync(settings, source, feedSettings, force, log, token))

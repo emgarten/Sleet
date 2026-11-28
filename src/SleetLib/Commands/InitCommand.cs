@@ -36,12 +36,7 @@ namespace Sleet
         public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, IEnumerable<string> setSettings, ILogger log, CancellationToken token)
         {
             // Check the settings before the feed is read or changed
-            var values = FeedSettingsUtility.ParseSettingValues(setSettings);
-
-            foreach (var pair in values)
-            {
-                FeedSettingsUtility.ValidateSetting(pair.Key, pair.Value);
-            }
+            var values = FeedSettingsUtility.ParseAndValidateSettingValues(setSettings);
 
             if (enableCatalog && values.Any(e => e.Key == "catalogenabled" && e.Value.Equals("false", StringComparison.OrdinalIgnoreCase)))
             {

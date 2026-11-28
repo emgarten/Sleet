@@ -131,11 +131,10 @@ Feeds can also declare `sleet:requiredVersion`; if your client does not satisfy 
 ## Enable the catalog on an existing feed
 
 ```bash
-sleet feed-settings --set catalogenabled:true
-sleet recreate
+sleet recreate --set catalogenabled:true
 ```
 
-The setting enables the catalog for future operations. `recreate` adds the catalog to `index.json` and adds the packages already on the feed to it. Until you recreate, clients can't find the catalog. For a local feed whose `baseURI` is different from `path`, use [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate) with `init --with-catalog`.
+`recreate` turns the setting on, adds the catalog to `index.json`, and adds the packages already on the feed to it. For a local feed whose `baseURI` is different from `path`, use [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate) with `init --with-catalog`.
 
 ## Move packages from another server
 

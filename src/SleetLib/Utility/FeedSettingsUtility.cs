@@ -180,6 +180,21 @@ namespace Sleet
         }
 
         /// <summary>
+        /// Parse settings in the form {key}:{value}, and throw if any of them is not a setting Sleet can read.
+        /// </summary>
+        public static IReadOnlyList<KeyValuePair<string, string>> ParseAndValidateSettingValues(IEnumerable<string> inputs)
+        {
+            var values = ParseSettingValues(inputs);
+
+            foreach (var pair in values)
+            {
+                ValidateSetting(pair.Key, pair.Value);
+            }
+
+            return values;
+        }
+
+        /// <summary>
         /// Throw if Sleet does not read the key, or would not be able to read the value.
         /// </summary>
         public static void ValidateSetting(string key, string value)

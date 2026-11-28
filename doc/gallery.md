@@ -65,7 +65,7 @@ When you share a link to the gallery in an app that previews links, such as Slac
 
 The `galleryenabled` feed setting controls the gallery. Feed settings are stored in `sleet.settings.json` on the feed, so the setting applies to everyone who pushes to the feed. It defaults to `true`, and a feed that doesn't have the setting, such as a feed created by an older version of Sleet, is treated as `true`.
 
-Sleet applies the setting only when it creates the feed, with `sleet init`, the first `sleet push` to a new feed, or `sleet recreate`. Changing the setting doesn't add or remove the gallery by itself, and pushing to an existing feed never adds, updates, or removes it. Run `sleet recreate` after you change the setting. `recreate` downloads every package, deletes the feed, and creates it again from the same packages and settings, so it can take a while on a large feed.
+Sleet applies the setting only when it creates the feed, with `sleet init`, the first `sleet push` to a new feed, or `sleet recreate`. Changing the setting with `sleet feed-settings` doesn't add or remove the gallery by itself, and pushing to an existing feed never adds, updates, or removes it. To change it on an existing feed, pass it to `sleet recreate --set`, which changes the setting and rebuilds the feed in one step. `recreate` downloads every package, deletes the feed, and creates it again from the same packages with the new settings, so it can take a while on a large feed.
 
 ### Check the setting
 
@@ -78,8 +78,7 @@ The output `galleryenabled : not found!` means the setting isn't set, so the gal
 ### Disable the gallery
 
 ```bash
-sleet feed-settings --set galleryenabled:false
-sleet recreate
+sleet recreate --set galleryenabled:false
 ```
 
 This removes `index.html` and the package links from `index.json`. Later pushes don't add them back.
@@ -93,8 +92,7 @@ sleet init --set galleryenabled:false
 ### Enable the gallery
 
 ```bash
-sleet feed-settings --set galleryenabled:true
-sleet recreate
+sleet recreate --set galleryenabled:true
 ```
 
 A feed created by an older version of Sleet doesn't have the setting, so `sleet recreate` alone adds the gallery.

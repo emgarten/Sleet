@@ -21,10 +21,11 @@ Keys aren't case-sensitive. `feed-settings` doesn't check key names, so a misspe
 
 `feed-settings` always ends with `Run 'recreate' to rebuild the feed with the new settings.` Only some settings need `recreate`. The table below says when each one takes effect.
 
-To give a new feed different settings from the start, pass them to [init](commands.md#init) before the first push. Unlike `feed-settings`, `init` checks each key and value, and stops without changing the feed if one is wrong:
+To give a new feed different settings from the start, pass them to [init](commands.md#init) before the first push. To change a setting that needs `recreate` on an existing feed, pass it to [recreate](commands.md#recreate), which changes it and rebuilds the feed in one step. Unlike `feed-settings`, `init` and `recreate` check each key and value, and stop without changing the feed if one is wrong:
 
 ```bash
 sleet init --set galleryenabled:false --set badgesenabled:true
+sleet recreate --set catalogenabled:true
 ```
 
 ## Settings
@@ -46,7 +47,7 @@ sleet init --set galleryenabled:false --set badgesenabled:true
 
 When `true`, Sleet keeps a catalog: a log of every package added to or removed from the feed, in the [NuGet catalog format](https://learn.microsoft.com/en-us/nuget/api/catalog-resource). Tools that copy or mirror feeds can read it. NuGet doesn't need it to restore packages, and it adds files to every push.
 
-To turn it on for a new feed, run `sleet init --with-catalog` before the first push. For an existing feed, set `catalogenabled:true` and run `recreate`. `recreate` adds the catalog to `index.json`, and adds the packages already on the feed to it. See [enable the catalog on an existing feed](backup-migration.md#enable-the-catalog-on-an-existing-feed).
+To turn it on for a new feed, run `sleet init --with-catalog` before the first push. For an existing feed, run `sleet recreate --set catalogenabled:true`. `recreate` adds the catalog to `index.json`, and adds the packages already on the feed to it. See [enable the catalog on an existing feed](backup-migration.md#enable-the-catalog-on-an-existing-feed).
 
 ## catalogpagesize
 
@@ -54,13 +55,13 @@ The number of entries in each catalog page. Sleet starts a new page when the lat
 
 ## badgesenabled
 
-When `true`, `push` and `delete` update the [version badge](badges.md) files under `badges/`. Badges are off on new feeds. After you turn them on, run `recreate` to create badges for the packages that are already on the feed.
+When `true`, `push` and `delete` update the [version badge](badges.md) files under `badges/`. Badges are off on new feeds. To turn them on and create badges for the packages that are already on the feed, run `sleet recreate --set badgesenabled:true`.
 
 ## galleryenabled
 
 When `true`, the feed has a [package gallery](gallery.md), a web page for browsing its packages. Sleet writes it to `index.html` at the root of the feed, and adds a resource to `index.json` that links packages to their page in the gallery. Feeds that don't have this setting, such as feeds created by older versions of Sleet, are treated as `true`.
 
-Sleet applies the setting only when it creates the feed, with `init`, the first push to a new feed, or `recreate`. Pushing to an existing feed never adds or removes the gallery. After you change the setting, run `recreate`. To create a new feed without the gallery, run `sleet init --set galleryenabled:false` before the first push. See [enable or disable the gallery](gallery.md#enable-or-disable-the-gallery).
+Sleet applies the setting only when it creates the feed, with `init`, the first push to a new feed, or `recreate`. Pushing to an existing feed never adds or removes the gallery. To change it on an existing feed, run `sleet recreate --set galleryenabled:false` or `sleet recreate --set galleryenabled:true`. To create a new feed without the gallery, run `sleet init --set galleryenabled:false` before the first push. See [enable or disable the gallery](gallery.md#enable-or-disable-the-gallery).
 
 ## externalsearch
 
@@ -102,4 +103,4 @@ sleet retention settings --stable 5 --prerelease 2
 - Keeps `badgesenabled`, `galleryenabled`, `catalogpagesize`, and the retention settings, unless you change them with `--set`.
 - Removes keys that Sleet doesn't know.
 
-Only run `init` on a new feed. `recreate` keeps all settings that Sleet knows.
+Only run `init` on a new feed. `recreate` keeps all settings that Sleet knows, and applies the values passed to its `--set` option.
