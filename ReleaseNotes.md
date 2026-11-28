@@ -1,7 +1,23 @@
 # Release Notes
 
 ## 8.0.0
-* Removed net9.0 support. .NET 8 and 9 are out of support; the net8.0 build is kept for compatibility and also runs on .NET 9.
+* Added a package gallery written to `index.html` at the root of the feed
+  * Browse and filter packages, then drill down to a package's versions and a single version's details, dependencies, and readme
+  * Readmes render as markdown, including GitHub tables, task lists, and alerts. HTML and script links in a readme are not rendered
+  * Readme images from sites other than the feed and the badge hosts that nuget.org allows load only after selecting **Show images**
+  * The page only runs its own scripts. CDN features that rewrite scripts, such as Cloudflare Rocket Loader, must be off for the feed
+  * Every view is linkable, for example `index.html#package/Newtonsoft.Json/13.0.3`
+  * Links to the gallery show a title and description in apps that preview links, such as Slack, Discord, and Teams
+  * Dark mode by default, with a light mode toggle in the header
+  * Visual Studio links packages to their gallery page on feeds served over https
+  * Azure and S3 feeds store `index.html` gzipped, the same as JSON files. S3 feeds follow the `compress` setting
+  * Run `sleet recreate` to add the gallery to an existing feed
+  * Sleet does not overwrite an existing `index.html`, so a custom page can be used instead
+  * Disable with `sleet recreate --set galleryenabled:false`, or create a new feed without it with `sleet init --set galleryenabled:false`. See [gallery docs](doc/gallery.md)
+* Added `--set key:value` to `sleet init` and `sleet recreate` to choose [feed settings](doc/feed-settings.md) when a feed is created or rebuilt. Can be repeated, and checks keys and values before changing the feed
+* A `badgesenabled` feed setting value other than `true` or `false` now leaves badges off instead of turning them on
+* Removed net8.0 and net9.0 support because .NET 8 and 9 are out of support. Sleet and SleetLib now need .NET 10 or later
+* Updated NuGet.* packages to 8.0.0
 * Removed the symbol server. Embed PDBs in your packages instead. See [symbol server](doc/symbol-server.md)
   * Removed `sleet init --with-symbols` and the `symbolsfeedenabled` feed setting
   * `sleet push` skips `.symbols.nupkg` and `.snupkg` files with a warning
@@ -13,10 +29,13 @@
 * Fixed `sleet` failing to start when installed with `dotnet tool install --allow-roll-forward` [Issue](https://github.com/emgarten/Sleet/issues/247)
 * `sleet recreate` stops before it changes the feed if the feed has `.nupkg` files that aren't in `sleet.packageindex.json`, for example when that file is missing. Before, `recreate` deleted those packages without backing them up. Use `--force` to delete them
 * Added a `provider` setting for `s3` feeds hosted on S3 compatible storage
-  * `aws` (default), `r2` for Cloudflare R2, and `self-hosted` for S3 servers you run yourself, such as MinIO and RustFS
+  * `aws` (default), `r2` for Cloudflare R2, `gcs` for Google Cloud Storage, and `self-hosted` for S3 servers you run yourself, such as MinIO and RustFS
   * `sleet create-config --provider <name>` creates a config template for the service
-  * Buckets that Sleet creates with `r2` or `self-hosted` use the service's default location, instead of a region that the AWS SDK guesses from the bucket name or AWS settings
+  * Buckets that Sleet creates with `r2`, `gcs`, or `self-hosted` use the service's default location, instead of a region that the AWS SDK guesses from the bucket name or AWS settings
+  * `r2` signs requests with the `auto` region when `region` isn't set, instead of the region from `AWS_REGION` or the AWS config file, which R2 rejects with `BadRequest`
   * Added a [Cloudflare R2 setup guide](doc/feed-type-cloudflare.md)
+  * `gcs` uses the Cloud Storage XML API with an HMAC key, and doesn't need `serviceURL`, `region`, or `path` [Issue](https://github.com/emgarten/Sleet/issues/173)
+  * Added a [Google Cloud Storage setup guide](doc/feed-type-gcs.md)
 * Added `forcePathStyle` and `checksumMode` settings for S3 compatible storage
 * `region` can now be used with `serviceURL` to set the signing region
 * `path` is no longer required when using `serviceURL` [Issue](https://github.com/emgarten/Sleet/issues/253)

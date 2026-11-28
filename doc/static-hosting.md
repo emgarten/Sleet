@@ -16,6 +16,7 @@ The server must serve:
 - `.nuspec` and `.xml` files as `application/xml`.
 - `/icon` files as `image/png` when packages contain embedded icons.
 - `/readme` files as `text/markdown` when packages contain embedded readmes.
+- `.html` files as `text/html`, so browsers show the [package gallery](gallery.md).
 
 Sleet writes these extensionless files:
 
@@ -27,6 +28,8 @@ Sleet writes these extensionless files:
 | `flatcontainer/{id}/{version}/readme` | `text/markdown` |
 
 Sleet sets the same content types when it uploads to Azure Blob Storage or Amazon S3. Local feeds store JSON uncompressed, so enabling on-the-fly compression for JSON responses is useful.
+
+Most web servers serve `index.html` as the default page of a folder, so the package gallery also opens at the feed URL itself, such as `https://example.com/feed/`.
 
 ## Configure IIS
 
@@ -75,6 +78,7 @@ server {
             application/zip nupkg;
             application/xml nuspec xml;
             image/svg+xml svg;
+            text/html html;
         }
         default_type application/octet-stream;
         gzip on;

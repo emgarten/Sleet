@@ -79,7 +79,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - uses: azure/login@v3
         with:
@@ -128,7 +128,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Pack
         run: dotnet pack --configuration Release --output ./artifacts/packages
@@ -172,7 +172,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -212,7 +212,7 @@ steps:
   - task: UseDotNet@2
     inputs:
       packageType: sdk
-      version: 8.0.x
+      version: 10.0.x
 
   - script: dotnet pack --configuration Release --output $(Build.ArtifactStagingDirectory)/packages
     displayName: Pack
@@ -240,7 +240,7 @@ Use your CI variable store for the values. This example uses Azure, but the same
 
 ```yaml
 publish-packages:
-  image: mcr.microsoft.com/dotnet/sdk:8.0
+  image: mcr.microsoft.com/dotnet/sdk:10.0
   stage: deploy
   variables:
     SLEET_FEED_TYPE: azure

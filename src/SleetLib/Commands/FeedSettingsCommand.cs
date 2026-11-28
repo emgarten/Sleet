@@ -15,8 +15,6 @@ namespace Sleet
     /// </summary>
     public static class FeedSettingsCommand
     {
-        private static readonly char[] KeyValueSeparator = [':'];
-
         public static async Task<bool> RunAsync(
             LocalSettings settings,
             ISleetFileSystem source,
@@ -99,6 +97,8 @@ namespace Sleet
                 throw new ArgumentException("Invalid combination of arguments. Get may not be combined with set or unset.");
             }
 
+            var setValues = FeedSettingsUtility.ParseSettingValues(setKeys);
+
             // Get
             foreach (var key in getKeys)
             {
@@ -124,40 +124,14 @@ namespace Sleet
             }
 
             // Set
-            var setKeysSeen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var input in setKeys)
+            foreach (var pair in setValues)
             {
-                var parts = input.Split(KeyValueSeparator, StringSplitOptions.RemoveEmptyEntries);
-
-                if (parts.Length < 2 || string.IsNullOrEmpty(parts[0]?.Trim()) || string.IsNullOrEmpty(parts[1]?.Trim()))
-                {
-                    throw new ArgumentException("Value must be in the form {key}:{value}. Invalid: '" + input + "'");
-                }
-
-                var key = parts[0].Trim().ToLowerInvariant();
-
-                // Allow : in the value, not the key
-                var value = input.Substring(key.Length + 1);
-
-                if (!setKeysSeen.Add(key))
-                {
-                    throw new ArgumentException($"Duplicate values for '{key}'. This value may only be set once.");
-                }
-
-                if (settings.ContainsKey(key))
-                {
-                    settings[key] = value;
-                }
-                else
-                {
-                    settings.Add(key, value);
-                }
+                settings[pair.Key] = pair.Value;
 
                 // Allow handlers to perform additional work
-                if (settingHandlers.TryGetValue(key, out var handler))
+                if (settingHandlers.TryGetValue(pair.Key, out var handler))
                 {
-                    await handler.SetValue(value);
+                    await handler.SetValue(pair.Value);
                 }
             }
 

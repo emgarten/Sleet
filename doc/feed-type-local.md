@@ -55,6 +55,12 @@ sleet init -c C:\feeds\sleet.json -s myLocalFeed
 
 This step is optional for normal publishing. `push` creates the folder and initializes the feed on first use.
 
+Run `init` before the first push when the feed should start with different [feed settings](feed-settings.md). Add `--with-catalog` to turn on the catalog, or `--set galleryenabled:false` to create the feed without the [package gallery](gallery.md):
+
+```powershell
+sleet init -c C:\feeds\sleet.json -s myLocalFeed --set galleryenabled:false
+```
+
 Push one package or a directory of packages:
 
 ```powershell

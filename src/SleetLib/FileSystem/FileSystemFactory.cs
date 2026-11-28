@@ -106,8 +106,10 @@ namespace Sleet
                         var accessKeyId = JsonUtility.GetValueCaseInsensitive(sourceEntry, "accessKeyId");
                         var secretAccessKey = JsonUtility.GetValueCaseInsensitive(sourceEntry, "secretAccessKey");
                         var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
-                        var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
-                        var serviceURL = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serviceURL");
+                        var regionSetting = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
+                        var region = string.IsNullOrEmpty(regionSetting) ? provider.Region : regionSetting;
+                        var serviceURLSetting = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serviceURL");
+                        var serviceURL = string.IsNullOrEmpty(serviceURLSetting) ? provider.ServiceUrl : serviceURLSetting;
                         var serverSideEncryptionMethod = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serverSideEncryptionMethod") ?? "None";
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
                         var acl = JsonUtility.GetValueCaseInsensitive(sourceEntry, "acl");
@@ -138,7 +140,7 @@ namespace Sleet
                         }
 
                         // The S3 API of these services is not public, clients must read the feed from baseURI
-                        if (provider.ExternalPublicAccess && string.IsNullOrEmpty(baseURIString))
+                        if (provider.RequiresBaseUri && string.IsNullOrEmpty(baseURIString))
                         {
                             throw new ArgumentException($"Missing baseURI for {provider.DisplayName} account. Set baseURI to the public url of the bucket: {provider.HelpUrl}");
                         }
@@ -186,6 +188,7 @@ namespace Sleet
                             config.ServiceURL = serviceURL;
 
                             // RegionEndpoint cannot be used with ServiceURL, region is only used to sign requests
+                            // Without it the AWS SDK signs with a region from the serviceURL host, AWS_REGION, or the AWS config file
                             if (!string.IsNullOrEmpty(region))
                             {
                                 config.AuthenticationRegion = region;
@@ -207,13 +210,13 @@ namespace Sleet
                             if (credFile.TryGetProfile(profileName, out var profile))
                             {
                                 // Successfully created the credentials using the profile
-                                amazonS3Client = new AmazonS3Client(profile.GetAWSCredentials(profileSource: null), config);
+                                amazonS3Client = CreateS3Client(provider, profile.GetAWSCredentials(profileSource: null), config);
                             }
                             else if (chain.TryGetAWSCredentials(profileName, out var credentials))
                             {
                                 // Successfully created the credentials using a profile with SSO
                                 // This works for identities outside of AWS such as Azure AD and Okta
-                                amazonS3Client = new AmazonS3Client(credentials, config);
+                                amazonS3Client = CreateS3Client(provider, credentials, config);
                             }
                             else
                             {
@@ -225,14 +228,14 @@ namespace Sleet
                             !string.IsNullOrWhiteSpace(accessKeyId) &&
                             !string.IsNullOrWhiteSpace(secretAccessKey))
                         {
-                            amazonS3Client = new AmazonS3Client(new BasicAWSCredentials(accessKeyId, secretAccessKey), config);
+                            amazonS3Client = CreateS3Client(provider, new BasicAWSCredentials(accessKeyId, secretAccessKey), config);
                         }
                         // Load credentials from Environment Variables
                         else if (
                             !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EnvironmentVariablesAWSCredentials.ENVIRONMENT_VARIABLE_ACCESSKEY)) &&
                             !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EnvironmentVariablesAWSCredentials.ENVIRONMENT_VARIABLE_SECRETKEY)))
                         {
-                            amazonS3Client = new AmazonS3Client(new EnvironmentVariablesAWSCredentials(), config);
+                            amazonS3Client = CreateS3Client(provider, new EnvironmentVariablesAWSCredentials(), config);
                         }
                         // Load credentials from an ECS docker container
                         // Check if the env var GenericContainerCredentials.RelativeURIEnvVariable exists
@@ -241,7 +244,7 @@ namespace Sleet
                         else if (
                             !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")))
                         {
-                            amazonS3Client = new AmazonS3Client(new GenericContainerCredentials(), config);
+                            amazonS3Client = CreateS3Client(provider, new GenericContainerCredentials(), config);
                         }
                         // Assume IAM role
                         else
@@ -264,7 +267,7 @@ namespace Sleet
                                 }
                             }
 
-                            amazonS3Client = new AmazonS3Client(config);
+                            amazonS3Client = CreateS3Client(provider, credentials: null, config);
                         }
 
                         if (pathUri == null)
@@ -302,6 +305,17 @@ namespace Sleet
             }
 
             return result;
+        }
+
+        // Null credentials use the default credentials of the AWS SDK
+        private static AmazonS3Client CreateS3Client(S3Provider provider, AWSCredentials? credentials, AmazonS3Config config)
+        {
+            if (provider.AcceptGzip)
+            {
+                return credentials == null ? new AcceptGzipAmazonS3Client(config) : new AcceptGzipAmazonS3Client(credentials, config);
+            }
+
+            return credentials == null ? new AmazonS3Client(config) : new AmazonS3Client(credentials, config);
         }
 
         // Read checksumMode, null if it is not set

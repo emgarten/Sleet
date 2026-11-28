@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using Newtonsoft.Json.Linq;
 using NuGet.Test.Helpers;
 using Sleet;
 using Xunit;
@@ -584,6 +585,147 @@ namespace SleetLib.Tests
                 await UpgradeUtility.EnsureCompatibility(fileSystem3, log2, TestContext.Current.CancellationToken);
 
                 log2.GetMessages(NuGet.Common.LogLevel.Warning).Should().BeEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task GivenRecreateWithSettingsVerifyTheyAreAppliedToTheFeed()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+
+                File.Exists(Path.Combine(target.Root, "index.html")).Should().BeTrue();
+
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var setSettings = new[] { "galleryenabled:false", "catalogenabled:true", "badgesenabled:true" };
+
+                // Act
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder.Root, false, setSettings, log);
+
+                var settingsJson = JObject.Parse(File.ReadAllText(Path.Combine(target.Root, "sleet.settings.json")));
+                var rootJson = JObject.Parse(File.ReadAllText(Path.Combine(target.Root, "index.json")));
+
+                // Assert
+                success.Should().BeTrue();
+
+                FeedSettingsUtility.GetSettings(settingsJson).Should().BeEquivalentTo(new Dictionary<string, string>()
+                {
+                    { "badgesenabled", "true" },
+                    { "catalogenabled", "true" },
+                    { "catalogpagesize", "1024" },
+                    { "galleryenabled", "false" }
+                });
+
+                // The package already on the feed is pushed again with the new settings
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
+                File.Exists(Path.Combine(target.Root, "badges", "v", "a.json")).Should().BeTrue();
+                Directory.GetFiles(Path.Combine(target.Root, "catalog", "data"), "*.json").Should().ContainSingle();
+
+                File.Exists(Path.Combine(target.Root, "index.html")).Should().BeFalse();
+                rootJson.ToString().Should().NotContain("PackageDetailsUriTemplate");
+            }
+        }
+
+        [Fact]
+        public async Task GivenRecreateWithAnInvalidSettingVerifyTheFeedIsUnchanged()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+
+                var settingsPath = Path.Combine(target.Root, "sleet.settings.json");
+                var settingsBefore = File.ReadAllText(settingsPath);
+
+                // Existing content in the nupkg folder must survive a rejected recreate
+                var existingFile = Path.Combine(outputFolder.Root, "backup.txt");
+                File.WriteAllText(existingFile, "backup");
+
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var setSettings = new[] { "galleryenabled:false", "galeryenabled:false" };
+
+                // Act
+                Func<Task> action = async () => await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder.Root, false, setSettings, log);
+
+                // Assert
+                await action.Should().ThrowAsync<ArgumentException>().WithMessage("Unknown feed setting 'galeryenabled'. Use one of: *");
+
+                File.Exists(existingFile).Should().BeTrue();
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
+                File.Exists(Path.Combine(target.Root, "index.html")).Should().BeTrue();
+                File.ReadAllText(settingsPath).Should().Be(settingsBefore);
+            }
+        }
+
+        [Fact]
+        public async Task GivenAFeedFromBeforeTheGalleryVerifyRecreateAddsIt()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settingsPath = Path.Combine(target.Root, "sleet.settings.json");
+
+                // Older versions of Sleet wrote neither the gallery nor its setting.
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, new[] { "galleryenabled:false" }, log, TestContext.Current.CancellationToken);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+                await FeedSettingsCommand.RunAsync(
+                    settings,
+                    fileSystem,
+                    unsetAll: false,
+                    getAll: false,
+                    getSettings: new string[] { },
+                    unsetSettings: new[] { "galleryenabled" },
+                    setSettings: new string[] { },
+                    log: log,
+                    token: TestContext.Current.CancellationToken);
+
+                FeedSettingsUtility.GetSettings(JObject.Parse(File.ReadAllText(settingsPath))).Should().NotContainKey("galleryenabled");
+                File.Exists(Path.Combine(target.Root, "index.html")).Should().BeFalse();
+
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+
+                // Act
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder.Root, false, log);
+
+                var settingsJson = JObject.Parse(File.ReadAllText(settingsPath));
+                var rootJson = JObject.Parse(File.ReadAllText(Path.Combine(target.Root, "index.json")));
+
+                // Assert
+                success.Should().BeTrue();
+                FeedSettingsUtility.GetSettings(settingsJson).Should().Contain("galleryenabled", "true");
+                File.Exists(Path.Combine(target.Root, "index.html")).Should().BeTrue();
+                rootJson.ToString().Should().Contain("PackageDetailsUriTemplate/5.1.0");
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
             }
         }
     }

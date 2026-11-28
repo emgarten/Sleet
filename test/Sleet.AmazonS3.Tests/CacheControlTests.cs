@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using System.Net.Http.Headers;
+using Xunit;
 
 namespace Sleet.AmazonS3.Tests
 {
@@ -52,6 +53,8 @@ namespace Sleet.AmazonS3.Tests
         [AmazonS3Fact]
         public async Task GivenCustomCacheControl_VerifyHeadersAreSet()
         {
+            Assert.SkipWhen(AmazonS3TestContext.IsGoogleCloudStorage, "Cloud Storage needs the client that the gcs provider creates, which downloads gzip files as stored. GivenCustomCacheControlViaFactory_VerifyHeadersAreSet covers Cloud Storage.");
+
             using (var packagesFolder = new TestFolder())
             await using (var testContext = new AmazonS3TestContext())
             {

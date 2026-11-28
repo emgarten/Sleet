@@ -638,6 +638,49 @@ namespace Sleet.Integration.Test
             }
         }
 
+        [Fact]
+        public async Task NuGetReader_PackageDetailsUrlPointsToGalleryAsync()
+        {
+            // Arrange
+            using (var sourceCacheContext = new SourceCacheContext())
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                var outputRoot = Path.Combine(target.Root, "output");
+                var baseUri = UriUtility.CreateUri("https://localhost:8080/testFeed/");
+
+                var log = new TestLogger();
+
+                var sleetConfig = TestUtility.CreateConfigWithLocal("local", outputRoot, baseUri.AbsoluteUri);
+
+                var sleetConfigPath = Path.Combine(target.Root, "sleet.config");
+                await JsonUtility.SaveJsonAsync(new FileInfo(sleetConfigPath), sleetConfig);
+
+                var zipFile = new TestNupkg("packageA", "1.0.0").Save(packagesFolder.Root);
+
+                var settings = LocalSettings.Load(sleetConfigPath);
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(settings, cache, "local", log);
+                var success = await InitCommand.RunAsync(settings, fileSystem, log);
+
+                // Act
+                success &= await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, false, false, log);
+
+                // Create a repository abstraction for nuget
+                var nugetFileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(outputRoot), baseUri);
+                var localSource = GetSource(outputRoot, baseUri, nugetFileSystem);
+
+                var resource = await localSource.GetResourceAsync<PackageMetadataResource>(TestContext.Current.CancellationToken);
+                var package = (await resource.GetMetadataAsync("packageA", true, true, sourceCacheContext, log, CancellationToken.None)).Single();
+
+                // Assert
+                Assert.True(success, log.ToString());
+
+                // Visual Studio links to this page from the package details pane.
+                Assert.Equal("https://localhost:8080/testFeed/index.html#package/packageA/1.0.0", package.PackageDetailsUrl.AbsoluteUri);
+            }
+        }
+
         public static SourceRepository GetSource(string outputRoot, Uri baseUri, PhysicalFileSystem fileSystem)
         {
             var providers = Repository.Provider.GetCoreV3().ToList();

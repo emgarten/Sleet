@@ -33,6 +33,11 @@ namespace Sleet.AmazonS3.Tests
         /// </summary>
         public const string LocalEnvCredential = "rustfsadmin";
 
+        /// <summary>
+        /// The Cloud Storage XML API, the default serviceURL of the gcs provider.
+        /// </summary>
+        public const string GoogleCloudStorageServiceUrl = "https://storage.googleapis.com";
+
         private readonly string acl;
         private bool cleanupDone = false;
 
@@ -62,9 +67,9 @@ namespace Sleet.AmazonS3.Tests
                 config.ForcePathStyle = true;
                 Uri = new Uri($"{ServiceUrl.TrimEnd('/')}/{BucketName}/");
 
-                if (IsCloudflareR2)
+                if (DisablePayloadSigning)
                 {
-                    // The same checksums as the r2 provider
+                    // The same checksums as the r2 and gcs providers
                     config.RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED;
                     config.ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED;
                 }
@@ -87,7 +92,12 @@ namespace Sleet.AmazonS3.Tests
         /// <summary>
         /// The S3 compatible storage to test against, or null for Amazon S3.
         /// </summary>
-        public static string ServiceUrl => HasAccount ? Environment.GetEnvironmentVariable(EnvServiceUrl) : $"http://127.0.0.1:{LocalEnvPort}";
+        public static string ServiceUrl => string.IsNullOrEmpty(ServiceUrlSetting) && IsGoogleCloudStorage ? GoogleCloudStorageServiceUrl : ServiceUrlSetting;
+
+        /// <summary>
+        /// The serviceURL setting of the source. The gcs provider doesn't need one.
+        /// </summary>
+        private static string ServiceUrlSetting => HasAccount ? Environment.GetEnvironmentVariable(EnvServiceUrl) : $"http://127.0.0.1:{LocalEnvPort}";
 
         /// <summary>
         /// The region to sign requests for.
@@ -99,16 +109,19 @@ namespace Sleet.AmazonS3.Tests
         /// <summary>
         /// The provider setting of the source, self-hosted by default for S3 compatible storage. Null for Amazon S3.
         /// </summary>
-        public static string Provider
-        {
-            get
-            {
-                var provider = HasAccount ? Environment.GetEnvironmentVariable(EnvProvider) : null;
-                return string.IsNullOrEmpty(provider) && !string.IsNullOrEmpty(ServiceUrl) ? "self-hosted" : provider;
-            }
-        }
+        public static string Provider => string.IsNullOrEmpty(ProviderSetting) && !string.IsNullOrEmpty(ServiceUrl) ? "self-hosted" : ProviderSetting;
 
-        public static bool IsCloudflareR2 => string.Equals(Provider, "r2", StringComparison.OrdinalIgnoreCase);
+        private static string ProviderSetting => HasAccount ? Environment.GetEnvironmentVariable(EnvProvider) : null;
+
+        public static bool IsCloudflareR2 => string.Equals(ProviderSetting, "r2", StringComparison.OrdinalIgnoreCase);
+
+        public static bool IsGoogleCloudStorage => string.Equals(ProviderSetting, "gcs", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// True if the provider disables payload signing. R2 and Cloud Storage don't support the streaming uploads that
+        /// are used with payload signing.
+        /// </summary>
+        public static bool DisablePayloadSigning => IsCloudflareR2 || IsGoogleCloudStorage;
 
         /// <summary>
         /// True if the access key and secret are set or RustFS in local-env is running.
@@ -151,9 +164,9 @@ namespace Sleet.AmazonS3.Tests
                 source.Add("provider", Provider);
             }
 
-            if (!string.IsNullOrEmpty(ServiceUrl))
+            if (!string.IsNullOrEmpty(ServiceUrlSetting))
             {
-                source.Add("serviceURL", ServiceUrl);
+                source.Add("serviceURL", ServiceUrlSetting);
             }
 
             // S3 compatible storage only needs a region if it doesn't use us-east-1
@@ -228,7 +241,7 @@ namespace Sleet.AmazonS3.Tests
                         CancellationToken.None);
                 }
 
-                await Client.DeleteBucketAsync(BucketName);
+                await RetryTooManyRequestsAsync(() => Client.DeleteBucketAsync(BucketName));
             }
             catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
@@ -257,15 +270,35 @@ namespace Sleet.AmazonS3.Tests
                 {
                     // The same as AmazonS3FileSystem.CreateBucket, only Amazon S3 gets the client region. With a service url the SDK
                     // guesses the region from the url or the AWS settings of the machine, which S3 compatible storage may reject.
-                    await Client.PutBucketAsync(new PutBucketRequest()
+                    await RetryTooManyRequestsAsync(() => Client.PutBucketAsync(new PutBucketRequest()
                     {
                         BucketName = BucketName,
                         UseClientRegion = string.IsNullOrEmpty(ServiceUrl)
-                    });
+                    }));
                 }
                 catch (BucketAlreadyOwnedByYouException)
                 {
                     // The same as EnsureBucketExistsAsync, for example when the SDK retried a request that created the bucket
+                }
+            }
+        }
+
+        /// <summary>
+        /// Cloud Storage allows a project about one bucket create or delete every two seconds, and the tests create and
+        /// delete buckets in parallel. Retry after a random delay so that the tests that were rejected don't retry together.
+        /// </summary>
+        private static async Task RetryTooManyRequestsAsync(Func<Task> request)
+        {
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    await request();
+                    return;
+                }
+                catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests && attempt < 10)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(2 + Random.Shared.NextDouble() * 3));
                 }
             }
         }

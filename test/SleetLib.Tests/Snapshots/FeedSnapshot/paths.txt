@@ -16,6 +16,7 @@ json	flatcontainer/alpha/index.json
 binary	flatcontainer/beta/2.0.0/beta.2.0.0.nupkg
 text	flatcontainer/beta/2.0.0/beta.nuspec
 json	flatcontainer/beta/index.json
+binary	index.html
 json	index.json
 json	registration/alpha/1.0.0.json
 json	registration/alpha/1.1.0-beta.1.json

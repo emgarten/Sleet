@@ -28,6 +28,7 @@ Azure Blob Storage and Amazon S3 use the same cache-control groups:
 | `.json` files | `application/json` | `mutableCacheControl` |
 | Extensionless JSON files such as `search/query` and `autocomplete/query` | `application/json` | `mutableCacheControl` |
 | `.svg` files | `image/svg+xml` | `mutableCacheControl` |
+| `.html` files, such as the [package gallery](gallery.md) | `text/html; charset=utf-8` | `mutableCacheControl` |
 
 Unknown file types keep `Cache-Control: no-store` and Sleet logs a warning.
 
@@ -61,9 +62,9 @@ Be careful with `push --force` and `delete` if immutable files have long cache l
 
 ## Compression
 
-Azure Blob Storage uploads JSON as gzip-compressed content with `Content-Encoding: gzip`.
+Azure Blob Storage uploads JSON and the gallery's `index.html` as gzip-compressed content with `Content-Encoding: gzip`.
 
-Amazon S3 uploads JSON as gzip-compressed content when `compress` is `true`, which is the default:
+Amazon S3 uploads JSON and the gallery's `index.html` as gzip-compressed content when `compress` is `true`, which is the default:
 
 ```json
 {
@@ -105,3 +106,5 @@ Azure Front Door Standard or Premium is the current Azure CDN option to consider
 Amazon CloudFront can use an S3 bucket as an origin. AWS recommends S3 regional bucket origin names such as `my-bucket-feed.s3.us-west-2.amazonaws.com`. For a private S3 feed behind CloudFront, see [Private feed on AWS](private-feed-s3.md).
 
 Cloudflare respects origin `Cache-Control` headers for cacheable responses, but it does not cache JSON by file extension by default. Use Cache Rules if you want Cloudflare to cache Sleet JSON and extensionless query files.
+
+Google Cloud Storage caches public files up to 10 MiB based on their `Cache-Control` header, and you can't purge this cache. For cache invalidation or a custom domain over HTTPS, use Cloud CDN with an external Application Load Balancer. See [Create a Google Cloud Storage feed](feed-type-gcs.md#caching).

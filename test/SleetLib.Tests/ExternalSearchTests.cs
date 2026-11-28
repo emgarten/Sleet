@@ -274,6 +274,37 @@ namespace SleetLib.Tests
             }
         }
 
+        [Fact]
+        public async Task VerifyInitWithExternalSearchUpdatesIndexJson()
+        {
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settings = new LocalSettings();
+
+                // Act
+                var success = await InitCommand.RunAsync(
+                    settings,
+                    fileSystem,
+                    enableCatalog: false,
+                    setSettings: new string[] { "externalsearch:https://example.org/search/query" },
+                    log: log,
+                    token: TestContext.Current.CancellationToken);
+
+                // Assert
+                success.Should().BeTrue();
+
+                var entry = GetSearchEntry(Path.Combine(target.RootDirectory.FullName, "index.json"));
+                entry["@id"].ToObject<string>().Should().Be("https://example.org/search/query");
+
+                var settingsJson = JObject.Parse(File.ReadAllText(Path.Combine(target.RootDirectory.FullName, "sleet.settings.json")));
+                FeedSettingsUtility.GetSettings(settingsJson)["externalsearch"].Should().Be("https://example.org/search/query");
+            }
+        }
+
         private JObject GetSearchEntry(string indexJsonPath)
         {
             var json = JObject.Parse(File.ReadAllText(indexJsonPath));

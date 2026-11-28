@@ -14,8 +14,19 @@ namespace Sleet
     /// </summary>
     public static class RecreateCommand
     {
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string? tmpPath, bool force, ILogger log)
+        public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string? tmpPath, bool force, ILogger log)
         {
+            return RunAsync(settings, source, tmpPath, force, setSettings: [], log: log);
+        }
+
+        /// <summary>
+        /// Recreate the feed. setSettings are feed settings in the form {key}:{value} to apply to the new feed.
+        /// </summary>
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, string? tmpPath, bool force, IEnumerable<string> setSettings, ILogger log)
+        {
+            // Check the settings before the feed is read or changed
+            var values = FeedSettingsUtility.ParseAndValidateSettingValues(setSettings);
+
             var success = true;
             var cleanNupkgs = true;
 
@@ -31,8 +42,13 @@ namespace Sleet
                     await UpgradeUtility.EnsureCompatibility(source, log: log, token: token);
                 }
 
-                // Read settings and persist them in the new feed.
+                // Read settings and persist them in the new feed, with the values passed in applied.
                 var feedSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
+
+                if (values.Count > 0)
+                {
+                    feedSettings = FeedSettingsUtility.ApplySettings(feedSettings, values);
+                }
 
                 // Check before the nupkg folder is created, a blocked recreate must not clean up --nupkg-path.
                 // Run every check so that all packages that would be lost are reported together.
@@ -87,7 +103,7 @@ namespace Sleet
                     }
 
                     // Apply settings
-                    await ApplySettingHandlers(settings, source, log, feedSettings, token);
+                    await FeedSettingsUtility.ApplySettingHandlersAsync(settings, source, feedSettings, log, token);
 
                     // Skip pushing for empty feeds
                     if (Directory.GetFiles(localCache.Root.FullName, "*.*", SearchOption.AllDirectories).Length > 0)
@@ -235,31 +251,6 @@ namespace Sleet
             var version = package.Version.ToNormalizedString();
 
             return source.GetPath($"/symbols/packages/{package.Id}/{version}/{package.Id}.{version}.symbols.nupkg".ToLowerInvariant());
-        }
-
-        /// <summary>
-        /// Apply setting handlers
-        /// </summary>
-        private static async Task ApplySettingHandlers(LocalSettings settings, ISleetFileSystem source, ILogger log, FeedSettings feedSettings, CancellationToken token)
-        {
-            if (feedSettings.ExternalSearch != null)
-            {
-                log.LogMinimal($"Setting external search url: {feedSettings.ExternalSearch}");
-
-                var context = new SleetContext()
-                {
-                    LocalSettings = settings,
-                    SourceSettings = feedSettings,
-                    Log = log,
-                    Source = source,
-                    Token = token
-                };
-
-                var searchHandler = new ExternalSearchHandler(context);
-                await searchHandler.SetValue(feedSettings.ExternalSearch);
-
-                await source.Commit(log, token);
-            }
         }
     }
 }
