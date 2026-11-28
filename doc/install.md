@@ -4,7 +4,7 @@ Sleet is a .NET tool. This page covers the ways to install and run it, and how t
 
 ## Requirements
 
-The Sleet .NET tool needs the .NET 8 SDK or later. It runs on Windows, Linux, and macOS. Check your SDK version with:
+The Sleet .NET tool needs the .NET 10 SDK or later. It runs on Windows, Linux, and macOS. Check your SDK version with:
 
 ```bash
 dotnet --version

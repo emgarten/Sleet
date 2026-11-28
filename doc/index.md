@@ -31,7 +31,7 @@ Sleet also supports [version badges](badges.md), [package retention](retention.m
 
 ## Quick start
 
-Install Sleet. It needs the .NET 8 SDK or later. See [Install Sleet](install.md) for other options.
+Install Sleet. It needs the .NET 10 SDK or later. See [Install Sleet](install.md) for other options.
 
 ```bash
 dotnet tool install -g sleet
