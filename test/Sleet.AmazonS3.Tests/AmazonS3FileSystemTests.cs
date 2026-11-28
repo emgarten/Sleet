@@ -48,6 +48,7 @@ namespace Sleet.AmazonS3.Tests
         public async Task GivenABucketCreatedAfterSleetCheckedForItVerifyCreateBucketKeepsItPrivate()
         {
             Assert.SkipWhen(AmazonS3TestContext.IsCloudflareR2, "Sleet doesn't change the access settings of Cloudflare R2 buckets, and the R2 S3 API never allows anonymous reads.");
+            Assert.SkipWhen(AmazonS3TestContext.IsGoogleCloudStorage, "Sleet doesn't change the access settings of Cloud Storage buckets, because public access is an IAM policy that the S3 API can't set.");
 
             var token = TestContext.Current.CancellationToken;
 
