@@ -134,7 +134,7 @@ namespace Sleet.Tests
         [Theory]
         [InlineData("provider may not be used with azure.", "--provider", "r2", "--azure")]
         [InlineData("provider may not be used with local.", "--provider", "r2", "--local")]
-        [InlineData("Unknown provider 'gcs' for s3 source.", "--provider", "gcs")]
+        [InlineData("Unknown provider 'b2' for s3 source.", "--provider", "b2")]
         public async Task MainCore_CreateConfigWithInvalidProvider_ReturnsOneAndLogsError(string expected, params string[] options)
         {
             using (var root = new TestFolder())

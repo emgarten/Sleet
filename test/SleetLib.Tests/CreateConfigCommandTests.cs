@@ -129,16 +129,40 @@ namespace SleetLib.Tests
         }
 
         [Fact]
+        public async Task CreateConfigCommand_WithS3StorageTypeAndGoogleCloudStorageProvider_CreatesValidConfig()
+        {
+            using (var testDir = new TestFolder())
+            {
+                var configPath = Path.Combine(testDir.Root, "sleet.json");
+                var result = await CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "gcs", NullLogger.Instance);
+
+                result.Should().BeTrue();
+
+                var json = JObject.Parse(File.ReadAllText(configPath));
+                var source = json["sources"][0];
+                source["name"].Value<string>().Should().Be("myGcsFeed");
+                source["type"].Value<string>().Should().Be("s3");
+                source["provider"].Value<string>().Should().Be("gcs");
+                source["bucketName"].Value<string>().Should().Be("bucketname");
+                source["serviceURL"].Should().BeNull();
+                source["region"].Should().BeNull();
+
+                var fileSystem = await FileSystemFactory.CreateFileSystemAsync(new LocalSettings { Json = json }, new LocalCache(), "myGcsFeed", NullLogger.Instance);
+                fileSystem.Should().BeOfType<AmazonS3FileSystem>();
+            }
+        }
+
+        [Fact]
         public async Task CreateConfigCommand_WithUnknownProvider_ThrowsArgumentException()
         {
             using (var testDir = new TestFolder())
             {
                 var configPath = Path.Combine(testDir.Root, "sleet.json");
 
-                Func<Task> act = () => CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "gcs", NullLogger.Instance);
+                Func<Task> act = () => CreateConfigCommand.RunAsync(FileSystemStorageType.S3, testDir.Root, "b2", NullLogger.Instance);
 
                 var ex = await Assert.ThrowsAsync<ArgumentException>(act);
-                Assert.Contains("Unknown provider 'gcs' for s3 source.", ex.Message);
+                Assert.Contains("Unknown provider 'b2' for s3 source.", ex.Message);
                 File.Exists(configPath).Should().BeFalse();
             }
         }

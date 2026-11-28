@@ -31,7 +31,7 @@ Sleet creates and updates NuGet v3 feeds as static files on Azure Blob Storage, 
 
 ## Features
 
-* **Serverless.** Create static feeds directly on *Azure Storage*, *Amazon S3*, or any [S3-compatible storage](doc/s3-compatible.md) (Cloudflare R2, MinIO, Backblaze B2, etc.). No compute required.
+* **Serverless.** Create static feeds directly on *Azure Storage*, *Amazon S3*, or any [S3-compatible storage](doc/s3-compatible.md) (Cloudflare R2, Google Cloud Storage, MinIO, Backblaze B2, etc.). No compute required.
 * **Cross platform.** Sleet is built in .NET and runs on Linux, macOS, and Windows.
 * **Fast.** Static feeds use the [NuGet v3 feed format](https://learn.microsoft.com/en-us/nuget/api/overview) so clients resolve packages with simple HTTP requests.
 * **Simple.** A straightforward command line tool to add, remove, and update packages.
@@ -144,6 +144,7 @@ Get started:
 * [Create an Azure feed](doc/feed-type-azure.md)
 * [Create an Amazon S3 feed](doc/feed-type-s3.md)
 * [Create a Cloudflare R2 feed](doc/feed-type-cloudflare.md)
+* [Create a Google Cloud Storage feed](doc/feed-type-gcs.md)
 * [Create a local feed](doc/feed-type-local.md)
 * [Use a feed with NuGet](doc/consume-feed.md)
 

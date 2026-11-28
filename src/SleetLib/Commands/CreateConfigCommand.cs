@@ -16,7 +16,7 @@ namespace Sleet
         /// <summary>
         /// Create a sleet.json template.
         /// </summary>
-        /// <param name="provider">S3 compatible service for S3 feeds: aws, r2, or self-hosted. Null uses aws.</param>
+        /// <param name="provider">S3 compatible service for S3 feeds: aws, r2, self-hosted, or gcs. Null uses aws.</param>
         public static async Task<bool> RunAsync(FileSystemStorageType storageType, string? output, string? provider, ILogger log)
         {
             var s3Provider = S3Provider.Get(provider);
@@ -131,6 +131,21 @@ namespace Sleet
                     { "provider", provider.Name },
                     { "bucketName", "bucketname" },
                     { "serviceURL", "http://localhost:9000" },
+                    { "accessKeyId", "" },
+                    { "secretAccessKey", "" }
+                };
+            }
+
+            if (provider == S3Provider.GoogleCloudStorage)
+            {
+                log.Log(LogLevel.Minimal, "Set accessKeyId and secretAccessKey to a Cloud Storage HMAC key. See: https://github.com/emgarten/Sleet/blob/main/doc/feed-type-gcs.md");
+
+                return new JObject
+                {
+                    { "name", "myGcsFeed" },
+                    { "type", "s3" },
+                    { "provider", provider.Name },
+                    { "bucketName", "bucketname" },
                     { "accessKeyId", "" },
                     { "secretAccessKey", "" }
                 };

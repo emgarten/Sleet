@@ -20,7 +20,7 @@ namespace Sleet
             var awss3 = cmd.Option("--s3", "Add a template entry for an Amazon S3 storage feed.",
                 CommandOptionType.NoValue);
 
-            var provider = cmd.Option("--provider", "S3 compatible service for the --s3 template: aws (default), r2, self-hosted. Implies --s3.",
+            var provider = cmd.Option("--provider", "S3 compatible service for the --s3 template: aws (default), r2, self-hosted, gcs. Implies --s3.",
                 CommandOptionType.SingleValue);
 
             var azure = cmd.Option("--azure", "Add a template entry for an azure storage feed.",

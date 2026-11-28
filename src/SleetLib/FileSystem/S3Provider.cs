@@ -19,6 +19,11 @@ namespace Sleet
         public required string DisplayName { get; init; }
 
         /// <summary>
+        /// Default for 'serviceURL'. Null requires serviceURL, except for Amazon S3 where region selects the endpoint.
+        /// </summary>
+        public string? ServiceUrl { get; init; }
+
+        /// <summary>
         /// Default for 'region'. With a serviceURL it is only used to sign requests. Null leaves it to the AWS SDK.
         /// </summary>
         public string? Region { get; init; }
@@ -39,10 +44,19 @@ namespace Sleet
         public RequestChecksumCalculation? ChecksumMode { get; init; }
 
         /// <summary>
-        /// Public read access is enabled outside of the S3 API and served from a different url.
-        /// Sleet does not configure access for new buckets, and baseURI is required.
+        /// Download gzip files as stored, by sending an unsigned 'Accept-Encoding: gzip' header.
+        /// </summary>
+        public bool AcceptGzip { get; init; }
+
+        /// <summary>
+        /// Public read access is enabled outside of the S3 API. Sleet does not configure access for new buckets.
         /// </summary>
         public bool ExternalPublicAccess { get; init; }
+
+        /// <summary>
+        /// The S3 API does not serve public reads, NuGet clients read the feed from baseURI.
+        /// </summary>
+        public bool RequiresBaseUri { get; init; }
 
         /// <summary>
         /// Help for enabling public access.
@@ -69,8 +83,9 @@ namespace Sleet
             DisablePayloadSigning = true,
             ChecksumMode = RequestChecksumCalculation.WHEN_REQUIRED,
 
-            // R2 does not implement bucket policies or ACLs
+            // R2 does not implement bucket policies or ACLs, public buckets are served from a custom domain or r2.dev
             ExternalPublicAccess = true,
+            RequiresBaseUri = true,
             HelpUrl = "https://developers.cloudflare.com/r2/buckets/public-buckets/"
         };
 
@@ -83,7 +98,36 @@ namespace Sleet
             ForcePathStyle = true
         };
 
-        private static readonly S3Provider[] All = [Aws, CloudflareR2, SelfHosted];
+        public static readonly S3Provider GoogleCloudStorage = new()
+        {
+            Name = "gcs",
+            DisplayName = "Google Cloud Storage",
+
+            // The XML API, which also serves public reads
+            // https://cloud.google.com/storage/docs/aws-simple-migration
+            ServiceUrl = "https://storage.googleapis.com",
+
+            // GCS accepts any location in the signature, this avoids a region from AWS_REGION or the AWS config file
+            // https://cloud.google.com/storage/docs/authentication/signatures
+            Region = "auto",
+
+            // Bucket names may contain dots, which do not match the TLS certificate of a virtual host style url
+            ForcePathStyle = true,
+
+            // GCS rejects the default checksums of the AWS SDK, and keeps aws-chunked in the Content-Encoding of signed uploads
+            DisablePayloadSigning = true,
+            ChecksumMode = RequestChecksumCalculation.WHEN_REQUIRED,
+
+            // Without it GCS decompresses gzip files and returns a weak ETag, which fails the MD5 check of the AWS SDK
+            // https://cloud.google.com/storage/docs/transcoding
+            AcceptGzip = true,
+
+            // Public read access is an IAM policy, which the XML API cannot set
+            ExternalPublicAccess = true,
+            HelpUrl = "https://cloud.google.com/storage/docs/access-control/making-data-public"
+        };
+
+        private static readonly S3Provider[] All = [Aws, CloudflareR2, SelfHosted, GoogleCloudStorage];
 
         /// <summary>
         /// Find a provider by name. Null or empty returns Amazon S3.

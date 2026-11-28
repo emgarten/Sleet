@@ -21,6 +21,9 @@ Targets:
   r2         The Amazon S3 tests against Cloudflare R2 with SLEET_TEST_R2_ACCESS_KEY_ID,
              SLEET_TEST_R2_SECRET_ACCESS_KEY, and SLEET_TEST_R2_SERVICE_URL, the R2 S3 API URL of the account.
              The tests that need a public bucket are skipped.
+  gcs        The Amazon S3 tests against Google Cloud Storage with SLEET_TEST_GCS_ACCESS_KEY_ID and
+             SLEET_TEST_GCS_SECRET_ACCESS_KEY, a Cloud Storage HMAC key. The tests that need a public bucket or
+             object ACLs are skipped.
 
 The emulator targets start the local test environment in local-env with Docker, and stop it
 afterwards if it wasn't already running.
@@ -65,14 +68,14 @@ RESULTS_DIR="$REPO_ROOT/artifacts/TestResults/functional"
 CONFIGURATION="Release"
 # The emulator targets run against local-env
 EMULATOR_TARGETS="azurite rustfs"
-CLOUD_TARGETS="azure aws r2"
+CLOUD_TARGETS="azure aws r2 gcs"
 ALL_TARGETS="$EMULATOR_TARGETS $CLOUD_TARGETS"
 
 target_project()
 {
   case "$1" in
     azurite|azure) echo "test/Sleet.Azure.Tests/Sleet.Azure.Tests.csproj" ;;
-    rustfs|aws|r2) echo "test/Sleet.AmazonS3.Tests/Sleet.AmazonS3.Tests.csproj" ;;
+    rustfs|aws|r2|gcs) echo "test/Sleet.AmazonS3.Tests/Sleet.AmazonS3.Tests.csproj" ;;
   esac
 }
 
@@ -83,6 +86,7 @@ target_required_env()
     azure) echo "SLEET_TEST_ACCOUNT" ;;
     aws) echo "SLEET_TEST_S3_ACCESS_KEY_ID SLEET_TEST_S3_SECRET_ACCESS_KEY" ;;
     r2) echo "SLEET_TEST_R2_ACCESS_KEY_ID SLEET_TEST_R2_SECRET_ACCESS_KEY SLEET_TEST_R2_SERVICE_URL" ;;
+    gcs) echo "SLEET_TEST_GCS_ACCESS_KEY_ID SLEET_TEST_GCS_SECRET_ACCESS_KEY" ;;
   esac
 }
 
@@ -103,15 +107,23 @@ target_env()
         set_env SLEET_TEST_S3_PROVIDER r2
         unset_env SLEET_TEST_S3_REGION
         ;;
+    gcs)
+        # The gcs provider has a default serviceURL, so the source doesn't set one
+        set_env SLEET_TEST_S3_ACCESS_KEY_ID "$SLEET_TEST_GCS_ACCESS_KEY_ID"
+        set_env SLEET_TEST_S3_SECRET_ACCESS_KEY "$SLEET_TEST_GCS_SECRET_ACCESS_KEY"
+        unset_env SLEET_TEST_S3_SERVICE_URL
+        set_env SLEET_TEST_S3_PROVIDER gcs
+        unset_env SLEET_TEST_S3_REGION
+        ;;
   esac
 }
 
 # --fail-skips makes the run fail if the tests are skipped instead of run, such as when they can't find local-env. R2
-# skips the tests that need a public bucket.
+# and Cloud Storage skip the tests that need a public bucket.
 target_fail_skips()
 {
   case "$1" in
-    r2) echo "off" ;;
+    r2|gcs) echo "off" ;;
     *) echo "on" ;;
   esac
 }
@@ -123,9 +135,9 @@ for name in ${TARGET_ARG//,/ }; do
     emulators) REQUESTED="$REQUESTED $EMULATOR_TARGETS" ;;
     cloud) REQUESTED="$REQUESTED $CLOUD_TARGETS" ;;
     all) REQUESTED="$REQUESTED $ALL_TARGETS" ;;
-    azurite|rustfs|azure|aws|r2) REQUESTED="$REQUESTED $name" ;;
+    azurite|rustfs|azure|aws|r2|gcs) REQUESTED="$REQUESTED $name" ;;
     *)
-        echo "Unknown target: $name. Use emulators, cloud, all, azurite, rustfs, azure, aws, or r2." >&2
+        echo "Unknown target: $name. Use emulators, cloud, all, azurite, rustfs, azure, aws, r2, or gcs." >&2
         exit 1
         ;;
   esac

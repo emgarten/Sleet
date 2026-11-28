@@ -24,7 +24,13 @@ namespace Sleet.AmazonS3.Tests
                     testContext.BucketName,
                     "index.html");
                 htmlMetadata.Headers.ContentType.Should().Be("text/html; charset=utf-8");
-                htmlMetadata.Headers.ContentEncoding.Should().Be("gzip");
+
+                // Cloud Storage decompresses gzip files for clients that don't send Accept-Encoding: gzip, such as this
+                // client, and leaves out Content-Encoding.
+                if (!AmazonS3TestContext.IsGoogleCloudStorage)
+                {
+                    htmlMetadata.Headers.ContentEncoding.Should().Be("gzip");
+                }
 
                 var indexMetadata = await testContext.Client.GetObjectMetadataAsync(
                     testContext.BucketName,
