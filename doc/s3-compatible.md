@@ -97,7 +97,7 @@ Sleet's automatic bucket creation uses AWS-specific APIs. It removes the bucket 
 
 Create the bucket with the provider's tools first. Configure public read access for public feeds, or private access for private feeds, before you run `sleet push`.
 
-Sleet doesn't change the settings of a bucket that already exists. Some providers, such as RustFS, report success when you create a bucket that already exists, so Sleet can't detect a bucket that something else creates at the same moment.
+Sleet doesn't change the settings of a bucket that already exists. Some providers, such as RustFS, report success when you create a bucket that already exists. Sleet then only leaves the settings unchanged if the bucket already contains files, so an empty bucket that something else creates at the same moment can still be made public.
 
 ## Provider examples
 

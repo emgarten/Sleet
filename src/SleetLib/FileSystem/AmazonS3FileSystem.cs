@@ -242,6 +242,12 @@ namespace Sleet
             {
                 log.LogWarning($"{Provider.DisplayName} buckets are private by default. Enable public access for {_bucketName} so that NuGet clients can read the feed: {Provider.HelpUrl}");
             }
+            else if (await HasFiles(log, token))
+            {
+                // A bucket that Sleet created is empty. Amazon S3 can report a bucket that was just created as missing, and in
+                // us-east-1 it returns success when the bucket already exists, the same as some S3 compatible services.
+                log.LogWarning($"Bucket {_bucketName} already contains files, so Sleet didn't create it and didn't change its access settings. For a public feed, allow public read access to the bucket.");
+            }
             else
             {
                 log.LogInformation($"Adding policy for public read access to bucket: {_bucketName}");
@@ -267,6 +273,25 @@ namespace Sleet
                     await Retry(SetBucketAcl, log, token);
                 }
             }
+        }
+
+        // True if the bucket contains any files. Retry waits until a bucket that was just created is found.
+        private async Task<bool> HasFiles(ILogger log, CancellationToken token)
+        {
+            var hasFiles = false;
+
+            await Retry(async (_, retryToken) =>
+            {
+                var response = await _client.ListObjectsV2Async(new ListObjectsV2Request()
+                {
+                    BucketName = _bucketName,
+                    MaxKeys = 1
+                }, retryToken);
+
+                hasFiles = response.S3Objects?.Count > 0;
+            }, log, token);
+
+            return hasFiles;
         }
 
         public override async Task DeleteBucket(ILogger log, CancellationToken token)

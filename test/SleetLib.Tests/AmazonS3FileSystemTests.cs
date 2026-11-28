@@ -179,6 +179,7 @@ namespace SleetLib.Tests
                 client.Setup(c => c.PutBucketAclAsync(It.IsAny<PutBucketAclRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketAclResponse());
                 client.SetupSequence(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(new ListObjectsV2Response())
+                    .ReturnsAsync(new ListObjectsV2Response())
                     .ReturnsAsync(new ListObjectsV2Response { S3Objects = new List<S3Object> { new S3Object { Key = AmazonS3FileSystemLock.LockFile } } });
                 client.Setup(c => c.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutObjectResponse());
                 var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.AES256, acl: S3CannedACL.PublicRead, disablePayloadSigning: true);
@@ -292,6 +293,29 @@ namespace SleetLib.Tests
                 existsAfter.Should().BeTrue();
                 client.Verify(c => c.PutBucketAsync(It.IsAny<PutBucketRequest>(), It.IsAny<CancellationToken>()), Times.Never());
                 VerifyAccessSettingsNotChanged(client);
+            }
+        }
+
+        // Amazon S3 in us-east-1 reports success for a bucket the account already owns, and can report a new bucket as missing
+        [Fact]
+        public async Task AmazonS3FileSystem_CreateBucket_WhenTheBucketAlreadyContainsFiles_DoesNotChangeAccessSettings()
+        {
+            using (var cache = new LocalCache())
+            {
+                var client = CreateClientWithMissingBucket();
+                client.Setup(c => c.PutBucketAsync(It.IsAny<PutBucketRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutBucketResponse());
+                client.Setup(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new ListObjectsV2Response { S3Objects = new List<S3Object> { new S3Object { Key = "private.txt" } } });
+                client.Setup(c => c.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PutObjectResponse());
+                var fileSystem = new AmazonS3FileSystem(cache, AmazonS3TestUtility.RootUri(), AmazonS3TestUtility.RootUri(), client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None, acl: S3CannedACL.PublicRead);
+                var log = new TestLogger();
+
+                await fileSystem.CreateBucket(log, TestContext.Current.CancellationToken);
+
+                client.Verify(c => c.PutBucketAsync(It.IsAny<PutBucketRequest>(), It.IsAny<CancellationToken>()), Times.Once());
+                VerifyAccessSettingsNotChanged(client);
+                log.GetMessages().Should().Contain($"Bucket {AmazonS3TestUtility.BucketName} already contains files, so Sleet didn't create it and didn't change its access settings.");
+                (await fileSystem.HasBucket(log, TestContext.Current.CancellationToken)).Should().BeTrue();
             }
         }
 
