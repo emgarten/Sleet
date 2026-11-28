@@ -8,6 +8,7 @@
     <PackageVersion Include="AWSSDK.SecurityToken" Version="4.1.0" />
     <PackageVersion Include="AWSSDK.SSO" Version="4.1.0" />
     <PackageVersion Include="AWSSDK.SSOOIDC" Version="4.1.0" />
+    <PackageVersion Include="Azure.Core" Version="1.65.0" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.30.2" />
     <PackageVersion Include="DotNetConfig" Version="1.2.0" />
