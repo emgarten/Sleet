@@ -69,14 +69,15 @@ namespace Sleet
         /// </summary>
         public static Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string? outputPath, bool ignoreErrors, bool skipExisting, ILogger log, CancellationToken token)
         {
-            return DownloadPackages(settings, source, outputPath, ignoreErrors, skipExisting, includeSymbols: true, log: log, token: token);
+            return DownloadPackages(settings, source, outputPath, ignoreErrors, skipExisting, includeSymbols: true, sourceSettings: null, log: log, token: token);
         }
 
         /// <summary>
         /// Download packages. This method does not lock the feed or verify the client version.
         /// includeSymbols controls if .symbols.nupkg files left from the removed symbols server are downloaded.
+        /// sourceSettings are read from the feed if null.
         /// </summary>
-        internal static async Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string? outputPath, bool ignoreErrors, bool skipExisting, bool includeSymbols, ILogger log, CancellationToken token)
+        internal static async Task<bool> DownloadPackages(LocalSettings settings, ISleetFileSystem source, string? outputPath, bool ignoreErrors, bool skipExisting, bool includeSymbols, FeedSettings? sourceSettings, ILogger log, CancellationToken token)
         {
             if (string.IsNullOrEmpty(outputPath))
             {
@@ -86,7 +87,7 @@ namespace Sleet
             var success = true;
 
             // Get sleet.settings.json
-            var sourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
+            sourceSettings ??= await FeedSettingsUtility.GetSettingsOrDefault(source, log, token);
 
             // Settings context used for all operations
             var context = new SleetContext()

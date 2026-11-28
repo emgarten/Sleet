@@ -27,7 +27,9 @@
   * Removed the symbols APIs from SleetLib. `InitCommand.RunAsync` no longer takes `enableSymbols`
 * Updated System.Security.Cryptography.Pkcs to 11.0.0 to address advisories GHSA-2fmv-rv2c-59x7 and GHSA-846f-f764-76mx
 * Fixed `sleet` failing to start when installed with `dotnet tool install --allow-roll-forward` [Issue](https://github.com/emgarten/Sleet/issues/247)
-* `sleet recreate` stops before it changes the feed if the feed has `.nupkg` files that aren't in `sleet.packageindex.json`, for example when that file is missing. Before, `recreate` deleted those packages without backing them up. Use `--force` to delete them
+* `sleet recreate` checks the feed before it changes anything, and lists every problem it finds with a fix for each. Use `--force` to recreate the feed anyway
+  * Stops if the feed has `.nupkg` files that aren't in `sleet.packageindex.json`, for example when that file is missing. Before, `recreate` deleted those packages without backing them up
+  * With `--force`, recreates a feed whose `sleet.settings.json` or `sleet.packageindex.json` can't be read. Before, it failed on these files. The new feed uses the default settings if `sleet.settings.json` can't be read, and `recreate` deletes all packages if `sleet.packageindex.json` can't be read
 * Added a `provider` setting for `s3` feeds hosted on S3 compatible storage
   * `aws` (default), `r2` for Cloudflare R2, `gcs` for Google Cloud Storage, and `self-hosted` for S3 servers you run yourself, such as MinIO and RustFS
   * `sleet create-config --provider <name>` creates a config template for the service
