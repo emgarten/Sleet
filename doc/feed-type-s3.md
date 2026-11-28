@@ -86,7 +86,7 @@ sleet push ./nupkgs
 
 On the first push, Sleet creates the bucket if it does not exist, removes the bucket public access block, sets Object Ownership to `BucketOwnerPreferred`, and adds a public-read bucket policy for `s3:GetObject` on `arn:aws:s3:::my-bucket-feed/*`. If you set `acl`, Sleet also applies that canned bucket ACL.
 
-Sleet never changes the policy or public access settings for an existing bucket. Create private buckets yourself before the first push.
+Sleet never changes the policy or public access settings for an existing bucket. If something else creates the bucket while Sleet is creating it, Sleet logs a warning and leaves the bucket's settings unchanged. Create private buckets yourself before the first push, not during it. In us-east-1, Amazon S3 reports success when you create a bucket that you already own, so Sleet can't detect a bucket that was created at the same moment.
 
 > [!WARNING]
 > Account-level S3 Block Public Access can still block the public bucket policy. If bucket creation fails, Sleet logs: `Unable to update S3 bucket. Ensure that the login info used has AmazonS3FullAccess and that the AWS account allows public access buckets: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-publicaccessblockconfiguration.html`.

@@ -171,60 +171,21 @@ namespace Sleet
 
         public override async Task CreateBucket(ILogger log, CancellationToken token)
         {
+            // A cached result can be old, the bucket may have been created since then
+            if (_hasBucket != true)
+            {
+                _hasBucket = await BucketExists(token);
+            }
 
-            if (!await HasBucket(log, token))
+            if (_hasBucket == false)
             {
                 log.LogInformation($"Creating new bucket: {_bucketName}");
 
-                try
+                // Only make a bucket public if this request created it. Something else may have created a private bucket
+                // after the check above.
+                if (await TryCreateBucket(log, token))
                 {
-                    // Amazon S3 needs the client region as the LocationConstraint. With serviceURL the SDK guesses the region from
-                    // the bucket url or the AWS environment, so a bucket name that contains ca-4247-9480 is sent as that region.
-                    // S3 compatible services choose a location when it is left out.
-                    await _client.PutBucketAsync(new PutBucketRequest()
-                    {
-                        BucketName = _bucketName,
-                        UseClientRegion = Provider == S3Provider.Aws
-                    }, token);
-                }
-                catch (BucketAlreadyOwnedByYouException)
-                {
-                    // The bucket was created after HasBucket checked for it
-                }
-                catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.Conflict)
-                {
-                    // Ignore the Conflict exception when creating the bucket
-                    log.LogWarning($"Transient errors may happen during creation. Bucket already created: {ex.Message}.");
-                }
-
-                if (Provider.ExternalPublicAccess)
-                {
-                    log.LogWarning($"{Provider.DisplayName} buckets are private by default. Enable public access for {_bucketName} so that NuGet clients can read the feed: {Provider.HelpUrl}");
-                }
-                else
-                {
-                    log.LogInformation($"Adding policy for public read access to bucket: {_bucketName}");
-
-                    // As of 2023-04 additional settings are needed to allow a public policy
-                    // https://stackoverflow.com/questions/39085360/why-is-uploading-a-file-to-s3-via-the-c-sharp-aws-sdk-giving-a-permission-denied
-
-                    // Account wide settings can also block public access, users must update their accounts manually for this
-                    // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-publicaccessblockconfiguration.html
-
-                    // Remove all public access blocks for this bucket
-                    await RetryOptional(SetPublicAccessBlocks, log, token);
-
-                    // Set ownership preference to ensure we can set a public policy
-                    await RetryOptional(SetOwnership, log, token);
-
-                    // Set the public policy to public read-only
-                    await Retry(SetBucketPolicy, log, token);
-
-                    // Set the default acl of the bucket. Must not conflict with the public access policy.
-                    if (_acl != null)
-                    {
-                        await Retry(SetBucketAcl, log, token);
-                    }
+                    await SetNewBucketAccess(log, token);
                 }
 
                 // Get and release the lock to ensure that everything will work for the next operation.
@@ -234,6 +195,71 @@ namespace Sleet
                 await CreateAndReleaseLock(log, token);
 
                 _hasBucket = true;
+            }
+        }
+
+        // Returns true if this request created the bucket, or false if something else created it after the check for it
+        private async Task<bool> TryCreateBucket(ILogger log, CancellationToken token)
+        {
+            try
+            {
+                // Amazon S3 needs the client region as the LocationConstraint. With serviceURL the SDK guesses the region from
+                // the bucket url or the AWS environment, so a bucket name that contains ca-4247-9480 is sent as that region.
+                // S3 compatible services choose a location when it is left out.
+                await _client.PutBucketAsync(new PutBucketRequest()
+                {
+                    BucketName = _bucketName,
+                    UseClientRegion = Provider == S3Provider.Aws
+                }, token);
+
+                return true;
+            }
+            catch (BucketAlreadyExistsException ex) when (Provider == S3Provider.Aws)
+            {
+                // Amazon S3 only returns this when another account owns the bucket. Some S3 compatible services return it for
+                // a bucket that the account owns.
+                throw new InvalidOperationException($"Unable to create bucket {_bucketName}, the bucket name is already taken. Amazon S3 bucket names are shared by all AWS accounts, use a different bucketName. {ex.ErrorCode}: {ex.Message}", ex);
+            }
+            catch (AmazonS3Exception ex) when (ex is BucketAlreadyOwnedByYouException || ex.StatusCode == HttpStatusCode.Conflict)
+            {
+                // Something else created the bucket, or the SDK retried a request that created it. Amazon S3 in us-east-1 and
+                // some S3 compatible services return success instead, which can't be told apart from a new bucket.
+                log.LogWarning($"Bucket {_bucketName} was created after Sleet checked for it, so Sleet didn't change its access settings. For a public feed, allow public read access to the bucket. {ex.ErrorCode}: {ex.Message}");
+                return false;
+            }
+        }
+
+        // Make a new bucket publicly readable, for buckets created by Sleet
+        private async Task SetNewBucketAccess(ILogger log, CancellationToken token)
+        {
+            if (Provider.ExternalPublicAccess)
+            {
+                log.LogWarning($"{Provider.DisplayName} buckets are private by default. Enable public access for {_bucketName} so that NuGet clients can read the feed: {Provider.HelpUrl}");
+            }
+            else
+            {
+                log.LogInformation($"Adding policy for public read access to bucket: {_bucketName}");
+
+                // As of 2023-04 additional settings are needed to allow a public policy
+                // https://stackoverflow.com/questions/39085360/why-is-uploading-a-file-to-s3-via-the-c-sharp-aws-sdk-giving-a-permission-denied
+
+                // Account wide settings can also block public access, users must update their accounts manually for this
+                // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-publicaccessblockconfiguration.html
+
+                // Remove all public access blocks for this bucket
+                await RetryOptional(SetPublicAccessBlocks, log, token);
+
+                // Set ownership preference to ensure we can set a public policy
+                await RetryOptional(SetOwnership, log, token);
+
+                // Set the public policy to public read-only
+                await Retry(SetBucketPolicy, log, token);
+
+                // Set the default acl of the bucket. Must not conflict with the public access policy.
+                if (_acl != null)
+                {
+                    await Retry(SetBucketAcl, log, token);
+                }
             }
         }
 
