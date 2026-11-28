@@ -18,6 +18,7 @@ namespace Sleet.AmazonS3.Tests
         public async Task GivenPushCreatesAnS3BucketVerifyNuGetCanRead()
         {
             Assert.SkipWhen(AmazonS3TestContext.IsCloudflareR2, "Public access for Cloudflare R2 is set up outside the S3 API, with a custom domain or r2.dev URL, so NuGet can't read the bucket this test creates.");
+            Assert.SkipWhen(AmazonS3TestContext.IsGoogleCloudStorage, "Public access for Cloud Storage is set up outside the S3 API, with IAM, so NuGet can't read the bucket this test creates.");
 
             using (var packagesFolder = new TestFolder())
             await using (var testContext = new AmazonS3TestContext())

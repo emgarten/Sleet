@@ -106,3 +106,5 @@ Azure Front Door Standard or Premium is the current Azure CDN option to consider
 Amazon CloudFront can use an S3 bucket as an origin. AWS recommends S3 regional bucket origin names such as `my-bucket-feed.s3.us-west-2.amazonaws.com`. For a private S3 feed behind CloudFront, see [Private feed on AWS](private-feed-s3.md).
 
 Cloudflare respects origin `Cache-Control` headers for cacheable responses, but it does not cache JSON by file extension by default. Use Cache Rules if you want Cloudflare to cache Sleet JSON and extensionless query files.
+
+Google Cloud Storage caches public files up to 10 MiB based on their `Cache-Control` header, and you can't purge this cache. For cache invalidation or a custom domain over HTTPS, use Cloud CDN with an external Application Load Balancer. See [Create a Google Cloud Storage feed](feed-type-gcs.md#caching).

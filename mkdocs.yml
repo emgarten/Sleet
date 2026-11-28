@@ -93,6 +93,7 @@ nav:
       - Create an Azure feed: feed-type-azure.md
       - Create an Amazon S3 feed: feed-type-s3.md
       - Create a Cloudflare R2 feed: feed-type-cloudflare.md
+      - Create a Google Cloud Storage feed: feed-type-gcs.md
       - Create a local feed: feed-type-local.md
       - Use a feed with NuGet: consume-feed.md
   - Guides:

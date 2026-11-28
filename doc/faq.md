@@ -56,7 +56,7 @@ Yes. Set `baseURI` to the URL that clients use before the first push. See [CDN a
 
 ## Which S3-compatible services work?
 
-Sleet can use services that support the Amazon S3 API, such as Cloudflare R2, MinIO, DigitalOcean Spaces, and Backblaze B2. The Sleet maintainers don't test them, so check the provider notes in [S3-compatible storage](s3-compatible.md).
+Sleet can use services that support the Amazon S3 API, such as Cloudflare R2, Google Cloud Storage, MinIO, DigitalOcean Spaces, and Backblaze B2. Sleet's tests run against Cloudflare R2, Google Cloud Storage, and RustFS. The Sleet maintainers don't test the others, so check the provider notes in [S3-compatible storage](s3-compatible.md).
 
 ## How do I move a feed?
 

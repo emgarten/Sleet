@@ -1,7 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.Runtime;
@@ -324,6 +330,75 @@ namespace SleetLib.Tests
             fileSystem.BaseURI.AbsoluteUri.Should().Be("http://localhost:9000/test-bucket/");
         }
 
+        [Theory]
+        [InlineData("gcs")]
+        [InlineData("GCS")]
+        [InlineData(" gcs ")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithGoogleCloudStorageProvider_UsesGcsDefaults(string provider)
+        {
+            var fileSystem = await CreateS3FileSystemAsync(source =>
+            {
+                source["provider"] = provider;
+            });
+
+            var config = GetS3Config(fileSystem);
+            config.ServiceURL.Should().Be("https://storage.googleapis.com/");
+            config.AuthenticationRegion.Should().Be("auto");
+            config.RegionEndpoint.Should().BeNull();
+            config.ForcePathStyle.Should().BeTrue();
+            config.RequestChecksumCalculation.Should().Be(RequestChecksumCalculation.WHEN_REQUIRED);
+            config.ResponseChecksumValidation.Should().Be(ResponseChecksumValidation.WHEN_REQUIRED);
+            GetDisablePayloadSigning(fileSystem).Should().BeTrue();
+
+            // The XML API url of the bucket is also its public url, baseURI isn't needed
+            fileSystem.Root.AbsoluteUri.Should().Be("https://storage.googleapis.com/test-bucket/");
+            fileSystem.BaseURI.AbsoluteUri.Should().Be("https://storage.googleapis.com/test-bucket/");
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithGoogleCloudStorageProviderAndServiceURL_UsesServiceURL()
+        {
+            var fileSystem = await CreateS3FileSystemAsync(source =>
+            {
+                source["provider"] = "gcs";
+                source["serviceURL"] = "https://storage-example.p.googleapis.com";
+            });
+
+            GetS3Config(fileSystem).ServiceURL.Should().Be("https://storage-example.p.googleapis.com/");
+            fileSystem.Root.AbsoluteUri.Should().Be("https://storage-example.p.googleapis.com/test-bucket/");
+        }
+
+        [Fact]
+        public async Task CreateFileSystemAsync_WithS3Type_WithGoogleCloudStorageProvider_DownloadsGzipFilesAsStored()
+        {
+            var fileSystem = await CreateS3FileSystemAsync(source =>
+            {
+                source["provider"] = "gcs";
+            });
+
+            using (var handler = new GoogleCloudStorageHandler())
+            using (var stream = new MemoryStream())
+            {
+                var config = GetS3Config(fileSystem);
+                config.HttpClientFactory = new StubHttpClientFactory(handler);
+
+                // Sign the retry again, the header must not be signed on any attempt
+                config.ResignRetries = true;
+
+                var client = (IAmazonS3)GetPrivateField(fileSystem, "_client");
+                var contentEncoding = await AmazonS3FileSystemAbstraction.DownloadFileAsync(client, "test-bucket", "index.json", stream, TestContext.Current.CancellationToken);
+
+                contentEncoding.Should().Be("gzip");
+                stream.ToArray().Should().Equal(handler.StoredFile);
+                handler.Requests.Should().HaveCount(2);
+                handler.Requests.Should().AllSatisfy(request =>
+                {
+                    request.AcceptEncoding.Should().Be("gzip");
+                    request.Authorization.Should().Contain("SignedHeaders=").And.NotContain("accept-encoding");
+                });
+            }
+        }
+
         [Fact]
         public async Task CreateFileSystemAsync_WithS3Type_WithSettings_OverridesProviderDefaults()
         {
@@ -422,20 +497,20 @@ namespace SleetLib.Tests
         }
 
         [Theory]
-        [InlineData("gcs")]
-        [InlineData(" gcs ")]
+        [InlineData("b2")]
+        [InlineData(" b2 ")]
         public async Task CreateFileSystemAsync_WithS3Type_WithUnknownProvider_ThrowsArgumentException(string provider)
         {
             var settings = GetS3Settings(source =>
             {
                 source["provider"] = provider;
-                source["serviceURL"] = "https://storage.googleapis.com";
+                source["serviceURL"] = "https://s3.us-west-004.backblazeb2.com";
             });
 
             Func<Task> act = async () => await FileSystemFactory.CreateFileSystemAsync(settings, new LocalCache(), "s3", NullLogger.Instance);
 
             var ex = await Assert.ThrowsAsync<ArgumentException>(act);
-            Assert.Contains("Unknown provider 'gcs' for s3 source. Valid values are: aws, r2, self-hosted", ex.Message);
+            Assert.Contains("Unknown provider 'b2' for s3 source. Valid values are: aws, r2, self-hosted, gcs", ex.Message);
         }
 
         [Fact]
@@ -848,6 +923,72 @@ aws_secret_access_key = profile-secret-key
             return typeof(AmazonS3FileSystem)
                 .GetField(name, BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(fileSystem);
+        }
+
+        // Google Cloud Storage decompresses gzip files for clients that do not accept gzip and returns a weak ETag
+        private sealed class GoogleCloudStorageHandler : HttpMessageHandler
+        {
+            private const string Json = "{\"version\":\"3.0.0\"}";
+
+            public byte[] StoredFile { get; } = AmazonS3TestUtility.GzipUtf8(Json);
+
+            public List<(string AcceptEncoding, string Authorization)> Requests { get; } = new();
+
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                Requests.Add((GetHeader(request, "Accept-Encoding"), GetHeader(request, "Authorization")));
+
+                // Fail the first attempt to retry the request
+                if (Requests.Count == 1)
+                {
+                    return Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                    {
+                        Content = new StringContent("<Error><Code>InternalError</Code><Message>failed</Message></Error>", Encoding.UTF8, "application/xml")
+                    });
+                }
+
+                var md5 = Convert.ToHexString(MD5.HashData(StoredFile)).ToLowerInvariant();
+                var response = new HttpResponseMessage(HttpStatusCode.OK);
+
+                if (request.Headers.AcceptEncoding.Any(e => e.Value == "gzip"))
+                {
+                    response.Content = new ByteArrayContent(StoredFile);
+                    response.Content.Headers.ContentEncoding.Add("gzip");
+                    response.Headers.TryAddWithoutValidation("ETag", $"\"{md5}\"");
+                }
+                else
+                {
+                    response.Content = new ByteArrayContent(Encoding.UTF8.GetBytes(Json));
+                    response.Headers.TryAddWithoutValidation("ETag", $"W/\"{md5}\"");
+                }
+
+                return Task.FromResult(response);
+            }
+
+            private static string GetHeader(HttpRequestMessage request, string name)
+            {
+                return request.Headers.TryGetValues(name, out var values) ? string.Join(",", values) : null;
+            }
+        }
+
+        private sealed class StubHttpClientFactory : HttpClientFactory
+        {
+            private readonly HttpMessageHandler _handler;
+
+            public StubHttpClientFactory(HttpMessageHandler handler)
+            {
+                _handler = handler;
+            }
+
+            public override HttpClient CreateHttpClient(IClientConfig clientConfig)
+            {
+                return new HttpClient(_handler, disposeHandler: false);
+            }
+
+            public override bool UseSDKHttpClientCaching(IClientConfig clientConfig)
+            {
+                return false;
+            }
         }
     }
 }

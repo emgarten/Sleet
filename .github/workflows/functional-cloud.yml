@@ -99,6 +99,8 @@ jobs:
         SLEET_TEST_R2_ACCESS_KEY_ID: ${{ secrets.SLEET_TEST_R2_ACCESS_KEY_ID }}
         SLEET_TEST_R2_SECRET_ACCESS_KEY: ${{ secrets.SLEET_TEST_R2_SECRET_ACCESS_KEY }}
         SLEET_TEST_R2_SERVICE_URL: ${{ secrets.SLEET_TEST_R2_SERVICE_URL }}
+        SLEET_TEST_GCS_ACCESS_KEY_ID: ${{ secrets.SLEET_TEST_GCS_ACCESS_KEY_ID }}
+        SLEET_TEST_GCS_SECRET_ACCESS_KEY: ${{ secrets.SLEET_TEST_GCS_SECRET_ACCESS_KEY }}
     - name: Upload test results
       # Only when the tests ran. A manual run for a commit that failed the check must not upload anything from it.
       if: ${{ !cancelled() && steps.tests.outcome != 'skipped' }}

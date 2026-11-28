@@ -22,6 +22,9 @@ What to test:
   r2         The Amazon S3 tests against Cloudflare R2 with SLEET_TEST_R2_ACCESS_KEY_ID,
              SLEET_TEST_R2_SECRET_ACCESS_KEY, and SLEET_TEST_R2_SERVICE_URL, the R2 S3 API URL of the account.
              The tests that need a public bucket are skipped.
+  gcs        The Amazon S3 tests against Google Cloud Storage with SLEET_TEST_GCS_ACCESS_KEY_ID and
+             SLEET_TEST_GCS_SECRET_ACCESS_KEY, a Cloud Storage HMAC key. The tests that need a public bucket are
+             skipped.
 
 .EXAMPLE
 ./functional-tests.ps1
@@ -32,7 +35,7 @@ $env:SLEET_TEST_ACCOUNT = "<connection string>"
 #>
 param (
     [Parameter(Position = 0)]
-    [ValidateSet("emulators", "cloud", "all", "azurite", "rustfs", "azure", "aws", "r2")]
+    [ValidateSet("emulators", "cloud", "all", "azurite", "rustfs", "azure", "aws", "r2", "gcs")]
     [string[]]$Target = @("emulators")
 )
 
@@ -58,8 +61,8 @@ $Targets = [ordered]@{
     azure   = @{ Project = $AzureTests; Env = @{}; Required = @("SLEET_TEST_ACCOUNT") }
     aws     = @{ Project = $AmazonS3Tests; Env = @{}; Required = @("SLEET_TEST_S3_ACCESS_KEY_ID", "SLEET_TEST_S3_SECRET_ACCESS_KEY") }
 
-    # The S3 tests read the SLEET_TEST_S3_* env vars, so set them to the R2 account. R2 skips the tests that need a
-    # public bucket.
+    # The S3 tests read the SLEET_TEST_S3_* env vars, so set them to the R2 and Cloud Storage accounts. These targets
+    # skip the tests that need a public bucket.
     r2      = @{
         Project    = $AmazonS3Tests
         Env        = @{
@@ -72,12 +75,26 @@ $Targets = [ordered]@{
         Required   = @("SLEET_TEST_R2_ACCESS_KEY_ID", "SLEET_TEST_R2_SECRET_ACCESS_KEY", "SLEET_TEST_R2_SERVICE_URL")
         AllowSkips = $true
     }
+
+    # The gcs provider has a default serviceURL, so the source doesn't set one
+    gcs     = @{
+        Project    = $AmazonS3Tests
+        Env        = @{
+            SLEET_TEST_S3_ACCESS_KEY_ID     = $env:SLEET_TEST_GCS_ACCESS_KEY_ID
+            SLEET_TEST_S3_SECRET_ACCESS_KEY = $env:SLEET_TEST_GCS_SECRET_ACCESS_KEY
+            SLEET_TEST_S3_SERVICE_URL       = $null
+            SLEET_TEST_S3_PROVIDER          = "gcs"
+            SLEET_TEST_S3_REGION            = $null
+        }
+        Required   = @("SLEET_TEST_GCS_ACCESS_KEY_ID", "SLEET_TEST_GCS_SECRET_ACCESS_KEY")
+        AllowSkips = $true
+    }
 }
 
 # The emulator targets run against local-env
 $Groups = @{
     emulators = @("azurite", "rustfs")
-    cloud     = @("azure", "aws", "r2")
+    cloud     = @("azure", "aws", "r2", "gcs")
     all       = @($Targets.Keys)
 }
 
