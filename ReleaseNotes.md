@@ -1,6 +1,21 @@
 # Release Notes
 
 ## 8.0.0
+* Added a package gallery written to `index.html` at the root of the feed
+  * Browse and filter packages, then drill down to a package's versions and a single version's details, dependencies, and readme
+  * Readmes render as markdown, including GitHub tables, task lists, and alerts. HTML and script links in a readme are not rendered
+  * Readme images from sites other than the feed and the badge hosts that nuget.org allows load only after selecting **Show images**
+  * The page only runs its own scripts. CDN features that rewrite scripts, such as Cloudflare Rocket Loader, must be off for the feed
+  * Every view is linkable, for example `index.html#package/Newtonsoft.Json/13.0.3`
+  * Links to the gallery show a title and description in apps that preview links, such as Slack, Discord, and Teams
+  * Dark mode by default, with a light mode toggle in the header
+  * Visual Studio links packages to their gallery page on feeds served over https
+  * Azure and S3 feeds store `index.html` gzipped, the same as JSON files. S3 feeds follow the `compress` setting
+  * Run `sleet recreate` to add the gallery to an existing feed
+  * Sleet does not overwrite an existing `index.html`, so a custom page can be used instead
+  * Disable with `sleet recreate --set galleryenabled:false`, or create a new feed without it with `sleet init --set galleryenabled:false`. See [gallery docs](doc/gallery.md)
+* Added `--set key:value` to `sleet init` and `sleet recreate` to choose [feed settings](doc/feed-settings.md) when a feed is created or rebuilt. Can be repeated, and checks keys and values before changing the feed
+* A `badgesenabled` feed setting value other than `true` or `false` now leaves badges off instead of turning them on
 * Removed net9.0 support. .NET 8 and 9 are out of support; the net8.0 build is kept for compatibility and also runs on .NET 9.
 * Removed the symbol server. Embed PDBs in your packages instead. See [symbol server](doc/symbol-server.md)
   * Removed `sleet init --with-symbols` and the `symbolsfeedenabled` feed setting

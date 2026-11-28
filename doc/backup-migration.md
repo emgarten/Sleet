@@ -55,7 +55,7 @@ sleet feed-settings --source new --set badgesenabled:true
 sleet push --source new ./backup --skip-existing
 ```
 
-If the old feed used the catalog, add `--with-catalog` to the `init` command, for example `sleet init --source new --with-catalog`. Run `init` only once on the new feed.
+If the old feed used the catalog, add `--with-catalog` to the `init` command, for example `sleet init --source new --with-catalog`. If the old feed had the [package gallery](gallery.md) turned off, add `--set galleryenabled:false` to the `init` command, because Sleet adds or removes the gallery only when it creates the feed. Run `init` only once on the new feed.
 
 Reapply each setting that `--get-all` printed before you push. The `badgesenabled` line in the example is only needed if the old feed had badges turned on. Settings such as badges and retention are applied while packages are pushed.
 
@@ -108,7 +108,7 @@ sleet push ./backup
 sleet validate
 ```
 
-Before the `push` step, reapply each setting that `--get-all` printed with `sleet feed-settings --set key:value`. If the feed used the catalog, add `--with-catalog` to `init`.
+Before the `push` step, reapply each setting that `--get-all` printed with `sleet feed-settings --set key:value`. If the feed used the catalog, add `--with-catalog` to `init`. If the feed had the [package gallery](gallery.md) turned off, add `--set galleryenabled:false` to `init`.
 
 If a failed `recreate` already removed the packages, push the backup folder that the error message printed.
 
@@ -131,11 +131,10 @@ Feeds can also declare `sleet:requiredVersion`; if your client does not satisfy 
 ## Enable the catalog on an existing feed
 
 ```bash
-sleet feed-settings --set catalogenabled:true
-sleet recreate
+sleet recreate --set catalogenabled:true
 ```
 
-The setting enables the catalog for future operations. `recreate` adds the catalog to `index.json` and adds the packages already on the feed to it. Until you recreate, clients can't find the catalog. For a local feed whose `baseURI` is different from `path`, use [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate) with `init --with-catalog`.
+`recreate` turns the setting on, adds the catalog to `index.json`, and adds the packages already on the feed to it. For a local feed whose `baseURI` is different from `path`, use [rebuild a local feed without recreate](#rebuild-a-local-feed-without-recreate) with `init --with-catalog`.
 
 ## Move packages from another server
 

@@ -104,9 +104,19 @@ Push one package or a folder of packages:
 sleet push ./nupkgs
 ```
 
-The first push initializes the feed with the default settings. To turn on the catalog from the start, run [init](commands.md#init) first.
+The first push initializes the feed with the default [feed settings](feed-settings.md). To start with different settings, run [init](commands.md#init) before the first push. To turn on the catalog:
 
-If the bucket doesn't exist, Sleet creates it, which needs an *Admin Read & Write* token. Sleet can't make the bucket public, so [make the bucket public](#make-the-bucket-public) after Sleet creates it.
+```bash
+sleet init --with-catalog
+```
+
+To create the feed without the [package gallery](gallery.md):
+
+```bash
+sleet init --set galleryenabled:false
+```
+
+If the bucket doesn't exist, `push` or `init` creates it, which needs an *Admin Read & Write* token. Sleet can't make the bucket public, so [make the bucket public](#make-the-bucket-public) after Sleet creates it.
 
 ## Caching
 
@@ -121,6 +131,16 @@ https://nuget.example.com/index.json
 ```
 
 Add it to NuGet clients. See [Use a feed with NuGet](consume-feed.md).
+
+## Browse the feed
+
+Sleet writes a [package gallery](gallery.md) to the feed, a web page for browsing its packages. Open it in a browser at `baseURI` plus `index.html`:
+
+```text
+https://nuget.example.com/index.html
+```
+
+R2 doesn't serve a default page, so include `index.html` in the URL. On a custom domain, a rewrite rule can open the gallery from the domain alone, see [serve the gallery from the root URL](gallery.md#serve-the-gallery-from-the-root-url).
 
 ## Next steps
 

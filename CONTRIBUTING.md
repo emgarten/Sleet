@@ -20,7 +20,7 @@ For a large change or a new feature, open an issue first to discuss it. Small fi
 1. Make the change, and add or update tests.
 1. Add a short, user-focused entry to [ReleaseNotes.md](ReleaseNotes.md) for changes that users will notice. Internal changes don't need an entry.
 1. Update the documentation in [/doc](doc) if the change affects how Sleet is used.
-1. Run the build and tests, then open a pull request. If you changed the Azure or Amazon S3 code, run the [functional tests](#functional-tests) too.
+1. Run the build and tests, then open a pull request. If you changed the Azure or Amazon S3 code, run the [functional tests](#functional-tests) too. If you changed the package gallery, run the [gallery UX tests](#gallery-ux-tests).
 
 ## Build and test
 
@@ -106,6 +106,22 @@ gh workflow run functional-cloud.yml -f pr_number=<number> -f sha=<full SHA>
 ```
 
 Keep the default branch, `main`. Don't use `--ref`, and don't change **Use workflow from** if you run it from the Actions tab. GitHub runs the copy of the workflow on the branch you choose, and a copy on another branch might not check the commit.
+
+### Gallery UX tests
+
+The [package gallery](doc/gallery.md) has browser tests in [test/Sleet.UX.Tests](test/Sleet.UX.Tests). They use [Playwright](https://playwright.dev/dotnet/) to open the gallery of a test feed in a browser, so the build scripts don't run them. Run them when you change the gallery, `src/SleetLib/compiler/resources/templateGallery.html`, or the feed files it reads:
+
+```powershell
+./ux-tests.ps1
+```
+
+```bash
+./ux-tests.sh
+```
+
+The tests need Google Chrome or Microsoft Edge. To use another Chromium-based browser, set `SLEET_UX_BROWSER` to the path of its executable. The test results are written to `artifacts/TestResults/ux`.
+
+The test project isn't in `Sleet.slnx`, so the build doesn't restore Playwright. CI runs the same scripts on Linux, macOS, and Windows with the [UX tests workflow](.github/workflows/ux-tests.yml).
 
 ### Project conventions
 

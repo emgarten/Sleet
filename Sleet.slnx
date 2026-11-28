@@ -7,6 +7,7 @@
     <File Path=".github/workflows/functional-cloud.yml" />
     <File Path=".github/workflows/functional.yml" />
     <File Path=".github/workflows/publish.yml" />
+    <File Path=".github/workflows/ux-tests.yml" />
   </Folder>
   <Folder Name="/build/">
     <File Path=".editorconfig" />
@@ -21,6 +22,8 @@
     <File Path="functional-tests.sh" />
     <File Path="global.json" />
     <File Path="NuGet.Config" />
+    <File Path="ux-tests.ps1" />
+    <File Path="ux-tests.sh" />
   </Folder>
   <Folder Name="/local-env/">
     <File Path="local-env/docker-compose.yml" />

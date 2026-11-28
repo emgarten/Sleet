@@ -113,6 +113,7 @@ nav:
       - Feed features:
           - Version badges: badges.md
           - External search: external-search.md
+          - Package gallery: gallery.md
       - Maintenance:
           - Package retention: retention.md
           - Backup and migration: backup-migration.md

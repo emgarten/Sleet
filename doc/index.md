@@ -16,7 +16,7 @@ flowchart LR
 - The feed works with every NuGet v3 client, including `dotnet`, Visual Studio, and `nuget.exe`.
 - You keep full control of your packages and where they are stored.
 
-Sleet also supports [version badges](badges.md), [package retention](retention.md), and [CDN cache headers](cdn-caching.md).
+Sleet also supports [version badges](badges.md), [package retention](retention.md), and [CDN cache headers](cdn-caching.md). By default, feeds also include a [package gallery](gallery.md), a web page for browsing their packages.
 
 ## Choose where to host the feed
 

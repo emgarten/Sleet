@@ -78,9 +78,9 @@ Some providers reject AWS SigV4 payload signing. Set `disablePayloadSigning` to 
 }
 ```
 
-By default, Sleet gzips JSON files and uploads them with `Content-Encoding: gzip`. Set `compress` to `false` if the provider or its public endpoint mishandles gzipped JSON.
+By default, Sleet gzips JSON files and the [gallery](gallery.md) page, `index.html`, and uploads them with `Content-Encoding: gzip`. Set `compress` to `false` if the provider or its public endpoint mishandles gzipped files.
 
-For example, some S3-compatible services keep the `aws-chunked` encoding that the AWS SDK uses for uploads, and serve JSON files with `Content-Encoding: gzip, aws-chunked`. NuGet can't decompress those files, so it can't load the service index, and `curl --compressed` fails with `Unrecognized content encoding type`. Uncompressed files work with NuGet even if the service still adds `aws-chunked`. Check them with curl without `--compressed`.
+For example, some S3-compatible services keep the `aws-chunked` encoding that the AWS SDK uses for uploads, and serve these files with `Content-Encoding: gzip, aws-chunked`. NuGet can't decompress those files, so it can't load the service index. Browsers can't show the gallery, and `curl --compressed` fails with `Unrecognized content encoding type`. Uncompressed files work with NuGet even if the service still adds `aws-chunked`. Check them with curl without `--compressed`.
 
 ```json
 {

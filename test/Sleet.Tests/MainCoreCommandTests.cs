@@ -289,6 +289,57 @@ namespace Sleet.Tests
             }
         }
 
+        [Fact]
+        public async Task MainCore_InitWithSet_AppliesEachSettingToTheNewFeed()
+        {
+            using (var root = new TestFolder())
+            {
+                // Arrange
+                var feed = Path.Combine(root.Root, "feed");
+                var config = Path.Combine(root.Root, "sleet.json");
+                WriteLocalConfig(config, ("local", feed));
+                var log = new TestLogger();
+
+                // Act
+                var exitCode = await RunAsync(log, "init", "--config", config, "--set", "galleryenabled:false", "--set", "badgesenabled:true");
+
+                // Assert
+                exitCode.Should().Be(0);
+                File.Exists(Path.Combine(feed, "index.html")).Should().BeFalse();
+
+                var feedSettings = FeedSettingsUtility.GetSettings(JObject.Parse(File.ReadAllText(Path.Combine(feed, "sleet.settings.json"))));
+                feedSettings["galleryenabled"].Should().Be("false");
+                feedSettings["badgesenabled"].Should().Be("true");
+            }
+        }
+
+        [Fact]
+        public async Task MainCore_RecreateWithSet_AppliesEachSettingToTheFeed()
+        {
+            using (var root = new TestFolder())
+            {
+                // Arrange
+                var feed = Path.Combine(root.Root, "feed");
+                var config = Path.Combine(root.Root, "sleet.json");
+                WriteLocalConfig(config, ("local", feed));
+                var log = new TestLogger();
+
+                (await RunAsync(log, "init", "--config", config)).Should().Be(0);
+                File.Exists(Path.Combine(feed, "index.html")).Should().BeTrue();
+
+                // Act
+                var exitCode = await RunAsync(log, "recreate", "--config", config, "--set", "galleryenabled:false", "--set", "badgesenabled:true");
+
+                // Assert
+                exitCode.Should().Be(0);
+                File.Exists(Path.Combine(feed, "index.html")).Should().BeFalse();
+
+                var feedSettings = FeedSettingsUtility.GetSettings(JObject.Parse(File.ReadAllText(Path.Combine(feed, "sleet.settings.json"))));
+                feedSettings["galleryenabled"].Should().Be("false");
+                feedSettings["badgesenabled"].Should().Be("true");
+            }
+        }
+
         private static Task<int> RunAsync(TestLogger log, params string[] args)
         {
             return Program.MainCore(args, log);

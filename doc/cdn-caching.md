@@ -28,6 +28,7 @@ Azure Blob Storage and Amazon S3 use the same cache-control groups:
 | `.json` files | `application/json` | `mutableCacheControl` |
 | Extensionless JSON files such as `search/query` and `autocomplete/query` | `application/json` | `mutableCacheControl` |
 | `.svg` files | `image/svg+xml` | `mutableCacheControl` |
+| `.html` files, such as the [package gallery](gallery.md) | `text/html; charset=utf-8` | `mutableCacheControl` |
 
 Unknown file types keep `Cache-Control: no-store` and Sleet logs a warning.
 
@@ -61,9 +62,9 @@ Be careful with `push --force` and `delete` if immutable files have long cache l
 
 ## Compression
 
-Azure Blob Storage uploads JSON as gzip-compressed content with `Content-Encoding: gzip`.
+Azure Blob Storage uploads JSON and the gallery's `index.html` as gzip-compressed content with `Content-Encoding: gzip`.
 
-Amazon S3 uploads JSON as gzip-compressed content when `compress` is `true`, which is the default:
+Amazon S3 uploads JSON and the gallery's `index.html` as gzip-compressed content when `compress` is `true`, which is the default:
 
 ```json
 {

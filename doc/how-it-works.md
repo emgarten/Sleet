@@ -25,6 +25,7 @@ Sleet keeps no state outside the feed. Any machine with the settings and write a
 
 ```text
 index.json                           Service index. NuGet reads this first.
+index.html                           Package gallery, if galleryenabled is on.
 sleet.settings.json                  Feed settings.
 sleet.packageindex.json              Every package id and version on the feed.
 flatcontainer/{id}/index.json        The versions of a package.
@@ -53,6 +54,7 @@ The feed also has a lock file while a command runs. See [feed locking](locking.m
 | `SearchAutocompleteService/3.0.0-beta` | `autocomplete/query` |
 | `ReadmeUriTemplate/6.13.0` | `flatcontainer/{lower_id}/{lower_version}/readme` |
 | `ReportAbuseUriTemplate/3.0.0` | The feed root |
+| `PackageDetailsUriTemplate/5.1.0` | `index.html#package/{id}/{version}`, if the [package gallery](gallery.md) is on |
 | `Catalog/3.0.0` | `catalog/index.json`, if the catalog is on |
 | `http://schema.emgarten.com/sleet#SettingsFile/1.0.0` | `sleet.settings.json` |
 | `http://schema.emgarten.com/sleet#PackageIndex/1.0.0` | `sleet.packageindex.json` |
@@ -79,7 +81,7 @@ Because the URLs are inside the files, `push`, `delete`, and `validate` check th
 
 ## Compression
 
-On Azure, Sleet gzips every JSON file it uploads, and sets `Content-Encoding: gzip`. On Amazon S3, it does the same when `compress` is `true`, which is the default. Local feeds aren't compressed. The files for `search/query` and `autocomplete/query` have no extension, but Sleet detects that they're JSON.
+On Azure, Sleet gzips every JSON file it uploads and the [gallery](gallery.md) page, `index.html`, and sets `Content-Encoding: gzip`. On Amazon S3, it does the same when `compress` is `true`, which is the default. Local feeds aren't compressed. The files for `search/query` and `autocomplete/query` have no extension, but Sleet detects that they're JSON.
 
 NuGet clients and browsers unzip these files. For `curl`, add `--compressed`:
 

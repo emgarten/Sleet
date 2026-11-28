@@ -22,6 +22,10 @@ No. There's no server to take the upload. Use [sleet push](commands.md#push) ins
 
 Search on a Sleet feed is a static file, so it can't filter by the search term. See [search results](limitations.md#search-results). To get real search, set up an [external search](external-search.md) service.
 
+## Can I browse a feed in a web browser?
+
+Yes. By default, Sleet writes a [package gallery](gallery.md) to the feed, a single web page for browsing and filtering its packages. Open `index.html` at the feed URL.
+
 ## Can I unlist or deprecate a package?
 
 No. You can only delete a package, which removes it from the feed. See [unlisting](limitations.md#unlisting).

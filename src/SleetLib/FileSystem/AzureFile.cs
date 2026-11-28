@@ -84,6 +84,20 @@ namespace Sleet
                         blobHeaders.ContentType = "image/svg+xml";
                         blobHeaders.CacheControl = _mutableCacheControl;
                     }
+                    else if (_blob.Uri.AbsoluteUri.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // text/html is required for browsers to render the gallery
+                        // instead of prompting the user to download it.
+                        blobHeaders.ContentType = "text/html; charset=utf-8";
+                        blobHeaders.CacheControl = _mutableCacheControl;
+
+                        if (!SkipCompress())
+                        {
+                            blobHeaders.ContentEncoding = "gzip";
+                            writeStream = await Utility.GZipAsync(cache);
+                            disposeWriteStream = true;
+                        }
+                    }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
                             || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))
                     {

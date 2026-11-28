@@ -91,6 +91,18 @@ Sleet never changes the policy or public access settings for an existing bucket.
 > [!WARNING]
 > Account-level S3 Block Public Access can still block the public bucket policy. If bucket creation fails, Sleet logs: `Unable to update S3 bucket. Ensure that the login info used has AmazonS3FullAccess and that the AWS account allows public access buckets: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-publicaccessblockconfiguration.html`.
 
+The first push initializes the feed with the default [feed settings](feed-settings.md). To start with different settings, run [init](commands.md#init) before the first push. `init` creates the bucket the same way. To turn on the catalog:
+
+```bash
+sleet init --with-catalog
+```
+
+To create the feed without the [package gallery](gallery.md):
+
+```bash
+sleet init --set galleryenabled:false
+```
+
 ## Fix 403 responses for missing packages
 
 Sleet's auto-created public policy grants `s3:GetObject`, but not `s3:ListBucket`. With S3, anonymous requests for missing keys return 403 unless the caller also has `s3:ListBucket`. NuGet queries every configured source for every package. A 403 from one source can make restore fail or prompt for credentials instead of continuing to the next source.
@@ -162,6 +174,16 @@ https://my-bucket-feed.s3.us-west-2.amazonaws.com/index.json
 ```
 
 Add it to NuGet clients. See [Use a feed with NuGet](consume-feed.md).
+
+## Browse the feed
+
+Sleet writes a [package gallery](gallery.md) to the feed, a web page for browsing its packages. Open it in a browser at the bucket URL plus `index.html`:
+
+```text
+https://my-bucket-feed.s3.us-west-2.amazonaws.com/index.html
+```
+
+The S3 endpoint doesn't serve a default page, so include `index.html` in the URL. To open the gallery from the bucket URL alone, see [serve the gallery from the root URL](gallery.md#serve-the-gallery-from-the-root-url).
 
 ## Next steps
 

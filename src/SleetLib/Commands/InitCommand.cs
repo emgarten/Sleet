@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -9,14 +12,37 @@ namespace Sleet
 {
     public static class InitCommand
     {
+        /// <summary>
+        /// Package gallery written to the root of the feed.
+        /// </summary>
+        public const string GalleryFileName = "index.html";
+
+        private const string GalleryTemplateName = "templateGallery.html";
+
         public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, ILogger log)
         {
             var token = CancellationToken.None;
             return RunAsync(settings, source, enableCatalog: false, log: log, token: token);
         }
 
-        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, ILogger log, CancellationToken token)
+        public static Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, ILogger log, CancellationToken token)
         {
+            return RunAsync(settings, source, enableCatalog, setSettings: [], log: log, token: token);
+        }
+
+        /// <summary>
+        /// Initialize the feed. setSettings are feed settings in the form {key}:{value} to apply to the new feed.
+        /// </summary>
+        public static async Task<bool> RunAsync(LocalSettings settings, ISleetFileSystem source, bool enableCatalog, IEnumerable<string> setSettings, ILogger log, CancellationToken token)
+        {
+            // Check the settings before the feed is read or changed
+            var values = FeedSettingsUtility.ParseAndValidateSettingValues(setSettings);
+
+            if (enableCatalog && values.Any(e => e.Key == "catalogenabled" && e.Value.Equals("false", StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new ArgumentException("Invalid combination of arguments. --with-catalog may not be combined with catalogenabled:false.");
+            }
+
             // A missing bucket has no settings to read, InitAsync creates it
             var feedSettings = await source.HasBucket(log, token)
                 ? await FeedSettingsUtility.GetSettingsOrDefault(source, log, token)
@@ -24,7 +50,20 @@ namespace Sleet
 
             feedSettings.CatalogEnabled = enableCatalog;
 
-            return await InitAsync(settings, source, feedSettings, log, token);
+            if (values.Count > 0)
+            {
+                feedSettings = FeedSettingsUtility.ApplySettings(feedSettings, values);
+            }
+
+            var success = await InitAsync(settings, source, feedSettings, log, token);
+
+            // InitAsync points search at the static search files, apply an external search url passed in.
+            if (success && values.Any(e => e.Key == "externalsearch"))
+            {
+                success = await FeedSettingsUtility.ApplySettingHandlersAsync(settings, source, feedSettings, log, token);
+            }
+
+            return success;
         }
 
         public static Task<bool> InitAsync(SleetContext context)
@@ -93,6 +132,9 @@ namespace Sleet
             // Create package index
             noChanges &= !await CreatePackageIndexAsync(context, serviceIndexJson);
 
+            // Create index.html
+            noChanges &= !await CreateGalleryAsync(context, serviceIndexJson);
+
             // Additional entries
             AddServiceIndexEntry(source.BaseURI, "registration/", "RegistrationsBaseUrl/3.4.0", "Package registrations used for search and packages.config.", serviceIndexJson);
             AddServiceIndexEntry(source.BaseURI, "", "ReportAbuseUriTemplate/3.0.0", "Report abuse template.", serviceIndexJson);
@@ -144,6 +186,8 @@ namespace Sleet
             // Remove encoding for templates
             url = url.Replace("%7Blower_id%7D", "{lower_id}");
             url = url.Replace("%7Blower_version%7D", "{lower_version}");
+            url = url.Replace("%7Bid%7D", "{id}");
+            url = url.Replace("%7Bversion%7D", "{version}");
 
             var json = new JObject
             {
@@ -240,6 +284,36 @@ namespace Sleet
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Write the package gallery to the root of the feed.
+        /// Returns true if the feed was modified.
+        /// </summary>
+        private static async Task<bool> CreateGalleryAsync(SleetContext context, JObject serviceIndexJson)
+        {
+            if (!context.SourceSettings.GalleryEnabled)
+            {
+                return false;
+            }
+
+            // Visual Studio uses this to link each package to its page in the gallery.
+            AddServiceIndexEntry(context.Source.BaseURI, GalleryFileName + "#package/{id}/{version}", "PackageDetailsUriTemplate/5.1.0", "URI template used by NuGet Client to construct a URL for viewing package details.", serviceIndexJson);
+
+            var file = context.Source.Get(GalleryFileName);
+
+            // Sleet only ever creates the file. An existing file may be a custom page,
+            // so it is left alone. Recreate deletes the feed first and writes a fresh copy.
+            if (await file.Exists(context.Log, context.Token))
+            {
+                return false;
+            }
+
+            var html = await TemplateUtility.LoadTemplateFile(GalleryTemplateName, context.OperationStart, context.Source.BaseURI);
+
+            await file.Write(new MemoryStream(Encoding.UTF8.GetBytes(html)), context.Log, context.Token);
+
+            return true;
         }
     }
 }

@@ -14,6 +14,13 @@ namespace Sleet
     /// </summary>
     public static class FeedSettingsUtility
     {
+        private static readonly char[] KeyValueSeparator = [':'];
+
+        // Keys read by LoadSettings, grouped by the type of value they take.
+        private static readonly string[] BoolSettings = ["badgesenabled", "catalogenabled", "galleryenabled"];
+        private static readonly string[] IntSettings = ["catalogpagesize", "retentiongroupbyfirstprereleaselabelcount", "retentionmaxprereleaseversions", "retentionmaxstableversions"];
+        private static readonly string[] StringSettings = ["externalsearch"];
+
         /// <summary>
         /// Read file and load it into FeedSettings.
         /// </summary>
@@ -69,7 +76,10 @@ namespace Sleet
                         settings.CatalogPageSize = Math.Max(1, GetIntOrDefault(pair.Value, defaultValue: 1024));
                         break;
                     case "badgesenabled":
-                        settings.BadgesEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
+                        settings.BadgesEnabled = GetBoolOrDefault(pair.Value, defaultValue: false);
+                        break;
+                    case "galleryenabled":
+                        settings.GalleryEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
                         break;
                     case "retentionmaxstableversions":
                         settings.RetentionMaxStableVersions = GetIntOrDefault(pair.Value, defaultValue: -1);
@@ -108,7 +118,8 @@ namespace Sleet
             {
                 { "catalogenabled", settings.CatalogEnabled.ToString().ToLowerInvariant() },
                 { "catalogpagesize", settings.CatalogPageSize.ToString(CultureInfo.InvariantCulture) },
-                { "badgesenabled", settings.BadgesEnabled.ToString().ToLowerInvariant() }
+                { "badgesenabled", settings.BadgesEnabled.ToString().ToLowerInvariant() },
+                { "galleryenabled", settings.GalleryEnabled.ToString().ToLowerInvariant() }
             };
 
             if (settings.RetentionMaxStableVersions > 0)
@@ -132,6 +143,101 @@ namespace Sleet
             }
 
             return values;
+        }
+
+        /// <summary>
+        /// Parse settings in the form {key}:{value}. Keys are lowercased, values may contain ':'.
+        /// Identical inputs are returned once, a key given more than one value throws.
+        /// </summary>
+        public static IReadOnlyList<KeyValuePair<string, string>> ParseSettingValues(IEnumerable<string> inputs)
+        {
+            var values = new List<KeyValuePair<string, string>>();
+            var keysSeen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var input in new SortedSet<string>(inputs, StringComparer.OrdinalIgnoreCase))
+            {
+                var parts = input.Split(KeyValueSeparator, StringSplitOptions.RemoveEmptyEntries);
+
+                if (parts.Length < 2 || string.IsNullOrEmpty(parts[0]?.Trim()) || string.IsNullOrEmpty(parts[1]?.Trim()))
+                {
+                    throw new ArgumentException("Value must be in the form {key}:{value}. Invalid: '" + input + "'");
+                }
+
+                var key = parts[0].Trim().ToLowerInvariant();
+
+                // Allow : in the value, not the key
+                var value = input.Substring(key.Length + 1);
+
+                if (!keysSeen.Add(key))
+                {
+                    throw new ArgumentException($"Duplicate values for '{key}'. This value may only be set once.");
+                }
+
+                values.Add(new KeyValuePair<string, string>(key, value));
+            }
+
+            return values;
+        }
+
+        /// <summary>
+        /// Parse settings in the form {key}:{value}, and throw if any of them is not a setting Sleet can read.
+        /// </summary>
+        public static IReadOnlyList<KeyValuePair<string, string>> ParseAndValidateSettingValues(IEnumerable<string> inputs)
+        {
+            var values = ParseSettingValues(inputs);
+
+            foreach (var pair in values)
+            {
+                ValidateSetting(pair.Key, pair.Value);
+            }
+
+            return values;
+        }
+
+        /// <summary>
+        /// Throw if Sleet does not read the key, or would not be able to read the value.
+        /// </summary>
+        public static void ValidateSetting(string key, string value)
+        {
+            if (BoolSettings.Contains(key, StringComparer.OrdinalIgnoreCase))
+            {
+                // Same check as GetBoolOrDefault
+                var lower = value.ToLowerInvariant();
+
+                if (lower != "true" && lower != "false")
+                {
+                    throw new ArgumentException($"Invalid value '{value}' for '{key}'. Use true or false.");
+                }
+            }
+            else if (IntSettings.Contains(key, StringComparer.OrdinalIgnoreCase))
+            {
+                // Same check as GetIntOrDefault
+                if (!int.TryParse(value, out _))
+                {
+                    throw new ArgumentException($"Invalid value '{value}' for '{key}'. Use a whole number.");
+                }
+            }
+            else if (!StringSettings.Contains(key, StringComparer.OrdinalIgnoreCase))
+            {
+                var known = BoolSettings.Concat(IntSettings).Concat(StringSettings).OrderBy(e => e, StringComparer.Ordinal);
+
+                throw new ArgumentException($"Unknown feed setting '{key}'. Use one of: {string.Join(", ", known)}");
+            }
+        }
+
+        /// <summary>
+        /// Return a copy of the settings with the values applied.
+        /// </summary>
+        public static FeedSettings ApplySettings(FeedSettings settings, IEnumerable<KeyValuePair<string, string>> values)
+        {
+            var merged = LoadSettings(settings);
+
+            foreach (var pair in values)
+            {
+                merged[pair.Key] = pair.Value;
+            }
+
+            return LoadSettings(merged);
         }
 
         private static bool GetBoolOrDefault(string s, bool defaultValue)
@@ -247,6 +353,34 @@ namespace Sleet
             {
                 { search.Name, search }
             };
+        }
+
+        /// <summary>
+        /// Apply settings that change other feed files. Run after InitAsync, which always points search at the static search files.
+        /// Returns false if the changes could not be committed.
+        /// </summary>
+        public static async Task<bool> ApplySettingHandlersAsync(LocalSettings settings, ISleetFileSystem source, FeedSettings feedSettings, ILogger log, CancellationToken token)
+        {
+            if (feedSettings.ExternalSearch == null)
+            {
+                return true;
+            }
+
+            log.LogMinimal($"Setting external search url: {feedSettings.ExternalSearch}");
+
+            var context = new SleetContext()
+            {
+                LocalSettings = settings,
+                SourceSettings = feedSettings,
+                Log = log,
+                Source = source,
+                Token = token
+            };
+
+            var searchHandler = new ExternalSearchHandler(context);
+            await searchHandler.SetValue(feedSettings.ExternalSearch);
+
+            return await source.Commit(log, token);
         }
     }
 }

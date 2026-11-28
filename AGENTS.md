@@ -12,6 +12,10 @@ Run `build.sh` to build and run all unit tests and validations.
 
 The build scripts don't run the Azure and Amazon S3 functional tests. When you change the Azure or Amazon S3 code, also run `functional-tests.ps1` on Windows or `functional-tests.sh` on Linux. They need Docker to run the tests against the local emulators in `local-env`.
 
+### Gallery UX tests
+
+The browser tests for the package gallery (`src/SleetLib/compiler/resources/templateGallery.html`) are not run by the build scripts. When changing the gallery or the feed files it reads, also run `ux-tests.ps1` on Windows or `ux-tests.sh` on Linux and macOS. These need Google Chrome or Microsoft Edge.
+
 ## Rules
 
 All builds and tests must pass successfully before stopping. All errors or test failures must be fixed.

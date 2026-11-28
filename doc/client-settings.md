@@ -135,7 +135,7 @@ Set `path`, `connectionString`, or both. See [Azure authentication](auth-azure.m
 | `accessKeyId` | An access key ID. Use it with `secretAccessKey`. |
 | `secretAccessKey` | The secret for `accessKeyId`. |
 | `serverSideEncryptionMethod` | `None` or `AES256`. The default is `None`, which uses the bucket's default encryption. |
-| `compress` | `true` or `false`. When `true`, Sleet gzips JSON files. The default is `true`. See [compression](how-it-works.md#compression). |
+| `compress` | `true` or `false`. When `true`, Sleet gzips JSON files and the gallery's `index.html`. The default is `true`. See [compression](how-it-works.md#compression). |
 | `acl` | A canned ACL, such as `public-read`, for each uploaded file. By default, Sleet doesn't set one. When Sleet creates the bucket, it also sets this ACL on the bucket. Buckets with ACLs turned off, which is the default for buckets you create yourself, reject uploads that set an ACL. |
 | `disablePayloadSigning` | `true` or `false`. Set it to `true` for S3-compatible storage that doesn't support payload signing. The default is `false`, or `true` when `provider` is `r2`. |
 | `forcePathStyle` | `true` or `false`. When `true`, Sleet uses path-style URLs such as `https://s3.example.com/my-bucket-feed/` instead of virtual-hosted-style URLs such as `https://my-bucket-feed.s3.example.com/`. The default is `false`, or `true` when `provider` is `self-hosted`. |

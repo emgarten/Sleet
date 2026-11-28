@@ -78,19 +78,23 @@ sleet init [options]
 
 | Option | Description |
 | --- | --- |
-| `--with-catalog` | Enable the catalog, which records the history of every change to the feed. |
+| `--with-catalog` | Enable the catalog, which records the history of every change to the feed. The same as `--set catalogenabled:true`. |
+| `--set` | Set a [feed setting](feed-settings.md) on the new feed, in the form `{key}:{value}`. Can be repeated. |
 
 The [common options](#common-options) are also supported.
 
-You don't need to run `init` for most feeds, because `push` creates and initializes a new feed automatically. Use `init` when you want to enable the catalog from the start. It can also be turned on later with [feed settings](feed-settings.md).
+You don't need to run `init` for most feeds, because `push` creates and initializes a new feed automatically. Use `init` when you want a new feed to start with different settings, such as the catalog on or the gallery off. Settings can also be changed later with [feed-settings](#feed-settings).
+
+`--set` only accepts settings that Sleet knows, and checks every value before it changes the feed.
 
 `init` creates the container, bucket, or folder if it doesn't exist.
 
 > [!WARNING]
-> Don't run `init` on a feed that already exists. Current versions of Sleet don't stop you, and `init` resets parts of the feed: it turns the catalog on or off to match the `--with-catalog` option, and it switches search back to the static search files even if [external search](external-search.md) is set. Packages aren't removed. To change settings on an existing feed, use [feed-settings](#feed-settings).
+> Don't run `init` on a feed that already exists. Current versions of Sleet don't stop you, and `init` resets parts of the feed: it turns the catalog off unless you pass `--with-catalog` or `--set catalogenabled:true`, and it points search back to the static search files even if [external search](external-search.md) is set, unless you pass `--set externalsearch:<url>`. Packages aren't removed. To change settings on an existing feed, use [feed-settings](#feed-settings).
 
 ```bash
 sleet init --source feed --with-catalog
+sleet init --source feed --set galleryenabled:false --set badgesenabled:true
 ```
 
 ## push
@@ -230,13 +234,21 @@ sleet recreate [options]
 | --- | --- |
 | `--nupkg-path` | Folder to keep the downloaded packages in during the rebuild. By default a temporary folder is used. Use a new or empty folder, because every package in it is pushed to the new feed. The folder is deleted when the command succeeds, and kept as a backup if the command fails after the packages are downloaded. See [recreate safety](backup-migration.md#recreate-safety). |
 | `-f`, `--force` | Continue past errors while recreating the feed, and skip the check that the feed was created by a compatible version of Sleet. Required to [upgrade very old feeds](backup-migration.md#upgrade-older-feeds), and to remove `.symbols.nupkg` files left by the [symbol server](symbol-server.md#remove-the-symbol-server-from-a-feed). |
+| `--set` | Change a [feed setting](feed-settings.md) on the recreated feed, in the form `{key}:{value}`. Can be repeated. The packages already on the feed are pushed with the new settings. |
 
 The [common options](#common-options) are also supported.
 
 `recreate` has the same scope as [destroy](#destroy). Use `--nupkg-path` for large feeds so you know where the backup is if the command fails.
 
+`--set` checks every value the same way as [init](#init), before `recreate` downloads or deletes anything. It can't remove a setting. Remove it with [feed-settings](#feed-settings) `--unset` first.
+
 > [!WARNING]
 > `recreate` doesn't work on a local feed whose `baseURI` is different from its `path`, which is the usual setup when a web server hosts the folder. The command fails with `Feed validation has failed` and leaves the feed without its packages. The downloaded packages are kept, and the error shows where. Rebuild these feeds with the steps in [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) instead.
+
+```bash
+sleet recreate --source feed --nupkg-path ./backup
+sleet recreate --source feed --set galleryenabled:false --set catalogenabled:true
+```
 
 ## feed-settings
 
@@ -264,7 +276,7 @@ sleet feed-settings --get-all
 sleet feed-settings --set badgesenabled:true
 ```
 
-The command always ends with the message `Run 'recreate' to rebuild the feed with the new settings.` You only need to run `recreate` for settings that must be applied to packages already on the feed. [Feed settings](feed-settings.md) says which settings those are.
+The command always ends with the message `Run 'recreate' to rebuild the feed with the new settings.` You only need to run `recreate` for settings that must be applied to packages already on the feed. [Feed settings](feed-settings.md) says which settings those are. To change those settings and rebuild in one step, use [recreate](#recreate) `--set` instead.
 
 ## retention settings
 

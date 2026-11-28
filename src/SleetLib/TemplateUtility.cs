@@ -8,9 +8,17 @@ namespace Sleet
 {
     public static class TemplateUtility
     {
-        public static async Task<string> LoadTemplate(string name, DateTimeOffset now, Uri baseUri)
+        public static Task<string> LoadTemplate(string name, DateTimeOffset now, Uri baseUri)
         {
-            using (var reader = new StreamReader(GetResource($"template{name}.json")))
+            return LoadTemplateFile($"template{name}.json", now, baseUri);
+        }
+
+        /// <summary>
+        /// Load a template resource by file name. Use this for templates that are not json.
+        /// </summary>
+        public static async Task<string> LoadTemplateFile(string fileName, DateTimeOffset now, Uri baseUri)
+        {
+            using (var reader = new StreamReader(GetResource(fileName)))
             {
                 var data = await reader.ReadToEndAsync().ConfigureAwait(false);
 

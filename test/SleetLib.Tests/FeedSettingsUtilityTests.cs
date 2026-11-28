@@ -67,6 +67,66 @@ namespace SleetLib.Tests
             settings.CatalogEnabled.Should().BeFalse();
         }
 
+        [Theory]
+        [InlineData("yes")]
+        [InlineData("1")]
+        [InlineData("")]
+        public void GivenThatICallLoadSettingsWithAnInvalidBadgesValueVerifyBadgesAreOff(string value)
+        {
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "badgesenabled", value },
+            };
+
+            var settings = FeedSettingsUtility.LoadSettings(values);
+
+            settings.BadgesEnabled.Should().BeFalse();
+        }
+
+        [Theory]
+        [InlineData("yes")]
+        [InlineData("1")]
+        [InlineData("")]
+        public void GivenThatICallLoadSettingsWithAnInvalidGalleryValueVerifyTheGalleryIsOn(string value)
+        {
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "galleryenabled", value },
+            };
+
+            var settings = FeedSettingsUtility.LoadSettings(values);
+
+            settings.GalleryEnabled.Should().BeTrue();
+        }
+
+        [Fact]
+        public void GivenSettingValuesVerifyKeysAreLowercasedAndValuesKeepTheirColons()
+        {
+            var values = FeedSettingsUtility.ParseSettingValues(new[] { "ExternalSearch:https://example.com/query", "GalleryEnabled:False" });
+
+            values.Should().BeEquivalentTo(new[]
+            {
+                new KeyValuePair<string, string>("externalsearch", "https://example.com/query"),
+                new KeyValuePair<string, string>("galleryenabled", "False"),
+            });
+        }
+
+        [Fact]
+        public void GivenTheSameSettingValueTwiceVerifyItIsReturnedOnce()
+        {
+            var values = FeedSettingsUtility.ParseSettingValues(new[] { "galleryenabled:false", "galleryenabled:false" });
+
+            values.Should().ContainSingle().Which.Should().Be(new KeyValuePair<string, string>("galleryenabled", "false"));
+        }
+
+        [Fact]
+        public void GivenASettingWithTwoValuesVerifyItThrows()
+        {
+            Action action = () => FeedSettingsUtility.ParseSettingValues(new[] { "galleryenabled:false", "GalleryEnabled:true" });
+
+            action.Should().Throw<ArgumentException>().WithMessage("Duplicate values for 'galleryenabled'. This value may only be set once.");
+        }
+
         [Fact]
         public void GivenThatICallLoadFeedSettingsVerifyValues()
         {
@@ -75,6 +135,7 @@ namespace SleetLib.Tests
                 CatalogEnabled = false,
                 CatalogPageSize = 5,
                 BadgesEnabled = false,
+                GalleryEnabled = false,
             };
 
             var values = FeedSettingsUtility.LoadSettings(settings);
@@ -84,6 +145,7 @@ namespace SleetLib.Tests
                 { "catalogenabled", "false" },
                 { "catalogpagesize", "5" },
                 { "badgesenabled", "false" },
+                { "galleryenabled", "false" },
             };
 
             values.Should().BeEquivalentTo(expected);
@@ -96,7 +158,8 @@ namespace SleetLib.Tests
             {
                 CatalogEnabled = true,
                 CatalogPageSize = 10,
-                BadgesEnabled = true
+                BadgesEnabled = true,
+                GalleryEnabled = true
             };
 
             var values = FeedSettingsUtility.LoadSettings(settings);
@@ -106,6 +169,7 @@ namespace SleetLib.Tests
                 { "catalogenabled", "true" },
                 { "catalogpagesize", "10" },
                 { "badgesenabled", "true" },
+                { "galleryenabled", "true" },
             };
 
             values.Should().BeEquivalentTo(expected);
