@@ -277,19 +277,26 @@ namespace SleetLib.Tests
         }
 
         [Theory]
-        [InlineData("r2")]
-        [InlineData("R2")]
-        [InlineData(" r2 ")]
-        public async Task CreateFileSystemAsync_WithS3Type_WithCloudflareR2Provider_UsesR2Defaults(string provider)
+        [InlineData("r2", null)]
+        [InlineData("R2", null)]
+        [InlineData(" r2 ", null)]
+        [InlineData("r2", "")]
+        public async Task CreateFileSystemAsync_WithS3Type_WithCloudflareR2Provider_UsesR2Defaults(string provider, string region)
         {
             var fileSystem = await CreateS3FileSystemAsync(source =>
             {
                 source["provider"] = provider;
                 source["serviceURL"] = "https://account.r2.cloudflarestorage.com";
                 source["baseURI"] = "https://nuget.example.com/";
+
+                if (region != null)
+                {
+                    source["region"] = region;
+                }
             });
 
             var config = GetS3Config(fileSystem);
+            config.AuthenticationRegion.Should().Be("auto");
             config.ForcePathStyle.Should().BeFalse();
             config.RequestChecksumCalculation.Should().Be(RequestChecksumCalculation.WHEN_REQUIRED);
             config.ResponseChecksumValidation.Should().Be(ResponseChecksumValidation.WHEN_REQUIRED);
@@ -325,12 +332,14 @@ namespace SleetLib.Tests
                 source["provider"] = "r2";
                 source["serviceURL"] = "https://account.r2.cloudflarestorage.com";
                 source["baseURI"] = "https://nuget.example.com/";
+                source["region"] = "us-east-1";
                 source["disablePayloadSigning"] = false;
                 source["checksumMode"] = "whenSupported";
                 source["forcePathStyle"] = true;
             });
 
             var config = GetS3Config(fileSystem);
+            config.AuthenticationRegion.Should().Be("us-east-1");
             config.ForcePathStyle.Should().BeTrue();
             config.RequestChecksumCalculation.Should().Be(RequestChecksumCalculation.WHEN_SUPPORTED);
             config.ResponseChecksumValidation.Should().Be(ResponseChecksumValidation.WHEN_SUPPORTED);

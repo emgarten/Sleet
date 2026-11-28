@@ -19,6 +19,11 @@ namespace Sleet
         public required string DisplayName { get; init; }
 
         /// <summary>
+        /// Default for 'region'. With a serviceURL it is only used to sign requests. Null leaves it to the AWS SDK.
+        /// </summary>
+        public string? Region { get; init; }
+
+        /// <summary>
         /// Default for 'forcePathStyle'.
         /// </summary>
         public bool ForcePathStyle { get; init; }
@@ -54,6 +59,10 @@ namespace Sleet
         {
             Name = "r2",
             DisplayName = "Cloudflare R2",
+
+            // R2 only accepts the region auto, and us-east-1 as an alias for it
+            // https://developers.cloudflare.com/r2/api/s3/api/
+            Region = "auto",
 
             // R2 does not support the streaming uploads or default checksums of the AWS SDK
             // https://developers.cloudflare.com/r2/examples/aws/aws-sdk-net/
