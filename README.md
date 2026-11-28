@@ -51,7 +51,7 @@ Sleet creates and updates NuGet v3 feeds as static files on Azure Blob Storage, 
 
 ## Getting Sleet
 
-Sleet requires the [.NET 8 SDK](https://dotnet.microsoft.com/download) or later. See [Install Sleet](doc/install.md) for all options.
+Sleet requires the [.NET 10 SDK](https://dotnet.microsoft.com/download) or later. See [Install Sleet](doc/install.md) for all options.
 
 ### Install as a dotnet global tool (recommended)
 
