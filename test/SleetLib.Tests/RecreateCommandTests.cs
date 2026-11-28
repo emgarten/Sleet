@@ -544,5 +544,55 @@ namespace SleetLib.Tests
                 File.ReadAllText(settingsPath).Should().Be(settingsBefore);
             }
         }
+
+        [Fact]
+        public async Task GivenAFeedFromBeforeTheGalleryVerifyRecreateAddsIt()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+                var settingsPath = Path.Combine(target.Root, "sleet.settings.json");
+
+                // Older versions of Sleet wrote neither the gallery nor its setting.
+                await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, new[] { "galleryenabled:false" }, log, TestContext.Current.CancellationToken);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+                await FeedSettingsCommand.RunAsync(
+                    settings,
+                    fileSystem,
+                    unsetAll: false,
+                    getAll: false,
+                    getSettings: new string[] { },
+                    unsetSettings: new[] { "galleryenabled" },
+                    setSettings: new string[] { },
+                    log: log,
+                    token: TestContext.Current.CancellationToken);
+
+                FeedSettingsUtility.GetSettings(JObject.Parse(File.ReadAllText(settingsPath))).Should().NotContainKey("galleryenabled");
+                File.Exists(Path.Combine(target.Root, "index.html")).Should().BeFalse();
+
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+
+                // Act
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder.Root, false, log);
+
+                var settingsJson = JObject.Parse(File.ReadAllText(settingsPath));
+                var rootJson = JObject.Parse(File.ReadAllText(Path.Combine(target.Root, "index.json")));
+
+                // Assert
+                success.Should().BeTrue();
+                FeedSettingsUtility.GetSettings(settingsJson).Should().Contain("galleryenabled", "true");
+                File.Exists(Path.Combine(target.Root, "index.html")).Should().BeTrue();
+                rootJson.ToString().Should().Contain("PackageDetailsUriTemplate/5.1.0");
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
+            }
+        }
     }
 }

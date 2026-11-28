@@ -155,6 +155,125 @@ namespace Sleet.UX.Tests
             await Expect(Body.Locator("section.panel > h3")).ToHaveTextAsync(new[] { "Dependencies", "Readme" });
         }
 
+        [Fact]
+        public async Task GivenReadmeBlocksVerifyTheyAreShownAsMarkdown()
+        {
+            await RouteReadmeAsync(
+                "Setext title\n" +
+                "============\n" +
+                "\n" +
+                "Setext section\n" +
+                "--------------\n" +
+                "\n" +
+                "3. Third\n" +
+                "4. Fourth\n" +
+                "\n" +
+                "- Parent\n" +
+                "  - Child\n" +
+                "\n" +
+                "> Quoted **text**\n" +
+                "continued lazily\n" +
+                "\n" +
+                "---\n" +
+                "\n" +
+                "    indented code\n" +
+                "    second line\n" +
+                "\n" +
+                "<!-- hidden comment -->\n" +
+                "After the comment.\n" +
+                "\n" +
+                "<!--\n" +
+                "hidden\n" +
+                "-->\n" +
+                "Last paragraph.\n");
+
+            await OpenAsync("#package/Contoso.Core/1.1.0");
+
+            await Expect(Readme.Locator("h1")).ToHaveTextAsync("Setext title");
+            await Expect(Readme.Locator("h2")).ToHaveTextAsync("Setext section");
+            await Expect(Readme.Locator("ol")).ToHaveAttributeAsync("start", "3");
+            await Expect(Readme.Locator("ol > li")).ToHaveTextAsync(new[] { "Third", "Fourth" });
+            await Expect(Readme.Locator("ul > li > ul > li")).ToHaveTextAsync("Child");
+            await Expect(Readme.Locator("blockquote > p")).ToHaveTextAsync("Quoted text continued lazily");
+            await Expect(Readme.Locator("blockquote strong")).ToHaveTextAsync("text");
+            await Expect(Readme.Locator("hr")).ToHaveCountAsync(1);
+            (await Readme.Locator("pre > code").TextContentAsync()).Should().Be("indented code\nsecond line\n");
+
+            // Comments are hidden, the text after them is not.
+            await Expect(Readme.Locator(":scope > p")).ToHaveTextAsync(new[] { "After the comment.", "Last paragraph." });
+            await Expect(Readme).Not.ToContainTextAsync("hidden");
+        }
+
+        [Fact]
+        public async Task GivenReadmeTextFormattingVerifyItIsShownAsMarkdown()
+        {
+            await RouteReadmeAsync(
+                "*Emphasis*, _also emphasis_, ~~removed~~ and ***both***.\n" +
+                "\n" +
+                "Escaped \\*stars\\* and a line  \n" +
+                "break, then a backslash\\\n" +
+                "break.\n" +
+                "\n" +
+                "Entities: &copy; &#169; &#xA9; &amp; &lt;b&gt; &bogus;\n");
+
+            await OpenAsync("#package/Contoso.Core/1.1.0");
+
+            var paragraphs = Readme.Locator(":scope > p");
+            await Expect(paragraphs).ToHaveCountAsync(3);
+            await Expect(paragraphs.Nth(0).Locator("em")).ToHaveTextAsync(new[] { "Emphasis", "also emphasis", "both" });
+            await Expect(paragraphs.Nth(0).Locator("em > strong")).ToHaveTextAsync("both");
+            await Expect(paragraphs.Nth(0).Locator("del")).ToHaveTextAsync("removed");
+
+            // Two spaces or a backslash at the end of a line break it.
+            await Expect(paragraphs.Nth(1)).ToHaveTextAsync("Escaped *stars* and a line break, then a backslash break.", new() { UseInnerText = true });
+            await Expect(paragraphs.Nth(1).Locator("br")).ToHaveCountAsync(2);
+            await Expect(paragraphs.Nth(1).Locator("em")).ToHaveCountAsync(0);
+
+            // An entity the browser does not know is kept as text.
+            await Expect(paragraphs.Nth(2)).ToHaveTextAsync("Entities: © © © & <b> &bogus;");
+            await Expect(Readme.Locator("b")).ToHaveCountAsync(0);
+        }
+
+        [Fact]
+        public async Task GivenReadmeLinksVerifyTheyAreShownAsMarkdown()
+        {
+            await RouteReadmeAsync(
+                "Visit https://example.com/a, www.example.com or <https://example.com/b>.\n" +
+                "Mail <someone@example.com>.\n" +
+                "\n" +
+                "See the [docs][ref] and [Ref][].\n" +
+                "\n" +
+                "[ref]: https://example.com/docs \"Docs\"\n" +
+                "\n" +
+                "Logo <img src=\"" + FeedUrl + "flatcontainer/contoso.core/1.1.0/icon\" alt=\"Small logo\" width=\"16\" height=\"16\"><br>after the break.\n");
+
+            await OpenAsync("#package/Contoso.Core/1.1.0");
+
+            var links = Readme.Locator("a");
+            await Expect(links).ToHaveTextAsync(new[] { "https://example.com/a", "www.example.com", "https://example.com/b", "someone@example.com", "docs", "Ref" });
+
+            // A bare url leaves out trailing punctuation, as GitHub does.
+            (await links.EvaluateAllAsync<string[]>("links => links.map(a => a.getAttribute('href'))")).Should().Equal(
+                "https://example.com/a",
+                "http://www.example.com/",
+                "https://example.com/b",
+                "mailto:someone@example.com",
+                "https://example.com/docs",
+                "https://example.com/docs");
+
+            await Expect(Link("docs")).ToHaveAttributeAsync("title", "Docs");
+            await Expect(Link("Ref")).ToHaveAttributeAsync("title", "Docs");
+            await Expect(Readme).Not.ToContainTextAsync("[ref]");
+
+            var image = Readme.Locator("img");
+            await Expect(image).ToHaveAttributeAsync("src", FeedUrl + "flatcontainer/contoso.core/1.1.0/icon");
+            await Expect(image).ToHaveAttributeAsync("alt", "Small logo");
+            await Expect(image).ToHaveAttributeAsync("width", "16");
+            await Expect(image).ToHaveAttributeAsync("height", "16");
+            await Expect(Readme.Locator("p").Last).ToHaveTextAsync("Logo after the break.", new() { UseInnerText = true });
+            await Expect(Readme.Locator("p").Last.Locator("br")).ToHaveCountAsync(1);
+        }
+
         // Readme images load lazily, so they are scrolled to first.
         [Fact]
         public async Task GivenReadmeImagesVerifyOnesThatCannotLoadShowTheirAltText()
@@ -178,11 +297,7 @@ namespace Sleet.UX.Tests
         public async Task GivenAReadmeOverOneMegabyteVerifyItIsShownAsText()
         {
             var text = "# Large\n\n" + new string('x', 1024 * 1024);
-            await Page.RouteAsync(FeedUrl + "flatcontainer/contoso.core/1.1.0/readme", route => route.FulfillAsync(new()
-            {
-                ContentType = "text/markdown",
-                Body = text,
-            }));
+            await RouteReadmeAsync(text);
 
             await OpenAsync("#package/Contoso.Core/1.1.0");
 
@@ -291,6 +406,20 @@ namespace Sleet.UX.Tests
                 "Check that the feed files are readable from " + FeedUrl + ".",
                 "GET registration/contoso.util/index.json failed with status 500"
             });
+        }
+
+        [Fact]
+        public async Task GivenANuspecRequestFailsVerifyErrorIsShown()
+        {
+            await Page.RouteAsync(FeedUrl + "flatcontainer/contoso.util/1.0.0/contoso.util.nuspec", route => route.FulfillAsync(new() { Status = 500 }));
+
+            await OpenAsync("#package/Contoso.Util/1.0.0/nuspec");
+
+            var error = Body.Locator(".err");
+            await Expect(error.Locator("strong")).ToHaveTextAsync("Unable to load this nuspec.");
+            await Expect(error.Locator("p")).ToHaveTextAsync("GET flatcontainer/contoso.util/1.0.0/contoso.util.nuspec failed with status 500");
+            await Expect(Body.Locator("section.panel > h3")).ToHaveTextAsync("contoso.util.nuspec");
+            await Expect(Body.Locator(".empty")).ToHaveCountAsync(0);
         }
 
         // Visual Studio links to a package with the template from the service index.

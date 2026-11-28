@@ -266,7 +266,9 @@ namespace SleetLib.Tests
                 var log = new TestLogger();
                 var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
                 var settings = new LocalSettings();
-                var setSettings = new[] { "galleryenabled:false", "badgesenabled:true", "catalogenabled:true", "catalogpagesize:10" };
+
+                // Keys and values are not case sensitive.
+                var setSettings = new[] { "GalleryEnabled:False", "badgesenabled:true", "catalogenabled:true", "catalogpagesize:10" };
 
                 // Act
                 var success = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, setSettings, log, TestContext.Current.CancellationToken);
@@ -444,6 +446,33 @@ namespace SleetLib.Tests
                 }
 
                 File.ReadAllText(galleryOutput.FullName).Should().Be(customHtml);
+            }
+        }
+
+        [Fact]
+        public async Task GivenPushToANewFeedVerifyTheGalleryIsCreated()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var cache = new LocalCache())
+            {
+                // Arrange
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var root = Path.Combine(target.Root, "feed");
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(root));
+                var zipFile = new TestNupkg("packageA", "1.0.0").Save(packagesFolder.Root);
+
+                // Act
+                // The first push to a feed creates it the same way init does.
+                var success = await PushCommand.RunAsync(settings, fileSystem, new List<string>() { zipFile.FullName }, force: false, skipExisting: false, log: log);
+
+                var rootJson = JObject.Parse(File.ReadAllText(Path.Combine(root, "index.json")));
+
+                // Assert
+                success.Should().BeTrue();
+                File.Exists(Path.Combine(root, "index.html")).Should().BeTrue();
+                rootJson.ToString().Should().Contain("PackageDetailsUriTemplate/5.1.0");
             }
         }
     }

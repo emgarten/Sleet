@@ -270,15 +270,6 @@ namespace Sleet.UX.Tests
             (await TakeViolationsAsync()).Should().Equal("script-src-elem inline");
         }
 
-        private Task RouteReadmeAsync(string readme)
-        {
-            return Page.RouteAsync(FeedUrl + "flatcontainer/contoso.core/1.1.0/readme", route => route.FulfillAsync(new()
-            {
-                ContentType = "text/markdown",
-                Body = readme,
-            }));
-        }
-
         private static Task FulfillImageAsync(IRoute route)
         {
             return route.FulfillAsync(new() { ContentType = "image/png", BodyBytes = GalleryFeed.IconBytes });

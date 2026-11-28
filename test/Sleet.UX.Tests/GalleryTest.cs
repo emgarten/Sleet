@@ -131,6 +131,18 @@ namespace Sleet.UX.Tests
         }
 
         /// <summary>
+        /// Serves the markdown as the readme of Contoso.Core 1.1.0.
+        /// </summary>
+        protected Task RouteReadmeAsync(string readme)
+        {
+            return Page.RouteAsync(FeedUrl + "flatcontainer/contoso.core/1.1.0/readme", route => route.FulfillAsync(new()
+            {
+                ContentType = "text/markdown",
+                Body = readme,
+            }));
+        }
+
+        /// <summary>
         /// Requests a url from the page, through the same routes as the gallery.
         /// </summary>
         protected Task<int> GetStatusAsync(string url)
