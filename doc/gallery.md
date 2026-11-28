@@ -134,8 +134,11 @@ The gallery reads these files from the feed it was opened from:
 
 - `sleet.packageindex.json`, once when the page loads. It lists every package id and version, which is all that the package list, the filter, and paging need.
 - `registration/{id}/index.json`, when you open a package, for its versions, metadata, and dependencies. Browsing the package list never downloads these files.
-- `flatcontainer/{id}/{version}/icon` and `flatcontainer/{id}/{version}/readme`, when a package has them.
+- `flatcontainer/{id}/{version}/icon`, for each package on the current page of the list, and on a package's page when the package has an icon. The list doesn't know which packages have icons, so it requests every icon and shows the default icon when a request fails.
+- `flatcontainer/{id}/{version}/readme`, when you open a version. The feed doesn't record which packages have readmes, so the gallery requests one for every version you open.
 - `flatcontainer/{id}/{version}/{id}.nuspec`, when you view a version's `.nuspec`.
+
+Requests for icons and readmes that a package doesn't have fail and show as errors in the browser's developer tools. This is expected. Most hosts return 404 for these requests. Amazon S3 returns 403 unless the bucket policy allows `s3:ListBucket`, see [fix 403 responses for missing packages](feed-type-s3.md#fix-403-responses-for-missing-packages).
 
 The gallery doesn't use the search resource. It's a single large file that covers the whole feed, and [external search](external-search.md) can point it at a different service.
 
