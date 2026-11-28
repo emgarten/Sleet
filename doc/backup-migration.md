@@ -85,9 +85,16 @@ For a local feed whose `baseURI` is different from `path`, don't use `recreate`.
 
 ## Recreate safety
 
-`recreate` downloads all packages to a cache folder or to `--nupkg-path`, destroys the feed, initializes it again, pushes the packages, and validates the result. If the command fails after packages have been downloaded, Sleet keeps the downloaded nupkgs as a backup and prints the folder path. It deletes the folder when the command succeeds, or when it stops because a package failed to download. Use a new or empty folder for `--nupkg-path`, because `recreate` also pushes every package in it to the new feed.
+`recreate` checks the feed, downloads all packages to a cache folder or to `--nupkg-path`, destroys the feed, initializes it again, pushes the packages, and validates the result. If the command fails after packages have been downloaded, Sleet keeps the downloaded nupkgs as a backup and prints the folder path. It deletes the folder when the command succeeds, or when it stops because a package failed to download. Use a new or empty folder for `--nupkg-path`, because `recreate` also pushes every package in it to the new feed.
 
-If the feed has `.symbols.nupkg` files from the removed symbol server, `recreate` stops before it changes the feed. See [remove the symbol server from a feed](symbol-server.md#remove-the-symbol-server-from-a-feed).
+`recreate` backs up only the packages listed in `sleet.packageindex.json`. Before it uses the folder or changes the feed, it checks for these problems, lists all that it finds, and stops:
+
+- The feed has `.nupkg` files that aren't in `sleet.packageindex.json`, for example because the index file is missing or a push was interrupted.
+- Packages in `sleet.packageindex.json` are missing their `.nupkg` files.
+- `index.json`, `sleet.settings.json`, or `sleet.packageindex.json` can't be read.
+- The feed has `.symbols.nupkg` files from the removed symbol server. See [remove the symbol server from a feed](symbol-server.md#remove-the-symbol-server-from-a-feed).
+
+See [recreate fails](troubleshooting.md#recreate-fails) to fix each one. `--force` recreates the feed anyway. It deletes the packages that `recreate` can't back up, and uses the default settings if `sleet.settings.json` can't be read.
 
 ## Rebuild a local feed without recreate
 

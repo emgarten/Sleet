@@ -192,13 +192,34 @@ Encountered an error while recreating the feed. You may need to manually create 
 
 Push that folder to the feed to add the packages back.
 
-If the feed has `.symbols.nupkg` files from the removed symbol server, `recreate` stops before it changes the feed:
+Before `recreate` changes the feed, it checks that it can rebuild the feed without losing packages. If it can't, it lists every problem with a fix for each, and stops:
 
 ```text
-The feed contains 2 symbols packages. Sleet no longer supports symbols packages and recreating the feed would remove them. Back them up with 'sleet download', then run recreate with --force.
+The feed can't be recreated:
+- sleet.settings.json can't be read: Unexpected character encountered while parsing value: n. Path '', line 0, position 0.
+  Fix the file, or use --force to recreate the feed with the default settings.
+- The feed contains 1 .nupkg files that are not in sleet.packageindex.json. Recreating the feed would delete them without a backup:
+    https://example.com/feed/flatcontainer/pkgc/3.0.0/pkgc.3.0.0.nupkg
+  To keep them, copy them to a folder outside the feed and push it with 'sleet push', then run recreate again. To delete them, use --force.
+- 1 packages in sleet.packageindex.json are missing their .nupkg files:
+    https://example.com/feed/flatcontainer/pkgb/2.0.0/pkgb.2.0.0.nupkg
+  Restore the files, or use --force to remove these packages from the feed.
 ```
 
-See [remove the symbol server from a feed](symbol-server.md#remove-the-symbol-server-from-a-feed).
+| Error | Cause |
+| --- | --- |
+| `.nupkg files that are not in sleet.packageindex.json` | `recreate` backs up only the packages in `sleet.packageindex.json`. Packages are missing from it when a push was interrupted, or when files were added to the feed without Sleet. |
+| `sleet.packageindex.json is missing` | The file was deleted, or left out of a copy of the feed. |
+| `sleet.packageindex.json can't be read` | The file is damaged. `push` fails on the feed too, so the packages can only be pushed again after `recreate --force`. |
+| `packages in sleet.packageindex.json are missing their .nupkg files` | The files were deleted from the feed, or left out of a copy of the feed. |
+| `index.json can't be read` or `sleet.settings.json can't be read` | The file is damaged. |
+| `The feed contains 2 symbols packages` | The feed has `.symbols.nupkg` files from the removed symbol server. See [remove the symbol server from a feed](symbol-server.md#remove-the-symbol-server-from-a-feed). |
+
+With `--force`, `recreate` doesn't stop for these problems. It deletes the `.nupkg` files it can't back up, removes the packages whose `.nupkg` files are missing, and replaces the files it can't read. The new feed uses the default [feed settings](feed-settings.md) if `sleet.settings.json` can't be read. If `sleet.packageindex.json` can't be read, `recreate` can't back up any package and deletes all of them.
+
+If you copy packages out of the feed to keep them, don't pass that folder to `--nupkg-path`, because `recreate` deletes that folder when it succeeds.
+
+If the listed `.nupkg` files belong to another feed in a sub folder of the same container or bucket, `recreate` would delete that feed too. See [what feeds in the same container or bucket share](multiple-feeds.md#what-feeds-in-the-same-container-or-bucket-share).
 
 ## NuGet can't read the feed
 

@@ -39,7 +39,9 @@ Run [recreate](commands.md#recreate). The new feed doesn't have the `symbols/` f
 If the feed has `.symbols.nupkg` files, `recreate` stops before it changes the feed, because the new feed can't keep them:
 
 ```text
-The feed contains 2 symbols packages. Sleet no longer supports symbols packages and recreating the feed would remove them. Back them up with 'sleet download', then run recreate with --force.
+The feed can't be recreated:
+- The feed contains 2 symbols packages. Sleet no longer supports symbols packages and recreating the feed would remove them.
+  Back them up with 'sleet download', then run recreate with --force.
 ```
 
 Back up the feed, then recreate it with `--force`:
@@ -50,6 +52,6 @@ sleet recreate --force
 ```
 
 > [!WARNING]
-> `--force` also makes `recreate` continue past other errors, such as a package that fails to download. Keep the backup until you've checked the new feed. Don't pass the backup folder to `--nupkg-path`, because `recreate` deletes that folder when it succeeds.
+> `--force` also makes `recreate` continue past the other problems it lists, and past errors such as a package that fails to download. If it lists other problems, see [recreate fails](troubleshooting.md#recreate-fails) before you use `--force`. Keep the backup until you've checked the new feed. Don't pass the backup folder to `--nupkg-path`, because `recreate` deletes that folder when it succeeds.
 
 `recreate` doesn't work on a local feed whose `baseURI` is different from `path`. Follow [rebuild a local feed without recreate](backup-migration.md#rebuild-a-local-feed-without-recreate) instead. `push` skips the `.symbols.nupkg` files in the backup folder.
