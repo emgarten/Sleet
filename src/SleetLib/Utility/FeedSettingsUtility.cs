@@ -76,7 +76,7 @@ namespace Sleet
                         settings.CatalogPageSize = Math.Max(1, GetIntOrDefault(pair.Value, defaultValue: 1024));
                         break;
                     case "badgesenabled":
-                        settings.BadgesEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);
+                        settings.BadgesEnabled = GetBoolOrDefault(pair.Value, defaultValue: false);
                         break;
                     case "galleryenabled":
                         settings.GalleryEnabled = GetBoolOrDefault(pair.Value, defaultValue: true);

@@ -67,6 +67,22 @@ namespace SleetLib.Tests
             settings.CatalogEnabled.Should().BeFalse();
         }
 
+        [Theory]
+        [InlineData("yes")]
+        [InlineData("1")]
+        [InlineData("")]
+        public void GivenThatICallLoadSettingsWithAnInvalidBadgesValueVerifyBadgesAreOff(string value)
+        {
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "badgesenabled", value },
+            };
+
+            var settings = FeedSettingsUtility.LoadSettings(values);
+
+            settings.BadgesEnabled.Should().BeFalse();
+        }
+
         [Fact]
         public void GivenThatICallLoadFeedSettingsVerifyValues()
         {
