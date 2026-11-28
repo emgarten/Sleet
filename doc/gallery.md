@@ -128,7 +128,9 @@ Sleet writes `index.html` only when the feed doesn't already have one, so you ca
 
 ## How the gallery reads the feed
 
-The gallery is a single, self-contained HTML file with no external dependencies. It reads these files from the feed it was opened from:
+The gallery is a single, self-contained HTML file with no external dependencies. On Azure and Amazon S3, Sleet gzips it the same way as the feed's JSON files, see [compression](how-it-works.md#compression).
+
+The gallery reads these files from the feed it was opened from:
 
 - `sleet.packageindex.json`, once when the page loads. It lists every package id and version, which is all that the package list, the filter, and paging need.
 - `registration/{id}/index.json`, when you open a package, for its versions, metadata, and dependencies. Browsing the package list never downloads these files.

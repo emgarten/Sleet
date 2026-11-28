@@ -130,6 +130,13 @@ namespace Sleet
                     // instead of prompting the user to download it.
                     contentType = "text/html; charset=utf-8";
                     cacheControl = mutableCacheControl;
+
+                    if (compress && !SkipCompress())
+                    {
+                        contentEncoding = "gzip";
+                        writeStream = await Utility.GZipAsync(cache);
+                        disposeWriteStream = true;
+                    }
                 }
                 else if (absoluteUri.AbsoluteUri.EndsWith("/icon", StringComparison.Ordinal))
                 {

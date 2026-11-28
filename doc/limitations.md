@@ -50,7 +50,7 @@ The feed URL is written into the feed files. To move a feed or change its `baseU
 
 ## Configuration
 
-- Azure feeds always store JSON files gzipped. Only Amazon S3 sources have a `compress` setting to turn it off. See [compression](how-it-works.md#compression).
+- Azure feeds always store JSON files and the gallery's `index.html` gzipped. Only Amazon S3 sources have a `compress` setting to turn it off. See [compression](how-it-works.md#compression).
 - [Environment variables](environment-variables.md) can define only one feed. To use several feeds, use a settings file. See [multiple feeds](multiple-feeds.md).
 
 ## Delays after a push

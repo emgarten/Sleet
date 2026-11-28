@@ -84,7 +84,7 @@ Because the URLs are inside the files, `push`, `delete`, and `validate` check th
 
 ## Compression
 
-On Azure, Sleet gzips every JSON file it uploads, and sets `Content-Encoding: gzip`. On Amazon S3, it does the same when `compress` is `true`, which is the default. Local feeds aren't compressed. The files for `search/query` and `autocomplete/query` have no extension, but Sleet detects that they're JSON.
+On Azure, Sleet gzips every JSON file it uploads and the [gallery](gallery.md) page, `index.html`, and sets `Content-Encoding: gzip`. On Amazon S3, it does the same when `compress` is `true`, which is the default. Local feeds aren't compressed. The files for `search/query` and `autocomplete/query` have no extension, but Sleet detects that they're JSON.
 
 NuGet clients and browsers unzip these files. For `curl`, add `--compressed`:
 

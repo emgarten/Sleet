@@ -10,6 +10,7 @@
   * Links to the gallery show a title and description in apps that preview links, such as Slack, Discord, and Teams
   * Dark mode by default, with a light mode toggle in the header
   * Visual Studio links packages to their gallery page on feeds served over https
+  * Azure and S3 feeds store `index.html` gzipped, the same as JSON files. S3 feeds follow the `compress` setting
   * Run `sleet recreate` to add the gallery to an existing feed
   * Sleet does not overwrite an existing `index.html`, so a custom page can be used instead
   * Disable with `sleet feed-settings --set galleryenabled:false` followed by `sleet recreate`, see [gallery docs](doc/gallery.md)

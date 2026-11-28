@@ -26,6 +26,7 @@ namespace SleetLib.Tests
                 yield return new object[] { "a.nuspec", "nuspec", "application/xml", null, "immutable", false };
                 yield return new object[] { "a.xml", "xml", "application/xml", null, "immutable", false };
                 yield return new object[] { "a.svg", "svg", "image/svg+xml", null, "mutable", false };
+                yield return new object[] { "index.html", "<!DOCTYPE html><title>feed</title>", "text/html; charset=utf-8", "gzip", "mutable", true };
                 yield return new object[] { "package/icon", "icon", "image/png", null, "immutable", false };
                 yield return new object[] { "package/readme", "readme", "text/markdown", null, "immutable", false };
                 yield return new object[] { "index.json", "{ \"hello\": \"world\" }", "application/json", "gzip", "mutable", true };
@@ -65,14 +66,16 @@ namespace SleetLib.Tests
                 captured.Headers.ContentType.Should().Be(contentType);
                 captured.Headers.ContentEncoding.Should().Be(contentEncoding);
                 captured.Headers.CacheControl.Should().Be(cacheControl);
-                if (isCompressed)
+                var actualBody = isCompressed ? AmazonS3TestUtility.ReadGzipUtf8(body) : AmazonS3TestUtility.ReadUtf8(body);
+
+                // JSON is minified when compressed, other content must be unchanged.
+                if (contentType == "application/json")
                 {
-                    var actualJson = JObject.Parse(AmazonS3TestUtility.ReadGzipUtf8(body));
-                    actualJson["hello"].ToString().Should().Be("world");
+                    JObject.Parse(actualBody)["hello"].ToString().Should().Be("world");
                 }
                 else
                 {
-                    AmazonS3TestUtility.ReadUtf8(body).Should().Be(content);
+                    actualBody.Should().Be(content);
                 }
 
                 if (contentType == null)
@@ -82,8 +85,10 @@ namespace SleetLib.Tests
             }
         }
 
-        [Fact]
-        public async Task AmazonS3File_CopyToSource_CompressFalseDoesNotGzipJson()
+        [Theory]
+        [InlineData("index.json", "{ \"hello\": \"world\" }", "application/json")]
+        [InlineData("index.html", "<!DOCTYPE html><title>feed</title>", "text/html; charset=utf-8")]
+        public async Task AmazonS3File_CopyToSource_CompressFalseDoesNotGzip(string path, string content, string contentType)
         {
             using (var cache = new LocalCache())
             {
@@ -101,13 +106,13 @@ namespace SleetLib.Tests
                 var fileSystem = new AmazonS3FileSystem(cache, root, root, client.Object, AmazonS3TestUtility.BucketName, ServerSideEncryptionMethod.None, compress: false, mutableCacheControl: "max-age=60");
                 var log = new TestLogger();
 
-                await fileSystem.Get("index.json").Write(new JObject { ["hello"] = "world" }, log, TestContext.Current.CancellationToken);
+                await fileSystem.Get(path).Write(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(content)), log, TestContext.Current.CancellationToken);
                 await fileSystem.Commit(log, TestContext.Current.CancellationToken);
 
-                captured.Headers.ContentType.Should().Be("application/json");
+                captured.Headers.ContentType.Should().Be(contentType);
                 captured.Headers.ContentEncoding.Should().BeNull();
                 captured.Headers.CacheControl.Should().Be("max-age=60");
-                JObject.Parse(AmazonS3TestUtility.ReadUtf8(body))["hello"].ToString().Should().Be("world");
+                AmazonS3TestUtility.ReadUtf8(body).Should().Be(content);
             }
         }
 

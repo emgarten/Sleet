@@ -24,6 +24,7 @@ namespace Sleet.Azure.Tests
                 var htmlBlob = testContext.Container.GetBlobClient("index.html");
                 var htmlProperties = await htmlBlob.GetPropertiesAsync();
                 htmlProperties.Value.ContentType.Should().Be("text/html; charset=utf-8");
+                htmlProperties.Value.ContentEncoding.Should().Be("gzip");
 
                 var indexBlob = testContext.Container.GetBlobClient("index.json");
                 var indexProperties = await indexBlob.GetPropertiesAsync();

@@ -90,6 +90,13 @@ namespace Sleet
                         // instead of prompting the user to download it.
                         blobHeaders.ContentType = "text/html; charset=utf-8";
                         blobHeaders.CacheControl = _mutableCacheControl;
+
+                        if (!SkipCompress())
+                        {
+                            blobHeaders.ContentEncoding = "gzip";
+                            writeStream = await Utility.GZipAsync(cache);
+                            disposeWriteStream = true;
+                        }
                     }
                     else if (_blob.Uri.AbsoluteUri.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
                             || await JsonUtility.IsJsonAsync(LocalCacheFile.FullName))

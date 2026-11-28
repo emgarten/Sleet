@@ -63,9 +63,9 @@ Be careful with `push --force` and `delete` if immutable files have long cache l
 
 ## Compression
 
-Azure Blob Storage uploads JSON as gzip-compressed content with `Content-Encoding: gzip`.
+Azure Blob Storage uploads JSON and the gallery's `index.html` as gzip-compressed content with `Content-Encoding: gzip`.
 
-Amazon S3 uploads JSON as gzip-compressed content when `compress` is `true`, which is the default:
+Amazon S3 uploads JSON and the gallery's `index.html` as gzip-compressed content when `compress` is `true`, which is the default:
 
 ```json
 {
