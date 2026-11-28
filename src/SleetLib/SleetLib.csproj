@@ -20,6 +20,8 @@
     <PackageReference Include="AWSSDK.SecurityToken" />
     <PackageReference Include="AWSSDK.SSO" />
     <PackageReference Include="AWSSDK.SSOOIDC" />
+    <!-- Azure.Identity forwards to the credentials in Azure.Core. Azure.Core 1.59.0 to 1.62.0 can fail on machines without a managed identity. -->
+    <PackageReference Include="Azure.Core" />
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="DotNetConfig" />
