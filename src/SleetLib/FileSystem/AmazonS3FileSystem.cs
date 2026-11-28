@@ -61,6 +61,12 @@ namespace Sleet
         /// </summary>
         internal S3Provider Provider { get; init; } = S3Provider.Aws;
 
+        /// <summary>
+        /// Delay before retrying a bucket create or delete that the service rate limited. Each retry waits a random time
+        /// between this and 2.5 times this value.
+        /// </summary>
+        protected TimeSpan TooManyRequestsRetryDelay { get; set; } = TimeSpan.FromSeconds(2);
+
         public override async Task<bool> Validate(ILogger log, CancellationToken token)
         {
             log.LogInformation($"Verifying {_bucketName} exists.");
@@ -206,11 +212,11 @@ namespace Sleet
                 // Amazon S3 needs the client region as the LocationConstraint. With serviceURL the SDK guesses the region from
                 // the bucket url or the AWS environment, so a bucket name that contains ca-4247-9480 is sent as that region.
                 // S3 compatible services choose a location when it is left out.
-                await _client.PutBucketAsync(new PutBucketRequest()
+                await RetryTooManyRequests(() => _client.PutBucketAsync(new PutBucketRequest()
                 {
                     BucketName = _bucketName,
                     UseClientRegion = Provider == S3Provider.Aws
-                }, token);
+                }, token), log, token);
 
                 return true;
             }
@@ -269,7 +275,7 @@ namespace Sleet
             {
                 try
                 {
-                    await _client.DeleteBucketAsync(_bucketName, token);
+                    await RetryTooManyRequests(() => _client.DeleteBucketAsync(_bucketName, token), log, token);
                 }
                 catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
                 {
@@ -412,6 +418,33 @@ namespace Sleet
                     return false;
                 default:
                     return true;
+            }
+        }
+
+        // Cloud Storage allows a project about one bucket create or delete every two seconds. The AWS SDK retries a 429 twice
+        // within a few seconds, which isn't enough when several buckets are created or deleted at once. Wait a random time so
+        // that the requests that were rejected together don't retry together.
+        private async Task RetryTooManyRequests(Func<Task> request, ILogger log, CancellationToken token)
+        {
+            const int maxAttempts = 10;
+
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    await request();
+                    return;
+                }
+                catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests && attempt < maxAttempts)
+                {
+                    // Only show the warning once
+                    if (attempt == 1)
+                    {
+                        log.LogWarning($"S3 bucket request was rate limited. Trying again. Status code: {ex.StatusCode} error: {ex.Message}");
+                    }
+
+                    await Task.Delay(TooManyRequestsRetryDelay * (1 + Random.Shared.NextDouble() * 1.5), token);
+                }
             }
         }
 

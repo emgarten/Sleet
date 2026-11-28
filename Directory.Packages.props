@@ -13,7 +13,6 @@
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.30.2" />
     <PackageVersion Include="DotNetConfig" Version="1.2.0" />
     <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="5.1.0" />
-    <PackageVersion Include="Microsoft.DiaSymReader.PortablePdb" Version="1.6.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="NuGet.Packaging" Version="8.0.0" />
     <PackageVersion Include="NuGet.Protocol" Version="8.0.0" />

@@ -119,7 +119,6 @@ namespace SleetLib.Tests
             using (var outputFolder = new TestFolder())
             using (var cache = new LocalCache())
             using (var cache2 = new LocalCache())
-            using (var cache3 = new LocalCache())
             {
                 var log = new TestLogger();
                 var settings = new LocalSettings();
@@ -142,23 +141,24 @@ namespace SleetLib.Tests
                     file.Delete();
                 }
 
+                // Existing content in the nupkg folder must survive a blocked recreate
+                var existingFile = Path.Combine(outputFolder.Root, "backup.txt");
+                File.WriteAllText(existingFile, "backup");
+
                 // Recreate
                 var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
 
                 var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
 
                 success.Should().BeFalse();
+                var errors = log.GetMessages(NuGet.Common.LogLevel.Error);
+                errors.Should().Contain("The feed can't be recreated:");
+                errors.Should().Contain("1 packages in sleet.packageindex.json are missing their .nupkg files:");
+                errors.Should().Contain("/flatcontainer/a/1.0.0/a.1.0.0.nupkg");
+                File.Exists(existingFile).Should().BeTrue();
 
-                var fileSystem3 = new PhysicalFileSystem(cache3, UriUtility.CreateUri(target.Root));
-
-                var finalPackages = (await fileSystem3.GetFiles(log, CancellationToken.None))
-                                    .Select(e => Path.GetFileName(e.EntityUri.LocalPath))
-                                    .Where(e => e.EndsWith(".nupkg"))
-                                    .OrderBy(e => e, StringComparer.OrdinalIgnoreCase);
-
-                Directory.Exists(outputFolder).Should().BeFalse();
-
-                log.GetMessages().Should().Contain("Unable to recreate the feed due to errors download packages");
+                // The feed is unchanged
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "b", "2.0.0-beta", "b.2.0.0-beta.nupkg")).Should().BeTrue();
             }
         }
 
@@ -199,6 +199,7 @@ namespace SleetLib.Tests
                 var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, force: true, log: log);
 
                 success.Should().BeTrue();
+                log.GetMessages(NuGet.Common.LogLevel.Warning).Should().Contain("Removing 1 packages from the feed because their .nupkg files are missing.");
 
                 var fileSystem3 = new PhysicalFileSystem(cache3, UriUtility.CreateUri(target.Root));
 
@@ -210,6 +211,358 @@ namespace SleetLib.Tests
                 Directory.Exists(outputFolder).Should().BeFalse();
 
                 log.GetMessages().Should().Contain("Feed recreation complete.");
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatThePackageIndexIsMissingVerifyRecreateFailsWithoutForce()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+
+                var packageA = new TestNupkg("a", "1.0");
+                var packageB = new TestNupkg("b", "2.0.0-beta+blah");
+                packageA.Save(packagesFolder.Root);
+                packageB.Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder }, false, false, log);
+
+                File.Delete(Path.Combine(target.Root, "sleet.packageindex.json"));
+
+                // Existing content in the nupkg folder must survive a blocked recreate
+                var existingFile = Path.Combine(outputFolder.Root, "backup.txt");
+                File.WriteAllText(existingFile, "backup");
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
+
+                success.Should().BeFalse();
+                var errors = log.GetMessages(NuGet.Common.LogLevel.Error);
+                errors.Should().Contain("The feed can't be recreated:");
+                errors.Should().Contain("sleet.packageindex.json is missing. Recreating the feed would delete the 2 .nupkg files in the feed without a backup:");
+                errors.Should().Contain("/flatcontainer/a/1.0.0/a.1.0.0.nupkg");
+                errors.Should().Contain("/flatcontainer/b/2.0.0-beta/b.2.0.0-beta.nupkg");
+                File.Exists(existingFile).Should().BeTrue();
+
+                // The feed is unchanged
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "b", "2.0.0-beta", "b.2.0.0-beta.nupkg")).Should().BeTrue();
+                File.Exists(Path.Combine(target.Root, "index.json")).Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatThePackageIndexIsMissingVerifyRecreateWithForceRemovesThePackages()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            using (var cache3 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+
+                var packageA = new TestNupkg("a", "1.0");
+                var packageB = new TestNupkg("b", "2.0.0-beta+blah");
+                packageA.Save(packagesFolder.Root);
+                packageB.Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder }, false, false, log);
+
+                File.Delete(Path.Combine(target.Root, "sleet.packageindex.json"));
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, true, log);
+
+                success.Should().BeTrue();
+                log.GetMessages(NuGet.Common.LogLevel.Warning).Should().Contain("Removing 2 .nupkg files that are not in sleet.packageindex.json.");
+
+                var fileSystem3 = new PhysicalFileSystem(cache3, UriUtility.CreateUri(target.Root));
+
+                var finalPackages = (await fileSystem3.GetFiles(log, TestContext.Current.CancellationToken))
+                                    .Select(e => Path.GetFileName(e.EntityUri.LocalPath))
+                                    .Where(e => e.EndsWith(".nupkg"));
+
+                finalPackages.Should().BeEmpty();
+                File.Exists(Path.Combine(target.Root, "sleet.packageindex.json")).Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatTheFeedHasANupkgNotInThePackageIndexVerifyRecreateFailsWithoutForce()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var otherPackagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+
+                // Files are reported by their baseURI path
+                var baseUri = new Uri("https://example.org/feed/");
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root), baseUri);
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+
+                var packageA = new TestNupkg("a", "1.0");
+                packageA.Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder }, false, false, log);
+
+                // Add a nupkg without adding it to the package index, as an interrupted push would
+                var packageC = new TestNupkg("c", "1.0").Save(otherPackagesFolder.Root);
+                var unindexedNupkg = Path.Combine(target.Root, "flatcontainer", "c", "1.0.0", "c.1.0.0.nupkg");
+                Directory.CreateDirectory(Path.GetDirectoryName(unindexedNupkg));
+                packageC.CopyTo(unindexedNupkg);
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root), baseUri);
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
+
+                success.Should().BeFalse();
+                var errors = log.GetMessages(NuGet.Common.LogLevel.Error);
+                errors.Should().Contain("The feed contains 1 .nupkg files that are not in sleet.packageindex.json.");
+                errors.Should().Contain("https://example.org/feed/flatcontainer/c/1.0.0/c.1.0.0.nupkg");
+                errors.Should().NotContain("a.1.0.0.nupkg");
+
+                // The feed is unchanged
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
+                File.Exists(unindexedNupkg).Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatThePackageIndexIsCorruptVerifyRecreateFailsWithoutForce()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+
+                var packageA = new TestNupkg("a", "1.0");
+                var packageB = new TestNupkg("b", "2.0.0-beta+blah");
+                packageA.Save(packagesFolder.Root);
+                packageB.Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder }, false, false, log);
+
+                var packageIndexPath = Path.Combine(target.Root, "sleet.packageindex.json");
+                File.WriteAllText(packageIndexPath, "{ \"packages\": ");
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
+
+                success.Should().BeFalse();
+                var errors = log.GetMessages(NuGet.Common.LogLevel.Error);
+                errors.Should().Contain("The feed can't be recreated:");
+                errors.Should().Contain("- sleet.packageindex.json can't be read:");
+                errors.Should().Contain("Recreating the feed would delete the 2 .nupkg files in the feed without a backup:");
+                errors.Should().Contain("/flatcontainer/a/1.0.0/a.1.0.0.nupkg");
+                errors.Should().Contain("/flatcontainer/b/2.0.0-beta/b.2.0.0-beta.nupkg");
+
+                // The feed is unchanged
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "b", "2.0.0-beta", "b.2.0.0-beta.nupkg")).Should().BeTrue();
+                File.ReadAllText(packageIndexPath).Should().Be("{ \"packages\": ");
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatThePackageIndexIsCorruptVerifyRecreateWithForceRemovesThePackages()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            using (var cache3 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+
+                var packageA = new TestNupkg("a", "1.0");
+                var packageB = new TestNupkg("b", "2.0.0-beta+blah");
+                packageA.Save(packagesFolder.Root);
+                packageB.Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder }, false, false, log);
+
+                File.WriteAllText(Path.Combine(target.Root, "sleet.packageindex.json"), "{ \"packages\": ");
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, true, log);
+
+                success.Should().BeTrue();
+                var warnings = log.GetMessages(NuGet.Common.LogLevel.Warning);
+                warnings.Should().Contain("sleet.packageindex.json can't be read:");
+                warnings.Should().Contain("Removing 2 .nupkg files that are not in sleet.packageindex.json.");
+
+                var fileSystem3 = new PhysicalFileSystem(cache3, UriUtility.CreateUri(target.Root));
+
+                var finalPackages = (await fileSystem3.GetFiles(log, TestContext.Current.CancellationToken))
+                                    .Select(e => Path.GetFileName(e.EntityUri.LocalPath))
+                                    .Where(e => e.EndsWith(".nupkg"));
+
+                var packageSets = await new PackageIndex(new SleetContext()
+                {
+                    Token = TestContext.Current.CancellationToken,
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem3,
+                    SourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(fileSystem3, log, TestContext.Current.CancellationToken)
+                }).GetPackageSetsAsync();
+
+                finalPackages.Should().BeEmpty();
+                packageSets.Packages.Index.Should().BeEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatTheSettingsAreCorruptVerifyRecreateFailsWithoutForce()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+
+                var settingsPath = Path.Combine(target.Root, "sleet.settings.json");
+                File.WriteAllText(settingsPath, "not json");
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder.Root, false, log);
+
+                success.Should().BeFalse();
+                var errors = log.GetMessages(NuGet.Common.LogLevel.Error);
+                errors.Should().Contain("The feed can't be recreated:");
+                errors.Should().Contain("- sleet.settings.json can't be read:");
+
+                // The feed is unchanged
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
+                File.ReadAllText(settingsPath).Should().Be("not json");
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatTheSettingsAreCorruptVerifyRecreateWithForceUsesTheDefaults()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+                new TestNupkg("a", "1.0.0").Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder.Root }, false, false, log);
+
+                var settingsPath = Path.Combine(target.Root, "sleet.settings.json");
+                File.WriteAllText(settingsPath, "not json");
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder.Root, true, new[] { "badgesenabled:true" }, log);
+
+                success.Should().BeTrue();
+                log.GetMessages(NuGet.Common.LogLevel.Warning).Should().Contain("sleet.settings.json can't be read, the new feed will use the default settings:");
+
+                // The values passed in are applied to the default settings, and the package is pushed again with them
+                var settingsJson = JObject.Parse(File.ReadAllText(settingsPath));
+                FeedSettingsUtility.GetSettings(settingsJson).Should().Contain("badgesenabled", "true");
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
+                File.Exists(Path.Combine(target.Root, "badges", "v", "a.json")).Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task GivenThatTheFeedHasSeveralProblemsVerifyRecreateReportsThemTogether()
+        {
+            using (var packagesFolder = new TestFolder())
+            using (var otherPackagesFolder = new TestFolder())
+            using (var target = new TestFolder())
+            using (var outputFolder = new TestFolder())
+            using (var cache = new LocalCache())
+            using (var cache2 = new LocalCache())
+            {
+                var log = new TestLogger();
+                var settings = new LocalSettings();
+                var fileSystem = new PhysicalFileSystem(cache, UriUtility.CreateUri(target.Root));
+
+                await InitCommand.RunAsync(settings, fileSystem, log);
+
+                var packageA = new TestNupkg("a", "1.0");
+                var packageB = new TestNupkg("b", "2.0.0-beta+blah");
+                packageA.Save(packagesFolder.Root);
+                packageB.Save(packagesFolder.Root);
+                await PushCommand.RunAsync(settings, fileSystem, new List<string>() { packagesFolder }, false, false, log);
+
+                // Corrupt the feed files, remove an indexed nupkg and add a nupkg that is not indexed
+                var feedIndexPath = Path.Combine(target.Root, "index.json");
+                File.WriteAllText(feedIndexPath, "not json");
+                File.WriteAllText(Path.Combine(target.Root, "sleet.settings.json"), "not json");
+                File.Delete(Path.Combine(target.Root, "flatcontainer", "b", "2.0.0-beta", "b.2.0.0-beta.nupkg"));
+
+                var packageC = new TestNupkg("c", "1.0").Save(otherPackagesFolder.Root);
+                var unindexedNupkg = Path.Combine(target.Root, "flatcontainer", "c", "1.0.0", "c.1.0.0.nupkg");
+                Directory.CreateDirectory(Path.GetDirectoryName(unindexedNupkg));
+                packageC.CopyTo(unindexedNupkg);
+
+                // Recreate
+                var fileSystem2 = new PhysicalFileSystem(cache2, UriUtility.CreateUri(target.Root));
+                var success = await RecreateCommand.RunAsync(settings, fileSystem2, outputFolder, false, log);
+
+                success.Should().BeFalse();
+                var errors = log.GetMessages(NuGet.Common.LogLevel.Error);
+                errors.Should().Contain("- index.json can't be read:");
+                errors.Should().Contain("- sleet.settings.json can't be read:");
+                errors.Should().Contain("- The feed contains 1 .nupkg files that are not in sleet.packageindex.json.");
+                errors.Should().Contain("/flatcontainer/c/1.0.0/c.1.0.0.nupkg");
+                errors.Should().Contain("- 1 packages in sleet.packageindex.json are missing their .nupkg files:");
+                errors.Should().Contain("/flatcontainer/b/2.0.0-beta/b.2.0.0-beta.nupkg");
+
+                // The feed is unchanged
+                File.Exists(Path.Combine(target.Root, "flatcontainer", "a", "1.0.0", "a.1.0.0.nupkg")).Should().BeTrue();
+                File.Exists(unindexedNupkg).Should().BeTrue();
+                File.ReadAllText(feedIndexPath).Should().Be("not json");
             }
         }
 
@@ -387,6 +740,7 @@ namespace SleetLib.Tests
 
                 success.Should().BeFalse();
                 log.GetMessages(NuGet.Common.LogLevel.Error).Should().Contain("The feed contains 1 symbols packages.");
+                log.GetMessages(NuGet.Common.LogLevel.Error).Should().NotContain("not in sleet.packageindex.json");
                 File.Exists(existingFile).Should().BeTrue();
 
                 // The feed is unchanged
@@ -425,6 +779,7 @@ namespace SleetLib.Tests
 
                 success.Should().BeTrue();
                 log.GetMessages(NuGet.Common.LogLevel.Warning).Should().Contain("Removing 1 symbols packages from the feed.");
+                log.GetMessages(NuGet.Common.LogLevel.Warning).Should().NotContain("not in sleet.packageindex.json");
 
                 var fileSystem3 = new PhysicalFileSystem(cache3, UriUtility.CreateUri(target.Root));
 
