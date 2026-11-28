@@ -46,6 +46,7 @@
 * Fixed `sleet init` failing when the S3 bucket doesn't exist
 * S3 feeds check that the bucket exists with `HeadBucket` instead of `GetBucketAcl`, which isn't supported by all S3 compatible services
 * Creating a bucket on S3 compatible storage skips the Amazon S3 public access block and object ownership settings if the service does not support them
+* S3 feeds retry creating or deleting a bucket when the service responds with `429 Too Many Requests`. Cloud Storage allows a project about one bucket create or delete every 2 seconds
 * Fixed the file path shown in verbose S3 log messages
 * Renamed `createconfig` to `create-config` so all commands use dashes
   * `createconfig` still works but is no longer shown in help
