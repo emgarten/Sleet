@@ -2,6 +2,7 @@
 
 This quick start creates a public NuGet v3 feed in [Cloudflare R2](https://developers.cloudflare.com/r2/). R2 implements the S3 API, so an R2 feed is an `s3` source with `provider` set to `r2`. The `r2` provider applies the settings that R2 needs:
 
+- `region` defaults to `auto`, the Region that R2 expects in request signatures. Without it, the AWS SDK signs with the Region from `AWS_REGION` or your AWS config file, and R2 rejects any Region except `auto` and `us-east-1`.
 - `disablePayloadSigning` defaults to `true` and `checksumMode` defaults to `whenRequired`. R2 doesn't support the streaming uploads that the AWS SDK uses.
 - `serviceURL` and `baseURI` are required.
 - When Sleet creates a bucket, it doesn't try to make the bucket public. R2 doesn't support bucket policies, so you turn on public access in Cloudflare instead.
@@ -89,9 +90,9 @@ You can also use [.netconfig](client-settings.md#netconfig):
     secretAccessKey = R2_SECRET_ACCESS_KEY
 ```
 
-R2 doesn't need `region`. To keep the access key out of the file, leave out `accessKeyId` and `secretAccessKey`, and set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables. See [AWS authentication](auth-aws.md).
+You don't need to set `region`, because the `r2` provider uses `auto`. To keep the access key out of the file, leave out `accessKeyId` and `secretAccessKey`, and set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables. See [AWS authentication](auth-aws.md).
 
-Existing R2 feeds that set `disablePayloadSigning` instead of `provider` continue to work.
+Existing R2 feeds that set `disablePayloadSigning` instead of `provider` continue to work, but `region` doesn't default to `auto` for them. If they fail with `BadRequest` on a machine that sets a Region in `AWS_REGION` or the AWS config file, set `provider` to `r2`.
 
 For the full property list, see [Amazon S3 properties](client-settings.md#amazon-s3-properties).
 
@@ -103,9 +104,19 @@ Push one package or a folder of packages:
 sleet push ./nupkgs
 ```
 
-The first push initializes the feed with the default settings. To turn on the catalog from the start, run [init](commands.md#init) first.
+The first push initializes the feed with the default [feed settings](feed-settings.md). To start with different settings, run [init](commands.md#init) before the first push. To turn on the catalog:
 
-If the bucket doesn't exist, Sleet creates it, which needs an *Admin Read & Write* token. Sleet can't make the bucket public, so [make the bucket public](#make-the-bucket-public) after Sleet creates it.
+```bash
+sleet init --with-catalog
+```
+
+To create the feed without the [package gallery](gallery.md):
+
+```bash
+sleet init --set galleryenabled:false
+```
+
+If the bucket doesn't exist, `push` or `init` creates it, which needs an *Admin Read & Write* token. Sleet can't make the bucket public, so [make the bucket public](#make-the-bucket-public) after Sleet creates it.
 
 ## Caching
 
@@ -120,6 +131,16 @@ https://nuget.example.com/index.json
 ```
 
 Add it to NuGet clients. See [Use a feed with NuGet](consume-feed.md).
+
+## Browse the feed
+
+Sleet writes a [package gallery](gallery.md) to the feed, a web page for browsing its packages. Open it in a browser at `baseURI` plus `index.html`:
+
+```text
+https://nuget.example.com/index.html
+```
+
+R2 doesn't serve a default page, so include `index.html` in the URL. On a custom domain, a rewrite rule can open the gallery from the domain alone, see [serve the gallery from the root URL](gallery.md#serve-the-gallery-from-the-root-url).
 
 ## Next steps
 

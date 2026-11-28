@@ -124,6 +124,20 @@ namespace Sleet
                     contentType = "image/svg+xml";
                     cacheControl = mutableCacheControl;
                 }
+                else if (key.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+                {
+                    // text/html is required for browsers to render the gallery
+                    // instead of prompting the user to download it.
+                    contentType = "text/html; charset=utf-8";
+                    cacheControl = mutableCacheControl;
+
+                    if (compress && !SkipCompress())
+                    {
+                        contentEncoding = "gzip";
+                        writeStream = await Utility.GZipAsync(cache);
+                        disposeWriteStream = true;
+                    }
+                }
                 else if (absoluteUri.AbsoluteUri.EndsWith("/icon", StringComparison.Ordinal))
                 {
                     contentType = "image/png";

@@ -28,6 +28,11 @@
       "comment": "Sleet package index."
     },
     {
+      "@id": "https://example.org/feed/index.html#package/{id}/{version}",
+      "@type": "PackageDetailsUriTemplate/5.1.0",
+      "comment": "URI template used by NuGet Client to construct a URL for viewing package details."
+    },
+    {
       "@id": "https://example.org/feed/registration/",
       "@type": "RegistrationsBaseUrl/3.4.0",
       "comment": "Package registrations used for search and packages.config."

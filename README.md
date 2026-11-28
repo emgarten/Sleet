@@ -2,7 +2,7 @@
 
 A static NuGet package feed generator. ☁️ + 📦 = ❄️
 
-[![NuGet](https://img.shields.io/nuget/v/sleet.svg)](https://www.nuget.org/packages/sleet) [![.NET test](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml) [![Functional Tests](https://github.com/emgarten/Sleet/actions/workflows/functional.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/functional.yml) [![Functional Tests (cloud)](https://github.com/emgarten/Sleet/actions/workflows/functional-cloud.yml/badge.svg?event=push)](https://github.com/emgarten/Sleet/actions/workflows/functional-cloud.yml)
+[![NuGet](https://img.shields.io/nuget/v/sleet.svg)](https://www.nuget.org/packages/sleet) [![.NET test](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/dotnet.yml) [![Functional Tests](https://github.com/emgarten/Sleet/actions/workflows/functional.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/functional.yml) [![Functional Tests (cloud)](https://github.com/emgarten/Sleet/actions/workflows/functional-cloud.yml/badge.svg?event=push)](https://github.com/emgarten/Sleet/actions/workflows/functional-cloud.yml) [![UX Tests](https://github.com/emgarten/Sleet/actions/workflows/ux-tests.yml/badge.svg)](https://github.com/emgarten/Sleet/actions/workflows/ux-tests.yml)
 
 Sleet creates and updates NuGet v3 feeds as static files on Azure Blob Storage, Amazon S3, S3-compatible storage, or a local folder. NuGet clients restore packages straight from those files, so there is no server to run.
 
@@ -31,12 +31,13 @@ Sleet creates and updates NuGet v3 feeds as static files on Azure Blob Storage, 
 
 ## Features
 
-* **Serverless.** Create static feeds directly on *Azure Storage*, *Amazon S3*, or any [S3-compatible storage](doc/s3-compatible.md) (Cloudflare R2, MinIO, Backblaze B2, etc.). No compute required.
+* **Serverless.** Create static feeds directly on *Azure Storage*, *Amazon S3*, or any [S3-compatible storage](doc/s3-compatible.md) (Cloudflare R2, Google Cloud Storage, MinIO, Backblaze B2, etc.). No compute required.
 * **Cross platform.** Sleet is built in .NET and runs on Linux, macOS, and Windows.
 * **Fast.** Static feeds use the [NuGet v3 feed format](https://learn.microsoft.com/en-us/nuget/api/overview) so clients resolve packages with simple HTTP requests.
 * **Simple.** A straightforward command line tool to add, remove, and update packages.
 * **Flexible.** Configure credentials via [files](doc/client-settings.md), [environment variables](doc/environment-variables.md), command line args, .netconfig, or AWS-specific patterns to fit any workflow.
 * **Package retention.** Automatically prune old package versions with configurable stable/prerelease limits and release label grouping. See [package retention](doc/retention.md).
+* **Package gallery.** Browse and filter a feed's packages in a web browser, from a single page that Sleet writes to the feed. See [package gallery](doc/gallery.md).
 * **Version badges.** Generate [shields.io](https://shields.io/)-compatible [version badges](doc/badges.md) for your packages.
 * **External search.** Plug in a custom [search endpoint](doc/external-search.md) for dynamic query results.
 * **Cache control.** Set CDN-friendly `Cache-Control` headers for immutable and mutable feed files. See [CDN and caching](doc/cdn-caching.md).
@@ -50,7 +51,7 @@ Sleet creates and updates NuGet v3 feeds as static files on Azure Blob Storage, 
 
 ## Getting Sleet
 
-Sleet requires the [.NET 8 SDK](https://dotnet.microsoft.com/download) or later. See [Install Sleet](doc/install.md) for all options.
+Sleet requires the [.NET 10 SDK](https://dotnet.microsoft.com/download) or later. See [Install Sleet](doc/install.md) for all options.
 
 ### Install as a dotnet global tool (recommended)
 
@@ -143,6 +144,7 @@ Get started:
 * [Create an Azure feed](doc/feed-type-azure.md)
 * [Create an Amazon S3 feed](doc/feed-type-s3.md)
 * [Create a Cloudflare R2 feed](doc/feed-type-cloudflare.md)
+* [Create a Google Cloud Storage feed](doc/feed-type-gcs.md)
 * [Create a local feed](doc/feed-type-local.md)
 * [Use a feed with NuGet](doc/consume-feed.md)
 
@@ -188,6 +190,8 @@ The functional tests run against Azure Storage and Amazon S3. By default, they r
 ```
 
 See [functional tests](CONTRIBUTING.md#functional-tests) to run them against real accounts.
+
+The [package gallery](doc/gallery.md) has browser tests that the build scripts don't run. Run them with `./ux-tests.sh` or `./ux-tests.ps1` when you change the gallery. See [gallery UX tests](CONTRIBUTING.md#gallery-ux-tests).
 
 CI runs on Linux, macOS, and Windows.
 

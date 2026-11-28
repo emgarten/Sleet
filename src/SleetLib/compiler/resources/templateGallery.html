@@ -1,0 +1,2201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Only the script and style blocks in this file can run. A test checks that
+     these hashes match them, and prints the new policy when either changes. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Ew/yID6oPA/6mYgbs1tFhGXOCDFGNtHqTpDw2HBIr2M=' 'sha256-xbGfae7Upyfo5nZeBHPkfjNZNJN0jo0YXEuFKwkoD0k='; style-src 'sha256-kBaRp/7kNQ72bhL9R7tEoEuo8bvXKvwPGjGFhQgWNe0='; img-src 'self' data: https: http:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sleet package feed</title>
+<!-- The Sleet logo, inline so the page doesn't need another file on the feed. -->
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAAAYrSURBVFhH7ZR/UFVlGsev20zObrlqqY1ojDm1jdqoiEY6IjU7touaP1ZJWytFBMxSRCLRIgilTJkchRREkyuk3kLNMBV/7SrK4AUJBEUMDYN7Ebvx43q53HPuOe9n55x7xfW2s7vNNrP/8DnzzHnOOe/7fr/v+z7nNRi66aabXwDQc5/52rQl+85tmJl5fM+c7aeN8fsvJJ2vtQb7tv3Vyf37pbCQjwsqBsXv4+nkr3gu7RhBaYX8IelrhiZ8wZytJ0/U3LSO8e33q7Aq71Sa3/JcRifmk376EhebW7nhkrneKXGu8TbJX5XwRLyJkYn59vySqzN8+/9PvJt3Ym2v6BzCtxVySyg4ADcgvKHlHUCR5TYjE/YwLM7oMJ6qePXKD00jgN/4jveLOFxS9fzAJduZl36MJsnF/op6r+zP0Uycbmimz6ubeCT8U4ZEb3X/MXmfeefx8nm+4/7XTEnJOzrwjZ20OZ3M2lzI06v3o4p/bUCjHfjbpTo+OVFOnOkso1fm4B+ZRcJnhR/6jv0faWlp8febv8G51nSWz4uqMLycTrWl1VfzPmyKyk/e3A6YO5yErf+CQa9vZvPBcxG+Gv+WsxevzO0blsoRcw3fWX+k7LrVR+7nVEkKJzvcCATfu1W0HqclmXHLMxm/bGst4CtzP0DvhOyChPHLtpwf+sq6FkNwDBcu3+DCNQvldU0eFe8WHC69yl825BOZeYRrTTavBU9ptisqJodb365KYHVBMf2mv4/ppHmpr2YXJZXXgoJXZFzuOzOFgKUZTF+Xx8zUXKobmimuvsm56vqu+jOdraTHtBQmrTHy5JvbeHh+GtebWrz+hB4eo4IqYMvlegZPeZv+MxJ5Za2xQAjhd5/4t7XfjwqI/MTmNzuVdcfLONMpUwNcARoUgTa/O3cnCLzwTjahibneWUPsjm+otdj0zypCj7u1etDu5sAdmSOWZiKzDvHI1Pd4cWVGpRBigC4OPPBiXEZxv+lJpFfX8y3Q2TW0h0ybzFG70vUcn3WIh6YmknGomMo6S9d7VdwLDYukkGR10iir+vlRBKwqNNP7z2sI/8iYqxvYc6z4T/1DVxOed5IjgCK0GUCHELQq2lygzOGmzqXouWbD7uwk/OO9/C50DYZJsSxcv5dOWSs+rT+4hef+kyK44bpn3C4EJmBqmokhMxLdFXU/jDC8/l5Wmv/sJFLq27ist9VqWGCVFYrsLt2MhlNVcagCqWs4sDucHCyqoMekWL48o60dyJq4blTop6SGlst6JigSsLziJn4vJZKUeSDaMDkq1TQsKo3UFmjQemsVbpPIv+2RcnlXxGyXuNHpGXL5JhPRG/fqeaOtlZ4vrCDnWIlXDr5ukylo8xzY2rX9Rwmzw/Nc7oJl9Q6emJtK+LvZHxmmvbE+98nw9cTcElR1atULdR0KF+0ytR0ybiF0E5I3NIu7vjmPYVw0flPf4cGJbzJxSRotjg7P8quCWqfCVadn6bU/ovyOmwbvVpxywGs17Tw+O5mopB1rDbHrcxIGhr7Ny2XNpGsHnVB1E22SSnGrpD/KCkiKQPaGRvnVm3y48zBZB87Q3uHS30luoYe+ZAIq2iWsmhHP74GsKLxvg9CjNfhNjmNL7tF5hvLy6mFPTX5LGpn4OfNtkN3sxiYpSIqKoqp0uFWcbs+90xtOTeSf0Pb3brtORcWpqMiqypU7Es0ut55bXW423lIJa4QhSz4lYNYaW9ev+FZKdnrvCUt5dstxZtZDRCPENsIKb+i5BVZYPRGj5U0Q2wRx1nux8u53b5t47bvW1gILLDC9Dp5J+pJ+IbF8sO1QfNdBBDw0J2ZjYa9xixi0cCMB284wJqeUsUYzgTmlBOaUMXZ3GYHGi4z6rJTA3WUE7CplbG45Y4xljNFyYymjc8wE7i4l0Ghm9K4LegTsMusxalMhj4V9QJ9nFxOVvCMH6NFlQKO06ruQp16KZ9SMuDb/kMg2/+ejlUeDwukXFM6jQYt4cPhcHg54jcEh0fQKXMjjIdH0CVzAgPERDJiwmN+PXYhfcBS/HflXeo6Yy2MTIug7bgH9n1vE4ImL5aHBES3Dp8S0DZ+1ShZCDL1PvJtu/p/8AzpUauUQqUyLAAAAAElFTkSuQmCC">
+<!-- Link previews. Chat apps read these tags without running script, so links
+     to a package show them too. og:url is left out so a shared link keeps its URL. -->
+<meta name="description" content="Browse the NuGet packages on this feed.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sleet">
+<meta property="og:title" content="Sleet package feed">
+<meta property="og:description" content="Browse the NuGet packages on this feed.">
+<meta name="twitter:card" content="summary">
+<script>
+// Applied before the page draws so a reader who chose light mode never sees
+// a flash of the dark default.
+try {
+  if (localStorage.getItem("sleet-gallery-mode") === "light") document.documentElement.setAttribute("data-theme", "light");
+} catch (e) { }
+</script>
+<style>
+/* Dark by default. The toggle in the header sets data-theme="light" and
+   remembers the choice for this site. */
+:root{
+  color-scheme:dark;
+  --bg:#1b1a19; --card:#252423; --fg:#f3f2f1; --muted:#a19f9d; --line:#3b3a39; --strong:#797775;
+  --field-line:#605e5c; --hover:#323130; --chip:#323130; --accent:#2899f5;
+  --ok:#6ccb5f; --ok-bg:#1d3a1d;
+  --warn-bg:#433519; --warn-line:#6b5a1a; --warn-icon:#c8c6c4;
+  --danger:#f1707b; --danger-bg:#442726; --danger-line:#6e3a3c; --glyph:#797775; --icon-bg:#edebe9;
+  --important:#b4a0ff; --attention:#d29922;
+  --depth:0 1.6px 3.6px rgba(0,0,0,.4),0 .3px .9px rgba(0,0,0,.3);
+  --depth-hi:0 6.4px 14.4px rgba(0,0,0,.45),0 1.2px 3.6px rgba(0,0,0,.35);
+  --i-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a19f9d' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E");
+  --i-mode:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41'/%3E%3C/svg%3E");
+  --i-glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.9 20.4 7.4v9.2L12 21.1 3.6 16.6V7.4z'/%3E%3Cpath d='M3.6 7.4 12 12l8.4-4.6'/%3E%3Cpath d='M12 12v9.1'/%3E%3C/svg%3E");
+  --i-download:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v11m-5-5 5 5 5-5M5 19h14'/%3E%3C/svg%3E");
+  --i-link:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 7H7a5 5 0 0 0 0 10h3M14 7h3a5 5 0 0 1 0 10h-3M8 12h8'/%3E%3C/svg%3E");
+  --i-alert:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5 2.5 20h19z'/%3E%3Cpath d='M12 10v4.5M12 17.2v.1'/%3E%3C/svg%3E");
+  --i-x:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m9 9 6 6m0-6-6 6'/%3E%3C/svg%3E");
+  --i-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='16' rx='2'/%3E%3Ccircle cx='9' cy='10' r='1.5'/%3E%3Cpath d='m21 16-5-5-9 9'/%3E%3C/svg%3E");
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f8f8f8; --card:#fff; --fg:#201f1e; --muted:#605e5c; --line:#edebe9; --strong:#8a8886;
+  --field-line:#d1d1d1; --hover:#f3f2f1; --chip:#f3f2f1; --accent:#0078d4;
+  --ok:#107c10; --ok-bg:#dff6dd;
+  --warn-bg:#fff4ce; --warn-line:#f7e28b; --warn-icon:#797673;
+  --danger:#a4262c; --danger-bg:#fde7e9; --danger-line:#f1bbbc; --glyph:#a19f9d; --icon-bg:#fff;
+  --important:#8764b8; --attention:#9a6700;
+  --depth:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+  --depth-hi:0 6.4px 14.4px rgba(0,0,0,.13),0 1.2px 3.6px rgba(0,0,0,.11);
+  --i-search:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23605e5c' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E");
+  --i-mode:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z'/%3E%3C/svg%3E");
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:14px/20px "Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+a:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
+.mono,.pick,pre.readme,pre.source,.readme code,.readme pre,.group h4{font-family:"Cascadia Mono",ui-monospace,Consolas,SFMono-Regular,"Liberation Mono",monospace}
+.meta{color:var(--muted);font-size:12px;white-space:nowrap}
+
+header{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;min-height:48px;
+  padding:8px max(20px,calc((100% - 1000px)/2 + 20px));background:var(--card);box-shadow:var(--depth)}
+header h1{margin:0;font-size:16px;font-weight:600;white-space:nowrap}
+header h1 a{color:var(--fg);display:inline-flex;align-items:center;gap:10px}
+header h1 a:hover{text-decoration:none}
+header h1 a::before{content:"";width:28px;height:28px;border-radius:4px;
+  background:#0078d4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.9 20.4 7.4v9.2L12 21.1 3.6 16.6V7.4z'/%3E%3Cpath d='M3.6 7.4 12 12l8.4-4.6'/%3E%3Cpath d='M12 12v9.1'/%3E%3C/svg%3E") center/18px no-repeat}
+#search{flex:1;min-width:200px;max-width:480px;height:32px;padding:0 10px 0 34px;border:1px solid var(--field-line);
+  border-bottom-color:var(--strong);border-radius:4px;background:var(--card) var(--i-search) 10px center/16px no-repeat;
+  color:var(--fg);font:inherit}
+#search::placeholder{color:var(--muted)}
+#search:hover{border-color:var(--strong)}
+#search:focus{outline:none;border-color:var(--field-line);border-bottom-color:var(--accent);box-shadow:inset 0 -1px 0 var(--accent)}
+#count{margin-left:auto}
+#mode{flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;
+  border:0;border-radius:4px;background:none;color:var(--fg);cursor:pointer}
+#mode:hover{background:var(--hover)}
+#mode:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
+#mode::before{content:"";width:18px;height:18px;background:currentColor;
+  -webkit-mask:var(--i-mode) center/contain no-repeat;mask:var(--i-mode) center/contain no-repeat}
+
+main{max-width:1000px;margin:0 auto;padding:20px}
+
+#body:has(> .pkg){background:var(--card);border-radius:4px;box-shadow:var(--depth);overflow:hidden}
+.pkg{position:relative;padding:10px 16px;border-bottom:1px solid var(--line)}
+.pkg:nth-last-child(2){border-bottom:0}
+.pkg:hover{background:var(--hover);box-shadow:inset 3px 0 0 var(--accent)}
+.pkg-head{display:flex;gap:14px;align-items:flex-start}
+.pkg .pkg-head{align-items:center}
+.grow{flex:1;min-width:0}
+.icon-slot{position:relative;width:36px;height:36px;flex:none;border-radius:4px;overflow:hidden;background:var(--chip)}
+.icon-slot::before{content:"";position:absolute;inset:0;background:var(--glyph);
+  -webkit-mask:var(--i-glyph) center/20px no-repeat;mask:var(--i-glyph) center/20px no-repeat}
+.icon-slot.lg{width:72px;height:72px;border-radius:6px}
+.icon-slot.lg::before{-webkit-mask-size:38px;mask-size:38px}
+.icon{position:relative;display:block;width:100%;height:100%;object-fit:contain;background:var(--icon-bg)}
+.pkg-title{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.pkg-id{font-weight:600;color:var(--fg);overflow-wrap:anywhere}
+.pkg-id::after{content:"";position:absolute;inset:0}
+.pkg:hover .pkg-id{color:var(--accent);text-decoration:underline}
+.pkg-id:focus-visible{outline:none}
+.pkg-id:focus-visible::after{outline:2px solid var(--fg);outline-offset:-2px}
+.facts{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;font-size:12px;color:var(--muted)}
+.dot{opacity:.6}
+
+.pager{display:flex;align-items:center;gap:4px;padding:6px 12px;border-top:1px solid var(--line)}
+.pager:empty{display:none}
+.pager .meta{order:-1;margin-right:auto;padding-left:4px}
+.pager a,.pager .off{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:4px;color:var(--fg);font-weight:600}
+.pager a:hover{background:var(--hover);text-decoration:none}
+.off{color:var(--muted);opacity:.5}
+
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin:0 0 12px -8px;color:var(--muted)}
+.crumbs > *{overflow-wrap:anywhere}
+.crumbs > a,.crumbs > span:not(.dot){padding:4px 8px;border-radius:4px}
+.crumbs > a{color:var(--muted)}
+.crumbs > a:hover{background:var(--hover);color:var(--fg);text-decoration:none}
+.crumbs > :last-child{color:var(--fg);font-weight:600}
+
+#body > .pkg-head{gap:20px;padding:20px 24px;background:var(--card);border-radius:4px;box-shadow:var(--depth)}
+h2{margin:0;font-size:24px;line-height:32px;font-weight:600;overflow-wrap:anywhere}
+.ver{padding:2px 8px;border-radius:4px;background:var(--chip);font-size:13px;color:var(--fg)}
+.desc{margin:8px 0 0;overflow-wrap:anywhere}
+.sub{margin-top:4px;font-size:12px;color:var(--muted)}
+.desc:empty,.sub:empty{display:none}
+.sub:has(> a){font-size:0;margin-top:14px}
+.sub > a{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 16px;margin:0 8px 8px 0;border:1px solid var(--strong);
+  border-radius:4px;background:var(--card);color:var(--fg);font-size:14px;font-weight:600;vertical-align:middle}
+.sub > a:hover{background:var(--hover);text-decoration:none}
+.sub > a.project::before,.sub > a.nupkg::before,.sub > a.nuspec::before{content:"";width:16px;height:16px;background:currentColor}
+.sub > a.project::before{-webkit-mask:var(--i-link) center/contain no-repeat;mask:var(--i-link) center/contain no-repeat}
+.sub > a.nupkg::before{-webkit-mask:var(--i-download) center/contain no-repeat;mask:var(--i-download) center/contain no-repeat}
+.sub > a.nuspec::before{-webkit-mask:var(--i-search) center/contain no-repeat;mask:var(--i-search) center/contain no-repeat}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{display:inline-block;padding:0 8px;border-radius:4px;background:var(--chip);font-size:12px;line-height:22px}
+td .tag{margin-left:8px;padding:0 8px;border-radius:999px;background:var(--ok-bg);color:var(--ok);font-weight:600;line-height:18px}
+
+.panel{margin-top:16px;padding:16px 20px;background:var(--card);border-radius:4px;box-shadow:var(--depth)}
+h3{margin:0 0 10px;font-size:16px;line-height:22px;font-weight:600}
+.panel > p{margin:0}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tr:not(:has(th)):hover td{background:var(--hover)}
+td:first-child,th:first-child{white-space:nowrap}
+.group + .group{margin-top:16px}
+.group h4{display:inline-block;margin:0 0 4px;padding:2px 8px;border-radius:4px;background:var(--chip);font-size:13px;font-weight:600}
+.group p{margin:4px 0 0;color:var(--muted)}
+.group td{padding:7px 12px}
+.group td:first-child{white-space:normal;overflow-wrap:anywhere}
+@media (min-width:640px){.group td:last-child{width:40%}}
+.readme{overflow-wrap:anywhere;line-height:22px}
+.readme > :first-child{margin-top:0}
+.readme > :last-child{margin-bottom:0}
+.readme h1,.readme h2,.readme h3,.readme h4,.readme h5,.readme h6{margin:24px 0 8px;font-weight:600;line-height:1.3}
+.readme h1{font-size:22px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.readme h2{font-size:18px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.readme h3{font-size:16px}
+.readme h4,.readme h5,.readme h6{font-size:14px}
+.readme p,.readme ul,.readme ol,.readme blockquote,.readme .alert,.readme pre,.readme .table-wrap{margin:0 0 12px}
+.readme ul,.readme ol{padding-left:24px}
+.readme li + li{margin-top:4px}
+.readme li > p{margin:0 0 8px}
+.readme li > :last-child{margin-bottom:0}
+.readme li > ul,.readme li > ol{margin-top:4px}
+.readme li.task{list-style:none;margin-left:-20px}
+.readme li.task input{margin:0 6px 0 0;vertical-align:middle}
+.readme blockquote,.readme .alert{padding:0 12px;border-left:3px solid var(--field-line)}
+.readme blockquote{color:var(--muted)}
+.readme .alert{--tone:var(--accent);border-left-color:var(--tone)}
+.readme .alert-tip{--tone:var(--ok)}
+.readme .alert-important{--tone:var(--important)}
+.readme .alert-warning{--tone:var(--attention)}
+.readme .alert-caution{--tone:var(--danger)}
+.readme .alert-title{margin-bottom:4px;font-weight:600;color:var(--tone)}
+.readme code{padding:1px 5px;border-radius:4px;background:var(--chip);font-size:85%}
+.readme pre{padding:12px 16px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:4px;font-size:13px;line-height:20px}
+.readme pre code{padding:0;background:none;font-size:inherit;white-space:pre;overflow-wrap:normal}
+.readme img{max-width:100%;vertical-align:middle}
+.readme .img-off{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:1px 8px;border:1px dashed var(--field-line);
+  border-radius:4px;color:var(--muted);font-size:12px;line-height:18px;vertical-align:middle}
+.readme .img-off::before{content:"";flex:none;width:14px;height:14px;background:currentColor;
+  -webkit-mask:var(--i-image) center/contain no-repeat;mask:var(--i-image) center/contain no-repeat}
+.img-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 12px;padding:8px 12px;border-radius:4px;
+  background:var(--chip);color:var(--muted);font-size:13px}
+.img-bar button{height:28px;padding:0 12px;border:1px solid var(--strong);border-radius:4px;background:var(--card);
+  color:var(--fg);font:inherit;font-weight:600;cursor:pointer}
+.img-bar button:hover{background:var(--hover)}
+.img-bar button:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
+.readme hr{margin:16px 0;border:0;border-top:1px solid var(--line)}
+.readme .table-wrap{overflow-x:auto;overflow-wrap:normal}
+.readme table{width:auto}
+.readme th,.readme td,.readme tr:last-child td{padding:6px 12px;border:1px solid var(--line);white-space:normal;font-size:inherit;color:var(--fg)}
+pre.readme,pre.source{margin:0;padding:12px 16px;overflow:auto;white-space:pre-wrap;
+  background:var(--bg);border:1px solid var(--line);border-radius:4px;font-size:13px;line-height:20px}
+pre.readme{max-height:520px}
+pre.source{overflow-wrap:anywhere}
+
+.note{position:relative;margin:0 0 12px;padding:8px 12px 8px 36px;background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:4px}
+.note::before{content:"";position:absolute;left:12px;top:10px;width:16px;height:16px;background:var(--warn-icon);
+  -webkit-mask:var(--i-alert) center/contain no-repeat;mask:var(--i-alert) center/contain no-repeat}
+.empty{margin:0;padding:48px 0;text-align:center;color:var(--muted)}
+.err{position:relative;padding:12px 16px 12px 42px;background:var(--danger-bg);border:1px solid var(--danger-line);border-radius:4px}
+.err::before{content:"";position:absolute;left:14px;top:13px;width:18px;height:18px;background:var(--danger);
+  -webkit-mask:var(--i-x) center/contain no-repeat;mask:var(--i-x) center/contain no-repeat}
+.err p{margin:4px 0 0}
+.err p.mono{font-size:12px;color:var(--muted);word-break:break-all}
+
+footer{max-width:1000px;margin:0 auto;padding:4px 20px 32px;color:var(--muted);font-size:12px}
+
+@media (max-width:560px){
+  #search{order:3;flex-basis:100%;max-width:none}
+  main{padding:12px}
+  #body > .pkg-head{padding:16px}
+  .icon-slot.lg{width:56px;height:56px}
+  h2{font-size:20px;line-height:28px}
+  .panel{padding:12px 14px}
+  th,td{padding-left:8px;padding-right:8px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="#">Sleet</a></h1>
+  <input id="search" type="search" placeholder="Filter by package id&#8230;" aria-label="Filter packages by id" autocomplete="off">
+  <span class="meta" id="count"></span>
+  <button type="button" id="mode" aria-label="Switch to light mode" title="Switch to light mode"></button>
+</header>
+<main>
+  <div id="body"><p class="empty">Loading&#8230;</p></div>
+</main>
+<footer>Generated by Sleet $SLEETVERSION$</footer>
+<script>
+(function () {
+  "use strict";
+
+  var PAGE_SIZE = 20;
+  var BASE_TITLE = document.title;
+  var BRAND = "Sleet";
+
+  // Resolve the feed root from this page's own location rather than from a
+  // baked in base URI. The same file then works unmodified when served from a
+  // blob endpoint, an Azure $web endpoint, an S3 website endpoint, CloudFront
+  // or an R2 custom domain, and every request stays same origin so no CORS
+  // configuration is ever required.
+  var ROOT = (function () {
+    var href = location.href.split("#")[0].split("?")[0];
+    href = href.replace(/(^|\/)index\.html?$/i, "$1");
+    return href.charAt(href.length - 1) === "/" ? href : href + "/";
+  })();
+
+  var elBody = document.getElementById("body");
+  var elCount = document.getElementById("count");
+  var elSearch = document.getElementById("search");
+
+  // Every package id in the feed, sorted, from sleet.packageindex.json. Maps
+  // keyed by id have no prototype, so ids such as constructor are found.
+  var packages = [];
+  var byId = Object.create(null);
+
+  // Parsed registration indexes, keyed by lower case id.
+  var regCache = Object.create(null);
+
+  // Bumped on every navigation so that responses which arrive after the user
+  // has moved on are dropped instead of drawn into the wrong view.
+  var generation = 0;
+
+  // The most recent list route, so the Feed breadcrumb returns to the same
+  // filter and page.
+  var listHash = "#";
+
+  var loaded = false;
+
+  // Hash routes never match an element id, so the browser keeps the old scroll
+  // position when the view changes. Following a link starts the next view at
+  // the top, and Back returns to where the reader left the previous one.
+  var scrollPositions = Object.create(null);
+  var shownEntry = null;
+  var startAtTop = false;
+  var scrollTarget = 0;
+  var settledAt = -1;
+
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
+  // Two history entries can share a hash, such as the list before and after a
+  // visit to a package, so positions are saved under a key kept in each entry.
+  function entryKey() {
+    var state = history.state;
+    if (state && state.gallery) return state.gallery;
+
+    var key = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    try {
+      history.replaceState({ gallery: key }, "", location.href);
+    } catch (e) {
+      return location.hash || "#";
+    }
+    return key;
+  }
+
+  function leaveView() {
+    if (shownEntry !== null) scrollPositions[shownEntry] = window.scrollY;
+    startAtTop = true;
+  }
+
+  // Called once a view is drawn. The readme arrives later, so a position
+  // inside it is applied again by loadReadme.
+  function restoreScroll() {
+    window.scrollTo(0, scrollTarget);
+    settledAt = window.scrollY;
+  }
+
+  function getJson(path) {
+    return fetch(ROOT + path, { headers: { accept: "application/json" } })
+      .then(function (r) {
+        if (!r.ok) {
+          var err = new Error("GET " + path + " failed with status " + r.status);
+          err.status = r.status;
+          throw err;
+        }
+        return r.json();
+      });
+  }
+
+  function getText(path) {
+    return fetch(ROOT + path).then(function (r) {
+      if (!r.ok) throw new Error("GET " + path + " failed with status " + r.status);
+      return r.text();
+    });
+  }
+
+  function text(v) { return typeof v === "string" ? v : ""; }
+
+  // Package metadata comes from nuspec files, so urls in it are untrusted.
+  // Only absolute http and https urls to another site are allowed through. A
+  // javascript: or data: url would run script, and a link into the feed's own
+  // site could open a feed file, such as an xml nuspec, that the browser runs
+  // as a page of the site.
+  function safeUrl(v) {
+    var raw = text(v).trim();
+    if (!raw) return "";
+
+    try {
+      var parsed = new URL(raw);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+      if (parsed.origin === location.origin) return "";
+      return parsed.href;
+    } catch (e) {
+      return "";
+    }
+  }
+
+  // Text from the address is only repeated on the page when it reads as a
+  // package id or version, so a crafted link cannot add its own message.
+  function quotable(v) {
+    return /^[\w.+-]{1,100}$/.test(v);
+  }
+
+  function list(v) {
+    if (Array.isArray(v)) {
+      return v.map(text).map(function (x) { return x.trim(); }).filter(Boolean);
+    }
+    return text(v).split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+  }
+
+  function el(tag, cls, txt) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  }
+
+  function link(href, txt, cls) {
+    var a = el("a", cls, txt);
+    a.href = href;
+    return a;
+  }
+
+  function seg(v) { return encodeURIComponent(String(v).toLowerCase()); }
+
+  // Sleet writes version identities into the feed layout without build
+  // metadata, while sleet.packageindex.json keeps it, so every version is
+  // reduced to its identity before it is displayed or turned into a url.
+  function identityVersion(v) {
+    var s = String(v);
+    var plus = s.indexOf("+");
+    return plus < 0 ? s : s.slice(0, plus);
+  }
+
+  // Build metadata is allowed to contain hyphens, so it has to be removed
+  // before the prerelease label can be recognized.
+  function isPrerelease(v) { return identityVersion(v).indexOf("-") !== -1; }
+
+  // Newest stable release if the package has one, otherwise the newest
+  // prerelease. Both the package index and the reversed registration are
+  // ordered newest first, so the first match wins.
+  function latestIndex(versions) {
+    for (var i = 0; i < versions.length; i++) {
+      if (!isPrerelease(versions[i])) return i;
+    }
+    return versions.length ? 0 : -1;
+  }
+
+  function flatPath(id, version, file) {
+    return "flatcontainer/" + seg(id) + "/" + seg(identityVersion(version)) + "/" + file;
+  }
+
+  function flatUrl(id, version, file) {
+    return ROOT + flatPath(id, version, file);
+  }
+
+  function nupkgUrl(id, version) {
+    var name = String(id).toLowerCase() + "." +
+      identityVersion(version).toLowerCase() + ".nupkg";
+    return flatUrl(id, version, encodeURIComponent(name));
+  }
+
+  function nuspecPath(id, version) {
+    return flatPath(id, version, encodeURIComponent(String(id).toLowerCase() + ".nuspec"));
+  }
+
+  function when(iso) {
+    var d = new Date(text(iso));
+    if (isNaN(d.getTime()) || d.getFullYear() < 1901) return "";
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  }
+
+  function dependencyGroups(v) {
+    return (Array.isArray(v) ? v : []).map(function (g) {
+      g = g || {};
+      return {
+        framework: text(g.targetFramework) || "Any",
+        deps: (Array.isArray(g.dependencies) ? g.dependencies : []).map(function (d) {
+          d = d || {};
+          return { id: text(d.id), range: text(d.range) };
+        }).filter(function (d) { return d.id; })
+      };
+    });
+  }
+
+  // Sleet writes the whole version history of a package into a single inline
+  // registration page ordered oldest first, so one request per package returns
+  // everything its package and version views need, with no paging to follow.
+  function fromRegistration(json) {
+    var leaves = [];
+    ((json && json.items) || []).forEach(function (page) {
+      ((page && page.items) || []).forEach(function (leaf) { leaves.push(leaf); });
+    });
+
+    var versions = leaves.map(function (leaf) {
+      var e = (leaf && leaf.catalogEntry) || {};
+      return {
+        version: text(e.version),
+        published: text(e.published),
+        title: text(e.title),
+        description: text(e.description) || text(e.summary),
+        projectUrl: safeUrl(e.projectUrl),
+        tags: list(e.tags),
+        authors: list(e.authors),
+        // Sleet writes an empty iconUrl when the package does not embed an
+        // icon, so a value is a reliable signal that the icon file exists.
+        hasIcon: !!text(e.iconUrl).trim(),
+        groups: dependencyGroups(e.dependencyGroups)
+      };
+    }).filter(function (v) { return v.version; }).reverse();
+
+    return { versions: versions, latest: pickLatest(versions) };
+  }
+
+  // Newest stable release if the package has one, otherwise the newest prerelease.
+  function pickLatest(versions) {
+    var i = latestIndex(versions.map(function (v) { return v.version; }));
+    return i < 0 ? null : versions[i];
+  }
+
+  function registration(lowerId) {
+    if (!regCache[lowerId]) {
+      regCache[lowerId] = getJson("registration/" + seg(lowerId) + "/index.json")
+        .then(fromRegistration, function (err) {
+          // A cached rejection would keep failing for the rest of the session,
+          // so drop it and let the next visit try the request again.
+          delete regCache[lowerId];
+          throw err;
+        });
+    }
+    return regCache[lowerId];
+  }
+
+  function iconBox(extra) {
+    return el("div", extra ? "icon-slot " + extra : "icon-slot");
+  }
+
+  // The slot carries a generic package glyph as its background, so a package
+  // without an embedded icon still lines up with the rest of the list. The
+  // list view has no registration to consult, so a missing icon is discovered
+  // by letting the request fail and dropping the image.
+  function fillIcon(slot, pkg, version) {
+    var img = el("img", "icon");
+    img.src = flatUrl(pkg.id, version, "icon");
+    img.alt = "";
+    img.loading = "lazy";
+    img.onerror = function () { img.remove(); };
+    slot.appendChild(img);
+  }
+
+  function fillFacts(box, parts) {
+    box.textContent = "";
+    parts.filter(Boolean).forEach(function (part, i) {
+      if (i) box.appendChild(el("span", "dot", "\u00b7"));
+      box.appendChild(typeof part === "string" ? el("span", null, part) : part);
+    });
+  }
+
+  // The nuspec opens as text inside the gallery. Opened directly, the browser
+  // would run it as an xml page of the feed's site.
+  function linkRow(meta, pkg, version) {
+    var row = el("div", "sub");
+    var parts = [];
+    if (meta.projectUrl) {
+      var project = link(meta.projectUrl, "project", "project");
+      project.rel = "nofollow noreferrer";
+      parts.push(project);
+    }
+    parts.push(link(nupkgUrl(pkg.id, version), "nupkg", "nupkg"));
+    parts.push(link(packageHash(pkg.id, version) + "/nuspec", "nuspec", "nuspec"));
+
+    parts.forEach(function (node, i) {
+      if (i) row.appendChild(document.createTextNode(" \u00b7 "));
+      row.appendChild(node);
+    });
+    return row;
+  }
+
+  function tagRow(tags) {
+    var box = el("div", "tags");
+    tags.forEach(function (t) { box.appendChild(el("span", "tag", t)); });
+    return box;
+  }
+
+  function listHashFor(q, page) {
+    var parts = [];
+    if (q) parts.push("q=" + encodeURIComponent(q));
+    if (page > 1) parts.push("page=" + page);
+    return "#" + parts.join("&");
+  }
+
+  // Without a version the link opens the package's version list, and with one
+  // it opens the details of that version.
+  function packageHash(id, version) {
+    return "#package/" + encodeURIComponent(id) +
+      (version ? "/" + encodeURIComponent(version) : "");
+  }
+
+  function setHash(hash) {
+    try {
+      // The entry keeps its state so its saved scroll position still applies.
+      history.replaceState(history.state, "", location.pathname + location.search + hash);
+    } catch (e) {
+      location.hash = hash;
+    }
+  }
+
+  // A hand-edited address bar can hold a malformed escape sequence, which
+  // makes decodeURIComponent throw. Fall back to the raw text so a typo shows
+  // an empty result instead of breaking the page.
+  function decode(value) {
+    try {
+      return decodeURIComponent(value);
+    } catch (e) {
+      return value;
+    }
+  }
+
+  function parseHash() {
+    var h = location.hash.replace(/^#\/?/, "");
+
+    if (h.slice(0, 8) === "package/" && h.length > 8) {
+      var parts = h.slice(8).split("/");
+      return {
+        view: "package",
+        id: decode(parts[0]),
+        version: parts.length > 1 ? decode(parts[1]) : "",
+        nuspec: parts[2] === "nuspec"
+      };
+    }
+
+    var q = "";
+    var page = 1;
+    h.split("&").forEach(function (part) {
+      var i = part.indexOf("=");
+      if (i < 1) return;
+      var value = decode(part.slice(i + 1).replace(/\+/g, " "));
+      if (part.slice(0, i) === "q") q = value;
+      else if (part.slice(0, i) === "page") page = parseInt(value, 10) || 1;
+    });
+
+    return { view: "list", q: q, page: page < 1 ? 1 : page };
+  }
+
+  // Walking down from a page shows where the reader is and lets them step back
+  // up a level without losing the list page or filter they arrived from.
+  function crumbs(trail, current, cls) {
+    var nav = el("nav", "crumbs");
+    trail.forEach(function (step) {
+      nav.appendChild(link(step[1], step[0], step[2]));
+      nav.appendChild(el("span", "dot", "\u203a"));
+    });
+    nav.appendChild(el("span", cls, current));
+    return nav;
+  }
+
+  // A row of the top level list. Everything but the icon comes from the
+  // package index that is already loaded, so a page of the list only requests
+  // the icons it shows, no matter how large the feed is.
+  function row(pkg) {
+    var box = el("div", "pkg");
+    var head = el("div", "pkg-head");
+
+    var latest = identityVersion(pkg.versions[latestIndex(pkg.versions)]);
+    var slot = iconBox();
+    fillIcon(slot, pkg, latest);
+    head.appendChild(slot);
+
+    var col = el("div", "grow");
+    var title = el("div", "pkg-title");
+    title.appendChild(link(packageHash(pkg.id), pkg.id, "pkg-id"));
+    col.appendChild(title);
+
+    var facts = el("div", "facts");
+    fillFacts(facts, [
+      el("span", "mono", latest),
+      pkg.versions.length === 1 ? "1 version" : pkg.versions.length + " versions"
+    ]);
+    col.appendChild(facts);
+
+    head.appendChild(col);
+    box.appendChild(head);
+    return box;
+  }
+
+  function pager(q, page, pages) {
+    var nav = el("nav", "pager");
+    if (pages < 2) return nav;
+
+    nav.appendChild(page > 1
+      ? link(listHashFor(q, page - 1), "\u2190 Previous")
+      : el("span", "off", "\u2190 Previous"));
+    nav.appendChild(el("span", "meta", "Page " + page + " of " + pages));
+    nav.appendChild(page < pages
+      ? link(listHashFor(q, page + 1), "Next \u2192")
+      : el("span", "off", "Next \u2192"));
+
+    return nav;
+  }
+
+  function renderList(q, page) {
+    ++generation;
+    document.title = BASE_TITLE;
+    if (elSearch.value !== q) elSearch.value = q;
+
+    var needle = q.trim().toLowerCase();
+    var matches = needle
+      ? packages.filter(function (p) { return p.lowerId.indexOf(needle) !== -1; })
+      : packages;
+
+    var pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
+    if (page > pages) page = pages;
+    listHash = listHashFor(q, page);
+
+    elCount.textContent = matches.length === packages.length
+      ? packages.length + (packages.length === 1 ? " package" : " packages")
+      : matches.length + " of " + packages.length + " packages";
+
+    elBody.textContent = "";
+
+    if (!matches.length) {
+      elBody.appendChild(el("p", "empty", !packages.length
+        ? "This feed has no packages yet."
+        : quotable(q.trim())
+          ? "No package ids contain \u201c" + q.trim() + "\u201d."
+          : "No package ids match the filter."));
+      restoreScroll();
+      return;
+    }
+
+    var frag = document.createDocumentFragment();
+    matches.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).forEach(function (pkg) {
+      frag.appendChild(row(pkg));
+    });
+
+    elBody.appendChild(frag);
+    elBody.appendChild(pager(q, page, pages));
+    restoreScroll();
+  }
+
+  function detailHeader(pkg, meta) {
+    var head = el("div", "pkg-head");
+    var slot = iconBox("lg");
+    if (meta.hasIcon) fillIcon(slot, pkg, meta.version);
+    head.appendChild(slot);
+
+    var col = el("div", "grow");
+    var title = el("div", "pkg-title");
+    title.appendChild(el("h2", null, pkg.id));
+    title.appendChild(el("span", "ver mono", meta.version));
+    col.appendChild(title);
+
+    if (meta.title && meta.title !== pkg.id) col.appendChild(el("div", "sub", meta.title));
+    if (meta.description) col.appendChild(el("p", "desc", meta.description));
+    if (meta.authors.length) col.appendChild(el("div", "sub", "by " + meta.authors.join(", ")));
+
+    var published = when(meta.published);
+    if (published) col.appendChild(el("div", "sub", "Published " + published));
+
+    col.appendChild(linkRow(meta, pkg, meta.version));
+    if (meta.tags.length) col.appendChild(tagRow(meta.tags));
+
+    head.appendChild(col);
+    return head;
+  }
+
+  // Level two: every version of one package and nothing else.
+  function renderVersions(pkg, reg) {
+    document.title = pkg.id + " \u00b7 " + BRAND;
+    elCount.textContent = reg.versions.length === 1
+      ? "1 version"
+      : reg.versions.length + " versions";
+
+    elBody.textContent = "";
+    elBody.appendChild(crumbs([["Feed", listHash]], pkg.id));
+
+    var head = el("div", "pkg-head");
+    var slot = iconBox("lg");
+    if (reg.latest && reg.latest.hasIcon) fillIcon(slot, pkg, reg.latest.version);
+    head.appendChild(slot);
+
+    var col = el("div", "grow");
+    var title = el("div", "pkg-title");
+    title.appendChild(el("h2", null, pkg.id));
+    col.appendChild(title);
+    col.appendChild(el("div", "facts", reg.versions.length === 1
+      ? "1 version"
+      : reg.versions.length + " versions"));
+    head.appendChild(col);
+    elBody.appendChild(head);
+
+    if (!reg.versions.length) {
+      elBody.appendChild(el("p", "empty", "No versions of this package are available."));
+      restoreScroll();
+      return;
+    }
+
+    var panel = el("section", "panel");
+    panel.appendChild(el("h3", null, "Versions"));
+
+    var table = el("table");
+    var header = el("tr");
+    ["Version", "Published"].forEach(function (h) { header.appendChild(el("th", null, h)); });
+    table.appendChild(header);
+
+    reg.versions.forEach(function (v) {
+      var tr = el("tr");
+
+      var first = el("td");
+      first.appendChild(link(packageHash(pkg.id, v.version), v.version, "pick"));
+      if (v === reg.latest) first.appendChild(el("span", "tag", "latest"));
+      tr.appendChild(first);
+      tr.appendChild(el("td", "meta", when(v.published)));
+
+      table.appendChild(tr);
+    });
+
+    panel.appendChild(table);
+    elBody.appendChild(panel);
+    restoreScroll();
+  }
+
+  function dependencyPanel(groups) {
+    var panel = el("section", "panel");
+    panel.appendChild(el("h3", null, "Dependencies"));
+
+    if (!groups.length) {
+      panel.appendChild(el("p", "meta", "This package has no dependencies."));
+      return panel;
+    }
+
+    // Each target framework gets its own labelled block so that the groups of
+    // a multi targeted package do not read as one continuous list.
+    groups.forEach(function (g) {
+      var group = el("section", "group");
+      group.appendChild(el("h4", null, g.framework));
+
+      if (!g.deps.length) {
+        group.appendChild(el("p", "meta", "No dependencies."));
+        panel.appendChild(group);
+        return;
+      }
+
+      var table = el("table");
+      g.deps.forEach(function (d) {
+        var tr = el("tr");
+        var cell = el("td");
+        var target = byId[d.id.toLowerCase()];
+        cell.appendChild(target
+          ? link(packageHash(target.id), d.id)
+          : el("span", null, d.id));
+        tr.appendChild(cell);
+        tr.appendChild(el("td", "meta mono", d.range));
+        table.appendChild(tr);
+      });
+
+      group.appendChild(table);
+      panel.appendChild(group);
+    });
+
+    return panel;
+  }
+
+  // Readmes are markdown written by the package author. This renders the
+  // parts of CommonMark that readmes use, plus the GitHub tables, task lists,
+  // strikethrough and alerts. Every node is built through the DOM, raw html
+  // is never parsed as markup, and only absolute http, https and mailto
+  // links to other sites are followed. It returns the rendered node and a
+  // loader for each image it held back.
+  var renderMarkdown = (function () {
+    var MAX_DEPTH = 16;
+    var MAX_EMPHASIS = 32;
+    var MAX_FILL = 10000;
+
+    // Spelled this way so that the script never contains an html comment
+    // opener, which changes how browsers tokenize script content.
+    var COMMENT_OPEN = "<!\x2d-";
+
+    var RE_ATX = /^ {0,3}(#{1,6})(?= |$)(.*)$/;
+    var RE_HR = /^ {0,3}(?:(?:\* *){3,}|(?:- *){3,}|(?:_ *){3,})$/;
+    var RE_FENCE = /^( {0,3})(`{3,}|~{3,})(.*)$/;
+    var RE_CLOSE = /^ {0,3}(`+|~+) *$/;
+    var RE_QUOTE = /^ {0,3}> ?/;
+    var RE_ITEM = /^( {0,3})([-+*]|(\d{1,9})([.)]))( *)(.*)$/;
+    var RE_INTERRUPT_ITEM = /^ {0,3}(?:[-+*]|1[.)]) +[^ ]/;
+    var RE_SETEXT = /^ {0,3}(?:=+|-+) *$/;
+    var RE_COMMENT = /^ {0,3}<!-{2}/;
+    var RE_TASK = /^\[([ xX])\] +(?=[^ ])/;
+    var RE_ALERT = /^ {0,3}\[!(note|tip|important|warning|caution)\] *$/i;
+
+    var RE_PLAIN = /[^\\`!\[<&*_~\nhw]+/y;
+    var RE_PUNCT = /^[!-\/:-@\[-`{-~]$/;
+    var RE_UPUNCT = /[\p{P}\p{S}]/u;
+    var RE_SPACE = /\s/;
+    var RE_SPNL = / *(?:\n *)?/y;
+    var RE_EOL = / *(?:\n|$)/y;
+    var RE_TITLE = /"(?:[^"\\]|\\[\s\S])*"|'(?:[^'\\]|\\[\s\S])*'|\((?:[^()\\]|\\[\s\S])*\)/y;
+    var RE_ANGLE = /<((?:[^<>\n\\]|\\[\s\S])*)>/y;
+    var RE_LABEL = /\[((?:[^\\\[\]]|\\[\s\S]){0,999})\]/y;
+    var RE_URI = /<([A-Za-z][A-Za-z0-9.+-]{1,31}:[^\x00-\x20<>]*)>/y;
+    var RE_EMAIL = /<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>/y;
+    var RE_TAG = /<(\/?)([A-Za-z][A-Za-z0-9-]*)((?:\s+[A-Za-z_:][\w.:-]*(?:\s*=\s*(?:[^\s"'=<>`]+|'[^']*'|"[^"]*"))?)*)\s*\/?>/y;
+    var RE_ATTR = /([A-Za-z_:][\w.:-]*)(?:\s*=\s*(?:([^\s"'=<>`]+)|'([^']*)'|"([^"]*)"))?/g;
+    var RE_ENTITY = /&(?:#[xX]([0-9a-fA-F]{1,6})|#([0-9]{1,7})|([A-Za-z][A-Za-z0-9]{1,31}));/y;
+    var RE_DECODE = /\\([!-\/:-@\[-`{-~])|&(?:#[xX]([0-9a-fA-F]{1,6})|#([0-9]{1,7})|([A-Za-z][A-Za-z0-9]{1,31}));/g;
+    var RE_DECODE_HTML = /&(?:#[xX]([0-9a-fA-F]{1,6})|#([0-9]{1,7})|([A-Za-z][A-Za-z0-9]{1,31}));/g;
+    var RE_NAMES = /&([A-Za-z][A-Za-z0-9]{1,31});/g;
+    var RE_BARE = /(?:https?:\/\/|www\.)[^\s<]*/y;
+    var RE_HOST = /^(?:https?:\/\/|www\.)[\p{L}\p{N}]/u;
+    var RE_UNSAFE_URL = /%(?![0-9A-Fa-f]{2})|[^\w;\/?:@&=+$,.!~*'()#%-]+/g;
+
+    // Inline html tags with these lowercase names are dropped and the text
+    // around them is kept. Any other tag, such as the T in List<T>, is shown
+    // as written.
+    var TAGS = Object.create(null);
+    ("a abbr b bdi bdo blockquote br caption center cite code dd del details dfn div dl dt em " +
+      "figcaption figure font h1 h2 h3 h4 h5 h6 hr i img ins kbd li mark ol p picture pre q rp rt " +
+      "ruby s samp small source span strike strong sub summary sup table tbody td tfoot th thead tr " +
+      "tt u ul var wbr").split(" ").forEach(function (t) { TAGS[t] = true; });
+
+    var entities = Object.create(null);
+    var parser = null;
+
+    function isBlank(line) { return /^ *$/.test(line); }
+
+    function indentOf(line) {
+      var i = 0;
+      while (line.charCodeAt(i) === 32) i++;
+      return i;
+    }
+
+    // Counts the spaces just before end. Regular expressions such as / +$/
+    // take quadratic time on a long run of spaces, so a loop is used.
+    function spacesBefore(s, end) {
+      var i = end;
+      while (i && s.charCodeAt(i - 1) === 32) i--;
+      return end - i;
+    }
+
+    // An ATX heading can end with a run of # that follows a space.
+    function headingText(s) {
+      var end = s.length - spacesBefore(s, s.length), h = end;
+      while (h && s.charAt(h - 1) === "#") h--;
+      if (h < end && (!h || s.charAt(h - 1) === " ")) end = h - spacesBefore(s, h);
+      return s.slice(indentOf(s), end);
+    }
+
+    // Tabs are expanded to stops every 4 columns up front, so the block rules
+    // only have to count spaces.
+    function expandTabs(line) {
+      if (line.indexOf("\t") < 0) return line;
+      var out = "";
+      for (var i = 0; i < line.length; i++) {
+        var c = line.charAt(i);
+        out += c === "\t" ? "    ".slice(out.length % 4) : c;
+      }
+      return out;
+    }
+
+    function dedent(line, k) {
+      var i = 0;
+      while (i < k && line.charCodeAt(i) === 32) i++;
+      return line.slice(i);
+    }
+
+    function norm(label) {
+      return label.replace(/[ \t\n]+/g, " ").replace(/^ | $/g, "").toLowerCase().toUpperCase();
+    }
+
+    // Named character references are resolved by the browser's html parser,
+    // which knows the full list. A name it does not know is kept as text.
+    // Each parse takes a while, so the names in a readme are looked up
+    // together.
+    function lookup(src) {
+      var names = [];
+      src.replace(RE_NAMES, function (m, name) {
+        if (!(name in entities)) {
+          entities[name] = null;
+          names.push(name);
+        }
+        return m;
+      });
+      if (!names.length) return;
+      parser = parser || new DOMParser();
+      var p = parser.parseFromString("<!doctype html><body><p>&" + names.join(";<p>&") + ";", "text/html").body.firstElementChild;
+      names.forEach(function (name) {
+        var v = p.textContent;
+        entities[name] = v.indexOf(";") < 0 || v === ";" ? v : null;
+        p = p.nextElementSibling;
+      });
+    }
+
+    function named(name) {
+      if (!(name in entities)) lookup("&" + name + ";");
+      return entities[name];
+    }
+
+    function entity(m, hex, dec, name) {
+      if (name) {
+        var v = named(name);
+        return v === null ? m : v;
+      }
+      var cp = parseInt(hex || dec, hex ? 16 : 10);
+      return String.fromCodePoint(!cp || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff) ? 0xfffd : cp);
+    }
+
+    function decode(v) {
+      return v.replace(RE_DECODE, function (m, esc, hex, dec, name) {
+        return esc || entity(m, hex, dec, name);
+      });
+    }
+
+    function decodeHtml(v) {
+      return v.replace(RE_DECODE_HTML, entity);
+    }
+
+    // Characters that cannot appear in a url are percent encoded first, as
+    // CommonMark does, so that a backslash is not read as a slash.
+    function absolute(v, mail) {
+      try {
+        var u = new URL(v.replace(RE_UNSAFE_URL, encodeURIComponent));
+        if (u.protocol === "http:" || u.protocol === "https:" || (mail && u.protocol === "mailto:")) return u.href;
+      } catch (e) {
+        // Relative and malformed urls are not followed.
+      }
+      return "";
+    }
+
+    // A link into the feed's own site could open a feed file, such as an xml
+    // nuspec, that the browser runs as a page of the site, so it keeps only
+    // its text.
+    function linkUrl(v, mail) {
+      var url = absolute(v, mail);
+      return url && url.indexOf("mailto:") !== 0 && new URL(url).origin === location.origin ? "" : url;
+    }
+
+    function hyperlink(href, text, title) {
+      var a = el("a", null, text);
+      a.href = href;
+      a.rel = "nofollow noreferrer";
+      if (title) a.title = title;
+      return a;
+    }
+
+    // Loading an image tells its host who is reading the readme. Images from
+    // the feed's own site and from the hosts nuget.org trusts load with the
+    // readme, over https as nuget.org does. Others are held back until the
+    // reader asks for them.
+    var IMAGE_HOSTS = Object.create(null);
+    ("api.codacy.com api.codeclimate.com api.dependabot.com api.reuse.software api.travis-ci.com " +
+      "app.codacy.com app.deepsource.com avatars.githubusercontent.com badgen.net badges.gitter.im " +
+      "camo.githubusercontent.com caniuse.bitsofco.de cdn.jsdelivr.net cdn.syncfusion.com " +
+      "ci.appveyor.com circleci.com cloudback.it codecov.io codefactor.io coveralls.io dev.azure.com " +
+      "devpod.sh flat.badgen.net gitlab.com i.imgur.com img.shields.io infragistics.com " +
+      "isitmaintained.com media.githubusercontent.com opencollective.com raw.github.com " +
+      "raw.githubusercontent.com snyk.io sonarcloud.io travis-ci.com travis-ci.org " +
+      "user-images.githubusercontent.com").split(" ").forEach(function (host) {
+      IMAGE_HOSTS[host] = true;
+      if (host.split(".").length === 2) IMAGE_HOSTS["www." + host] = true;
+    });
+
+    // GitHub Actions status badges, matched as nuget.org matches them.
+    var RE_ACTIONS_BADGE = /^https?:\/\/github\.com\/[^\/]+\/[^\/]+(?:\/actions)?\/workflows\/.*badge\.svg/i;
+
+    // Loaders for the images held back by the readme being rendered.
+    var held = [];
+
+    function trustedImage(url) {
+      var u = new URL(url);
+      if (u.origin === location.origin) return url;
+      if (!IMAGE_HOSTS[u.hostname] && !RE_ACTIONS_BADGE.test(url)) return "";
+      u.protocol = "https:";
+      return u.href;
+    }
+
+    // Images load without a referrer. One that is relative or fails to load
+    // is replaced by its alt text, and one that is held back shows its alt
+    // text in a placeholder.
+    function picture(alt, src, title, width, height, plain) {
+      var url = plain ? "" : absolute(src);
+      if (!url) return alt;
+      var img = el("img");
+      img.alt = alt;
+      img.loading = "lazy";
+      img.referrerPolicy = "no-referrer";
+      if (title) img.title = title;
+      if (width) img.width = width;
+      if (height) img.height = height;
+      img.onerror = function () { img.replaceWith(alt); };
+
+      var trusted = trustedImage(url);
+      if (trusted) {
+        img.src = trusted;
+        return img;
+      }
+
+      var off = el("span", "img-off", alt || "image");
+      if (title) off.title = title;
+      held.push(function () {
+        img.src = url;
+        off.replaceWith(img);
+      });
+      return off;
+    }
+
+    function fenceStart(line) {
+      var m = RE_FENCE.exec(line);
+      if (!m || (m[2].charAt(0) === "`" && m[3].indexOf("`") >= 0)) return null;
+      return { indent: m[1].length, ch: m[2].charAt(0), len: m[2].length };
+    }
+
+    function closesFence(line, fence) {
+      var m = RE_CLOSE.exec(line);
+      return !!m && m[1].charAt(0) === fence.ch && m[1].length >= fence.len;
+    }
+
+    function startsBlock(line) {
+      return RE_ATX.test(line) || RE_HR.test(line) || !!fenceStart(line) || RE_QUOTE.test(line) ||
+        RE_COMMENT.test(line) || RE_INTERRUPT_ITEM.test(line);
+    }
+
+    function interrupts(line, next) {
+      return startsBlock(line) || tableStart(line, next);
+    }
+
+    // A lazy line continues a paragraph, so an underline in it is escaped to
+    // keep it from turning the paragraph into a heading.
+    function lazy(line) {
+      return RE_SETEXT.test(line) ? line.replace(/[^ ]/, "\\$&") : line;
+    }
+
+    // Follows whether the last block in a container is an open paragraph,
+    // which decides if a following line without the container's prefix
+    // continues it.
+    function track(s, line) {
+      if (s.fence) {
+        if (closesFence(line, s.fence)) s.fence = null;
+        s.para = false;
+      } else if ((s.fence = fenceStart(line))) {
+        s.para = false;
+      } else {
+        s.para = !isBlank(line) && !RE_ATX.test(line) && !RE_HR.test(line) && !RE_COMMENT.test(line) &&
+          !(s.para && RE_SETEXT.test(line)) && (s.para || indentOf(line) < 4);
+      }
+    }
+
+    // Inline content is parsed after every block exists, so that links can
+    // use reference definitions from anywhere in the readme.
+    function queue(st, node, src, parent) {
+      parent.appendChild(node);
+      st.jobs.push([src, node]);
+    }
+
+    // Every line ends with a line break, so blank lines at the end of a
+    // fenced block are kept. The browser does not show the last break.
+    function codeBlock(lines) {
+      var pre = el("pre");
+      pre.appendChild(el("code", null, lines.length ? lines.join("\n") + "\n" : ""));
+      return pre;
+    }
+
+    // Adds the blocks in lines to parent. Returns true if a blank line
+    // separates two of them, which makes the list item holding them loose.
+    function blocks(lines, parent, depth, st) {
+      if (depth > MAX_DEPTH) {
+        parent.appendChild(el("p", null, lines.join("\n")));
+        return false;
+      }
+
+      var gap = false, blank = false, any = false, i = 0, n = lines.length, line, m, fence;
+      while (i < n) {
+        line = lines[i];
+        if (isBlank(line)) {
+          blank = any;
+          i++;
+          continue;
+        }
+
+        if (blank) gap = true;
+        blank = false;
+        any = true;
+
+        if (indentOf(line) > 3) {
+          var code = [];
+          for (; i < n && (isBlank(lines[i]) || indentOf(lines[i]) > 3); i++) code.push(lines[i].slice(4));
+          while (isBlank(code[code.length - 1])) {
+            code.pop();
+            i--;
+          }
+          parent.appendChild(codeBlock(code));
+        } else if ((fence = fenceStart(line))) {
+          var body = [];
+          for (i++; i < n && !closesFence(lines[i], fence); i++) body.push(dedent(lines[i], fence.indent));
+          parent.appendChild(codeBlock(body));
+          i++;
+        } else if ((m = RE_ATX.exec(line))) {
+          queue(st, el("h" + m[1].length), headingText(m[2]), parent);
+          i++;
+        } else if (RE_HR.test(line)) {
+          parent.appendChild(el("hr"));
+          i++;
+        } else if (RE_QUOTE.test(line)) {
+          i = quoteBlock(lines, i, parent, depth, st);
+        } else if (RE_COMMENT.test(line)) {
+          i = skipComment(lines, i);
+        } else if (listItem(line)) {
+          i = listBlock(lines, i, parent, depth, st);
+        } else if (tableStart(line, lines[i + 1])) {
+          i = tableBlock(lines, i, parent, st);
+        } else {
+          i = paragraph(lines, i, parent, st);
+        }
+      }
+      return gap;
+    }
+
+    // Html comments are hidden as a browser would hide them. Text after the
+    // end of a comment is kept.
+    function skipComment(lines, i) {
+      var j = lines[i].indexOf("-->", lines[i].indexOf(COMMENT_OPEN) + 2);
+      while (j < 0 && ++i < lines.length) j = lines[i].indexOf("-->");
+      if (j < 0) return i;
+      var rest = lines[i].slice(j + 3).replace(/^ +/, "");
+      if (!rest) return i + 1;
+      lines[i] = rest;
+      return i;
+    }
+
+    function quoteBlock(lines, i, parent, depth, st) {
+      var body = [], s = { para: false, fence: null }, n = lines.length, line;
+      for (; i < n; i++) {
+        line = lines[i];
+        if (RE_QUOTE.test(line)) line = line.replace(RE_QUOTE, "");
+        else if (s.para && !isBlank(line) && !listItem(line) && !interrupts(line, lines[i + 1])) line = lazy(line);
+        else break;
+        body.push(line);
+        track(s, line);
+      }
+
+      // GitHub alerts are top level quotes that start with a marker such as
+      // [!NOTE] on a line of its own.
+      var m = depth === 0 && RE_ALERT.exec(body[0]), box;
+      if (m && body.slice(1).some(function (l) { return !isBlank(l); })) {
+        var type = m[1].toLowerCase();
+        box = el("div", "alert alert-" + type);
+        box.appendChild(el("p", "alert-title", type.charAt(0).toUpperCase() + type.slice(1)));
+        body = body.slice(1);
+      } else {
+        box = el("blockquote");
+      }
+      parent.appendChild(box);
+      blocks(body, box, depth + 1, st);
+      return i;
+    }
+
+    function listItem(line) {
+      var m = RE_ITEM.exec(line);
+      if (!m || (!m[5] && m[6])) return null;
+      var w = m[1].length + m[2].length;
+      var item = { ordered: !!m[3], bullet: m[4] || m[2], start: m[3] ? parseInt(m[3], 10) : 1 };
+      if (!m[6]) {
+        item.offset = w + 1;
+        item.first = "";
+      } else if (m[5].length > 4) {
+        item.offset = w + 1;
+        item.first = line.slice(w + 1);
+      } else {
+        item.offset = w + m[5].length;
+        item.first = m[6];
+      }
+      return item;
+    }
+
+    // A list ends at a line that does not belong to the current item and
+    // does not start another item of the same kind. It is loose if a blank
+    // line separates its items or two blocks inside an item.
+    function listBlock(lines, i, parent, depth, st) {
+      var item = listItem(lines[i]), n = lines.length, loose = false;
+      var node = el(item.ordered ? "ol" : "ul");
+      if (item.ordered && item.start !== 1) node.start = item.start;
+      parent.appendChild(node);
+
+      for (;;) {
+        var body = [item.first], s = { para: false, fence: null }, line;
+        track(s, item.first);
+
+        // An item can start with at most one blank line.
+        for (i++; i < n && !(body.length === 1 && !item.first && isBlank(lines[i])); i++) {
+          line = lines[i];
+          if (isBlank(line) || indentOf(line) >= item.offset) line = line.slice(item.offset);
+          else if (s.para && !listItem(line) && !interrupts(line, lines[i + 1])) line = lazy(line);
+          else break;
+          body.push(line);
+          track(s, line);
+        }
+        while (body.length > 1 && isBlank(body[body.length - 1])) {
+          body.pop();
+          i--;
+        }
+
+        var li = el("li"), first = st.jobs.length;
+        node.appendChild(li);
+        if (blocks(body, li, depth + 1, st)) loose = true;
+        task(li, st.jobs[first]);
+
+        var j = i;
+        while (j < n && isBlank(lines[j])) j++;
+        var next = j < n && !RE_HR.test(lines[j]) && listItem(lines[j]);
+        if (!next || next.ordered !== item.ordered || next.bullet !== item.bullet) break;
+        if (j > i) loose = true;
+        i = j;
+        item = next;
+      }
+
+      if (!loose) st.tight.push(node);
+      return i;
+    }
+
+    // An item whose first paragraph starts with [ ] or [x] is a task.
+    function task(li, job) {
+      var m = job && job[1] === li.firstChild && job[1].nodeName === "P" && RE_TASK.exec(job[0]);
+      if (!m) return;
+      job[0] = job[0].slice(m[0].length);
+      var box = el("input");
+      box.type = "checkbox";
+      box.disabled = true;
+      box.defaultChecked = m[1] !== " ";
+      job[1].appendChild(box);
+      li.className = "task";
+    }
+
+    // Splits a table row on the pipes that are not escaped.
+    function cells(line) {
+      var s = line.trim(), out = [], cur = "";
+      if (s.charAt(0) === "|") s = s.slice(1);
+      if (s.slice(-1) === "|" && s.slice(-2) !== "\\|") s = s.slice(0, -1);
+      for (var i = 0; i < s.length; i++) {
+        var c = s.charAt(i);
+        if (c === "\\" && s.charAt(i + 1) === "|") {
+          cur += "|";
+          i++;
+        } else if (c === "|") {
+          out.push(cur.trim());
+          cur = "";
+        } else {
+          cur += c;
+        }
+      }
+      out.push(cur.trim());
+      return out;
+    }
+
+    function aligns(line) {
+      var out = [], parts = cells(line);
+      for (var i = 0; i < parts.length; i++) {
+        if (!/^:?-+:?$/.test(parts[i])) return null;
+        var left = parts[i].charAt(0) === ":", right = parts[i].slice(-1) === ":";
+        out.push(left && right ? "center" : right ? "right" : left ? "left" : "");
+      }
+      return out;
+    }
+
+    function tableStart(line, next) {
+      if (next === undefined || line.indexOf("|") < 0 || next.indexOf("|") < 0) return false;
+      if (indentOf(line) > 3 || indentOf(next) > 3) return false;
+      var a = aligns(next);
+      return !!a && a.length === cells(line).length;
+    }
+
+    function tableBlock(lines, i, parent, st) {
+      var head = cells(lines[i]), align = aligns(lines[i + 1]), n = lines.length;
+      var wrap = el("div", "table-wrap"), table = el("table"), thead = el("thead"), tbody = null;
+      var tr = el("tr");
+      head.forEach(function (c, k) { tableCell(tr, "th", c, align[k], st); });
+      thead.appendChild(tr);
+      table.appendChild(thead);
+      wrap.appendChild(table);
+      parent.appendChild(wrap);
+
+      // Rows run until a blank line or another block. Extra cells are
+      // ignored and missing cells are left empty. Empty cells are only
+      // added up to a limit for the whole readme, so that a wide header
+      // over many short rows cannot create millions of them.
+      for (i += 2; i < n && !isBlank(lines[i]) && !startsBlock(lines[i]); i++) {
+        var row = cells(lines[i]), fill = Math.max(0, Math.min(head.length - row.length, st.fill));
+        st.fill -= fill;
+        if (!tbody) table.appendChild(tbody = el("tbody"));
+        tr = el("tr");
+        for (var k = 0, w = Math.min(row.length, head.length) + fill; k < w; k++) {
+          tableCell(tr, "td", k < row.length ? row[k] : "", align[k], st);
+        }
+        tbody.appendChild(tr);
+      }
+      return i;
+    }
+
+    function tableCell(tr, tag, src, align, st) {
+      var c = el(tag);
+      if (align) c.style.textAlign = align;
+      queue(st, c, src, tr);
+    }
+
+    // A paragraph runs until a blank line or a line that starts another
+    // block. Link reference definitions at its start are taken out, and an
+    // underline of = or - turns the rest into a heading. When nothing is
+    // left, the underline is read again as a line of its own.
+    function paragraph(lines, i, parent, st) {
+      var text = [lines[i]], n = lines.length, level = 0;
+      for (i++; i < n; i++) {
+        var line = lines[i];
+        if (isBlank(line)) break;
+        if (RE_SETEXT.test(line)) {
+          level = line.indexOf("=") >= 0 ? 1 : 2;
+          break;
+        }
+        if (interrupts(line, lines[i + 1])) break;
+        text.push(line);
+      }
+      var src = definitions(text.map(function (l) { return l.replace(/^ +/, ""); }).join("\n"), st);
+      src = src.slice(0, src.length - spacesBefore(src, src.length));
+      if (!src) return i;
+      queue(st, el(level ? "h" + level : "p"), src, parent);
+      return level ? i + 1 : i;
+    }
+
+    // Takes the link reference definitions off the start of a paragraph and
+    // returns the text that is left. The first definition of a label wins.
+    function definitions(s, st) {
+      var pos = 0, def;
+      while (s.charAt(pos) === "[" && (def = definition(s, pos))) {
+        var key = norm(def.label);
+        if (!(key in st.refs)) st.refs[key] = { href: def.href, title: def.title };
+        pos = def.end;
+      }
+      return s.slice(pos);
+    }
+
+    // Reads [label]: destination "title" at pos. The destination and the
+    // title can each start on the next line. A title that is not followed by
+    // the end of its line is not part of the definition.
+    function definition(s, pos) {
+      var m, d, t, end;
+      RE_LABEL.lastIndex = pos;
+      if (!(m = RE_LABEL.exec(s)) || !/[^ \n]/.test(m[1]) || s.charAt(RE_LABEL.lastIndex) !== ":") return null;
+      var label = m[1], from = skipSpace(s, RE_LABEL.lastIndex + 1);
+      if (!(d = destination(s, from)) || d.end === from) return null;
+
+      var title = "";
+      end = lineEnd(s, d.end);
+      if ((t = skipSpace(s, d.end)) > d.end) {
+        RE_TITLE.lastIndex = t;
+        if ((m = RE_TITLE.exec(s)) && (t = lineEnd(s, RE_TITLE.lastIndex)) >= 0) {
+          title = m[0].slice(1, -1);
+          end = t;
+        }
+      }
+      return end < 0 ? null : { label: label, href: decode(d.href), title: decode(title), end: end };
+    }
+
+    // Returns the start of the next line if only spaces are left on the line
+    // at i, or -1.
+    function lineEnd(s, i) {
+      RE_EOL.lastIndex = i;
+      return RE_EOL.exec(s) ? RE_EOL.lastIndex : -1;
+    }
+
+    function runLength(s, i, ch) {
+      var j = i;
+      while (s.charAt(j) === ch) j++;
+      return j - i;
+    }
+
+    // Maps each length of backtick run to the sorted positions where runs of
+    // that length start, so finding the end of a code span is a lookup.
+    function tickRuns(s) {
+      var runs = Object.create(null), i = s.indexOf("`");
+      while (i >= 0) {
+        var k = runLength(s, i, "`");
+        (runs[k] = runs[k] || []).push(i);
+        i = s.indexOf("`", i + k);
+      }
+      return runs;
+    }
+
+    function codeEnd(runs, from, k) {
+      var starts = runs[k] || [], lo = 0, hi = starts.length;
+      while (lo < hi) {
+        var mid = (lo + hi) >> 1;
+        if (starts[mid] < from) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo < starts.length ? starts[lo] : -1;
+    }
+
+    // Line endings in a code span become spaces, and one space is removed
+    // from each end when both ends have one.
+    function codeText(t) {
+      t = t.replace(/\n/g, " ");
+      return t.length > 1 && t.charAt(0) === " " && t.slice(-1) === " " && /[^ ]/.test(t) ? t.slice(1, -1) : t;
+    }
+
+    function charBefore(s, i) {
+      if (i <= 0) return "";
+      var c = s.charCodeAt(i - 1);
+      return i > 1 && c >= 0xdc00 && c <= 0xdfff ? s.slice(i - 2, i) : s.charAt(i - 1);
+    }
+
+    function charAfter(s, i) {
+      return i < s.length ? String.fromCodePoint(s.codePointAt(i)) : "";
+    }
+
+    // Autolinks, html comments and html tags all start with <.
+    function angle(s, i, lastClose) {
+      var m;
+      RE_URI.lastIndex = i;
+      if ((m = RE_URI.exec(s))) return { end: RE_URI.lastIndex, text: m[1], href: m[1] };
+      RE_EMAIL.lastIndex = i;
+      if ((m = RE_EMAIL.exec(s))) return { end: RE_EMAIL.lastIndex, text: m[1], href: "mailto:" + m[1] };
+      if (s.startsWith(COMMENT_OPEN, i) && lastClose >= i + 2) return { end: s.indexOf("-->", i + 2) + 3 };
+      RE_TAG.lastIndex = i;
+      if ((m = RE_TAG.exec(s))) return { end: RE_TAG.lastIndex, name: m[2], close: !!m[1], attrs: m[3] };
+      return null;
+    }
+
+    // Trailing punctuation, unbalanced closing parentheses and a trailing
+    // entity are left out of a bare url, as GitHub does.
+    function trimUrl(u) {
+      var open = 0, close = 0, end = u.length, i;
+      for (i = 0; i < end; i++) {
+        if (u.charAt(i) === "(") open++;
+        else if (u.charAt(i) === ")") close++;
+      }
+      while (end > 0) {
+        var c = u.charAt(end - 1);
+        if ("?!.,:*_~'\"".indexOf(c) >= 0) {
+          end--;
+        } else if (c === ")" && close > open) {
+          close--;
+          end--;
+        } else if (c === ";") {
+          var j = end - 2;
+          while (j > 0 && /[A-Za-z]/.test(u.charAt(j))) j--;
+          end = j < end - 2 && u.charAt(j) === "&" ? j : end - 1;
+        } else {
+          break;
+        }
+      }
+      return u.slice(0, end);
+    }
+
+    function skipSpace(s, i) {
+      RE_SPNL.lastIndex = i;
+      RE_SPNL.exec(s);
+      return RE_SPNL.lastIndex;
+    }
+
+    // Reads a link destination at i. That is either text in <> or a run
+    // without spaces in which parentheses are balanced.
+    function destination(s, i) {
+      var m;
+      if (s.charAt(i) === "<") {
+        RE_ANGLE.lastIndex = i;
+        return (m = RE_ANGLE.exec(s)) ? { href: m[1], end: RE_ANGLE.lastIndex } : null;
+      }
+      var depth = 0, k = i;
+      for (; k < s.length; k++) {
+        var c = s.charAt(k);
+        if (c === "\\" && RE_PUNCT.test(s.charAt(k + 1))) {
+          k++;
+        } else if (c === "(") {
+          if (++depth > 32) return null;
+        } else if (c === ")") {
+          if (!depth) break;
+          depth--;
+        } else if (c <= " " || c === "\x7f") {
+          break;
+        }
+      }
+      return depth ? null : { href: s.slice(i, k), end: k };
+    }
+
+    // Reads the (destination "title") part of an inline link. pos is just
+    // after the opening parenthesis.
+    function inlineTail(s, pos) {
+      var d = destination(s, skipSpace(s, pos)), title = "", m;
+      if (!d) return null;
+
+      // A title has to be separated from the destination by space.
+      var t = skipSpace(s, d.end);
+      if (t > d.end) {
+        RE_TITLE.lastIndex = t;
+        if ((m = RE_TITLE.exec(s))) {
+          title = m[0].slice(1, -1);
+          t = skipSpace(s, RE_TITLE.lastIndex);
+        }
+      }
+      if (s.charAt(t) !== ")") return null;
+      return { href: decode(d.href), title: decode(title), end: t + 1 };
+    }
+
+    // Reads what follows the ] of a link. That is an inline destination, a
+    // [label], an empty [] or nothing, and the last three look up a
+    // reference definition. from is the start of the link text.
+    function tail(s, pos, from, after, refs) {
+      var t, m, label = null, end = pos;
+      if (s.charAt(pos) === "(" && (t = inlineTail(s, pos + 1))) return t;
+
+      RE_LABEL.lastIndex = pos;
+      m = RE_LABEL.exec(s);
+      if (m && m[1]) {
+        label = m[1];
+        end = RE_LABEL.lastIndex;
+      } else if (!after && pos - 1 - from <= 999) {
+        // The link text is the label, which cannot hold another bracket.
+        label = s.slice(from, pos - 1);
+        if (m) end = pos + 2;
+      }
+      var ref = label !== null && refs[norm(label)];
+      return ref ? { href: ref.href, title: ref.title, end: end } : null;
+    }
+
+    // Finds every link and image before anything else is parsed, because
+    // brackets bind tighter than emphasis. Code spans, autolinks and html
+    // come first and hide any brackets inside them. A link cannot contain
+    // another link, so once one matches, the [ openers before it stop
+    // counting. Returns the matches keyed by the position of the opener.
+    function linkMap(s, runs, refs, lastClose) {
+      var map = Object.create(null), stack = [], floor = 0, i = 0, n = s.length, k, e, a;
+      while (i < n) {
+        var c = s.charAt(i);
+        if (c === "\\") {
+          i += 2;
+        } else if (c === "`") {
+          k = runLength(s, i, "`");
+          e = codeEnd(runs, i + k, k);
+          i = e < 0 ? i + k : e + k;
+        } else if (c === "<") {
+          a = angle(s, i, lastClose);
+          i = a ? a.end : i + 1;
+        } else if (c === "[" || (c === "!" && s.charAt(i + 1) === "[")) {
+          if (stack.length) stack[stack.length - 1].after = true;
+          stack.push({ at: i, image: c === "!", after: false });
+          i += c === "!" ? 2 : 1;
+        } else if (c === "]") {
+          var o = stack.pop(), active = !!o && (o.image || stack.length >= floor);
+          if (floor > stack.length) floor = stack.length;
+          var t = active && tail(s, i + 1, o.at + (o.image ? 2 : 1), o.after, refs);
+          if (t) {
+            map[o.at] = { close: i, href: t.href, title: t.title, end: t.end, image: o.image };
+            if (!o.image) floor = stack.length;
+            i = t.end;
+          } else {
+            i++;
+          }
+        } else {
+          i++;
+        }
+      }
+      return map;
+    }
+
+    // Describes a run of *, _ or ~~ by whether it can open or close
+    // emphasis, which depends on the characters on either side of it.
+    function delimiter(s, i, k, c) {
+      var before = charBefore(s, i), after = charAfter(s, i + k);
+      var bw = !before || RE_SPACE.test(before), aw = !after || RE_SPACE.test(after);
+      var bp = !!before && RE_UPUNCT.test(before), ap = !!after && RE_UPUNCT.test(after);
+      var left = !aw && (!ap || bw || bp), right = !bw && (!bp || aw || ap);
+      var open = left, close = right;
+      if (c === "_") {
+        open = left && (!right || bp);
+        close = right && (!left || ap);
+      }
+      if (!open && !close) return null;
+      return { d: c, n: k, len: k, opens: [], closes: [], open: open, close: close };
+    }
+
+    // Pairs each closing run with the nearest earlier run that can open it,
+    // as the CommonMark emphasis algorithm does. The stack holds the runs
+    // that can still open. For each kind of closer, bottom marks how far
+    // down the stack an opener was already looked for without success, so
+    // no run is searched twice by the same kind and the work stays linear.
+    // The pairs are recorded on the runs and built into elements afterwards.
+    function resolve(delims) {
+      var stack = [], bottom = Object.create(null);
+      delims.forEach(function (cl) {
+        var key = cl.d + cl.open + cl.n % 3;
+        while (cl.close && cl.len) {
+          var low = bottom[key] || 0, o = stack.length - 1;
+          while (o >= low && !pairs(stack[o], cl)) o--;
+          if (o < low) {
+            bottom[key] = stack.length;
+            break;
+          }
+
+          var op = stack[o], use = cl.d === "~" || (op.len > 1 && cl.len > 1) ? 2 : 1;
+          var tag = cl.d === "~" ? "del" : use === 2 ? "strong" : "em";
+          op.len -= use;
+          cl.len -= use;
+          op.opens.push(tag);
+          cl.closes.push(tag);
+
+          // The runs between the pair can no longer open anything.
+          stack.length = op.len ? o + 1 : o;
+          for (var b in bottom) {
+            if (bottom[b] > stack.length) bottom[b] = stack.length;
+          }
+        }
+        if (cl.open && cl.len) stack.push(cl);
+      });
+    }
+
+    // Runs of * or _ cannot pair when one of them can both open and close
+    // and their lengths add up to a multiple of 3, unless both lengths are.
+    function pairs(op, cl) {
+      return op.d === cl.d && (cl.d === "~" ||
+        !((op.close || cl.open) && (op.n + cl.n) % 3 === 0 && (op.n % 3 || cl.n % 3)));
+    }
+
+    // Each run closes its elements, then shows the characters it did not
+    // use, then opens its elements, outermost first. Past MAX_EMPHASIS
+    // levels the runs still pair up but add no more elements. Text is joined
+    // so that each gap between elements gets one text node.
+    function build(out, parent) {
+      var stack = [parent], text = "", at = parent;
+      function flush() {
+        if (text) at.appendChild(document.createTextNode(text));
+        text = "";
+        at = stack[stack.length - 1];
+      }
+      function write(t) {
+        if (at !== stack[stack.length - 1]) flush();
+        text += t;
+      }
+      function put(node) {
+        flush();
+        at.appendChild(node);
+      }
+
+      out.forEach(function (x) {
+        if (typeof x === "string") {
+          write(x);
+        } else if (!x.d) {
+          put(x);
+        } else {
+          stack.length = Math.max(1, stack.length - x.closes.length);
+          if (x.len) write(x.d.repeat(x.len));
+          for (var k = x.opens.length - 1; k >= 0; k--) {
+            var top = stack[stack.length - 1];
+            if (stack.length <= MAX_EMPHASIS) put(top = el(x.opens[k]));
+            stack.push(top);
+          }
+        }
+      });
+      flush();
+    }
+
+    // Link text cannot hold another link, and alt text is plain text, so a
+    // link inside either one only keeps its text.
+    function anchor(src, href, title, ctx) {
+      var url = ctx.link || ctx.plain ? "" : linkUrl(href, true);
+      var node = url ? hyperlink(url, null, title) : document.createDocumentFragment();
+      inline(src, node, { refs: ctx.refs, depth: ctx.depth + 1, link: true, plain: ctx.plain });
+      return node;
+    }
+
+    function altText(src, ctx) {
+      var span = el("span");
+      inline(src, span, { refs: ctx.refs, depth: ctx.depth + 1, link: true, plain: true });
+      return span.textContent;
+    }
+
+    function size(v) {
+      return v && /^\d+(?:px)?$/.test(v) ? parseInt(v, 10) : 0;
+    }
+
+    // Only the src, alt, title, width and height of an html image are used.
+    function htmlImage(attrs, plain) {
+      var a = Object.create(null), m;
+      RE_ATTR.lastIndex = 0;
+      while ((m = RE_ATTR.exec(attrs))) {
+        var name = m[1].toLowerCase();
+        if (!(name in a)) a[name] = decodeHtml(m[2] || m[3] || m[4] || "");
+      }
+      return picture(a.alt || "", a.src || "", a.title || "", size(a.width), size(a.height), plain);
+    }
+
+    function inline(s, parent, ctx) {
+      if (ctx.depth > 4) {
+        parent.appendChild(document.createTextNode(s));
+        return;
+      }
+
+      var runs = tickRuns(s), lastClose = s.lastIndexOf("-->"), links = linkMap(s, runs, ctx.refs, lastClose);
+      var out = [], delims = [], buf = "", bareStop = 0, i = 0, n = s.length, m, k, e, a, l, d, url;
+
+      function add(node) {
+        if (typeof node === "string") {
+          buf += node;
+          return;
+        }
+        if (buf) out.push(buf);
+        buf = "";
+        out.push(node);
+      }
+
+      while (i < n) {
+        RE_PLAIN.lastIndex = i;
+        if ((m = RE_PLAIN.exec(s))) {
+          i = RE_PLAIN.lastIndex;
+
+          // Spaces at the end of a line are left out of the text.
+          buf += s.charAt(i) === "\n" ? m[0].slice(0, m[0].length - spacesBefore(m[0], m[0].length)) : m[0];
+          continue;
+        }
+
+        var c = s.charAt(i);
+        if (c === "\\") {
+          var next = s.charAt(i + 1);
+          if (next === "\n") {
+            add(el("br"));
+            i += 2;
+          } else if (next && RE_PUNCT.test(next)) {
+            buf += next;
+            i += 2;
+          } else {
+            buf += c;
+            i++;
+          }
+        } else if (c === "`") {
+          k = runLength(s, i, "`");
+          e = codeEnd(runs, i + k, k);
+          if (e < 0) {
+            buf += s.substr(i, k);
+            i += k;
+          } else {
+            add(el("code", null, codeText(s.slice(i + k, e))));
+            i = e + k;
+          }
+        } else if ((c === "[" || c === "!") && (l = links[i]) && l.image === (c === "!")) {
+          var text = s.slice(i + (l.image ? 2 : 1), l.close);
+          add(l.image ? picture(altText(text, ctx), l.href, l.title, 0, 0, ctx.plain) : anchor(text, l.href, l.title, ctx));
+          i = l.end;
+        } else if (c === "<" && (a = angle(s, i, lastClose))) {
+          if (a.href !== undefined) {
+            url = ctx.link || ctx.plain ? "" : linkUrl(a.href, true);
+            add(url ? hyperlink(url, a.text) : a.text);
+          } else if (a.name !== undefined && !TAGS[a.name]) {
+            buf += s.slice(i, a.end);
+          } else if (a.name === "br" && !a.close) {
+            add(el("br"));
+          } else if (a.name === "img" && !a.close) {
+            add(htmlImage(a.attrs, ctx.plain));
+          }
+          i = a.end;
+        } else if (c === "&") {
+          RE_ENTITY.lastIndex = i;
+          if ((m = RE_ENTITY.exec(s))) {
+            buf += entity(m[0], m[1], m[2], m[3]);
+            i = RE_ENTITY.lastIndex;
+          } else {
+            buf += c;
+            i++;
+          }
+        } else if (c === "*" || c === "_" || c === "~") {
+          k = runLength(s, i, c);
+          d = (c !== "~" || k === 2) && delimiter(s, i, k, c);
+          if (d) {
+            add(d);
+            delims.push(d);
+          } else {
+            buf += s.substr(i, k);
+          }
+          i += k;
+        } else if (c === "\n") {
+          // Two or more spaces at the end of a line make a hard line break.
+          if (s.charCodeAt(i - 1) === 32 && s.charCodeAt(i - 2) === 32) add(el("br"));
+          else buf += "\n";
+          i++;
+        } else if ((c === "h" || c === "w") && !ctx.link && !ctx.plain && i >= bareStop &&
+          (i === 0 || /[\s*_~(]/.test(s.charAt(i - 1)))) {
+          // Bare urls such as https://example.com and www.example.com are
+          // linked, as GitHub does.
+          RE_BARE.lastIndex = i;
+          m = RE_BARE.exec(s);
+          var raw = m ? trimUrl(m[0]) : "";
+          url = RE_HOST.test(raw) ? linkUrl(c === "w" ? "http://" + raw : raw) : "";
+          if (url) {
+            add(hyperlink(url, raw));
+            i += raw.length;
+          } else {
+            bareStop = i + (m ? m[0].length : 1);
+            buf += c;
+            i++;
+          }
+        } else {
+          buf += c;
+          i++;
+        }
+      }
+      if (buf) out.push(buf);
+      if (delims.length) resolve(delims);
+      build(out, parent);
+    }
+
+    // Paragraphs in a tight list are shown without paragraph spacing, and a
+    // paragraph left empty by removed html is dropped. Text nodes are not
+    // merged with normalize(), which is slow on long runs of them.
+    function tidy(root, st) {
+      st.tight.forEach(function (list) {
+        Array.prototype.slice.call(list.children).forEach(function (li) {
+          var prev = null;
+          Array.prototype.slice.call(li.children).forEach(function (p) {
+            var after = prev && prev.nodeName === "P";
+            prev = p;
+            if (p.nodeName !== "P") return;
+
+            // Paragraphs that only a hidden comment splits stay apart.
+            if (after) li.insertBefore(document.createTextNode("\n"), p);
+            while (p.firstChild) li.insertBefore(p.firstChild, p);
+            li.removeChild(p);
+          });
+        });
+      });
+      Array.prototype.slice.call(root.querySelectorAll("p")).forEach(function (p) {
+        if (!p.firstElementChild && !/\S/.test(p.textContent)) p.remove();
+      });
+    }
+
+    function render(src) {
+      held = [];
+      src = String(src).replace(/^\uFEFF/, "").replace(/\0/g, "\uFFFD");
+      lookup(src);
+      var lines = src.split(/\r\n?|\n/);
+
+      // A line break at the end of the readme does not start another line.
+      if (lines.length > 1 && !lines[lines.length - 1]) lines.pop();
+      lines = lines.map(expandTabs);
+      var st = { refs: Object.create(null), jobs: [], tight: [], fill: MAX_FILL }, root = el("div", "readme");
+      blocks(lines, root, 0, st);
+      st.jobs.forEach(function (job) {
+        inline(job[0], job[1], { refs: st.refs, depth: 0 });
+      });
+      tidy(root, st);
+      return { node: root, held: held };
+    }
+
+    return render;
+  })();
+
+  function imageBar(held) {
+    var bar = el("div", "img-bar");
+    bar.appendChild(el("span", null, "Images from other sites are hidden."));
+    var show = el("button", null, "Show images");
+    show.type = "button";
+    show.addEventListener("click", function () {
+      bar.remove();
+      held.forEach(function (load) { load(); });
+    });
+    bar.appendChild(show);
+    return bar;
+  }
+
+  // The readme is shown as markdown. One that is very large, or that the
+  // renderer fails on, is shown as plain text instead.
+  function loadReadme(pkg, version, host, isCurrent) {
+    getText(flatPath(pkg.id, version, "readme"))
+      .then(function (body) {
+        if (!isCurrent() || !body || !body.trim()) return;
+        var content;
+        try {
+          content = body.length <= 1048576 && renderMarkdown(body);
+        } catch (e) {
+          content = null;
+        }
+        var panel = el("section", "panel");
+        panel.appendChild(el("h3", null, "Readme"));
+        if (content && content.held.length) panel.appendChild(imageBar(content.held));
+        panel.appendChild(content ? content.node : el("pre", "readme", body));
+        host.appendChild(panel);
+
+        // Only reapply the position if the reader has not scrolled since.
+        if (settledAt < scrollTarget && window.scrollY === settledAt) restoreScroll();
+      }, function () {
+        // Most packages do not ship a readme.
+      });
+  }
+
+  // Links from NuGet clients and hand written ones do not always use the
+  // normalized form of a version, such as 1.0 or 1.0.0.0 for 1.0.0, so both
+  // sides are normalized the way NuGet does before they are compared.
+  function normalizeVersion(v) {
+    var s = identityVersion(v).trim().toLowerCase();
+    var dash = s.indexOf("-");
+    var parts = (dash < 0 ? s : s.slice(0, dash)).split(".");
+    if (parts.length > 4 || !parts.every(function (p) { return /^\d+$/.test(p); })) return s;
+
+    parts = parts.map(function (p) { return String(parseInt(p, 10)); });
+    while (parts.length < 3) parts.push("0");
+    if (parts.length === 4 && parts[3] === "0") parts.pop();
+    return parts.join(".") + (dash < 0 ? "" : s.slice(dash));
+  }
+
+  function findVersion(reg, wanted) {
+    var key = normalizeVersion(wanted);
+    for (var i = 0; i < reg.versions.length; i++) {
+      if (normalizeVersion(reg.versions[i].version) === key) return reg.versions[i];
+    }
+    return null;
+  }
+
+  // Level three: everything the feed knows about one specific version.
+  function renderDetail(pkg, reg, gen, wanted) {
+    elCount.textContent = "";
+    elBody.textContent = "";
+
+    if (!reg.latest) {
+      document.title = pkg.id + " \u00b7 " + BRAND;
+      elBody.appendChild(crumbs([["Feed", listHash]], pkg.id));
+      elBody.appendChild(el("p", "empty", "No versions of this package are available."));
+      restoreScroll();
+      return;
+    }
+
+    var asked = findVersion(reg, wanted);
+    var selected = asked || reg.latest;
+
+    document.title = pkg.id + " " + selected.version + " \u00b7 " + BRAND;
+    elBody.appendChild(crumbs(
+      [["Feed", listHash], [pkg.id, packageHash(pkg.id)]],
+      selected.version,
+      "mono"));
+
+    if (!asked) elBody.appendChild(missingVersion(wanted, selected.version));
+
+    elBody.appendChild(detailHeader(pkg, selected));
+    elBody.appendChild(dependencyPanel(selected.groups));
+    restoreScroll();
+
+    // Moving between versions routes through the url, so a readme that is
+    // still in flight belongs to a page the reader has already left.
+    loadReadme(pkg, selected.version, elBody, function () { return gen === generation; });
+  }
+
+  // A version from the address is only repeated when it reads as one.
+  function missingVersion(wanted, shown) {
+    return el("p", "note", (quotable(wanted) ? "Version " + wanted : "That version") +
+      " is not on this feed, showing " + shown + " instead.");
+  }
+
+  // The nuspec is shown as text inside the gallery. Opened directly, the
+  // browser would run it as an xml page of the feed's site.
+  function renderNuspec(pkg, reg, gen, wanted) {
+    var asked = findVersion(reg, wanted);
+    var selected = asked || reg.latest;
+
+    document.title = pkg.id + " " + selected.version + " nuspec \u00b7 " + BRAND;
+    elCount.textContent = "";
+    elBody.textContent = "";
+    elBody.appendChild(crumbs(
+      [["Feed", listHash], [pkg.id, packageHash(pkg.id)], [selected.version, packageHash(pkg.id, selected.version), "mono"]],
+      "nuspec"));
+
+    if (!asked) elBody.appendChild(missingVersion(wanted, selected.version));
+
+    var panel = el("section", "panel");
+    panel.appendChild(el("h3", null, pkg.lowerId + ".nuspec"));
+    var slot = panel.appendChild(el("p", "empty", "Loading\u2026"));
+    elBody.appendChild(panel);
+    restoreScroll();
+
+    getText(nuspecPath(pkg.id, selected.version)).then(function (xml) {
+      if (gen !== generation) return;
+      slot.replaceWith(el("pre", "source", xml));
+
+      // Only reapply the position if the reader has not scrolled since.
+      if (settledAt < scrollTarget && window.scrollY === settledAt) restoreScroll();
+    }, function (err) {
+      if (gen !== generation) return;
+      var box = el("div", "err");
+      box.appendChild(el("strong", null, "Unable to load this nuspec."));
+      box.appendChild(el("p", "mono", String((err && err.message) || err)));
+      slot.replaceWith(box);
+    });
+  }
+
+  function openPackage(id, version, nuspec) {
+    var gen = ++generation;
+    var pkg = byId[id.toLowerCase()];
+
+    if (!pkg) {
+      var known = quotable(id);
+      document.title = BASE_TITLE;
+      elCount.textContent = "";
+      elBody.textContent = "";
+      elBody.appendChild(crumbs([["Feed", listHash]], known ? id : "Not found"));
+      elBody.appendChild(el("p", "empty", known
+        ? "\u201c" + id + "\u201d is not in this feed."
+        : "That package is not in this feed."));
+      restoreScroll();
+      return;
+    }
+
+    elBody.textContent = "";
+    elBody.appendChild(el("p", "empty", "Loading\u2026"));
+
+    registration(pkg.lowerId).then(function (reg) {
+      if (gen !== generation) return;
+      if (version && nuspec && reg.latest) renderNuspec(pkg, reg, gen, version);
+      else if (version) renderDetail(pkg, reg, gen, version);
+      else renderVersions(pkg, reg);
+    }, function (err) {
+      if (gen !== generation) return;
+      packageError(pkg, err);
+    });
+  }
+
+  // One unreadable package is not a broken feed, so the failure stays on the
+  // package that caused it and the breadcrumb is kept so the reader can go back.
+  function packageError(pkg, err) {
+    document.title = pkg.id + " \u00b7 " + BRAND;
+    elCount.textContent = "";
+    elBody.textContent = "";
+    elBody.appendChild(crumbs([["Feed", listHash]], pkg.id));
+
+    var box = el("div", "err");
+    box.appendChild(el("strong", null, "Unable to load this package."));
+
+    box.appendChild(el("p", null, err && err.status === 404
+      ? "The feed lists " + pkg.id + " but has no registration for it, so its "
+        + "versions and metadata cannot be read."
+      : "Check that the feed files are readable from " + ROOT + "."));
+
+    box.appendChild(el("p", "mono", String((err && err.message) || err)));
+    elBody.appendChild(box);
+    restoreScroll();
+  }
+
+  function route() {
+    if (!loaded) return;
+
+    if (shownEntry !== null && !startAtTop) scrollPositions[shownEntry] = window.scrollY;
+    shownEntry = entryKey();
+    scrollTarget = startAtTop ? 0 : scrollPositions[shownEntry] || 0;
+    startAtTop = false;
+
+    var r = parseHash();
+    if (r.view === "package") openPackage(r.id, r.version, r.nuspec);
+    else renderList(r.q, r.page);
+  }
+
+  function fail(err) {
+    elCount.textContent = "";
+    elBody.textContent = "";
+
+    var box = el("div", "err");
+    box.appendChild(el("strong", null, "Unable to read this feed."));
+    box.appendChild(el("p", null, String((err && err.message) || err)));
+    box.appendChild(el("p", null,
+      "Check that the feed files are publicly readable from " + ROOT + "."));
+    elBody.appendChild(box);
+  }
+
+  elSearch.addEventListener("input", function () {
+    var hash = listHashFor(elSearch.value, 1);
+    leaveView();
+
+    // Filtering from a package page is a new step that Back returns from.
+    // Further keystrokes replace it rather than filling up the history.
+    if (parseHash().view === "package") {
+      location.hash = hash;
+    } else {
+      setHash(hash);
+      route();
+    }
+  });
+
+  // Links inside the gallery only change the hash. Modified clicks open a new
+  // tab and leave this page where it is.
+  document.addEventListener("click", function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target && e.target.closest ? e.target.closest("a") : null;
+    if (!a || (a.getAttribute("href") || "").charAt(0) !== "#" || a.href === location.href) return;
+    leaveView();
+  });
+
+  window.addEventListener("hashchange", route);
+
+  // Dark is the default. The choice is saved, so it holds on every visit and
+  // across the feeds on the same site.
+  var elMode = document.getElementById("mode");
+
+  function showMode() {
+    var label = document.documentElement.getAttribute("data-theme") === "light" ? "Switch to dark mode" : "Switch to light mode";
+    elMode.setAttribute("aria-label", label);
+    elMode.title = label;
+  }
+
+  elMode.addEventListener("click", function () {
+    var light = document.documentElement.getAttribute("data-theme") !== "light";
+    if (light) document.documentElement.setAttribute("data-theme", "light");
+    else document.documentElement.removeAttribute("data-theme");
+    try {
+      localStorage.setItem("sleet-gallery-mode", light ? "light" : "dark");
+    } catch (e) { }
+    showMode();
+  });
+
+  showMode();
+
+  // sleet.packageindex.json is the smallest complete view of the feed. It
+  // carries every id and version, which is all the top level list, the id
+  // filter and paging need apart from icons, and a package only pulls its own
+  // metadata when the reader opens it.
+  getJson("sleet.packageindex.json").then(function (json) {
+    var src = (json && json.packages) || {};
+
+    packages = Object.keys(src).map(function (id) {
+      // Sleet writes these newest first, so no client side sort is needed.
+      return { id: id, lowerId: id.toLowerCase(), versions: list(src[id]) };
+    }).filter(function (p) {
+      return p.id && p.versions.length;
+    }).sort(function (a, b) {
+      return a.lowerId < b.lowerId ? -1 : a.lowerId > b.lowerId ? 1 : 0;
+    });
+
+    packages.forEach(function (p) { byId[p.lowerId] = p; });
+
+    loaded = true;
+    route();
+  }, fail);
+})();
+</script>
+</body>
+</html>

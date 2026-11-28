@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using NuGet.Test.Helpers;
 using Sleet.Test.Common;
+using Xunit;
 
 namespace Sleet.AmazonS3.Tests
 {
@@ -128,6 +129,8 @@ namespace Sleet.AmazonS3.Tests
         [AmazonS3Fact]
         public async Task GivenAStorageAccountWithNoContainerPublicAclVerifyPushSucceeds()
         {
+            Assert.SkipWhen(AmazonS3TestContext.IsGoogleCloudStorage, "Cloud Storage feeds use IAM for public access, and buckets with uniform bucket-level access reject uploads that set an ACL.");
+
             using (var packagesFolder = new TestFolder())
             await using (var testContext = new AmazonS3TestContext(acl: "public-read"))
             {

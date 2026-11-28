@@ -16,7 +16,7 @@ flowchart LR
 - The feed works with every NuGet v3 client, including `dotnet`, Visual Studio, and `nuget.exe`.
 - You keep full control of your packages and where they are stored.
 
-Sleet also supports [version badges](badges.md), [package retention](retention.md), and [CDN cache headers](cdn-caching.md).
+Sleet also supports [version badges](badges.md), [package retention](retention.md), and [CDN cache headers](cdn-caching.md). By default, feeds also include a [package gallery](gallery.md), a web page for browsing their packages.
 
 ## Choose where to host the feed
 
@@ -25,12 +25,13 @@ Sleet also supports [version badges](badges.md), [package retention](retention.m
 | Azure Blob Storage | Teams on Azure. Sign in with Microsoft Entra ID. | [Create an Azure feed](feed-type-azure.md) |
 | Amazon S3 | Teams on AWS. | [Create an Amazon S3 feed](feed-type-s3.md) |
 | Cloudflare R2 | Teams on Cloudflare. | [Create a Cloudflare R2 feed](feed-type-cloudflare.md) |
+| Google Cloud Storage | Teams on Google Cloud. | [Create a Google Cloud Storage feed](feed-type-gcs.md) |
 | S3-compatible storage | MinIO, DigitalOcean Spaces, Backblaze B2, and similar services. | [S3-compatible storage](s3-compatible.md) |
 | Local folder | Serving packages from your own web server, or testing. | [Create a local feed](feed-type-local.md) |
 
 ## Quick start
 
-Install Sleet. It needs the .NET 8 SDK or later. See [Install Sleet](install.md) for other options.
+Install Sleet. It needs the .NET 10 SDK or later. See [Install Sleet](install.md) for other options.
 
 ```bash
 dotnet tool install -g sleet
@@ -68,7 +69,7 @@ See [limitations](limitations.md) for the full list.
 
 | Section | What it covers |
 | --- | --- |
-| Get started | [Install](install.md), [Azure](feed-type-azure.md), [Amazon S3](feed-type-s3.md), [Cloudflare R2](feed-type-cloudflare.md), [local folders](feed-type-local.md), and [using a feed](consume-feed.md). |
+| Get started | [Install](install.md), [Azure](feed-type-azure.md), [Amazon S3](feed-type-s3.md), [Cloudflare R2](feed-type-cloudflare.md), [Google Cloud Storage](feed-type-gcs.md), [local folders](feed-type-local.md), and [using a feed](consume-feed.md). |
 | Guides | [Authentication](auth-azure.md), [CI](ci-server.md), [private feeds](private-feeds.md), [hosting](static-hosting.md), [feed features](badges.md), and [maintenance](backup-migration.md). |
 | Reference | [Commands](commands.md), [client settings](client-settings.md), [environment variables](environment-variables.md), and [feed settings](feed-settings.md). |
 | Concepts | [How Sleet works](how-it-works.md), [feed locking](locking.md), and [limitations](limitations.md). |

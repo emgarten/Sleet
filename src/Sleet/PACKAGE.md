@@ -4,7 +4,7 @@ Sleet is a static NuGet package feed generator. It creates and updates NuGet v3 
 
 ## Install
 
-Sleet is a .NET tool and requires the .NET 8 SDK or later.
+Sleet is a .NET tool and requires the .NET 10 SDK or later.
 
 ```
 dotnet tool install -g sleet

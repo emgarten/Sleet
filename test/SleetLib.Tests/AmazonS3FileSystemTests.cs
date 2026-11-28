@@ -381,13 +381,15 @@ namespace SleetLib.Tests
             }
         }
 
-        [Fact]
-        public async Task AmazonS3FileSystem_CreateBucket_WithCloudflareR2_SkipsPublicAccessSettings()
+        [Theory]
+        [InlineData("r2", "Cloudflare R2 buckets are private by default")]
+        [InlineData("gcs", "Google Cloud Storage buckets are private by default")]
+        public async Task AmazonS3FileSystem_CreateBucket_WithExternalPublicAccess_SkipsPublicAccessSettings(string provider, string message)
         {
             var fileSystem = await FileSystemFactoryTests.CreateS3FileSystemAsync(source =>
             {
-                source["provider"] = "r2";
-                source["serviceURL"] = "https://account.r2.cloudflarestorage.com";
+                source["provider"] = provider;
+                source["serviceURL"] = "https://s3.example.com";
                 source["baseURI"] = "https://nuget.example.com/";
                 source["acl"] = "public-read";
             });
@@ -405,12 +407,13 @@ namespace SleetLib.Tests
             client.Verify(c => c.PutBucketOwnershipControlsAsync(It.IsAny<PutBucketOwnershipControlsRequest>(), It.IsAny<CancellationToken>()), Times.Never());
             client.Verify(c => c.PutBucketPolicyAsync(It.IsAny<PutBucketPolicyRequest>(), It.IsAny<CancellationToken>()), Times.Never());
             client.Verify(c => c.PutBucketAclAsync(It.IsAny<PutBucketAclRequest>(), It.IsAny<CancellationToken>()), Times.Never());
-            log.GetMessages().Should().Contain("Cloudflare R2 buckets are private by default");
+            log.GetMessages().Should().Contain(message);
         }
 
         [Theory]
         [InlineData("r2")]
         [InlineData("self-hosted")]
+        [InlineData("gcs")]
         public async Task AmazonS3FileSystem_CreateBucket_WithS3CompatibleProvider_DoesNotUseClientRegion(string provider)
         {
             var fileSystem = await FileSystemFactoryTests.CreateS3FileSystemAsync(source =>

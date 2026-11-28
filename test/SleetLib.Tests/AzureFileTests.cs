@@ -25,6 +25,7 @@ namespace SleetLib.Tests
                 yield return new object[] { "flatcontainer/a/1.0.0/a.nuspec", "<package />", "application/xml", "immutable-cache", null, false };
                 yield return new object[] { "registration/a/index.xml", "<feed />", "application/xml", "immutable-cache", null, false };
                 yield return new object[] { "assets/icon.svg", "<svg />", "image/svg+xml", "mutable-cache", null, false };
+                yield return new object[] { "index.html", "<!DOCTYPE html><title>feed</title>", "text/html; charset=utf-8", "mutable-cache", "gzip", true };
                 yield return new object[] { "flatcontainer/a/1.0.0/icon", "image bytes", "image/png", "immutable-cache", null, false };
                 yield return new object[] { "flatcontainer/a/1.0.0/readme", "# readme", "text/markdown", "immutable-cache", null, false };
                 yield return new object[] { "index.json", "{ \"b\" : 2 }", "application/json", "mutable-cache", "gzip", true };
@@ -60,13 +61,16 @@ namespace SleetLib.Tests
                 capture.Headers.CacheControl.Should().Be(cacheControl);
                 capture.Headers.ContentEncoding.Should().Be(contentEncoding);
 
-                if (gzipped)
+                var body = gzipped ? AzureUnitTestUtility.Gunzip(capture.Body) : Encoding.UTF8.GetString(capture.Body);
+
+                // JSON is minified when compressed, other content must be unchanged.
+                if (contentType == "application/json")
                 {
-                    JObject.Parse(AzureUnitTestUtility.Gunzip(capture.Body)).Should().BeEquivalentTo(JObject.Parse(content));
+                    JObject.Parse(body).Should().BeEquivalentTo(JObject.Parse(content));
                 }
                 else
                 {
-                    Encoding.UTF8.GetString(capture.Body).Should().Be(content);
+                    body.Should().Be(content);
                 }
             }
         }

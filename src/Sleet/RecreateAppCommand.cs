@@ -30,6 +30,7 @@ namespace Sleet
             var nupkgPath = cmd.Option("--nupkg-path", "Optional temporary directory to store downloaded nupkgs in. Use a new or empty directory, because every nupkg in it is pushed to the new feed. This folder will be cleaned up if the command completes successfully. If the command fails after the nupkgs are downloaded they will be left as a backup.", CommandOptionType.SingleValue);
 
             var force = cmd.Option("-f|--force", "Ignore errors when recreating the feed.", CommandOptionType.NoValue);
+            var setSetting = cmd.Option("--set", "Set a feed setting on the recreated feed. Value must be in the form {key}:{value}. May be specified multiple times.", CommandOptionType.MultipleValue);
             var propertyOptions = cmd.Option(Constants.PropertyOption, Constants.PropertyDescription, CommandOptionType.MultipleValue);
 
             var required = new List<CommandOption>();
@@ -52,7 +53,7 @@ namespace Sleet
                     var tmpPath = nupkgPath.HasValue() ? nupkgPath.Value() : null;
 
                     // Run
-                    var success = await RecreateCommand.RunAsync(settings, fileSystem, tmpPath, force.HasValue(), log);
+                    var success = await RecreateCommand.RunAsync(settings, fileSystem, tmpPath, force.HasValue(), CmdUtils.FilterNullValues(setSetting.Values), log);
 
                     return success ? 0 : 1;
                 }

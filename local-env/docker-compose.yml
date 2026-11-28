@@ -18,7 +18,7 @@ x-healthcheck: &healthcheck
 services:
   # Azure Blob Storage emulator
   azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:3.37.0
+    image: mcr.microsoft.com/azure-storage/azurite:3.38.0
     # Blob only and in memory. Skip the API version check so newer Azure SDK versions work with this Azurite version.
     command: azurite-blob --blobHost 0.0.0.0 --inMemoryPersistence --skipApiVersionCheck
     ports:
@@ -29,7 +29,7 @@ services:
 
   # S3 compatible storage for the Amazon S3 tests
   rustfs:
-    image: rustfs/rustfs:1.0.4
+    image: rustfs/rustfs:1.0.6
     environment:
       RUSTFS_ACCESS_KEY: rustfsadmin
       RUSTFS_SECRET_KEY: rustfsadmin
