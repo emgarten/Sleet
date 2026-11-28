@@ -106,7 +106,8 @@ namespace Sleet
                         var accessKeyId = JsonUtility.GetValueCaseInsensitive(sourceEntry, "accessKeyId");
                         var secretAccessKey = JsonUtility.GetValueCaseInsensitive(sourceEntry, "secretAccessKey");
                         var bucketName = JsonUtility.GetValueCaseInsensitive(sourceEntry, "bucketName");
-                        var region = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
+                        var regionSetting = JsonUtility.GetValueCaseInsensitive(sourceEntry, "region");
+                        var region = string.IsNullOrEmpty(regionSetting) ? provider.Region : regionSetting;
                         var serviceURL = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serviceURL");
                         var serverSideEncryptionMethod = JsonUtility.GetValueCaseInsensitive(sourceEntry, "serverSideEncryptionMethod") ?? "None";
                         var compress = JsonUtility.GetBoolCaseInsensitive(sourceEntry, "compress", true);
@@ -186,6 +187,7 @@ namespace Sleet
                             config.ServiceURL = serviceURL;
 
                             // RegionEndpoint cannot be used with ServiceURL, region is only used to sign requests
+                            // Without it the AWS SDK signs with a region from the serviceURL host, AWS_REGION, or the AWS config file
                             if (!string.IsNullOrEmpty(region))
                             {
                                 config.AuthenticationRegion = region;

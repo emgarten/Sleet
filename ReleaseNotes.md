@@ -30,6 +30,7 @@
   * `aws` (default), `r2` for Cloudflare R2, and `self-hosted` for S3 servers you run yourself, such as MinIO and RustFS
   * `sleet create-config --provider <name>` creates a config template for the service
   * Buckets that Sleet creates with `r2` or `self-hosted` use the service's default location, instead of a region that the AWS SDK guesses from the bucket name or AWS settings
+  * `r2` signs requests with the `auto` region when `region` isn't set, instead of the region from `AWS_REGION` or the AWS config file, which R2 rejects with `BadRequest`
   * Added a [Cloudflare R2 setup guide](doc/feed-type-cloudflare.md)
 * Added `forcePathStyle` and `checksumMode` settings for S3 compatible storage
 * `region` can now be used with `serviceURL` to set the signing region

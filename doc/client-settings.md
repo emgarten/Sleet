@@ -126,9 +126,9 @@ Set `path`, `connectionString`, or both. See [Azure authentication](auth-azure.m
 | Property | Description |
 | --- | --- |
 | `bucketName` | Required. The bucket name. |
-| `region` | The AWS Region of the bucket, such as `us-west-2`. Set `region`, `serviceURL`, or both. With `serviceURL`, Sleet only uses `region` to sign requests. |
+| `region` | The AWS Region of the bucket, such as `us-west-2`. Set `region`, `serviceURL`, or both. With `serviceURL`, Sleet only uses `region` to sign requests. When `provider` is `r2`, the default is `auto`. |
 | `serviceURL` | The S3 API endpoint, for S3-compatible storage. Required when `provider` is `r2` or `self-hosted`. See [S3-compatible storage](s3-compatible.md). |
-| `provider` | The service that hosts the bucket: `aws`, `r2` for [Cloudflare R2](feed-type-cloudflare.md), or `self-hosted` for S3 servers that you run yourself, such as MinIO and RustFS. The default is `aws`. It sets the defaults of `disablePayloadSigning`, `forcePathStyle`, and `checksumMode`. See [provider settings](s3-compatible.md#provider-settings). |
+| `provider` | The service that hosts the bucket: `aws`, `r2` for [Cloudflare R2](feed-type-cloudflare.md), or `self-hosted` for S3 servers that you run yourself, such as MinIO and RustFS. The default is `aws`. It sets the defaults of `region`, `disablePayloadSigning`, `forcePathStyle`, and `checksumMode`. See [provider settings](s3-compatible.md#provider-settings). |
 | `path` | The bucket URL that clients use, such as `https://my-bucket-feed.s3.us-west-2.amazonaws.com/`. Always set it. Without it, Sleet builds a path-style URL from `region`, or from `serviceURL` and `bucketName`. For Cloudflare R2, set `baseURI` to the public URL instead. |
 | `feedSubPath` | A sub folder for the feed. When you set it, `path` must end with the same folder. See [multiple feeds](multiple-feeds.md). |
 | `profileName` | A profile in your AWS credentials or config file. |

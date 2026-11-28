@@ -38,7 +38,7 @@ Set `provider` to use the defaults that a service needs. Settings in the source 
 | `provider` | Service | Defaults |
 | --- | --- | --- |
 | `aws` | Amazon S3, and providers that work with the AWS defaults. This is the default. | The AWS SDK defaults. |
-| `r2` | Cloudflare R2 | `disablePayloadSigning` is `true` and `checksumMode` is `whenRequired`. `serviceURL` and `baseURI` are required. Sleet doesn't change public access on buckets it creates. See [Create a Cloudflare R2 feed](feed-type-cloudflare.md). |
+| `r2` | Cloudflare R2 | `region` is `auto`, `disablePayloadSigning` is `true`, and `checksumMode` is `whenRequired`. `serviceURL` and `baseURI` are required. Sleet doesn't change public access on buckets it creates. See [Create a Cloudflare R2 feed](feed-type-cloudflare.md). |
 | `self-hosted` | S3 servers that you run yourself, such as MinIO and RustFS | `forcePathStyle` is `true`, because these servers usually only support virtual-hosted-style URLs when a server domain is configured. `serviceURL` is required. |
 
 For other providers, set `disablePayloadSigning`, `checksumMode`, or `forcePathStyle` yourself if the provider doesn't support the AWS defaults. See [Amazon S3 properties](client-settings.md#amazon-s3-properties).

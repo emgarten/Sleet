@@ -2,6 +2,7 @@
 
 This quick start creates a public NuGet v3 feed in [Cloudflare R2](https://developers.cloudflare.com/r2/). R2 implements the S3 API, so an R2 feed is an `s3` source with `provider` set to `r2`. The `r2` provider applies the settings that R2 needs:
 
+- `region` defaults to `auto`, the Region that R2 expects in request signatures. Without it, the AWS SDK signs with the Region from `AWS_REGION` or your AWS config file, and R2 rejects any Region except `auto` and `us-east-1`.
 - `disablePayloadSigning` defaults to `true` and `checksumMode` defaults to `whenRequired`. R2 doesn't support the streaming uploads that the AWS SDK uses.
 - `serviceURL` and `baseURI` are required.
 - When Sleet creates a bucket, it doesn't try to make the bucket public. R2 doesn't support bucket policies, so you turn on public access in Cloudflare instead.
@@ -89,9 +90,9 @@ You can also use [.netconfig](client-settings.md#netconfig):
     secretAccessKey = R2_SECRET_ACCESS_KEY
 ```
 
-R2 doesn't need `region`. To keep the access key out of the file, leave out `accessKeyId` and `secretAccessKey`, and set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables. See [AWS authentication](auth-aws.md).
+You don't need to set `region`, because the `r2` provider uses `auto`. To keep the access key out of the file, leave out `accessKeyId` and `secretAccessKey`, and set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables. See [AWS authentication](auth-aws.md).
 
-Existing R2 feeds that set `disablePayloadSigning` instead of `provider` continue to work.
+Existing R2 feeds that set `disablePayloadSigning` instead of `provider` continue to work, but `region` doesn't default to `auto` for them. If they fail with `BadRequest` on a machine that sets a Region in `AWS_REGION` or the AWS config file, set `provider` to `r2`.
 
 For the full property list, see [Amazon S3 properties](client-settings.md#amazon-s3-properties).
 
